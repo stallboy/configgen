@@ -4,6 +4,7 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.ZipEntry;
@@ -20,7 +21,7 @@ public final class CSV {
         START, NOQUOTE, QUOTE, QUOTE2, CR,
     }
 
-    public static List<List<String>> parse(Reader reader) throws IOException {
+    public static List<List<String>> parse(Reader reader, boolean removeEmptyLine) throws IOException {
         List<List<String>> result = new ArrayList<>();
         List<String> record = new ArrayList<>();
         State state = State.START;
@@ -135,19 +136,20 @@ public final class CSV {
                 break;
         }
 
-        List<List<String>> filtered = new ArrayList<>();
-        for (List<String> list : result) {
-            boolean allempty = true;
-            for (String s : list) {
-                if (!s.isEmpty()) {
-                    allempty = false;
-                    break;
-                }
-            }
-            if (!allempty)
-                filtered.add(list);
+        if (removeEmptyLine) {
+            return result.stream().filter(line -> !isEmptyLine(line)).collect(Collectors.toList());
+        } else {
+            return result;
         }
-        return filtered;
+    }
+
+    public static boolean isEmptyLine(List<String> line) {
+        for (String s : line) {
+            if (!s.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static final char semicolon = ';';
@@ -235,7 +237,7 @@ public final class CSV {
 
     public static boolean parseBoolean(String s) {
         String t = s.trim();
-        return !t.isEmpty() && ( t.equals("1") || t.equalsIgnoreCase("true") );
+        return !t.isEmpty() && (t.equals("1") || t.equalsIgnoreCase("true"));
     }
 
     public static float parseFloat(String s) {
@@ -256,8 +258,8 @@ public final class CSV {
     static String path2Name(String p) {
         String[] res = p.split("\\\\|/");
         if (res.length > 0) {
-            String last = res[res.length-1];
-            res[res.length-1] = last.substring(0, last.length() - 4);
+            String last = res[res.length - 1];
+            res[res.length - 1] = last.substring(0, last.length() - 4);
         }
         return String.join(".", res);
     }
@@ -288,7 +290,7 @@ public final class CSV {
                             classList.add(clz);
                             Method initialize = clz.getDeclaredMethod("initialize", List.class);
                             initialize.setAccessible(true);
-                            List<List<String>> res = parse(new BufferedReader(new InputStreamReader(zis, charsetName)));
+                            List<List<String>> res = parse(new BufferedReader(new InputStreamReader(zis, charsetName)), true);
                             initialize.invoke(null, res.subList(2, res.size()));
                             loaded.add(name);
                         }

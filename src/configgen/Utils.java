@@ -59,8 +59,8 @@ public final class Utils {
 
         NodeList childnodes = self.getChildNodes();
         for (int i = 0; i < childnodes.getLength(); i++) {
-            Node node = childnodes.item(i);
-            if (Node.ELEMENT_NODE != node.getNodeType())
+            org.w3c.dom.Node node = childnodes.item(i);
+            if (org.w3c.dom.Node.ELEMENT_NODE != node.getNodeType())
                 continue;
 
             Element e = (Element) node;

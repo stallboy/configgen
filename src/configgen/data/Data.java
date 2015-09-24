@@ -1,5 +1,6 @@
 package configgen.data;
 
+import configgen.CSV;
 import configgen.Node;
 import configgen.define.Config;
 import configgen.define.Field;
@@ -9,20 +10,25 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Data extends Node {
-    public final List<List<String>> raw;
+    public final Map<Integer, List<String>> line2data = new LinkedHashMap<>(); //start from 0
     public final Map<String, Column> columns = new LinkedHashMap<>();
 
-    private static class NameType{
+    private final List<String> descLine;
+    private final List<String> nameLine;
+
+    private static class NameType {
         String name;
         Type type;
 
-        NameType(String n, Type t){
+        NameType(String n, Type t) {
             name = n;
             type = t;
         }
     }
+
     private Map<String, NameType> defined = new LinkedHashMap<>();
     private State state;
     private int index;
@@ -41,16 +47,24 @@ public class Data extends Node {
 
     public Data(Datas parent, String link, List<List<String>> raw) {
         super(parent, link);
-        this.raw = raw;
+        descLine = raw.get(0);
+        nameLine = raw.get(1);
+        for (int i = 2; i < raw.size(); i++) {
+            List<String> line = raw.get(i);
+            if (!CSV.isEmptyLine(line)) {
+                line2data.put(i, line);
+            }
+        }
     }
 
     void refineDefine(Config define) {
         columns.forEach((n, col) -> {
             Field f = define.bean.fields.get(n);
             if (f == null) {
-                f = new Field(define.bean, col.descs.get(0), n, col.guessType());
+                f = new Field(define.bean, n, col.guessType());
                 define.bean.fields.put(f.name, f);
             }
+            col.updateDesc(f);
         });
     }
 
@@ -61,7 +75,7 @@ public class Data extends Node {
 
         state = State.NORM;
         index = -1;
-        for (String s : raw.get(1)) {
+        for (String s : nameLine) {
             index++;
             if (s.isEmpty())
                 continue;
@@ -362,15 +376,13 @@ public class Data extends Node {
     private void put(String s, List<Integer> a) {
         Column col = new Column(this, s);
         col.indexs.addAll(a);
-        for (int i : a) {
-            col.descs.add(raw.get(0).get(i));
-        }
+        col.descs.addAll(a.stream().map(descLine::get).collect(Collectors.toList()));
         Assert(null == columns.put(s, col), "field duplicate");
     }
 
     private void add(String s, int i) {
         Column col = columns.get(s);
         col.indexs.add(i);
-        col.descs.add(raw.get(0).get(i));
+        col.descs.add(descLine.get(i));
     }
 }

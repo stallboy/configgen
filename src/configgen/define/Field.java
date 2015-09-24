@@ -4,7 +4,7 @@ import configgen.*;
 import org.w3c.dom.Element;
 
 public class Field  extends Node{
-    public final String desc;
+    public String desc;
     public final String name;
     public final String type;
     public final String ref;
@@ -34,9 +34,8 @@ public class Field  extends Node{
         own = attrs[8];
     }
 
-    public Field(Bean parent, String desc, String name, String type){
+    public Field(Bean parent, String name, String type){
         super(parent, "");
-        this.desc = desc;
         this.name = name;
         this.type = type;
         link = "[field]" + name;

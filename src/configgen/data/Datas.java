@@ -1,7 +1,6 @@
 package configgen.data;
 
 import configgen.CSV;
-import configgen.Main;
 import configgen.Node;
 import configgen.Utils;
 import configgen.define.Config;
@@ -32,7 +31,7 @@ public class Datas extends Node {
                 if (file.toString().endsWith(".csv")) {
                     String name = Utils.path2Name(dataDir.relativize(file).toString());
                     try(Reader reader = new InputStreamReader(new FileInputStream(file.toFile()), inputEncoding)){
-                        datas.put(name, new Data(Datas.this, name, CSV.parse(reader)));
+                        datas.put(name, new Data(Datas.this, name, CSV.parse(reader, false)));
                     }
                 }
                 return FileVisitResult.CONTINUE;

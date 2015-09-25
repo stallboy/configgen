@@ -40,6 +40,13 @@ public class Column extends Node {
         }
     }
 
+    public List<String> dataList() {
+        List<String> r = new ArrayList<>();
+        for (List<String> row : ((Data) parent).line2data.values())
+            r.addAll(indexs.stream().map(row::get).collect(Collectors.toList()));
+        return r;
+    }
+
     private Set<String> dataSet() {
         Set<String> r = new HashSet<>();
         for (List<String> row : ((Data) parent).line2data.values())

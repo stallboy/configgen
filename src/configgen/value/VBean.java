@@ -11,12 +11,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class VBean extends Value {
-    public final TBean type;
+    public final TBean tbean;
     public final Map<String, Value> map = new LinkedHashMap<>();
 
     public VBean(Node parent, String link, TBean type, List<Cell> data) {
-        super(parent, link);
-        this.type = type;
+        super(parent, link, type, data);
+        this.tbean = type;
 
         List<Cell> sdata;
         if (type.define.compress) {
@@ -39,6 +39,12 @@ public class VBean extends Value {
     }
 
     @Override
+    public void verifyChild() {
+        map.values().forEach(Value::verifyConstraint);
+        //tbean.keysRefs
+    }
+
+    @Override
     public boolean equals(Object o) {
         return o != null && o instanceof VBean && type == ((VBean) o).type && map.equals(((VBean) o).map);
     }
@@ -47,5 +53,4 @@ public class VBean extends Value {
     public int hashCode() {
         return map.hashCode();
     }
-
 }

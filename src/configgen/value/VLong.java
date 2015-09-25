@@ -2,25 +2,26 @@ package configgen.value;
 
 import configgen.CSV;
 import configgen.Node;
+import configgen.type.Range;
 import configgen.type.TLong;
 
 import java.util.List;
 
-public class VLong extends Value {
-    public final TLong type;
-    public final Cell raw;
+public class VLong extends VPrimitive {
     public long value;
 
     public VLong(Node parent, String link, TLong type, List<Cell> data) {
-        super(parent, link);
-        this.type = type;
-        Assert(data.size() == 1);
-        raw = data.get(0);
+        super(parent, link, type, data);
         try {
             value = CSV.parseLong(raw.data);
         } catch (Exception e) {
             Assert(false, e.toString(), raw.toString());
         }
+    }
+
+    @Override
+    public boolean checkRange(Range range) {
+        return value >= range.min && value <= range.max;
     }
 
     @Override

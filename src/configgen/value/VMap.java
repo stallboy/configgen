@@ -1,19 +1,17 @@
 package configgen.value;
 
-import configgen.CSV;
 import configgen.Node;
-import configgen.type.TList;
 import configgen.type.TMap;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class VMap extends Value {
-    public final TMap type;
     public final Map<Value, Value> map = new LinkedHashMap<>();
 
     public VMap(Node parent, String link, TMap type, List<Cell> data) {
-        super(parent, link);
+        super(parent, link, type, data);
         this.type = type;
 
         Assert(data.size() == type.columnSpan());
@@ -36,8 +34,13 @@ public class VMap extends Value {
     }
 
     @Override
+    public void verifyChild() {
+
+    }
+
+    @Override
     public boolean equals(Object o) {
-        return o != null && o instanceof VMap && type == ((VMap) o).type && map.equals(((VMap) o).map);
+        return o != null && o instanceof VMap && map.equals(((VMap) o).map);
     }
 
     @Override

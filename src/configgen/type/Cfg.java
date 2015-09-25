@@ -2,6 +2,7 @@ package configgen.type;
 
 import configgen.Node;
 import configgen.define.Config;
+import configgen.value.CfgV;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,6 +10,8 @@ import java.util.Set;
 public class Cfg extends Node {
     public final Config define;
     public final TBean tbean;
+
+    public CfgV value; //set by CfgV
 
     public Cfg(Cfgs parent, Config cfg) {
         super(parent, cfg.bean.name);

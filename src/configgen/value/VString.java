@@ -1,21 +1,23 @@
 package configgen.value;
 
 import configgen.Node;
+import configgen.type.Range;
 import configgen.type.TString;
 
 import java.util.List;
 
-public class VString extends Value {
-    public final TString type;
-    public final Cell raw;
+public class VString extends VPrimitive {
     public String value;
 
     public VString(Node parent, String link, TString type, List<Cell> data) {
-        super(parent, link);
-        this.type = type;
-        Assert(data.size() == 1);
-        raw = data.get(0);
+        super(parent, link, type, data);
         value = raw.data;
+    }
+
+    @Override
+    public boolean checkRange(Range range) {
+        int len = value.length();
+        return len >= range.min && len <= range.max;
     }
 
 

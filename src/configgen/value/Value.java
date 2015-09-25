@@ -6,10 +6,61 @@ import configgen.type.*;
 import java.util.List;
 
 public class Value extends Node {
+    protected Type type;
+    protected List<Cell> cells;
 
-    public Value(Node parent, String link) {
+    public Value(Node parent, String link, Type type, List<Cell> data) {
         super(parent, link);
+        this.type = type;
+        this.cells = data;
     }
+
+    public void verifyConstraint() {
+        Assert(!(isNull() && !type.constraint.refs.isEmpty()), "null not support ref", toString());
+
+        for (Cfg ref : type.constraint.refs) {
+            Assert(ref.value.vkeys.contains(this), toString(), "not found in ref", ref.location());
+        }
+
+        if (!isNull()) {
+            for (Cfg ref : type.constraint.nullableRefs) {
+                Assert(ref.value.vkeys.contains(this), toString(), "not found in ref", ref.location());
+            }
+        }
+
+        Range range = type.constraint.range;
+        if (range != null) {
+            Assert(checkRange(range), "range err", toString());
+        }
+
+        verifyChild();
+    }
+
+    public void verifyChild() {
+    }
+
+    public boolean checkRange(Range range) {
+        return true;
+    }
+
+    public boolean isNull() {
+        for (Cell cell : cells) {
+            if (!cell.data.trim().isEmpty())
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(cells.get(0).toString());
+        for (int i = 1; i < cells.size(); i++) {
+            sb.append(",").append(cells.get(i).data);
+        }
+        return sb.toString();
+    }
+
 
     public static Value create(Node parent, String link, Type t, List<Cell> data) {
         return t.accept(new TVisitor<Value>() {

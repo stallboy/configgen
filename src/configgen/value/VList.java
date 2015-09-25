@@ -3,30 +3,29 @@ package configgen.value;
 import configgen.CSV;
 import configgen.Node;
 import configgen.type.TList;
-import configgen.type.TText;
-import configgen.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class VList extends Value {
-    public final TList type;
     public final List<Value> list = new ArrayList<>();
 
-    public VList(Node parent, String link, Value... vs) { // for keys and keysRef
-        super(parent, link);
-        type = null;
-        for (Value v : vs) {
-            list.add(v);
-        }
+    public VList(Node parent, String link, List<Value> vs) { // for keys and keysRef
+        super(parent, link, null, toRaw(vs));
+        list.addAll(vs);
     }
 
-    public VList(Node parent, String link, TList type, List < Cell > data) {
-        super(parent, link);
-        this.type = type;
+    private static List<Cell> toRaw(List<Value> vs) {
+        List<Cell> res = new ArrayList<>();
+        for (Value v : vs) {
+            res.addAll(v.cells);
+        }
+        return res;
+    }
+
+    public VList(Node parent, String link, TList type, List<Cell> data) {
+        super(parent, link, type, data);
 
         List<Cell> sdata;
         if (type.count == 0) { //compress
@@ -53,10 +52,14 @@ public class VList extends Value {
         }
     }
 
+    @Override
+    public void verifyChild() {
+
+    }
 
     @Override
     public boolean equals(Object o) {
-        return o != null && o instanceof VList && type == ((VList) o).type && list.equals(((VList)o).list);
+        return o != null && o instanceof VList && list.equals(((VList) o).list);
     }
 
     @Override

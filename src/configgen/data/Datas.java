@@ -24,7 +24,7 @@ public class Datas extends Node {
     public final Map<String, Data> datas = new HashMap<>();
 
     public Datas(Path dataDir, String inputEncoding) throws IOException {
-        super(null, "");
+        super(null, "data");
         Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes a) throws IOException {

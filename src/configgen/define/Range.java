@@ -11,13 +11,19 @@ public class Range extends Node {
 
     public Range(Bean parent, Element self) {
         super(parent, "");
-        String[] attr = Utils.attrs(self, "key", "range");
+        String[] attr = Utils.attributes(self, "key", "min", "max");
         key = attr[0];
-        link = "[range]" + key;
-        String[] sp = attr[1].split(",");
-        min = Integer.decode(sp[0]);
-        max = Integer.decode(sp[1]);
+        link = key;
+        min = Integer.decode(attr[1]);
+        max = Integer.decode(attr[2]);
 
         Assert(max >= min, attr[1]);
+    }
+
+    public void save(Element parent) {
+        Element self = Utils.newChild(parent, "range");
+        self.setAttribute("key", key);
+        self.setAttribute("min", String.valueOf(min));
+        self.setAttribute("max", String.valueOf(max));
     }
 }

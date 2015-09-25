@@ -12,7 +12,7 @@ public class Cfgs extends Node {
     public final Map<String, Cfg> cfgs = new HashMap<>();
 
     public Cfgs(ConfigCollection cc) {
-        super(null, "");
+        super(null, "type");
         define = cc;
         define.beans.forEach((k, v) -> tbeans.put(k, new TBean(this, v)));
         define.configs.forEach((k, v) -> cfgs.put(k, new Cfg(this, v)));

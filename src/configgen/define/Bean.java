@@ -7,25 +7,25 @@ import org.w3c.dom.Element;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Bean extends Node  {
+public class Bean extends Node {
     public final String name; // a.b.c
-    public final String ownall;
+    public final String own;
     public final boolean compress;
 
     public final Map<String, Field> fields = new LinkedHashMap<>();
-    public final  List<Ref> refs = new ArrayList<>();
-    public final  List<ListRef> listRefs = new ArrayList<>();
-    public final  Map<String, Range> ranges = new HashMap<>();
+    public final List<Ref> refs = new ArrayList<>();
+    public final List<ListRef> listRefs = new ArrayList<>();
+    public final Map<String, Range> ranges = new HashMap<>();
 
     public Bean(ConfigCollection root, Config config, Element self) {
         super(config != null ? config : root, "");
 
-        String[] attrs = Utils.attrs(self, "name", "ownall", "compress", "tool", "enum", "keys");
+        String[] attrs = Utils.attributes(self, "name", "own", "compress", "tool", "enum", "keys");
         name = attrs[0];
         if (config == null)
-            link = "[bean]" + name;
+            link = name;
 
-        ownall = attrs[1];
+        own = attrs[1];
         compress = attrs[2].equalsIgnoreCase("true") || attrs[2].equals("1");
         if (compress) {
             Assert(config == null, "config not allowed compress");
@@ -50,7 +50,24 @@ public class Bean extends Node  {
     public Bean(Config config, String name) {
         super(config, "");
         this.name = name;
-        ownall = "";
+        own = "";
         compress = false;
+    }
+
+    public void save(Element parent) {
+        update(Utils.newChild(parent, "bean"));
+    }
+
+    void update(Element self) {
+        self.setAttribute("name", name);
+        if (!own.isEmpty())
+            self.setAttribute("own", own);
+        if (compress)
+            self.setAttribute("compress", "true");
+
+        fields.values().forEach(f -> f.save(self));
+        refs.forEach(c -> c.save(self));
+        listRefs.forEach(c -> c.save(self));
+        ranges.values().forEach(c -> c.save(self));
     }
 }

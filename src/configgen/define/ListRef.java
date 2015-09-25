@@ -8,15 +8,23 @@ public class ListRef extends Node {
     public final String name;
     public final String[] keys;
     public final String ref;
-    public final String[] refFields;
+    public final String[] refKeys;
 
     public ListRef(Bean parent, Element self) {
         super(parent, "");
-        String[] attrs = Utils.attrs(self, "name", "keys", "ref", "refkeys");
+        String[] attrs = Utils.attributes(self, "name", "keys", "ref", "refkeys");
         name = attrs[0];
-        link = "[listref]" + name;
+        link = name;
         keys = attrs[1].split(",");
         ref = attrs[2];
-        refFields = attrs[3].split(",");
+        refKeys = attrs[3].split(",");
+    }
+
+    public void save(Element parent) {
+        Element self = Utils.newChild(parent, "listref");
+        self.setAttribute("name", name);
+        self.setAttribute("keys", String.join(",", keys));
+        self.setAttribute("ref", ref);
+        self.setAttribute("refkeys", String.join(",", refKeys));
     }
 }

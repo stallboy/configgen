@@ -3,30 +3,39 @@ package configgen.type;
 import configgen.Node;
 
 public class ListRef extends Node {
-    public final configgen.define.ListRef define;
+    public final String name;
+    public final String[] keys;
     public Cfg ref;
+    public final String[] refKeys;
+
+    private final String refStr;
 
     public ListRef(TBean parent, configgen.define.ListRef define) {
-        super(parent, define.name);
-        this.define = define;
+        this(parent, define.name, define.keys, define.ref, define.refKeys);
     }
 
-    public ListRef copy(TBean parent) {
-        ListRef c = new ListRef(parent, define);
-        c.ref = ref;
-        return c;
+    public ListRef(TBean parent, String key, String ref, String refField) {
+        this(parent, key, new String[]{key}, ref, new String[]{refField});
     }
 
-    void resolve(){
-        ref = ((Cfgs)root).cfgs.get(define.ref);
-        define.Assert(ref != null, "ref not found", define.ref);
+    private ListRef(TBean parent, String name, String[] keys, String ref, String[] refKeys) {
+        super(parent, name);
+        this.name = name;
+        this.keys = keys;
+        this.refStr = ref;
+        this.refKeys = refKeys;
+    }
 
-        for (String key : define.keys) {
-            define.Assert( null != ((TBean)parent).define.fields.get(key), "key not exist", key);
+    void resolve() {
+        ref = ((Cfgs) root).cfgs.get(refStr);
+        Assert(ref != null, "ref not found", refStr);
+
+        for (String key : keys) {
+            Assert(null != ((TBean) parent).define.fields.get(key), "key not exist", key);
         }
 
-        for (String rk : define.refFields) {
-            define.Assert(null != ref.tbean.fields.get(rk), "ref key not exist", rk);
+        for (String rk : refKeys) {
+            Assert(null != ref.tbean.fields.get(rk), "ref key not exist", rk);
         }
     }
 }

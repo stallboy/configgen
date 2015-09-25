@@ -57,9 +57,9 @@ public final class Utils {
             idx += 1;
         }
 
-        NodeList childnodes = self.getChildNodes();
-        for (int i = 0; i < childnodes.getLength(); i++) {
-            org.w3c.dom.Node node = childnodes.item(i);
+        NodeList childNodes = self.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            org.w3c.dom.Node node = childNodes.item(i);
             if (org.w3c.dom.Node.ELEMENT_NODE != node.getNodeType())
                 continue;
 
@@ -77,23 +77,23 @@ public final class Utils {
         return res;
     }
 
-    public static String[] attrs(Element self, String... names) {
+    public static String[] attributes(Element self, String... names) {
         String[] res = new String[names.length];
 
-        Map<String, String> attrs = new HashMap<>();
+        Map<String, String> attr = new HashMap<>();
         NamedNodeMap as = self.getAttributes();
         for (int i = 0; i < as.getLength(); ++i) {
-            Attr attr = (Attr) as.item(i);
-            attrs.put(attr.getName(), attr.getValue());
+            Attr a = (Attr) as.item(i);
+            attr.put(a.getName(), a.getValue());
         }
 
         int i = 0;
         for (String n : names) {
-            String a = attrs.remove(n);
+            String a = attr.remove(n);
             res[i++] = (a == null ? "" : a.trim());
         }
 
-        for (Map.Entry<String, String> e : attrs.entrySet())
+        for (Map.Entry<String, String> e : attr.entrySet())
             System.err.println(self.getTagName() + " unknown attr: "
                     + e.getKey() + "=" + e.getValue());
         return res;

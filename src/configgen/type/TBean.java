@@ -9,7 +9,8 @@ public class TBean extends Type {
     public final Bean define;
     public final Map<String, Type> fields = new LinkedHashMap<>();
     public final List<KeysRef> keysRefs = new ArrayList<>();
-    public final List<ListRef> listRefs = new ArrayList<>();
+
+    public final List<ListRef> listRefs = new ArrayList<>(); // only exist in Cfgs.TBean
 
     public TBean(Cfgs parent, Bean bean) {
         super(parent, bean.name, new Constraint());
@@ -20,7 +21,6 @@ public class TBean extends Type {
     public TBean(Cfg parent, Bean bean) {
         super(parent, "", new Constraint());
         this.define = bean;
-
         init();
     }
 
@@ -30,7 +30,6 @@ public class TBean extends Type {
         define = source.define;
         source.fields.forEach((k, v) -> fields.put(k, v.copy(this)));
         source.keysRefs.forEach(v -> keysRefs.add(v.copy(this)));
-        source.listRefs.forEach(v -> listRefs.add(v.copy(this)));
     }
 
     @Override
@@ -81,10 +80,7 @@ public class TBean extends Type {
     }
 
     void resolve() {
-        for (Field f : define.fields.values()) {
-            fields.put(f.name, resolveType(f));
-        }
-
+        define.fields.values().forEach(this::resolveField);
         keysRefs.forEach(KeysRef::resolve);
         listRefs.forEach(ListRef::resolve);
 
@@ -94,7 +90,7 @@ public class TBean extends Type {
         }
     }
 
-    private Type resolveType(Field f) {
+    private void resolveField(Field f) {
         String t, k = "", v = "";
         int c = 0;
         if (f.type.startsWith("list,")) {
@@ -128,10 +124,13 @@ public class TBean extends Type {
             addConstraintRange(cons, new Range(rg.min, rg.max));
         }
 
+        if (!f.listRef.isEmpty()){
+            listRefs.add(new ListRef(this, f.name, f.listRef, f.listRefKey));
+        }
+
         Type res = Type.resolve(this, f.name, cons, t, k, v, c);
         f.Assert(res != null, "type resolve err", f.type);
-        return res;
-
+        fields.put(f.name, res);
     }
 
     private void resolveConstraint(Constraint cons, String ref, String nullableRef, String keyRef, String range) {

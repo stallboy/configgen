@@ -1,6 +1,7 @@
 package configgen.define;
 
 import configgen.Node;
+import configgen.Utils;
 import org.w3c.dom.Element;
 
 public class Config extends Node {
@@ -11,7 +12,7 @@ public class Config extends Node {
     public Config(ConfigCollection parent, Element self) {
         super(parent, "");
         bean = new Bean(parent, this, self);
-        link = "[config]" + bean.name;
+        link = bean.name;
         enumStr = self.getAttribute("enum");
         keys = self.getAttribute("keys").split(",");
     }
@@ -22,5 +23,14 @@ public class Config extends Node {
         link = "[config]" + name;
         enumStr = "";
         keys = new String[0];
+    }
+
+    public void save(Element parent) {
+        Element self = Utils.newChild(parent, "config");
+        bean.update(self);
+        if (!enumStr.isEmpty())
+            self.setAttribute("enum", enumStr);
+        if (keys.length > 0)
+            self.setAttribute("keys", String.join(",", keys));
     }
 }

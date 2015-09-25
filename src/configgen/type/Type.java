@@ -54,7 +54,8 @@ public abstract class Type extends Node {
             case "text":
                 return new TText(parent, link, cons);
         }
-        return new TBean(parent, link, cons, ((Cfgs)parent.root).tbeans.get(type));
+        return ((Cfgs)parent.root).tbeans.get(type);
+        //return new TBean(parent, link, cons, ((Cfgs)parent.root).tbeans.get(type));
     }
 
 }

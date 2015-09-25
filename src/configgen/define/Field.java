@@ -3,7 +3,7 @@ package configgen.define;
 import configgen.*;
 import org.w3c.dom.Element;
 
-public class Field  extends Node{
+public class Field extends Node {
     public String desc;
     public final String name;
     public final String type;
@@ -11,42 +11,70 @@ public class Field  extends Node{
     public final String nullableRef;
     public final String keyRef;
     public final String listRef;
-    public final String listRefField;
+    public final String listRefKey;
     public final String range;
     public final String own;
 
     public Field(Bean parent, Element self) {
         super(parent, "");
-        String[] attrs = Utils.attrs(self, "desc", "name", "type",
+        String[] attrs = Utils.attributes(self, "desc", "name", "type",
                 "ref", "nullableref", "keyref", "listref", "range", "own");
         desc = attrs[0];
         name = attrs[1];
-        link = "[field]" + name;
+        link = name;
         type = attrs[2];
 
         ref = attrs[3];
         nullableRef = attrs[4];
         keyRef = attrs[5];
-        String[] sp = attrs[6].split(",");
-        listRef = sp[0];
-        listRefField = sp[1];
+        String r = attrs[6];
+        if (r.isEmpty()) {
+            listRef = "";
+            listRefKey = "";
+        } else {
+            String[] sp = r.split(",");
+            listRef = sp[0];
+            listRefKey = sp[1];
+        }
         range = attrs[7];
         own = attrs[8];
     }
 
-    public Field(Bean parent, String name, String type){
+    public Field(Bean parent, String name, String type) {
         super(parent, "");
         this.name = name;
         this.type = type;
-        link = "[field]" + name;
+        link = name;
 
         ref = "";
         nullableRef = "";
         keyRef = "";
         listRef = "";
-        listRefField = "";
+        listRefKey = "";
         range = "";
         own = "";
     }
 
+    public void save(Element parent) {
+        Element self = Utils.newChild(parent, "field");
+        if (!desc.isEmpty())
+            self.setAttribute("desc", desc);
+        self.setAttribute("name", name);
+        self.setAttribute("type", type.toString());
+
+        if (!ref.isEmpty())
+            self.setAttribute("ref", ref);
+        else if (!nullableRef.isEmpty())
+            self.setAttribute("nullableref", nullableRef);
+        if (!keyRef.isEmpty())
+            self.setAttribute("keyref", keyRef);
+        if (!listRef.isEmpty())
+            self.setAttribute("listref", listRef + "," + listRefKey);
+
+        if (!range.isEmpty())
+            self.setAttribute("range", range);
+
+        if (!own.isEmpty())
+            self.setAttribute("own", own);
+    }
 }

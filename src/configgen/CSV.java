@@ -252,10 +252,10 @@ public final class CSV {
 
     public static long parseLong(String s) {
         String t = s.trim();
-        return t.isEmpty() ? 0 : Long.parseLong(t);
+        return t.isEmpty() ? 0 : Long.decode(t);
     }
 
-    static String path2Name(String p) {
+    private static String path2Name(String p) {
         String[] res = p.split("\\\\|/");
         if (res.length > 0) {
             String last = res[res.length - 1];

@@ -6,6 +6,9 @@ public class TBool extends TPrimitive {
 
     public TBool(Node parent, String link, Constraint cons) {
         super(parent, link, cons);
+        Assert(cons.refs.isEmpty(), "bool do not ref");
+        Assert(cons.nullableRefs.isEmpty(), "bool do not nullableRef");
+        Assert(cons.range == null, "bool do not range");
     }
 
     @Override

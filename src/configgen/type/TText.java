@@ -6,6 +6,8 @@ public class TText extends TPrimitive {
 
     public TText(Node parent, String link, Constraint cons) {
         super(parent, link, cons);
+        Assert(cons.refs.isEmpty(), "text do not ref");
+        Assert(cons.nullableRefs.isEmpty(), "text do not nullableRef");
     }
 
     @Override

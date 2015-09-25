@@ -16,17 +16,6 @@ public class TList extends Type {
         this.count = count;
     }
 
-    private TList(Node parent, TList source) {
-        super(parent, source.link, source.constraint);
-        this.value = source.value.copy(this);
-        this.count = source.count;
-    }
-
-    @Override
-    public TList copy(Node parent) {
-        return new TList(parent, this);
-    }
-
     @Override
     public String toString() {
         return "list," + value + (count > 0 ? "," + count : "");

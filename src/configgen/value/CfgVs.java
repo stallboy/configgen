@@ -1,4 +1,5 @@
 package configgen.value;
 
-public class CfgVs {
+public class CfgVs extends Node{
+
 }

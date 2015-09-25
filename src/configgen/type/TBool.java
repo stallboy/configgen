@@ -9,11 +9,6 @@ public class TBool extends TPrimitive {
     }
 
     @Override
-    public TBool copy(Node parent) {
-        return new TBool(parent, link, constraint);
-    }
-
-    @Override
     public boolean hasText() {
         return false;
     }

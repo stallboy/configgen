@@ -9,11 +9,6 @@ public class TFloat extends TPrimitive {
     }
 
     @Override
-    public TFloat copy(Node parent) {
-        return new TFloat(parent, link, constraint);
-    }
-
-    @Override
     public boolean hasText() {
         return false;
     }

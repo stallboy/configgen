@@ -9,11 +9,6 @@ public class TString extends TPrimitive {
     }
 
     @Override
-    public TString copy(Node parent) {
-        return new TString(parent, link, constraint);
-    }
-
-    @Override
     public boolean hasText() {
         return false;
     }

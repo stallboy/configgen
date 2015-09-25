@@ -9,11 +9,6 @@ public class TLong extends TPrimitive {
     }
 
     @Override
-    public TLong copy(Node parent) {
-        return new TLong(parent, link, constraint);
-    }
-
-    @Override
     public boolean hasText() {
         return false;
     }

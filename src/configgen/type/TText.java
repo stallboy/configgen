@@ -9,11 +9,6 @@ public class TText extends TPrimitive {
     }
 
     @Override
-    public TText copy(Node parent) {
-        return new TText(parent, link, constraint);
-    }
-
-    @Override
     public boolean hasText() {
         return true;
     }

@@ -24,19 +24,6 @@ public class TBean extends Type {
         init();
     }
 
-    public TBean(Node parent, String link, Constraint cons, TBean source) {
-        super(parent, link, cons);
-        Assert(source != null);
-        define = source.define;
-        source.fields.forEach((k, v) -> fields.put(k, v.copy(this)));
-        source.keysRefs.forEach(v -> keysRefs.add(v.copy(this)));
-    }
-
-    @Override
-    public Type copy(Node parent) {
-        return new TBean(parent, link, constraint, this);
-    }
-
     @Override
     public boolean hasRef() {
         return keysRefs.size() > 0 || listRefs.size() > 0 || fields.values().stream().filter(Type::hasRef).count() > 0;

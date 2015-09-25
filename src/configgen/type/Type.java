@@ -14,8 +14,6 @@ public abstract class Type extends Node {
         return constraint.refs.size() > 0 ||  constraint.nullableRefs.size() > 0 || constraint.keyRefs.size() > 0;
     }
 
-    public abstract Type copy(Node parent);
-
     public abstract boolean hasText();
 
     public abstract int columnSpan();
@@ -55,7 +53,6 @@ public abstract class Type extends Node {
                 return new TText(parent, link, cons);
         }
         return ((Cfgs)parent.root).tbeans.get(type);
-        //return new TBean(parent, link, cons, ((Cfgs)parent.root).tbeans.get(type));
     }
 
 }

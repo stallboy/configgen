@@ -9,11 +9,6 @@ public class TInt extends TPrimitive {
     }
 
     @Override
-    public TInt copy(Node parent) {
-        return new TInt(parent, link, constraint);
-    }
-
-    @Override
     public boolean hasText() {
         return false;
     }

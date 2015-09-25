@@ -13,13 +13,6 @@ public class KeysRef extends Node {
         define = r;
     }
 
-    public KeysRef copy(TBean parent) {
-        KeysRef c = new KeysRef(parent, define);
-        c.ref = ref;
-        c.nullableRef = nullableRef;
-        return c;
-    }
-
     void resolve() {
         ref = ((Cfgs) root).cfgs.get(define.ref);
         nullableRef = ((Cfgs) root).cfgs.get(define.nullableRef);

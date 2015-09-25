@@ -23,18 +23,6 @@ public class TMap extends Type {
         this.count = count;
     }
 
-    private TMap(Node parent, TMap source) {
-        super(parent, source.link, source.constraint);
-        this.key = source.key.copy(this);
-        this.value = source.value.copy(this);
-        this.count = source.count;
-    }
-
-    @Override
-    public TMap copy(Node parent) {
-        return new TMap(parent, this);
-    }
-
     @Override
     public String toString() {
         return "map," + key + "," + value + "," + count;

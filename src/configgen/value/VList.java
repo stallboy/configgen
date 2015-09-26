@@ -54,7 +54,7 @@ public class VList extends Value {
 
     @Override
     public void verifyChild() {
-
+        list.forEach(Value::verifyConstraint);
     }
 
     @Override

@@ -6,8 +6,8 @@ public class TFloat extends TPrimitive {
 
     public TFloat(Node parent, String link, Constraint cons) {
         super(parent, link, cons);
-        Assert(cons.refs.isEmpty(), "float do not ref");
-        Assert(cons.nullableRefs.isEmpty(), "float do not nullableRef");
+        Assert(cons.refs.isEmpty(), "float not support ref");
+        Assert(cons.nullableRefs.isEmpty(), "float not support nullableRef");
     }
 
     @Override

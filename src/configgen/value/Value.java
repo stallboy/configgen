@@ -5,7 +5,7 @@ import configgen.type.*;
 
 import java.util.List;
 
-public class Value extends Node {
+public abstract class Value extends Node {
     protected Type type;
     protected List<Cell> cells;
 
@@ -16,9 +16,8 @@ public class Value extends Node {
     }
 
     public void verifyConstraint() {
-        Assert(!(isNull() && !type.constraint.refs.isEmpty()), "null not support ref", toString());
-
         for (Cfg ref : type.constraint.refs) {
+            Assert(!isNull(),  toString(), "null not support ref", ref.location());
             Assert(ref.value.vkeys.contains(this), toString(), "not found in ref", ref.location());
         }
 
@@ -36,8 +35,8 @@ public class Value extends Node {
         verifyChild();
     }
 
-    public void verifyChild() {
-    }
+    public abstract void verifyChild();
+
 
     public boolean checkRange(Range range) {
         return true;

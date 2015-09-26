@@ -2,9 +2,11 @@ package configgen.value;
 
 import configgen.CSV;
 import configgen.Node;
+import configgen.type.KeysRef;
 import configgen.type.TBean;
 import configgen.type.Type;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +43,20 @@ public class VBean extends Value {
     @Override
     public void verifyChild() {
         map.values().forEach(Value::verifyConstraint);
-        //tbean.keysRefs
+
+        for (KeysRef kr : tbean.keysRefs) {
+            List<Value> vs = new ArrayList<>();
+            for (String k : kr.define.keys) {
+                vs.add(map.get(k));
+            }
+            VList key = new VList(this, "__ref_" + kr.define.name, vs);
+            if (null != kr.ref){
+                Assert(!key.isNull(), key.toString(), "null not support ref", kr.ref.location());
+                Assert(kr.ref.value.vkeys.contains(key), key.toString(), "not found in ref", kr.ref.location());
+            } else if (null != kr.nullableRef && !key.isNull()){
+                Assert(kr.nullableRef.value.vkeys.contains(key), key.toString(), "not found in ref", kr.nullableRef.location());
+            }
+        }
     }
 
     @Override

@@ -23,11 +23,11 @@ public class VMap extends Value {
             if (!data.get(s).data.isEmpty()) {
                 Value key = Value.create(this, "key" + idx, type.key, data.subList(s, s + kc));
                 Value value = Value.create(this, "value" + idx, type.value, data.subList(s + kc, s + kc + vc));
-                Assert(null == map.put(key, value), "map key duplicate, " + key);
+                Assert(null == map.put(key, value), "map key duplicate", toString());
                 idx++;
             } else {
                 for (Cell dc : data.subList(s, s + kc + vc)) {
-                    Assert(dc.data.isEmpty(), "map entry ignore by first cell empty, but part filled, " + dc);
+                    Assert(dc.data.trim().isEmpty(), "map entry ignore by first cell empty, but part filled", dc.toString());
                 }
             }
         }
@@ -35,7 +35,10 @@ public class VMap extends Value {
 
     @Override
     public void verifyChild() {
-
+        map.forEach((k, v) -> {
+            k.verifyConstraint();
+            v.verifyConstraint();
+        });
     }
 
     @Override

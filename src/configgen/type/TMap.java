@@ -9,8 +9,8 @@ public class TMap extends Type {
 
     public TMap(Node parent, String link, Constraint cons, String key, String value, int count) {
         super(parent, link, cons);
-        Assert(cons.range == null, "map do not range");
-        Assert(cons.nullableRefs.isEmpty(), "map do not nullableRef");
+        Assert(cons.range == null, "map not support range");
+        Assert(cons.nullableRefs.isEmpty(), "map not support nullableRef");
 
         Constraint kc = new Constraint();
         kc.refs.addAll(cons.keyRefs);

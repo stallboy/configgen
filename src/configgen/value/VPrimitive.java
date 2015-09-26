@@ -14,4 +14,8 @@ public abstract class VPrimitive extends Value {
         Assert(data.size() == 1);
         raw = data.get(0);
     }
+
+    public void verifyChild(){
+    }
+
 }

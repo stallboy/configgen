@@ -8,9 +8,9 @@ public class TList extends Type {
 
     public TList(Node parent, String link, Constraint cons, String value, int count) {
         super(parent, link, cons);
-        Assert(cons.range == null, "list do not range");
-        Assert(cons.nullableRefs.isEmpty(), "list do not nullableRef");
-        Assert(cons.keyRefs.isEmpty(), "list do not keyRef");
+        Assert(cons.range == null, "list not support range");
+        Assert(cons.nullableRefs.isEmpty(), "list not support nullableRef");
+        Assert(cons.keyRefs.isEmpty(), "list not support keyRef");
 
         this.value = resolve(this, "value", cons, value);
         this.count = count;

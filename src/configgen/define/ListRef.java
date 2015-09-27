@@ -15,9 +15,17 @@ public class ListRef extends Node {
         String[] attrs = Utils.attributes(self, "name", "keys", "ref", "refkeys");
         name = attrs[0];
         link = name;
-        keys = attrs[1].split(",");
+        String r = attrs[1].trim();
+        if (!r.isEmpty())
+            keys = r.split(",");
+        else
+            keys = new String[0];
         ref = attrs[2];
-        refKeys = attrs[3].split(",");
+        r = attrs[3].trim();
+        if (!r.isEmpty())
+            refKeys = r.split(",");
+        else
+            refKeys = new String[0];
     }
 
     public void save(Element parent) {

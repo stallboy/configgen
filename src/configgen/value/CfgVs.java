@@ -21,7 +21,6 @@ public class CfgVs extends Node {
         });
     }
 
-
     public void verifyConstraint() {
         cfgvs.values().forEach(CfgV::verifyConstraint);
     }

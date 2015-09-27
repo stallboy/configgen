@@ -2,6 +2,7 @@ package configgen.data;
 
 import configgen.CSV;
 import configgen.Node;
+import configgen.define.Bean;
 import configgen.define.Config;
 import configgen.define.Field;
 import configgen.type.*;
@@ -57,15 +58,19 @@ public class Data extends Node {
         }
     }
 
-    void refineDefine(Config define) {
-        columns.forEach((n, col) -> {
-            Field f = define.bean.fields.get(n);
+    void refineDefine(Config config) {
+        Bean define = config.bean;
+        Map<String, Field> old = new LinkedHashMap<>(define.fields);
+        define.fields.clear();
+        columns.forEach((name, col) -> {
+            Field f = old.get(name);
             if (f == null) {
-                f = new Field(define.bean, n, col.guessType());
-                define.bean.fields.put(f.name, f);
+                f = new Field(define, name, col.guessType());
             }
+            define.fields.put(f.name, f);
             col.updateDesc(f);
         });
+        //todo refine ref,range
     }
 
     void parse(Cfg cfg) {

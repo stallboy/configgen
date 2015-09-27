@@ -2,6 +2,7 @@ package configgen.value;
 
 import configgen.CSV;
 import configgen.Node;
+import configgen.type.Cfg;
 import configgen.type.KeysRef;
 import configgen.type.TBean;
 import configgen.type.Type;
@@ -26,10 +27,10 @@ public class VBean extends Value {
             Cell dat = data.get(0);
             sdata = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
         } else {
+            Assert(data.size() == type.columnSpan());
             sdata = data;
         }
 
-        Assert(sdata.size() == type.columnSpan());
         int s = 0;
         for (Map.Entry<String, Type> e : type.fields.entrySet()) {
             String name = e.getKey();
@@ -41,7 +42,9 @@ public class VBean extends Value {
     }
 
     @Override
-    public void verifyChild() {
+    public void verifyConstraint() {
+        verifyRefs();
+
         map.values().forEach(Value::verifyConstraint);
 
         for (KeysRef kr : tbean.keysRefs) {

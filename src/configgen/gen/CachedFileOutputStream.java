@@ -1,4 +1,4 @@
-package configgen;
+package configgen.gen;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -69,7 +69,7 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
 
     public static void doRemoveFiles() {
         remove_files.stream().filter(File::exists)
-                .forEach(configgen.CachedFileOutputStream::doRemoveFile);
+                .forEach(CachedFileOutputStream::doRemoveFile);
         remove_files.clear();
     }
 

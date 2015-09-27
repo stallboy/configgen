@@ -15,6 +15,11 @@ public class VText extends VPrimitive {
     }
 
     @Override
+    public boolean checkRange(Range range) {
+        return false; //not going to happen
+    }
+
+    @Override
     public boolean equals(Object o) {
         return o != null && o instanceof VString && value.equals(((VString) o).value);
     }

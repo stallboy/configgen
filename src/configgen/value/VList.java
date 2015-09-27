@@ -33,10 +33,10 @@ public class VList extends Value {
             Cell dat = data.get(0);
             sdata = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
         } else {
+            Assert(data.size() == type.columnSpan());
             sdata = data;
         }
 
-        Assert(sdata.size() == type.columnSpan());
         int vc = type.value.columnSpan();
         int idx = 0;
         for (int i = 0; i < type.count; i++) {
@@ -53,7 +53,7 @@ public class VList extends Value {
     }
 
     @Override
-    public void verifyChild() {
+    public void verifyConstraint() {
         list.forEach(Value::verifyConstraint);
     }
 

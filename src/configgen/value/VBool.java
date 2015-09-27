@@ -17,6 +17,11 @@ public class VBool extends VPrimitive {
     }
 
     @Override
+    public boolean checkRange(Range range) {
+        return false; //not going to happen
+    }
+
+    @Override
     public boolean equals(Object o) {
         return o != null && o instanceof VBool && value == ((VBool) o).value;
     }
@@ -25,6 +30,4 @@ public class VBool extends VPrimitive {
     public int hashCode() {
         return Boolean.hashCode(value);
     }
-
-
 }

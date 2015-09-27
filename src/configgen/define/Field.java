@@ -27,7 +27,7 @@ public class Field extends Node {
         ref = attrs[3];
         nullableRef = attrs[4];
         keyRef = attrs[5];
-        String r = attrs[6];
+        String r = attrs[6].trim();
         if (r.isEmpty()) {
             listRef = "";
             listRefKey = "";

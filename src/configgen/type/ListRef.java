@@ -35,7 +35,7 @@ public class ListRef extends Node {
         }
 
         for (String rk : refKeys) {
-            Assert(null != ref.tbean.fields.get(rk), "ref key not exist", rk);
+            Assert(null != ref.tbean.define.fields.get(rk), "ref key not exist", rk);
         }
     }
 }

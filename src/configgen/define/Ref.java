@@ -16,7 +16,11 @@ public class Ref extends Node {
         String[] attrs = Utils.attributes(self, "name", "keys", "ref", "nullableref", "keyref");
         name = attrs[0];
         link = name;
-        keys = attrs[1].split(",");
+        String r = attrs[1].trim();
+        if (!r.isEmpty())
+            keys = r.split(",");
+        else
+            keys = new String[0];
         ref = attrs[2];
         nullableRef = attrs[3];
         keyRef = attrs[4];

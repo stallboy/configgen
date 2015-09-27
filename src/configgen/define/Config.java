@@ -14,7 +14,11 @@ public class Config extends Node {
         bean = new Bean(parent, this, self);
         link = bean.name;
         enumStr = self.getAttribute("enum");
-        keys = self.getAttribute("keys").split(",");
+        String k = self.getAttribute("keys").trim();
+        if (!k.isEmpty())
+            keys = k.split(",");
+        else
+            keys = new String[0];
     }
 
     public Config(ConfigCollection parent, String name) {

@@ -30,7 +30,7 @@ public class Cfg extends Node {
         Set<String> keys = new HashSet<>();
         for (String k : define.keys) {
             Type t = tbean.fields.get(k);
-            define.Assert(t != null, "primary keys not found", k);
+            define.Assert(t != null, "primary keys not found", k, String.join(",",define.keys));
             define.Assert(keys.add(k), "primary keys duplicate", k);
             define.Assert(t instanceof TPrimitive, "primary keys not support bean and container", k);
         }

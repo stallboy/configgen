@@ -4,23 +4,41 @@ import org.w3c.dom.*;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class Utils {
+    public static Element rootElement(File file) throws ParserConfigurationException, IOException, SAXException {
+        return DocumentBuilderFactory.newInstance()
+                .newDocumentBuilder().parse(file)
+                .getDocumentElement();
+    }
 
-    public static void prettySave(Document document, OutputStream destination, String encoding) throws IOException {
+    public static Document newDocument() throws ParserConfigurationException, IOException, SAXException {
+        return DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+    }
+
+    public static void prettySaveDocument(Document document, File file, String encoding) throws IOException {
+        try (OutputStream dst = new FileOutputStream(file)) {
+            prettySaveDocument(document, dst, encoding);
+        }
+    }
+
+    public static void prettySaveDocument(Document document, OutputStream destination, String encoding) throws IOException {
         DOMImplementation impl = document.getImplementation();
         Object f = impl.getFeature("LS", "3.0");
         if (f != null) {

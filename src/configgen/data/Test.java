@@ -1,6 +1,6 @@
-package configgen;
+package configgen.data;
 
-import configgen.data.Rules;
+import configgen.CSV;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -31,7 +31,7 @@ public final class Test {
 	}
 
 	private static void test(String source, int rowcnt, int testrow, String... row) throws IOException {
-		List<List<String>> r = CSV.parse(new StringReader(source));
+		List<List<String>> r = CSV.parse(new StringReader(source), false);
 		equal(rowcnt, r.size());
 		List<String> a = r.get(testrow);
 		equal(row.length, a.size());
@@ -62,7 +62,5 @@ public final class Test {
 		Rules.Sep s = Rules.trySep(a);
 		equal(Rules.SepType.None, s.type);
 	}
-
-
 
 }

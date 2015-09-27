@@ -9,20 +9,20 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class Rules {
+final class Rules {
 
     private static Pattern intPostfixPattern = Pattern.compile("(.*\\D)(\\d+)");
 
-    public enum SepType {
+    enum SepType {
         None, IntPostfix, BeanPrefix
     }
-    public static class Sep {
+    static class Sep {
         SepType type = SepType.None;
         String field;
         int num;
     }
 
-    public static Sep trySep(String name) {
+    static Sep trySep(String name) {
         Sep r = new Sep();
         int i = name.indexOf('@');
         if (i != -1) {
@@ -39,31 +39,31 @@ public final class Rules {
         return r;
     }
 
-    public static String makeListName(String name) {
+    static String makeListName(String name) {
         return name + "List";
     }
 
     private static Pattern listpattern = Pattern.compile("(\\D.*)List");
 
-    public static String parseListName(String name) {
+    static String parseListName(String name) {
         Matcher m = listpattern.matcher(name);
         if (m.matches())
             return m.group(1);
         throw new RuntimeException("list name not endswith List£º " + name);
     }
 
-    public static String makeMapName(String key, String value) {
+    static String makeMapName(String key, String value) {
         return key + "2" + value + "Map";
     }
 
     private static Pattern mappattern = Pattern.compile("(.*\\D)2(\\D.*)Map");
 
-    public static class Pair {
+    static class Pair {
         String key;
         String value;
     }
 
-    public static Pair parseMapName(String name) {
+    static Pair parseMapName(String name) {
         Pair r = new Pair();
         Matcher m = mappattern.matcher(name);
         if (m.matches()) {
@@ -74,7 +74,7 @@ public final class Rules {
         throw new RuntimeException("map name not match <k>2<v>Map: " + name);
     }
 
-    public static String guessPrimitiveType(Set<String> data) {
+    static String guessPrimitiveType(Set<String> data) {
         if (isInt(data))
             return "int";
         if (isLong(data))
@@ -86,7 +86,7 @@ public final class Rules {
         return "string";
     }
 
-    public static String guessPrimitiveTypeOrList(Set<String> data){
+    static String guessPrimitiveTypeOrList(Set<String> data){
         String t = guessPrimitiveType(data);
         if (t.equals("string")){
             Collection<String> parsed = new ArrayList<>();
@@ -98,7 +98,6 @@ public final class Rules {
         }
         return t;
     }
-
 
     private static boolean isBool(Set<String> data) {
         for (String t : data) {

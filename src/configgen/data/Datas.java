@@ -42,6 +42,7 @@ public class Datas extends Node {
     public void refineDefine(Cfgs cfgs){
         ConfigCollection define = cfgs.define;
         Map<String, Cfg> old = new HashMap<>(cfgs.cfgs);
+        define.configs.clear();
         datas.forEach( (k, data) -> {
             Cfg cfg = old.remove(k);
             Config def;
@@ -49,9 +50,8 @@ public class Datas extends Node {
                 def = cfg.define;
             }else{
                 def = new Config(define, k);
-                define.configs.put(k, def);
             }
-
+            define.configs.put(k, def);
             data.parse(cfg);
             data.refineDefine(def);
         });

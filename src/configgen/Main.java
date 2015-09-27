@@ -1,6 +1,11 @@
 package configgen;
 
+import configgen.data.Datas;
 import configgen.define.ConfigCollection;
+import configgen.gen.CachedFileOutputStream;
+import configgen.type.Cfgs;
+import configgen.value.CfgVs;
+import org.w3c.dom.Document;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,22 +17,12 @@ import java.util.Calendar;
 
 public final class Main {
 
-    public static String inputEncoding = "GBK";
+    private static String inputEncoding = "GBK";
     private static String outputEncoding = "GBK";
-
-    static boolean isCSharp;
-    static String tool;
-    static String codePackage = "config";
-    static String own;
-    static boolean prefixData;
     private static boolean verbose;
 
     static PrintStream outputPs(Path path) throws IOException {
         return new PrintStream(new CachedFileOutputStream(path.toFile()), false, outputEncoding);
-    }
-
-    static boolean _ISOWN() {
-        return own == null;
     }
 
     private final static SimpleDateFormat df = new SimpleDateFormat("HH.mm.ss.SSS");
@@ -40,57 +35,27 @@ public final class Main {
     private static void usage(String reason) {
         System.out.println(reason);
 
-        System.out.println("Usage: java -jar config.jar [options]");
-        System.out.println("	-csharp          generate csharp. default false");
-        System.out.println("	-tool            generate csharp code for tool. default null");
-        System.out.println("	-dataonly        generate dataonly. default false");
+        System.out.println("Usage: java -jar configgen.jar [options]");
         System.out.println("	-configdir       config data directory. no default");
-        System.out.println("	-configxml       config xml file. default config.xml");
-        System.out.println("	-codedir         output code directory. default config; csharpconfig");
-        System.out.println("	-codepackage     code package name. default config");
-        System.out.println("	-datafile        output data file. default configdata.zip; csv.byte,csv.text");
-        System.out.println("	-own             set on config, field to generate part of config. default null means all part");
-        System.out.println("	-outputencoding  output encoding. default GBK");
+        System.out.println("	-gen             zip,bin,java,csharp,lua");
         System.out.println("	-inputencoding   input encoding. default GBK");
-        System.out.println("	-prefixdata      prefix Data for csharp, default false");
+        System.out.println("	-outputencoding  output encoding. default GBK");
         System.out.println("	-v               verbose, default false");
-
         Runtime.getRuntime().exit(1);
     }
 
     public static void main(String[] args) throws Exception {
-        boolean dataOnly = false;
         String configDir = null;
-        String configXml = "config.xml";
-        String codeDir = null;
-        String dataFile = "configdata.zip";
+        String gen = null;
+        String own = null;
 
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {
-                case "-csharp":
-                    isCSharp = true;
-                    break;
-                case "-dataonly":
-                    dataOnly = true;
-                    break;
-                case "-tool":
-                    tool = args[++i];
-                    isCSharp = true;
-                    break;
                 case "-configdir":
                     configDir = args[++i];
                     break;
-                case "-configxml":
-                    configXml = args[++i];
-                    break;
-                case "-codedir":
-                    codeDir = args[++i];
-                    break;
-                case "-codepackage":
-                    codePackage = args[++i];
-                    break;
-                case "-datafile":
-                    dataFile = args[++i];
+                case "-gen":
+                    gen = args[++i];
                     break;
                 case "-own":
                     own = args[++i];
@@ -100,9 +65,6 @@ public final class Main {
                     break;
                 case "-inputencoding":
                     inputEncoding = args[++i];
-                    break;
-                case "-prefixdata":
-                    prefixData = true;
                     break;
                 case "-v":
                     verbose = true;
@@ -116,37 +78,29 @@ public final class Main {
         if (configDir == null)
             usage("-configdir must be set");
 
-        if (!isCSharp && own != null)
-            usage("-own must not set for java");
 
-        if (tool != null && own != null)
-            usage("-own must not set for tool");
+        Path dir = Paths.get(configDir);
+        File xml = dir.resolve("config.xml").toFile();
+        ConfigCollection define = new ConfigCollection(Utils.rootElement(xml));
+        //define.dump(System.out);
 
-        if (isCSharp && !codePackage.equals("config"))
-            usage("-codepackage must not set for csharp");
+        Cfgs type = new Cfgs(define);
+        //type.dump(System.out);
+        type.resolve();
+        //type.dump(System.out);
 
-        if (isCSharp)
-            codePackage = "Config";
+        Datas data = new Datas(dir, inputEncoding);
+        //data.dump(System.out);
+        data.refineDefine(type);
+        define.dump(System.out);
 
-        codeDir = (codeDir == null ? (isCSharp ? "csharpconfig" : "config") : codeDir);
+        Document doc = Utils.newDocument();
+        define.save(doc);
+        Utils.prettySaveDocument(doc, xml, inputEncoding);
+        Cfgs newType = new Cfgs(define);
 
-        ConfigCollection configs = new ConfigCollection(Paths.get(configDir).resolve(configXml));
-        configs.parseData(Paths.get(configDir));
-        configs.updateSchema();
+        CfgVs value = new CfgVs(newType, data);
+        value.verifyConstraint();
 
-        configs.verifyData();
-        configs.verifyDataRef();
-
-        if (isCSharp) {
-            ToCsharp to = new ToCsharp(configs);
-            if (!dataOnly)
-                to.generateCode(Paths.get(codeDir));
-            to.generateData(new File(dataFile));
-        } else {
-            ToJava to = new ToJava(configs, Paths.get(configDir));
-            if (!dataOnly)
-                to.generateCode(Paths.get(codeDir), codePackage);
-            to.generateData(new File(dataFile));
-        }
     }
 }

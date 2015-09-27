@@ -34,7 +34,7 @@ public class VMap extends Value {
     }
 
     @Override
-    public void verifyChild() {
+    public void verifyConstraint() {
         map.forEach((k, v) -> {
             k.verifyConstraint();
             v.verifyConstraint();

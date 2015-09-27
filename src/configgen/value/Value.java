@@ -15,9 +15,11 @@ public abstract class Value extends Node {
         this.cells = data;
     }
 
-    public void verifyConstraint() {
+    public abstract void verifyConstraint();
+
+    protected void verifyRefs() {
         for (Cfg ref : type.constraint.refs) {
-            Assert(!isNull(),  toString(), "null not support ref", ref.location());
+            Assert(!isNull(), toString(), "null not support ref", ref.location());
             Assert(ref.value.vkeys.contains(this), toString(), "not found in ref", ref.location());
         }
 
@@ -26,20 +28,6 @@ public abstract class Value extends Node {
                 Assert(ref.value.vkeys.contains(this), toString(), "not found in ref", ref.location());
             }
         }
-
-        Range range = type.constraint.range;
-        if (range != null) {
-            Assert(checkRange(range), "range err", toString());
-        }
-
-        verifyChild();
-    }
-
-    public abstract void verifyChild();
-
-
-    public boolean checkRange(Range range) {
-        return true;
     }
 
     public boolean isNull() {

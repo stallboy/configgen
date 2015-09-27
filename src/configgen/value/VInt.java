@@ -34,4 +34,8 @@ public class VInt extends VPrimitive {
         return value;
     }
 
+    @Override
+    public void accept(ValueVisitor visitor) {
+        visitor.visit(this);
+    }
 }

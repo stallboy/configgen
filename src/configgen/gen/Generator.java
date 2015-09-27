@@ -17,6 +17,4 @@ public abstract class Generator {
     }
 
     public abstract void gen() throws IOException;
-
-
 }

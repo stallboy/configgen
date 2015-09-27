@@ -1,6 +1,6 @@
 package configgen.type;
 
-public interface Visitor {
+public interface TypeVisitor {
     void visit(TBool type);
 
     void visit(TInt type);

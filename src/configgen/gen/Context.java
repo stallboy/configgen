@@ -16,8 +16,12 @@ public class Context {
         String[] sp = arg.split(",");
         type = sp[0];
         for (int i = 1; i < sp.length; i++) {
-            String[] c = sp[i].split(":");
-            ctx.put(c[0], c[1]);
+            String s = sp[i];
+            int c = s.indexOf(':');
+            if (-1 == c)
+                ctx.put(s, "1");
+            else
+                ctx.put(s.substring(0, c), s.substring(c + 1));
         }
     }
 
@@ -25,6 +29,8 @@ public class Context {
         switch (type) {
             case "zip":
                 return new GenZip(dir, value, this);
+            case "bin":
+                return new GenBin(dir, value, this);
             default:
                 return null;
         }

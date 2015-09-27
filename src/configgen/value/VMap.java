@@ -34,6 +34,11 @@ public class VMap extends Value {
     }
 
     @Override
+    public void accept(ValueVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public void verifyConstraint() {
         map.forEach((k, v) -> {
             k.verifyConstraint();

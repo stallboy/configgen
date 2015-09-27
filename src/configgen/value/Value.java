@@ -15,6 +15,8 @@ public abstract class Value extends Node {
         this.cells = data;
     }
 
+    public abstract void accept(ValueVisitor visitor);
+
     public abstract void verifyConstraint();
 
     protected void verifyRefs() {
@@ -50,7 +52,7 @@ public abstract class Value extends Node {
 
 
     public static Value create(Node parent, String link, Type t, List<Cell> data) {
-        return t.accept(new TVisitor<Value>() {
+        return t.accept(new TypeVisitorT<Value>() {
             @Override
             public Value visit(TBool type) {
                 return new VBool(parent, link, type, data);

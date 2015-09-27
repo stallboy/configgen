@@ -28,4 +28,9 @@ public class VText extends VPrimitive {
     public int hashCode() {
         return value.hashCode();
     }
+
+    @Override
+    public void accept(ValueVisitor visitor) {
+        visitor.visit(this);
+    }
 }

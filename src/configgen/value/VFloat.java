@@ -33,4 +33,9 @@ public class VFloat extends VPrimitive {
     public int hashCode() {
         return Float.hashCode(value);
     }
+
+    @Override
+    public void accept(ValueVisitor visitor) {
+        visitor.visit(this);
+    }
 }

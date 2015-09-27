@@ -30,4 +30,9 @@ public class VBool extends VPrimitive {
     public int hashCode() {
         return Boolean.hashCode(value);
     }
+
+    @Override
+    public void accept(ValueVisitor visitor) {
+        visitor.visit(this);
+    }
 }

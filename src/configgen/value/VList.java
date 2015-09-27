@@ -53,6 +53,11 @@ public class VList extends Value {
     }
 
     @Override
+    public void accept(ValueVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public void verifyConstraint() {
         list.forEach(Value::verifyConstraint);
     }

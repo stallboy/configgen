@@ -18,9 +18,9 @@ public abstract class Type extends Node {
 
     public abstract int columnSpan();
 
-    public abstract void accept(Visitor visitor);
+    public abstract void accept(TypeVisitor visitor);
 
-    public abstract <T> T accept(TVisitor<T> visitor);
+    public abstract <T> T accept(TypeVisitorT<T> visitor);
 
 
     static Type resolve(Node parent, String link, Constraint cons, String type, String key, String value, int count) {

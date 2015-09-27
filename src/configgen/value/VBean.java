@@ -42,6 +42,11 @@ public class VBean extends Value {
     }
 
     @Override
+    public void accept(ValueVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public void verifyConstraint() {
         verifyRefs();
 

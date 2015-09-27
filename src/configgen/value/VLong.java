@@ -34,4 +34,8 @@ public class VLong extends VPrimitive {
         return Long.hashCode(value);
     }
 
+    @Override
+    public void accept(ValueVisitor visitor) {
+        visitor.visit(this);
+    }
 }

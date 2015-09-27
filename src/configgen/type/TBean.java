@@ -1,6 +1,5 @@
 package configgen.type;
 
-import configgen.Node;
 import configgen.define.*;
 
 import java.util.*;
@@ -45,12 +44,12 @@ public class TBean extends Type {
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public <T> T accept(TVisitor<T> visitor) {
+    public <T> T accept(TypeVisitorT<T> visitor) {
         return visitor.visit(this);
     }
 

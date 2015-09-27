@@ -1,5 +1,6 @@
 package configgen;
 
+import configgen.gen.CachedFileOutputStream;
 import org.w3c.dom.*;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
@@ -16,10 +17,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public final class Utils {
     public static Element rootElement(File file) throws ParserConfigurationException, IOException, SAXException {
@@ -134,9 +133,25 @@ public final class Utils {
     public static String path2Name(String p) {
         String[] res = p.split("\\\\|/");
         if (res.length > 0) {
-            String last = res[res.length-1];
-            res[res.length-1] = last.substring(0, last.length() - 4);
+            String last = res[res.length - 1];
+            res[res.length - 1] = last.substring(0, last.length() - 4);
         }
         return String.join(".", res);
+    }
+
+    public static PrintStream cachedPrintStream(Path path, String encoding) throws IOException {
+        return new PrintStream(new CachedFileOutputStream(path.toFile()), false, encoding);
+    }
+
+    private static boolean verboseEnabled = false;
+    public static void enableVerbose(boolean enable){
+        verboseEnabled = enable;
+    }
+
+    private final static SimpleDateFormat df = new SimpleDateFormat("HH.mm.ss.SSS");
+    public static void verbose(String s) {
+        if (verboseEnabled) {
+            System.out.println(df.format(Calendar.getInstance().getTime()) + ": " + s);
+        }
     }
 }

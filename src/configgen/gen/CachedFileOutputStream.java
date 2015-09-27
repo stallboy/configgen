@@ -29,6 +29,7 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
     @Override
     public void close() throws IOException {
         if (!file.toFile().exists()) {
+            System.out.println("config: create file: " + file);
             writeFile();
         } else if (!Arrays.equals(Files.readAllBytes(file), toByteArray())) {
             System.out.println("config: modify file: " + file);

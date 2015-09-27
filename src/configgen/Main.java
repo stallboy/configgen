@@ -2,37 +2,21 @@ package configgen;
 
 import configgen.data.Datas;
 import configgen.define.ConfigCollection;
-import configgen.gen.CachedFileOutputStream;
+import configgen.gen.Context;
+import configgen.gen.Generator;
 import configgen.type.Cfgs;
 import configgen.value.CfgVs;
 import org.w3c.dom.Document;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Main {
-    private static String outputEncoding = "GBK";
-    private static boolean verbose;
-
-    static PrintStream outputPs(Path path) throws IOException {
-        return new PrintStream(new CachedFileOutputStream(path.toFile()), false, outputEncoding);
-    }
-
-    private final static SimpleDateFormat df = new SimpleDateFormat("HH.mm.ss.SSS");
-
-    public static void verbose(String s) {
-        if (verbose) {
-            System.out.println(df.format(Calendar.getInstance().getTime()) + ": " + s);
-        }
-    }
-
     private static void usage(String reason) {
-        System.out.println(reason);
+        System.err.println(reason);
 
         System.out.println("Usage: java -jar configgen.jar [options]");
         System.out.println("	-configdir       config data directory. no default");
@@ -42,25 +26,10 @@ public final class Main {
         Runtime.getRuntime().exit(1);
     }
 
-    static class Gen {
-        String type;
-        Map<String, String> ctx = new HashMap<>();
-
-        Gen(String param) {
-            String[] sp = param.split(",");
-            type = sp[0];
-            for (int i = 1; i < sp.length; i++) {
-                String[] c = sp[i].split(":");
-                ctx.put(c[0], c[1]);
-            }
-        }
-
-    }
-
     public static void main(String[] args) throws Exception {
         String configDir = null;
         String encoding = "GBK";
-        List<Gen> gens = new ArrayList<>();
+        List<Context> contexts = new ArrayList<>();
 
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {
@@ -68,13 +37,13 @@ public final class Main {
                     configDir = args[++i];
                     break;
                 case "-gen":
-                    gens.add(new Gen(args[++i]));
+                    contexts.add(new Context(args[++i]));
                     break;
                 case "-encoding":
                     encoding = args[++i];
                     break;
                 case "-v":
-                    verbose = true;
+                    Utils.enableVerbose(true);
                     break;
                 default:
                     usage("unknown args " + args[i]);
@@ -82,20 +51,22 @@ public final class Main {
             }
         }
 
-        if (configDir == null)
+        if (configDir == null) {
             usage("-configdir miss");
+            return;
+        }
 
 
         Path dir = Paths.get(configDir);
         File xml = dir.resolve("config.xml").toFile();
-        verbose("parse xml to define");
+        Utils.verbose("parse xml to define");
         ConfigCollection define = new ConfigCollection(Utils.rootElement(xml));
 
-        verbose("resolve define to type");
+        Utils.verbose("resolve define to type");
         Cfgs type = new Cfgs(define);
         type.resolve();
 
-        verbose("parse data to refine define and save to xml");
+        Utils.verbose("parse data to refine define and save to xml");
         Datas data = new Datas(dir, encoding);
         data.refineDefine(type);
 
@@ -103,16 +74,26 @@ public final class Main {
         define.save(doc);
         Utils.prettySaveDocument(doc, xml, encoding);
 
-        verbose("resolve refined define to new type");
+        Utils.verbose("resolve refined define to new type");
         Cfgs newType = new Cfgs(define);
         newType.resolve();
 
-        verbose("construct value from new type and data");
+        Utils.verbose("construct value from new type and data");
         CfgVs value = new CfgVs(newType, data);
 
-        verbose("verify value of foreign key and range constraint");
+        Utils.verbose("verify value of foreign key and range constraint");
         value.verifyConstraint();
 
-        verbose("end");
+        for (Context ctx : contexts) {
+            Generator g = ctx.create(dir, value);
+            if (g != null) {
+                Utils.verbose("generate " + ctx);
+                g.gen();
+            } else {
+                System.err.println("not support " + ctx);
+            }
+        }
+
+        Utils.verbose("end");
     }
 }

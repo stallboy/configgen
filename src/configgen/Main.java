@@ -13,11 +13,9 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.*;
 
 public final class Main {
-
-    private static String inputEncoding = "GBK";
     private static String outputEncoding = "GBK";
     private static boolean verbose;
 
@@ -26,6 +24,7 @@ public final class Main {
     }
 
     private final static SimpleDateFormat df = new SimpleDateFormat("HH.mm.ss.SSS");
+
     public static void verbose(String s) {
         if (verbose) {
             System.out.println(df.format(Calendar.getInstance().getTime()) + ": " + s);
@@ -37,17 +36,31 @@ public final class Main {
 
         System.out.println("Usage: java -jar configgen.jar [options]");
         System.out.println("	-configdir       config data directory. no default");
-        System.out.println("	-gen             zip,bin,java,csharp,lua");
-        System.out.println("	-inputencoding   input encoding. default GBK");
-        System.out.println("	-outputencoding  output encoding. default GBK");
+        System.out.println("	-encoding        config encoding. default GBK");
+        System.out.println("	-gen             zip,bin,java,cs,lua");
         System.out.println("	-v               verbose, default false");
         Runtime.getRuntime().exit(1);
     }
 
+    static class Gen {
+        String type;
+        Map<String, String> ctx = new HashMap<>();
+
+        Gen(String param) {
+            String[] sp = param.split(",");
+            type = sp[0];
+            for (int i = 1; i < sp.length; i++) {
+                String[] c = sp[i].split(":");
+                ctx.put(c[0], c[1]);
+            }
+        }
+
+    }
+
     public static void main(String[] args) throws Exception {
         String configDir = null;
-        String gen = null;
-        String own = null;
+        String encoding = "GBK";
+        List<Gen> gens = new ArrayList<>();
 
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {
@@ -55,16 +68,10 @@ public final class Main {
                     configDir = args[++i];
                     break;
                 case "-gen":
-                    gen = args[++i];
+                    gens.add(new Gen(args[++i]));
                     break;
-                case "-own":
-                    own = args[++i];
-                    break;
-                case "-outputencoding":
-                    outputEncoding = args[++i];
-                    break;
-                case "-inputencoding":
-                    inputEncoding = args[++i];
+                case "-encoding":
+                    encoding = args[++i];
                     break;
                 case "-v":
                     verbose = true;
@@ -76,31 +83,36 @@ public final class Main {
         }
 
         if (configDir == null)
-            usage("-configdir must be set");
+            usage("-configdir miss");
 
 
         Path dir = Paths.get(configDir);
         File xml = dir.resolve("config.xml").toFile();
+        verbose("parse xml to define");
         ConfigCollection define = new ConfigCollection(Utils.rootElement(xml));
-        //define.dump(System.out);
 
+        verbose("resolve define to type");
         Cfgs type = new Cfgs(define);
-        //type.dump(System.out);
         type.resolve();
-        //type.dump(System.out);
 
-        Datas data = new Datas(dir, inputEncoding);
-        //data.dump(System.out);
+        verbose("parse data to refine define and save to xml");
+        Datas data = new Datas(dir, encoding);
         data.refineDefine(type);
-        define.dump(System.out);
 
         Document doc = Utils.newDocument();
         define.save(doc);
-        Utils.prettySaveDocument(doc, xml, inputEncoding);
-        Cfgs newType = new Cfgs(define);
+        Utils.prettySaveDocument(doc, xml, encoding);
 
+        verbose("resolve refined define to new type");
+        Cfgs newType = new Cfgs(define);
+        newType.resolve();
+
+        verbose("construct value from new type and data");
         CfgVs value = new CfgVs(newType, data);
+
+        verbose("verify value of foreign key and range constraint");
         value.verifyConstraint();
 
+        verbose("end");
     }
 }

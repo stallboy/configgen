@@ -40,9 +40,7 @@ public class Node {
     }
 
     private final void dump(PrintStream ps, String tab) {
-        if (!link.isEmpty()) {
-            ps.println(tab + "[" + getClass().getSimpleName() + "]" + link);
-        }
+        ps.println(tab + "[" + getClass().getSimpleName() + "]" + link);
         for (Node child : children)
             child.dump(ps, tab + "\t");
     }

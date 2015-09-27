@@ -8,12 +8,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class CfgVs extends Node {
-    public final Cfgs cfgs;
+    public final Cfgs type;
     public final Map<String, CfgV> cfgvs = new LinkedHashMap<>();
 
     public CfgVs(Cfgs cfgs, Datas datas) {
         super(null, "value");
-        this.cfgs = cfgs;
+        this.type = cfgs;
 
         cfgs.cfgs.forEach((name, cfg) -> {
             CfgV c = new CfgV(this, name, cfg, datas.datas.get(name));

@@ -23,10 +23,11 @@ public class CfgV extends Node {
         type.value = this;
         List<Integer> cols = new ArrayList<>();
         cfg.tbean.fields.forEach((name, type) -> cols.addAll(data.columns.get(name).indexs));
+        Assert(cols.size() > 0);
 
         data.line2data.forEach((row, rowData) -> {
             List<Cell> order = cols.stream().map(col -> new Cell(row, col, rowData.get(col))).collect(Collectors.toList());
-            VBean vbean = new VBean(this, "", cfg.tbean, order);
+            VBean vbean = new VBean(this, ""+row, cfg.tbean, order);
             vbeans.add(vbean);
         });
 
@@ -37,7 +38,9 @@ public class CfgV extends Node {
             } else {
                 List<Value> vs = new ArrayList<>();
                 for (String k : type.define.keys) {
-                    vs.add(vbean.map.get(k));
+                    Value v = vbean.map.get(k);
+                    Assert(v != null);
+                    vs.add(v);
                 }
                 key = new VList(this, "keys", vs);
             }

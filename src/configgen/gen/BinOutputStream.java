@@ -6,13 +6,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Writer;
 
-public class BinWriter implements ValueVisitor {
+public class BinOutputStream implements ValueVisitor {
     private final DataOutputStream byter;
     private final Writer texter;
     private int index;
     private byte writeBuffer[] = new byte[8];
 
-    public BinWriter(DataOutputStream byter, Writer texter) {
+    public BinOutputStream(DataOutputStream byter, Writer texter) {
         this.byter = byter;
         this.texter = texter;
     }

@@ -20,14 +20,13 @@ public abstract class Value extends Node {
     public abstract void verifyConstraint();
 
     protected void verifyRefs() {
-        for (Cfg ref : type.constraint.refs) {
-            Assert(!isNull(), toString(), "null not support ref", ref.location());
-            Assert(ref.value.vkeys.contains(this), toString(), "not found in ref", ref.location());
-        }
-
-        if (!isNull()) {
-            for (Cfg ref : type.constraint.nullableRefs) {
-                Assert(ref.value.vkeys.contains(this), toString(), "not found in ref", ref.location());
+        for (SRef ref : type.constraint.refs) {
+            if (ref.ref != null){
+                if (isNull()){
+                    Assert(ref.nullable, toString(), "null not support ref", ref.ref.location());
+                }else{
+                    Assert(ref.ref.value.vkeys.contains(this), toString(), "not found in ref", ref.ref.location());
+                }
             }
         }
     }

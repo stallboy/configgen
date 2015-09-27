@@ -274,7 +274,7 @@ public final class CSV {
     }
 
     @SuppressWarnings("unused")
-    static Set<String> load(Path zipPath, String charsetName) throws Exception {
+    static Set<String> load(Path zipPath, String encoding) throws Exception {
         Set<String> loaded = new HashSet<>();
         String packageName = CSV.class.getPackage().getName();
         try (ZipInputStream zis = new ZipInputStream(new CheckedInputStream(new FileInputStream(zipPath.toFile()), new CRC32()))) {
@@ -290,7 +290,7 @@ public final class CSV {
                             classList.add(clz);
                             Method initialize = clz.getDeclaredMethod("initialize", List.class);
                             initialize.setAccessible(true);
-                            List<List<String>> res = parse(new BufferedReader(new InputStreamReader(zis, charsetName)), true);
+                            List<List<String>> res = parse(new BufferedReader(new InputStreamReader(zis, encoding)), true);
                             initialize.invoke(null, res.subList(2, res.size()));
                             loaded.add(name);
                         }

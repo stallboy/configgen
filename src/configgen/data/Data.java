@@ -58,7 +58,7 @@ public class Data extends Node {
         }
     }
 
-    void refineDefine(Config config) {
+    public void refineDefine(Config config) {
         Bean define = config.bean;
         Map<String, Field> old = new LinkedHashMap<>(define.fields);
         define.fields.clear();

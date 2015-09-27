@@ -139,8 +139,8 @@ public final class Utils {
         return String.join(".", res);
     }
 
-    public static PrintStream cachedPrintStream(Path path, String encoding) throws IOException {
-        return new PrintStream(new CachedFileOutputStream(path.toFile()), false, encoding);
+    public static PrintStream cachedPrintStream(File file, String encoding) throws IOException {
+        return new PrintStream(new CachedFileOutputStream(file), false, encoding);
     }
 
     private static boolean verboseEnabled = false;

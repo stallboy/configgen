@@ -26,7 +26,7 @@ public class ListRef extends Node {
         this.refKeys = refKeys;
     }
 
-    void resolve() {
+    public void resolve() {
         ref = ((Cfgs) root).cfgs.get(refStr);
         Assert(ref != null, "ref not found", refStr);
 

@@ -19,7 +19,7 @@ public class Context {
             String s = sp[i];
             int c = s.indexOf(':');
             if (-1 == c)
-                ctx.put(s, "1");
+                ctx.put(s, null);
             else
                 ctx.put(s.substring(0, c), s.substring(c + 1));
         }
@@ -31,6 +31,8 @@ public class Context {
                 return new GenZip(dir, value, this);
             case "bin":
                 return new GenBin(dir, value, this);
+            case "java":
+                return new GenJava(dir, value, this);
             default:
                 return null;
         }

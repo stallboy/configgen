@@ -2,8 +2,7 @@ package configgen.value;
 
 import configgen.CSV;
 import configgen.Node;
-import configgen.type.Cfg;
-import configgen.type.KeysRef;
+import configgen.type.MRef;
 import configgen.type.TBean;
 import configgen.type.Type;
 
@@ -52,17 +51,18 @@ public class VBean extends Value {
 
         map.values().forEach(Value::verifyConstraint);
 
-        for (KeysRef kr : tbean.keysRefs) {
+        for (MRef mr : tbean.mRefs) {
             List<Value> vs = new ArrayList<>();
-            for (String k : kr.define.keys) {
+            for (String k : mr.define.keys) {
                 vs.add(map.get(k));
             }
-            VList key = new VList(this, "__ref_" + kr.define.name, vs);
-            if (null != kr.ref){
-                Assert(!key.isNull(), key.toString(), "null not support ref", kr.ref.location());
-                Assert(kr.ref.value.vkeys.contains(key), key.toString(), "not found in ref", kr.ref.location());
-            } else if (null != kr.nullableRef && !key.isNull()){
-                Assert(kr.nullableRef.value.vkeys.contains(key), key.toString(), "not found in ref", kr.nullableRef.location());
+            VList key = new VList(this, "__ref_" + mr.define.name, vs);
+            if (mr.ref != null){
+                if (isNull()){
+                    Assert(mr.define.nullable, key.toString(), "null not support ref", mr.ref.location());
+                }else{
+                    Assert(mr.ref.value.vkeys.contains(key), key.toString(), "not found in ref", mr.ref.location());
+                }
             }
         }
     }

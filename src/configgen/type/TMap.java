@@ -10,16 +10,19 @@ public class TMap extends Type {
     public TMap(Node parent, String link, Constraint cons, String key, String value, int count) {
         super(parent, link, cons);
         Assert(cons.range == null, "map not support range");
-        Assert(cons.nullableRefs.isEmpty(), "map not support nullableRef");
 
         Constraint kc = new Constraint();
-        kc.refs.addAll(cons.keyRefs);
-        this.key = resolve(this, "key", kc, key);
-
         Constraint vc = new Constraint();
-        vc.refs.addAll(cons.refs);
-        this.value = resolve(this, "value", vc, value);
+        for (SRef ref : cons.refs) {
+            Assert(!ref.nullable, "map not support nullableRef");
+            if (null != ref.keyRef)
+                kc.refs.add(new SRef("", ref.keyRef, false, null));
+            if (null != ref.ref)
+                vc.refs.add(new SRef("", ref.ref, false, null));
+        }
 
+        this.key = resolve(this, "key", kc, key);
+        this.value = resolve(this, "value", vc, value);
         this.count = count;
     }
 

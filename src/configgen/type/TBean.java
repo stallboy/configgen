@@ -7,9 +7,10 @@ import java.util.*;
 public class TBean extends Type {
     public final Bean define;
     public final Map<String, Type> fields = new LinkedHashMap<>();
-    public final List<KeysRef> keysRefs = new ArrayList<>();
+    public final List<MRef> mRefs = new ArrayList<>();
+    public final List<ListRef> listRefs = new ArrayList<>();
 
-    public final List<ListRef> listRefs = new ArrayList<>(); // only exist in Cfgs.TBean
+    private Set<String> refNames = new HashSet<>();
 
     public TBean(Cfgs parent, Bean bean) {
         super(parent, bean.name, new Constraint());
@@ -25,7 +26,7 @@ public class TBean extends Type {
 
     @Override
     public boolean hasRef() {
-        return keysRefs.size() > 0 || listRefs.size() > 0 || fields.values().stream().filter(Type::hasRef).count() > 0;
+        return mRefs.size() > 0 || listRefs.size() > 0 || fields.values().stream().filter(Type::hasRef).count() > 0;
     }
 
     @Override
@@ -56,7 +57,7 @@ public class TBean extends Type {
     private void init() {
         for (Ref r : define.refs) {
             if (r.keys.length > 1) {
-                keysRefs.add(new KeysRef(this, r));
+                mRefs.add(new MRef(this, r));
             }
         }
 
@@ -65,9 +66,12 @@ public class TBean extends Type {
         }
     }
 
-    void resolve() {
+    public void resolve() {
         define.fields.values().forEach(this::resolveField);
-        keysRefs.forEach(KeysRef::resolve);
+        mRefs.forEach(kr -> {
+            kr.resolve();
+            Assert(refNames.add(kr.define.name), "ref name conflict", kr.define.name);
+        });
         listRefs.forEach(ListRef::resolve);
 
         Assert(fields.size() > 0, "has no fields");
@@ -99,10 +103,10 @@ public class TBean extends Type {
         }
 
         Constraint cons = new Constraint();
-        resolveConstraint(cons, f.ref, f.nullableRef, f.keyRef, f.range);
+        resolveConstraint(cons, f.name, f.ref, f.nullableRef, f.keyRef, f.range);
         for (Ref r : define.refs) {
             if (r.keys.length == 1 && r.keys[0].equals(f.name)) {
-                resolveConstraint(cons, r.ref, r.nullableRef, r.keyRef, "");
+                resolveConstraint(cons, r.name, (r.nullable ? "" : r.ref), (r.nullable ? r.ref : ""), r.keyRef, "");
             }
         }
         configgen.define.Range rg = define.ranges.get(f.name);
@@ -110,7 +114,7 @@ public class TBean extends Type {
             addConstraintRange(cons, new Range(rg.min, rg.max));
         }
 
-        if (!f.listRef.isEmpty()){
+        if (!f.listRef.isEmpty()) {
             listRefs.add(new ListRef(this, f.name, f.listRef, f.listRefKey));
         }
 
@@ -119,24 +123,32 @@ public class TBean extends Type {
         fields.put(f.name, res);
     }
 
-    private void resolveConstraint(Constraint cons, String ref, String nullableRef, String keyRef, String range) {
+    private void resolveConstraint(Constraint cons, String name, String ref, String nullableRef, String keyRef, String range) {
         Cfgs cfgs = (Cfgs) root;
+        boolean hasRef = false;
+        Cfg c = null;
+        boolean nullable = false;
+        Cfg kc = null;
         if (!ref.isEmpty()) {
-            Cfg c = cfgs.cfgs.get(ref);
+            c = cfgs.cfgs.get(ref);
             Assert(c != null, "ref not found", ref);
-            cons.refs.add(c);
-        }
-
-        if (!nullableRef.isEmpty()) {
-            Cfg c = cfgs.cfgs.get(nullableRef);
+            hasRef = true;
+        } else if (!nullableRef.isEmpty()) {
+            c = cfgs.cfgs.get(nullableRef);
             Assert(c != null, "nullableRef not found", nullableRef);
-            cons.nullableRefs.add(c);
+            nullable = true;
+            hasRef = true;
         }
 
         if (!keyRef.isEmpty()) {
-            Cfg c = cfgs.cfgs.get(keyRef);
+            kc = cfgs.cfgs.get(keyRef);
             Assert(c != null, "keyRef not found", keyRef);
-            cons.keyRefs.add(c);
+            hasRef = true;
+        }
+
+        if (hasRef) {
+            Assert(refNames.add(name), "ref name conflict", name);
+            cons.refs.add(new SRef(name, c, nullable, kc));
         }
 
         if (!range.isEmpty()) {

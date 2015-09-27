@@ -11,7 +11,7 @@ public abstract class Type extends Node {
     }
 
     public boolean hasRef() {
-        return constraint.refs.size() > 0 ||  constraint.nullableRefs.size() > 0 || constraint.keyRefs.size() > 0;
+        return constraint.refs.size() > 0;
     }
 
     public abstract boolean hasText();

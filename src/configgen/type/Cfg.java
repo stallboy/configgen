@@ -19,7 +19,7 @@ public class Cfg extends Node {
         tbean = new TBean(this, cfg.bean);
     }
 
-    void resolve() {
+    public void resolve() {
         tbean.resolve();
         if (!define.enumStr.isEmpty()) {
             Type type = tbean.fields.get(define.enumStr);

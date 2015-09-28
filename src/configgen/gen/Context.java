@@ -33,6 +33,8 @@ public class Context {
                 return new GenBin(dir, value, this);
             case "java":
                 return new GenJava(dir, value, this);
+            case "cs":
+                return new GenCs(dir, value, this);
             default:
                 return null;
         }

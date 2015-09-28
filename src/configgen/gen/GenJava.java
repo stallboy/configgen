@@ -48,7 +48,7 @@ public class GenJava extends Generator {
     private static void mkdirs(File path) {
         if (!path.exists()) {
             if (!path.mkdirs()) {
-                System.out.println("mkdirs fail: " + path);
+                Utils.println("mkdirs fail: " + path);
             }
         }
     }

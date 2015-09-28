@@ -13,20 +13,22 @@ public class CfgV extends Node {
     public final List<VBean> vbeans = new ArrayList<>();
 
     public final Set<Value> vkeys = new HashSet<>();
+
+    public final List<Integer> columnIndexes = new ArrayList<>();
     public final boolean isEnum;
     public final boolean isEnumPart;
     public final Set<String> enumNames = new LinkedHashSet<>();
+    public final int enumColumnIndex;
 
     public CfgV(CfgVs parent, String link, Cfg cfg, Data data) {
         super(parent, link);
         type = cfg;
         type.value = this;
-        List<Integer> cols = new ArrayList<>();
-        cfg.tbean.fields.forEach((name, type) -> cols.addAll(data.columns.get(name).indexs));
-        Assert(cols.size() > 0);
+        cfg.tbean.fields.forEach((name, type) -> columnIndexes.addAll(data.columns.get(name).indexes));
+        Assert(columnIndexes.size() > 0);
 
         data.line2data.forEach((row, rowData) -> {
-            List<Cell> order = cols.stream().map(col -> new Cell(row, col, rowData.get(col))).collect(Collectors.toList());
+            List<Cell> order = columnIndexes.stream().map(col -> new Cell(row, col, rowData.get(col))).collect(Collectors.toList());
             VBean vbean = new VBean(this, ""+row, cfg.tbean, order);
             vbeans.add(vbean);
         });
@@ -51,6 +53,7 @@ public class CfgV extends Node {
         if (isEnum) {
             Set<String> names = new HashSet<>();
             Column col = data.columns.get(type.define.enumStr);
+            enumColumnIndex = col.indexes.get(0);
             boolean part = false;
             for (String e : col.dataList()) {
                 e = e.trim();
@@ -64,6 +67,7 @@ public class CfgV extends Node {
             isEnumPart = part;
         } else {
             isEnumPart = false;
+            enumColumnIndex = 0;
         }
     }
 

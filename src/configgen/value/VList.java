@@ -41,7 +41,7 @@ public class VList extends Value {
         int idx = 0;
         for (int i = 0; i < type.count; i++) {
             int s = i * vc;
-            if (!sdata.get(s).data.isEmpty()) {
+            if (!sdata.get(s).data.isEmpty()) { //first as a null clue, see code generator
                 list.add(Value.create(this, String.valueOf(idx), type.value, sdata.subList(s, s + vc)));
                 idx++;
             } else {

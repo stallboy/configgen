@@ -380,14 +380,14 @@ public class Data extends Node {
 
     private void put(String s, List<Integer> a) {
         Column col = new Column(this, s);
-        col.indexs.addAll(a);
+        col.indexes.addAll(a);
         col.descs.addAll(a.stream().map(descLine::get).collect(Collectors.toList()));
         Assert(null == columns.put(s, col), "field duplicate");
     }
 
     private void add(String s, int i) {
         Column col = columns.get(s);
-        col.indexs.add(i);
+        col.indexes.add(i);
         col.descs.add(descLine.get(i));
     }
 }

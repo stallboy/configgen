@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public final class Column extends Node {
     public final String name;
-    public final List<Integer> indexs = new ArrayList<>();
+    public final List<Integer> indexes = new ArrayList<>();
     public final List<String> descs = new ArrayList<>();
 
     public Column(Data parent, String name) {
@@ -20,13 +20,13 @@ public final class Column extends Node {
     }
 
     String guessType() {
-        if (indexs.size() > 1) {
+        if (indexes.size() > 1) {
             if (name.endsWith("List")) {
-                return "list," + Rules.guessPrimitiveType(dataSet()) + "," + indexs.size();
+                return "list," + Rules.guessPrimitiveType(dataSet()) + "," + indexes.size();
             } else {
-                Assert(indexs.size() % 2 == 0);
+                Assert(indexes.size() % 2 == 0);
                 Pair pair = dataKeyValueSet();
-                return "map," + Rules.guessPrimitiveType(pair.key) + "," + Rules.guessPrimitiveType(pair.value) + "," + indexs.size() / 2;
+                return "map," + Rules.guessPrimitiveType(pair.key) + "," + Rules.guessPrimitiveType(pair.value) + "," + indexes.size() / 2;
             }
         } else {
             return Rules.guessPrimitiveTypeOrList(dataSet());
@@ -43,14 +43,14 @@ public final class Column extends Node {
     public List<String> dataList() {
         List<String> r = new ArrayList<>();
         for (List<String> row : ((Data) parent).line2data.values())
-            r.addAll(indexs.stream().map(row::get).collect(Collectors.toList()));
+            r.addAll(indexes.stream().map(row::get).collect(Collectors.toList()));
         return r;
     }
 
     private Set<String> dataSet() {
         Set<String> r = new HashSet<>();
         for (List<String> row : ((Data) parent).line2data.values())
-            r.addAll(indexs.stream().map(row::get).collect(Collectors.toList()));
+            r.addAll(indexes.stream().map(row::get).collect(Collectors.toList()));
         return r;
     }
 
@@ -63,7 +63,7 @@ public final class Column extends Node {
         Pair res = new Pair();
         for (List<String> row : ((Data) parent).line2data.values()) {
             int i = 0;
-            for (int index : indexs) {
+            for (int index : indexes) {
                 String r = row.get(index);
                 if (i % 2 == 0)
                     res.key.add(r);

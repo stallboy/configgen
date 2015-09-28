@@ -4,12 +4,13 @@ import configgen.Node;
 import configgen.define.Config;
 import configgen.value.CfgV;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Cfg extends Node {
     public final Config define;
     public final TBean tbean;
+    public final Map<String, Type> keys = new LinkedHashMap<>();
 
     public CfgV value; //set by CfgV
 
@@ -21,21 +22,24 @@ public class Cfg extends Node {
 
     public void resolve() {
         tbean.resolve();
+
         if (!define.enumStr.isEmpty()) {
             Type type = tbean.fields.get(define.enumStr);
-            define.Assert(type != null, "enum not found", define.enumStr);
-            define.Assert(type instanceof TString, "enum type not string", type.toString());
+            Assert(type != null, "enum not found", define.enumStr);
+            Assert(type instanceof TString, "enum type not string", type.toString());
         }
 
-        Set<String> keys = new HashSet<>();
-        for (String k : define.keys) {
-            Type t = tbean.fields.get(k);
-            define.Assert(t != null, "primary keys not found", k, String.join(",",define.keys));
-            define.Assert(keys.add(k), "primary keys duplicate", k);
-            define.Assert(t instanceof TPrimitive, "primary keys not support bean and container", k);
+        if (define.keys.length > 0) {
+            for (String k : define.keys) {
+                Type t = tbean.fields.get(k);
+                Assert(t != null, "primary keys not found", k, String.join(",", define.keys));
+                Assert(null == keys.put(k, t), "primary keys duplicate", k);
+                Assert(t instanceof TPrimitive, "primary keys not support bean and container", k);
+            }
+        } else {
+            Map.Entry<String, Type> k = tbean.fields.entrySet().iterator().next();
+            keys.put(k.getKey(), k.getValue());
+            Assert(k.getValue() instanceof TPrimitive || k.getValue() instanceof TBean, "primary key not supported container");
         }
-
-        Type t = tbean.fields.values().iterator().next();
-        define.Assert(t instanceof TPrimitive || t instanceof TBean, "primary key not supported container");
     }
 }

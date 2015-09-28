@@ -30,7 +30,7 @@ public class Datas extends Node {
             public FileVisitResult visitFile(Path file, BasicFileAttributes a) throws IOException {
                 if (file.toString().endsWith(".csv")) {
                     String name = Utils.path2Name(dataDir.relativize(file).toString());
-                    try(Reader reader = new InputStreamReader(new FileInputStream(file.toFile()), inputEncoding)){
+                    try (Reader reader = new InputStreamReader(new FileInputStream(file.toFile()), inputEncoding)) {
                         datas.put(name, new Data(Datas.this, name, CSV.parse(reader, false)));
                     }
                 }
@@ -39,16 +39,16 @@ public class Datas extends Node {
         });
     }
 
-    public void refineDefine(Cfgs cfgs){
+    public void refineDefine(Cfgs cfgs) {
         ConfigCollection define = cfgs.define;
         Map<String, Cfg> old = new HashMap<>(cfgs.cfgs);
         define.configs.clear();
-        datas.forEach( (k, data) -> {
+        datas.forEach((k, data) -> {
             Cfg cfg = old.remove(k);
             Config def;
-            if (cfg != null){
+            if (cfg != null) {
                 def = cfg.define;
-            }else{
+            } else {
                 def = new Config(define, k);
             }
             define.configs.put(k, def);
@@ -56,6 +56,4 @@ public class Datas extends Node {
             data.refineDefine(def);
         });
     }
-
-
 }

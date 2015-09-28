@@ -30,7 +30,6 @@ public class Node {
         return String.join(".", par);
     }
 
-
     public final void dump(PrintStream ps) {
         if (parent == null)
             for (Node child : children)
@@ -39,12 +38,11 @@ public class Node {
             dump(ps, "");
     }
 
-    private final void dump(PrintStream ps, String tab) {
+    private void dump(PrintStream ps, String tab) {
         ps.println(tab + "[" + getClass().getSimpleName() + "]" + link);
         for (Node child : children)
             child.dump(ps, tab + "\t");
     }
-
 
     public final void Assert(boolean cond, String... str) {
         if (!cond)

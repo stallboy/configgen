@@ -1,7 +1,6 @@
 package configgen.value;
 
 import configgen.Node;
-import configgen.type.Cfg;
 import configgen.type.Range;
 import configgen.type.TPrimitive;
 

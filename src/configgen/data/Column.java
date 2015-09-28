@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Column extends Node {
+public final class Column extends Node {
     public final String name;
     public final List<Integer> indexs = new ArrayList<>();
     public final List<String> descs = new ArrayList<>();

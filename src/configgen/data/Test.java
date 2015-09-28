@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 
-public final class Test {
+final class Test {
 
 	public static void main(String[] args) throws IOException {
 		test("aa, bb", 1, 0, "aa", " bb");

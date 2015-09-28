@@ -1,6 +1,6 @@
 package configgen.value;
 
-public class Cell {
+public final class Cell {
     public final int row;
     public final int col;
     public final String data;

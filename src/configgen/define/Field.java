@@ -60,7 +60,7 @@ public class Field extends Node {
         if (!desc.isEmpty())
             self.setAttribute("desc", desc);
         self.setAttribute("name", name);
-        self.setAttribute("type", type.toString());
+        self.setAttribute("type", type);
 
         if (!ref.isEmpty())
             self.setAttribute("ref", ref);

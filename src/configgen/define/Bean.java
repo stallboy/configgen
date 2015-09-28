@@ -20,7 +20,7 @@ public class Bean extends Node {
     public Bean(ConfigCollection root, Config config, Element self) {
         super(config != null ? config : root, "");
 
-        String[] attrs = Utils.attributes(self, "name", "own", "compress", "tool", "enum", "keys");
+        String[] attrs = Utils.attributes(self, "name", "own", "compress", "enum", "keys");
         name = attrs[0];
         if (config == null)
             link = name;

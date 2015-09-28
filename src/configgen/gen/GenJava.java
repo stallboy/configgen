@@ -67,7 +67,9 @@ public class GenJava extends Generator {
             else
                 pkg = GenJava.this.pkg + "." + String.join(".", pks);
 
-            className = Utils.upper1(seps[seps.length - 1]);
+            String c = Utils.upper1(seps[seps.length - 1]);
+            className = c.substring(0, 1).toUpperCase() + c.substring(1).toLowerCase();
+
             fullName = pkg + "." + className;
             if (pks.length == 0)
                 path = className + ".java";
@@ -118,7 +120,7 @@ public class GenJava extends Generator {
         });
 
         tbean.mRefs.forEach(m -> ps.println1("private " + fullName(m.ref) + " " + refName(m) + ";"));
-        tbean.listRefs.forEach(l -> ps.println1("private java.util.List<" + fullName(l.ref) + "> " + refName(l) + ";"));
+        tbean.listRefs.forEach(l -> ps.println1("private java.util.List<" + fullName(l.ref) + "> " + refName(l) + " = new java.util.ArrayList<>();"));
         ps.println();
 
         //constructor
@@ -138,8 +140,8 @@ public class GenJava extends Generator {
             Field f = tbean.define.fields.get(n);
             if (!f.desc.isEmpty()) {
                 ps.println1("/**");
-                ps.println1("* " + f.desc);
-                ps.println1("*/");
+                ps.println1(" * " + f.desc);
+                ps.println1(" */");
             }
 
 
@@ -417,7 +419,7 @@ public class GenJava extends Generator {
                 ps.println2("if (values().length != all().size()) ");
                 ps.println3("throw new RuntimeException(\"Enum Uncompleted: " + name.className + "\");");
             } else if (isEnumPart) {
-                cfg.value.enumNames.forEach(s -> ps.println2("ava.util.Objects.requireNonNull(" + s.toUpperCase() + "_);"));
+                cfg.value.enumNames.forEach(s -> ps.println2("java.util.Objects.requireNonNull(" + s.toUpperCase() + "_);"));
             }
             ps.println1("}");
             ps.println();
@@ -575,9 +577,9 @@ public class GenJava extends Generator {
 
     private String refInitialValue(Type t) {
         if (t instanceof TList) {
-            return " =  java.util.ArrayList<>()";
+            return " = new java.util.ArrayList<>()";
         } else if (t instanceof TMap) {
-            return " = java.util.LinkedHashMap<>();";
+            return " = new java.util.LinkedHashMap<>();";
         } else {
             return "";
         }

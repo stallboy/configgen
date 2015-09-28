@@ -143,14 +143,20 @@ public final class Utils {
     }
 
     private static boolean verboseEnabled = false;
-    public static void enableVerbose(boolean enable){
+
+    public static void enableVerbose(boolean enable) {
         verboseEnabled = enable;
     }
 
     private final static SimpleDateFormat df = new SimpleDateFormat("HH.mm.ss.SSS");
+
     public static void verbose(String s) {
         if (verboseEnabled) {
-            System.out.println(df.format(Calendar.getInstance().getTime()) + ": " + s);
+            println(s);
         }
+    }
+
+    public static void println(String s) {
+        System.out.println(df.format(Calendar.getInstance().getTime()) + ": " + s);
     }
 }

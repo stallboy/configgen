@@ -9,11 +9,13 @@ import java.util.Map;
 
 public class CfgVs extends Node {
     public final Cfgs type;
+    public final Datas data;
     public final Map<String, CfgV> cfgvs = new LinkedHashMap<>();
 
     public CfgVs(Cfgs cfgs, Datas datas) {
         super(null, "value");
         this.type = cfgs;
+        this.data = datas;
 
         cfgs.cfgs.forEach((name, cfg) -> {
             CfgV c = new CfgV(this, name, cfg, datas.datas.get(name));

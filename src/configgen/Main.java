@@ -36,11 +36,11 @@ public final class Main {
                 case "-configdir":
                     configDir = args[++i];
                     break;
-                case "-gen":
-                    contexts.add(new Context(args[++i]));
-                    break;
                 case "-encoding":
                     encoding = args[++i];
+                    break;
+                case "-gen":
+                    contexts.add(new Context(args[++i]));
                     break;
                 case "-v":
                     Utils.enableVerbose(true);
@@ -66,10 +66,11 @@ public final class Main {
         Cfgs type = new Cfgs(define);
         type.resolve();
 
-        Utils.verbose("parse data to refine define and save to xml");
+        Utils.verbose("read and analyze data to refine define");
         Datas data = new Datas(dir, encoding);
         data.refineDefine(type);
 
+        Utils.verbose("save to xml");
         Document doc = Utils.newDocument();
         define.save(doc);
         Utils.prettySaveDocument(doc, xml, encoding);
@@ -81,7 +82,7 @@ public final class Main {
         Utils.verbose("construct value from new type and data");
         CfgVs value = new CfgVs(newType, data);
 
-        Utils.verbose("verify value of foreign key and range constraint");
+        Utils.verbose("verify value constraint");
         value.verifyConstraint();
 
         for (Context ctx : contexts) {

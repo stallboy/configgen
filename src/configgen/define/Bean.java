@@ -17,8 +17,8 @@ public class Bean extends Node {
     public final List<ListRef> listRefs = new ArrayList<>();
     public final Map<String, Range> ranges = new HashMap<>();
 
-    public Bean(ConfigCollection root, Config config, Element self) {
-        super(config != null ? config : root, "");
+    public Bean(ConfigCollection collection, Config config, Element self) {
+        super(config != null ? config : collection, "");
 
         String[] attrs = Utils.attributes(self, "name", "own", "compress", "enum", "keys");
         name = attrs[0];
@@ -54,6 +54,22 @@ public class Bean extends Node {
         compress = false;
     }
 
+    public Bean(ConfigCollection collection, Config config, Bean original, Map<String, Field> ownFields) {
+        super(config != null ? config : collection, original.link);
+        name = original.name;
+        own = original.name;
+        compress = original.compress;
+        fields.putAll(ownFields);
+
+        original.ranges.forEach((n, r) -> {
+            if (fields.containsKey(n))
+                ranges.put(n, r);
+        });
+
+        refs.addAll(original.refs); //wait extract2 to delete
+        listRefs.addAll(original.listRefs);
+    }
+
     public void save(Element parent) {
         update(Utils.newChild(parent, "bean"));
     }
@@ -69,5 +85,50 @@ public class Bean extends Node {
         refs.forEach(c -> c.save(self));
         listRefs.forEach(c -> c.save(self));
         ranges.values().forEach(c -> c.save(self));
+    }
+
+    Bean extract(ConfigCollection root, Config config, String own) {
+        Map<String, Field> ownFields = new LinkedHashMap<>();
+        fields.forEach((name, f) -> {
+            if (f.own.contains(own))
+                ownFields.put(name, f);
+        });
+
+        if (ownFields.isEmpty()) {
+            if (this.own.contains(own))
+                ownFields.putAll(fields);
+            else
+                return null;
+        }
+
+        return new Bean(root, config, this, ownFields);
+    }
+
+    void extract2() {
+        List<Ref> dr = new ArrayList<>();
+        refs.forEach(r -> {
+            if (!fields.keySet().containsAll(Arrays.asList(r.keys)))
+                dr.add(r);
+
+            if (!r.ref.isEmpty() && !((ConfigCollection) root).configs.containsKey(r.ref))
+                dr.add(r);
+
+            if (!r.keyRef.isEmpty() && !((ConfigCollection) root).configs.containsKey(r.keyRef))
+                dr.add(r);
+        });
+
+        refs.removeAll(dr);
+
+        List<ListRef> dl = new ArrayList<>();
+        listRefs.forEach(r -> {
+            if (!fields.keySet().containsAll(Arrays.asList(r.keys)))
+                dl.add(r);
+
+            Config ref = ((ConfigCollection) root).configs.get(r.ref);
+            if (null == ref || !ref.bean.fields.keySet().containsAll(Arrays.asList(r.refKeys)))
+                dl.add(r);
+        });
+        listRefs.removeAll(dl);
+
     }
 }

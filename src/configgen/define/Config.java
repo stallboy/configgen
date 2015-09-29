@@ -6,7 +6,7 @@ import org.w3c.dom.Element;
 
 public class Config extends Node {
     public final Bean bean;
-    public final String enumStr;
+    public String enumStr;
     public final String[] keys;
 
     public Config(ConfigCollection parent, Element self) {
@@ -22,11 +22,25 @@ public class Config extends Node {
     }
 
     public Config(ConfigCollection parent, String name) {
-        super(parent, "");
+        super(parent, name);
         bean = new Bean(this, name);
-        link = "[config]" + name;
         enumStr = "";
         keys = new String[0];
+    }
+
+    public Config(ConfigCollection parent, Config original, Bean ownBean) {
+        super(parent, original.link);
+        bean = ownBean;
+        enumStr = bean.fields.containsKey(original.enumStr) ? original.enumStr : "";
+        keys = original.keys;
+        if (keys.length > 0) {
+            for (String key : keys) {
+                Assert(bean.fields.containsKey(key), "must own primary keys");
+            }
+        } else {
+            Assert(bean.fields.containsKey(original.bean.fields.keySet().iterator().next()), "must own primary key");
+        }
+
     }
 
     public void save(Element parent) {
@@ -36,5 +50,16 @@ public class Config extends Node {
             self.setAttribute("enum", enumStr);
         if (keys.length > 0)
             self.setAttribute("keys", String.join(",", keys));
+    }
+
+    public Config extract(ConfigCollection parent, String own) {
+        Bean ownBean = bean.extract(parent, this, own);
+        if (ownBean == null)
+            return null;
+        return new Config(parent, this, ownBean);
+    }
+
+    void extract2() {
+        bean.extract2();
     }
 }

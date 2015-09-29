@@ -11,11 +11,12 @@ import java.util.regex.Pattern;
 
 final class Rules {
 
-    private static Pattern intPostfixPattern = Pattern.compile("(.*\\D)(\\d+)");
+    private static Pattern INT_POSTFIX_PATTERN = Pattern.compile("(.*\\D)(\\d+)");
 
     enum SepType {
         None, IntPostfix, BeanPrefix
     }
+
     static class Sep {
         SepType type = SepType.None;
         String field;
@@ -29,7 +30,7 @@ final class Rules {
             r.type = SepType.BeanPrefix;
             r.field = name.substring(0, i);
         } else {
-            Matcher m = intPostfixPattern.matcher(name);
+            Matcher m = INT_POSTFIX_PATTERN.matcher(name);
             if (m.matches()) {
                 r.type = SepType.IntPostfix;
                 r.field = m.group(1);
@@ -43,20 +44,20 @@ final class Rules {
         return name + "List";
     }
 
-    private static Pattern listpattern = Pattern.compile("(\\D.*)List");
+    private static Pattern LIST_PATTERN = Pattern.compile("(\\D.*)List");
 
     static String parseListName(String name) {
-        Matcher m = listpattern.matcher(name);
+        Matcher m = LIST_PATTERN.matcher(name);
         if (m.matches())
             return m.group(1);
-        throw new RuntimeException("list name not endswith List£º " + name);
+        throw new RuntimeException("list name not endsWith List£º " + name);
     }
 
     static String makeMapName(String key, String value) {
         return key + "2" + value + "Map";
     }
 
-    private static Pattern mappattern = Pattern.compile("(.*\\D)2(\\D.*)Map");
+    private static Pattern MAP_PATTERN = Pattern.compile("(.*\\D)2(\\D.*)Map");
 
     static class Pair {
         String key;
@@ -65,7 +66,7 @@ final class Rules {
 
     static Pair parseMapName(String name) {
         Pair r = new Pair();
-        Matcher m = mappattern.matcher(name);
+        Matcher m = MAP_PATTERN.matcher(name);
         if (m.matches()) {
             r.key = m.group(1);
             r.value = m.group(2);
@@ -86,14 +87,14 @@ final class Rules {
         return "string";
     }
 
-    static String guessPrimitiveTypeOrList(Set<String> data){
+    static String guessPrimitiveTypeOrList(Set<String> data) {
         String t = guessPrimitiveType(data);
-        if (t.equals("string")){
+        if (t.equals("string")) {
             Collection<String> parsed = new ArrayList<>();
             for (String s : data)
                 parsed.addAll(CSV.parseList(s));
             if (parsed.size() > data.size() * 1.8) {
-                return "list,"+ guessPrimitiveType(new HashSet<>(parsed));
+                return "list," + guessPrimitiveType(new HashSet<>(parsed));
             }
         }
         return t;

@@ -43,7 +43,7 @@ public class Data extends Node {
     private List<Integer> ABSpan;
 
     private enum State {
-        NORM, MAYBELISTORMAP, LIST, MAYBEMAP, MAYBEMAP2, MAP
+        NORM, MAYBE_LIST_OR_MAP, LIST, MAYBE_MAP, MAYBE_MAP2, MAP
     }
 
     public Data(Datas parent, String link, List<List<String>> raw) {
@@ -95,13 +95,13 @@ public class Data extends Node {
                 case MAP:
                     onMap();
                     break;
-                case MAYBELISTORMAP:
+                case MAYBE_LIST_OR_MAP:
                     onMaybeListOrMap();
                     break;
-                case MAYBEMAP:
+                case MAYBE_MAP:
                     onMaybeMap();
                     break;
-                case MAYBEMAP2:
+                case MAYBE_MAP2:
                     onMaybeMap2();
                     break;
                 case NORM:
@@ -190,7 +190,7 @@ public class Data extends Node {
             A = nameSep.field;
             ABSpan = new ArrayList<>();
             ABSpan.add(index);
-            state = State.MAYBELISTORMAP;
+            state = State.MAYBE_LIST_OR_MAP;
         } else {
             put(name, index);
         }
@@ -217,7 +217,7 @@ public class Data extends Node {
         } else if (nameSep.type == Rules.SepType.IntPostfix && nameSep.num == 1) {
             B = nameSep.field;
             ABSpan.add(index);
-            state = State.MAYBEMAP;
+            state = State.MAYBE_MAP;
         } else {
             put(A + "1", ABSpan.get(0));
             state = State.NORM;
@@ -268,7 +268,7 @@ public class Data extends Node {
 
         if (name.equals(A + "2")) {
             ABSpan.add(index);
-            state = State.MAYBEMAP2;
+            state = State.MAYBE_MAP2;
         } else if (name.equals(B + "2")) {
             put(A + "1", ABSpan.remove(0));
             A = B;
@@ -353,14 +353,14 @@ public class Data extends Node {
                 Assert(ABSpan.size() % 2 == 0);
                 put(Rules.makeMapName(A, B), ABSpan);
                 break;
-            case MAYBELISTORMAP:
+            case MAYBE_LIST_OR_MAP:
                 put(A + "1", ABSpan.get(0));
                 break;
-            case MAYBEMAP:
+            case MAYBE_MAP:
                 put(A + "1", ABSpan.get(0));
                 put(B + "1", ABSpan.get(1));
                 break;
-            case MAYBEMAP2:
+            case MAYBE_MAP2:
                 put(A + "1", ABSpan.get(0));
                 put(B + "1", ABSpan.get(1));
                 put(A + "2", ABSpan.get(2));

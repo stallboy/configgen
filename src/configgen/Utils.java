@@ -80,14 +80,12 @@ public final class Utils {
                 continue;
 
             Element e = (Element) node;
-            String nodename = e.getNodeName();
-            Integer index = name2index.get(nodename);
+            Integer index = name2index.get(e.getNodeName());
 
             if (index != null) {
                 res.get(index).add(e);
             } else {
-                System.err.println(self.getTagName() + " unknown node "
-                        + nodename);
+                System.err.println(self.getTagName() + " unknown node " + e.getNodeName());
             }
         }
         return res;
@@ -140,6 +138,14 @@ public final class Utils {
 
     public static PrintStream cachedPrintStream(File file, String encoding) throws IOException {
         return new PrintStream(new CachedFileOutputStream(file), false, encoding);
+    }
+
+    public static void mkdirs(File path) {
+        if (!path.exists()) {
+            if (!path.mkdirs()) {
+                println("mkdirs fail: " + path);
+            }
+        }
     }
 
     private static boolean verboseEnabled = false;

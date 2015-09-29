@@ -46,6 +46,6 @@ public class Node {
 
     public final void Assert(boolean cond, String... str) {
         if (!cond)
-            throw new AssertionError(location() + ":" + String.join(",", str));
+            throw new AssertionError(location() + ": " + String.join(",", str));
     }
 }

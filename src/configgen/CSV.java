@@ -18,7 +18,7 @@ public final class CSV {
     private static final char lf = '\n';
 
     private enum State {
-        START, NOQUOTE, QUOTE, QUOTE2, CR,
+        START, NO_QUOTE, QUOTE, QUOTE2, CR,
     }
 
     public static List<List<String>> parse(Reader reader, boolean removeEmptyLine) throws IOException {
@@ -47,12 +47,12 @@ public final class CSV {
                         default:
                             field = new StringBuilder();
                             field.append(c);
-                            state = State.NOQUOTE;
+                            state = State.NO_QUOTE;
                             break;
                     }
                     break;
 
-                case NOQUOTE:
+                case NO_QUOTE:
                     switch (c) {
                         case comma:
                             record.add(field.toString());
@@ -93,7 +93,7 @@ public final class CSV {
                             break;
                         default:
                             field.append(c);
-                            state = State.NOQUOTE;
+                            state = State.NO_QUOTE;
                             break;
                     }
                     break;
@@ -114,7 +114,7 @@ public final class CSV {
                         default:
                             field.append(cr);
                             field.append(c);
-                            state = State.NOQUOTE;
+                            state = State.NO_QUOTE;
                             break;
                     }
                     break;
@@ -155,7 +155,7 @@ public final class CSV {
     private static final char semicolon = ';';
 
     private enum ListState {
-        START, NOQUOTE, QUOTE, QUOTE2
+        START, NO_QUOTE, QUOTE, QUOTE2
     }
 
     public static List<String> parseList(String str) {
@@ -177,12 +177,12 @@ public final class CSV {
                         default:
                             field = new StringBuilder();
                             field.append(c);
-                            state = ListState.NOQUOTE;
+                            state = ListState.NO_QUOTE;
                             break;
                     }
                     break;
 
-                case NOQUOTE:
+                case NO_QUOTE:
                     switch (c) {
                         case semicolon:
                             list.add(field.toString());
@@ -217,7 +217,7 @@ public final class CSV {
                             break;
                         default:
                             field.append(c);
-                            state = ListState.NOQUOTE;
+                            state = ListState.NO_QUOTE;
                             break;
                     }
                     break;
@@ -278,14 +278,12 @@ public final class CSV {
         Set<String> loaded = new HashSet<>();
         String packageName = CSV.class.getPackage().getName();
         try (ZipInputStream zis = new ZipInputStream(new CheckedInputStream(new FileInputStream(zipPath.toFile()), new CRC32()))) {
-            ZipEntry entry;
             Collection<Class<?>> classList = new ArrayList<>();
-            while ((entry = zis.getNextEntry()) != null) {
+            for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
                 if (entry.getName().endsWith(".csv")) {
                     String name = path2Name(entry.getName());
                     try {
-                        String clzname = packageName + "." + String.join(".", name2ClassPath(name));
-                        Class<?> clz = Class.forName(clzname);
+                        Class<?> clz = Class.forName(packageName + "." + String.join(".", name2ClassPath(name)));
                         if (clz != null) {
                             classList.add(clz);
                             Method initialize = clz.getDeclaredMethod("initialize", List.class);

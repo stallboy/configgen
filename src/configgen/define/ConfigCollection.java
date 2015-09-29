@@ -30,10 +30,38 @@ public class ConfigCollection extends Node {
         }
     }
 
-    public void save(Document doc){
+    public ConfigCollection(String own) {
+        super(null, "define(" + own + ")");
+    }
+
+    public void save(Document doc) {
         Element self = doc.createElement("configcollection");
         doc.appendChild(self);
         beans.values().forEach(b -> b.save(self));
         configs.values().forEach(c -> c.save(self));
     }
+
+    public ConfigCollection extract(String own) {
+        ConfigCollection part = new ConfigCollection(own);
+        beans.forEach((k, v) -> {
+            Bean o = v.extract(this, null, own);
+            if (o != null)
+                part.beans.put(k, o);
+        });
+
+        configs.forEach((k, v) -> {
+            Config o = v.extract(this, own);
+            if (o != null)
+                part.configs.put(k, o);
+        });
+
+        part.extract2();
+        return part;
+    }
+
+    void extract2() {
+        beans.values().forEach(Bean::extract2);
+        configs.values().forEach(Config::extract2);
+    }
+
 }

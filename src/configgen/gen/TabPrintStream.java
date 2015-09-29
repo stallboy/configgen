@@ -5,7 +5,6 @@ import java.io.PrintStream;
 public class TabPrintStream {
     private PrintStream ps;
 
-
     public TabPrintStream(PrintStream ps) {
         this.ps = ps;
     }
@@ -36,6 +35,14 @@ public class TabPrintStream {
 
     public void println5(String str) {
         ps.println("                    " + str);
+    }
+
+    public void println6(String str) {
+        ps.println("                        " + str);
+    }
+
+    public void println7(String str) {
+        ps.println("                            " + str);
     }
 
 }

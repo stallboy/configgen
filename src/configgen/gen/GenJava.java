@@ -8,10 +8,7 @@ import configgen.value.CfgVs;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GenJava extends Generator {
@@ -31,7 +28,7 @@ public class GenJava extends Generator {
     @Override
     public void gen() throws IOException {
         CachedFileOutputStream.removeOtherFiles(dstDir);
-        mkdirs(dstDir);
+        Utils.mkdirs(dstDir);
 
         for (TBean b : value.type.tbeans.values()) {
             genBean(b, null);
@@ -45,13 +42,6 @@ public class GenJava extends Generator {
         CachedFileOutputStream.doRemoveFiles();
     }
 
-    private static void mkdirs(File path) {
-        if (!path.exists()) {
-            if (!path.mkdirs()) {
-                Utils.println("mkdirs fail: " + path);
-            }
-        }
-    }
 
     private class Name {
         String pkg;
@@ -81,7 +71,7 @@ public class GenJava extends Generator {
     private void genBean(TBean tbean, Cfg cfg) throws IOException {
         Name name = new Name(tbean.define.name);
         File javaFile = dstDir.toPath().resolve(name.path).toFile();
-        mkdirs(javaFile.getParentFile());
+        Utils.mkdirs(javaFile.getParentFile());
 
         try (PrintStream ps = Utils.cachedPrintStream(javaFile, encoding)) {
             genBean(tbean, cfg, name, new TabPrintStream(ps));
@@ -738,9 +728,8 @@ public class GenJava extends Generator {
 
 
     private void genCSV() throws IOException {
-        try (InputStream is = getClass().getResourceAsStream("/export/CSV.java");
-             BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream(
-                     "src/configgen/CSV.java"), "GBK"));
+        try (InputStream is = getClass().getResourceAsStream("/support/CSV.java");
+             BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/configgen/CSV.java"), "GBK"));
              PrintStream ps = Utils.cachedPrintStream(new File(dstDir, "CSV.java"), encoding)) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 if (line.equals("package configgen;"))
@@ -751,7 +740,9 @@ public class GenJava extends Generator {
     }
 
     private void genCSVLoader() throws IOException {
-        try (PrintStream ps = Utils.cachedPrintStream(new File(dstDir, "CSVLoader.java"), encoding)) {
+        Set<String> s = new LinkedHashSet<>(Arrays.asList("", "a"));
+        try (PrintStream stream = Utils.cachedPrintStream(new File(dstDir, "CSVLoader.java"), encoding)) {
+            TabPrintStream ps = new TabPrintStream(stream);
 
             ps.println("package " + pkg + ";");
             ps.println();
@@ -764,18 +755,18 @@ public class GenJava extends Generator {
             ps.println("public class CSVLoader {");
             ps.println();
 
-            ps.println("	public static Set<String> load(Path zipPath, String encoding) throws Exception {");
-            ps.println("		Set<String> loaded = CSV.load(zipPath, encoding);");
-            ps.println("		Set<String> configs = new LinkedHashSet<>();");
-            value.cfgvs.forEach((k, v) -> ps.println("		configs.add(\"" + k + "\");"));
-            ps.println("		configs.removeAll(loaded);");
-            ps.println("		return configs;");
-            ps.println("	}");
+            ps.println1("public static Set<String> load(Path zipPath, String encoding) throws Exception {");
+            ps.println2("Set<String> configsInZip = CSV.load(zipPath, encoding);");
+            String configsInCode = String.join("," + System.lineSeparator() + "            ", value.cfgvs.keySet().stream().map(k -> "\"" + k + "\"").collect(Collectors.toList()));
+            ps.println2("Set<String> configsInCode = new LinkedHashSet<>(java.util.Arrays.asList(" + configsInCode + "));");
+            ps.println2("configsInCode.removeAll(configsInZip);");
+            ps.println2("return configsInCode;");
+            ps.println1("}");
             ps.println();
 
-            ps.println("	public static void main(String[] args) throws Exception {");
-            ps.println("		System.out.println(\"missed: \" + load(java.nio.file.Paths.get(\"configdata.zip\"), \"GBK\"));");
-            ps.println("	}");
+            ps.println1("public static void main(String[] args) throws Exception {");
+            ps.println2("System.out.println(\"missed: \" + load(java.nio.file.Paths.get(\"configdata.zip\"), \"GBK\"));");
+            ps.println1("}");
 
             ps.println("}");
         }

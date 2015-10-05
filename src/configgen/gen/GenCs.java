@@ -1,6 +1,5 @@
 package configgen.gen;
 
-import configgen.Utils;
 import configgen.type.Cfg;
 import configgen.type.TBean;
 import configgen.value.CfgVs;
@@ -28,7 +27,7 @@ public class GenCs extends Generator {
     @Override
     public void gen() throws IOException {
         CachedFileOutputStream.removeOtherFiles(dstDir);
-        Utils.mkdirs(dstDir);
+        mkdirs(dstDir);
 
         copyFile("CSV.cs");
         copyFile("CSVLoader.cs");
@@ -52,7 +51,7 @@ public class GenCs extends Generator {
     private void copyFile(String file) throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/" + file);
              BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/support/" + file), "GBK"));
-             PrintStream ps = Utils.cachedPrintStream(new File(dstDir, file), encoding)) {
+             PrintStream ps = cachedPrintStream(new File(dstDir, file), encoding)) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 ps.println(line);
             }
@@ -60,7 +59,7 @@ public class GenCs extends Generator {
     }
 
     private void genCSVLoaderDoLoad() throws IOException {
-        try (PrintStream stream = Utils.cachedPrintStream(new File(dstDir, "CSVLoaderDoLoad.cs"), encoding)) {
+        try (PrintStream stream = cachedPrintStream(new File(dstDir, "CSVLoaderDoLoad.cs"), encoding)) {
             TabPrintStream ps = new TabPrintStream(stream);
             ps.println("using System.Collections.Generic;");
             ps.println("using System.IO;");

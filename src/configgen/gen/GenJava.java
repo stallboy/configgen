@@ -1,6 +1,5 @@
 package configgen.gen;
 
-import configgen.Utils;
 import configgen.define.Field;
 import configgen.type.*;
 import configgen.value.CfgVs;
@@ -28,7 +27,7 @@ public class GenJava extends Generator {
     @Override
     public void gen() throws IOException {
         CachedFileOutputStream.removeOtherFiles(dstDir);
-        Utils.mkdirs(dstDir);
+        mkdirs(dstDir);
 
         for (TBean b : value.type.tbeans.values()) {
             genBean(b, null);
@@ -57,7 +56,7 @@ public class GenJava extends Generator {
             else
                 pkg = GenJava.this.pkg + "." + String.join(".", pks);
 
-            String c = Utils.upper1(seps[seps.length - 1]);
+            String c = upper1(seps[seps.length - 1]);
             className = c.substring(0, 1).toUpperCase() + c.substring(1).toLowerCase();
 
             fullName = pkg + "." + className;
@@ -71,9 +70,9 @@ public class GenJava extends Generator {
     private void genBean(TBean tbean, Cfg cfg) throws IOException {
         Name name = new Name(tbean.define.name);
         File javaFile = dstDir.toPath().resolve(name.path).toFile();
-        Utils.mkdirs(javaFile.getParentFile());
+        mkdirs(javaFile.getParentFile());
 
-        try (PrintStream ps = Utils.cachedPrintStream(javaFile, encoding)) {
+        try (PrintStream ps = cachedPrintStream(javaFile, encoding)) {
             genBean(tbean, cfg, name, new TabPrintStream(ps));
         }
     }
@@ -105,7 +104,7 @@ public class GenJava extends Generator {
 
         //field
         tbean.fields.forEach((n, t) -> {
-            ps.println1("private " + type(t) + " " + Utils.lower1(n) + initialValue(t) + ";");
+            ps.println1("private " + type(t) + " " + lower1(n) + initialValue(t) + ";");
             t.constraint.refs.forEach(r -> ps.println1("private " + refType(t, r) + " " + refName(r) + refInitialValue(t) + ";"));
         });
 
@@ -120,7 +119,7 @@ public class GenJava extends Generator {
             ps.println();
 
             ps.println1("public " + name.className + "(" + formalParams(tbean.fields) + ") {");
-            tbean.fields.forEach((n, t) -> ps.println2("this." + Utils.lower1(n) + " = " + Utils.lower1(n) + ";"));
+            tbean.fields.forEach((n, t) -> ps.println2("this." + lower1(n) + " = " + lower1(n) + ";"));
             ps.println1("}");
             ps.println();
         }
@@ -135,13 +134,13 @@ public class GenJava extends Generator {
             }
 
 
-            ps.println1("public " + type(t) + " get" + Utils.upper1(n) + "() {");
-            ps.println2("return " + Utils.lower1(n) + ";");
+            ps.println1("public " + type(t) + " get" + upper1(n) + "() {");
+            ps.println2("return " + lower1(n) + ";");
             ps.println1("}");
             ps.println();
 
             t.constraint.refs.forEach(r -> {
-                ps.println1("public " + refType(t, r) + " " + Utils.lower1(refName(r)) + "() {");
+                ps.println1("public " + refType(t, r) + " " + lower1(refName(r)) + "() {");
                 ps.println2("return " + refName(r) + ";");
                 ps.println1("}");
                 ps.println();
@@ -149,14 +148,14 @@ public class GenJava extends Generator {
         });
 
         tbean.mRefs.forEach(m -> {
-            ps.println1("public " + fullName(m.ref) + " " + Utils.lower1(refName(m)) + "() {");
+            ps.println1("public " + fullName(m.ref) + " " + lower1(refName(m)) + "() {");
             ps.println2("return " + refName(m) + ";");
             ps.println1("}");
             ps.println();
         });
 
         tbean.listRefs.forEach(l -> {
-            ps.println1("public java.util.List<" + fullName(l.ref) + "> " + Utils.lower1(refName(l)) + "() {");
+            ps.println1("public java.util.List<" + fullName(l.ref) + "> " + lower1(refName(l)) + "() {");
             ps.println2("return " + refName(l) + ";");
             ps.println1("}");
             ps.println();
@@ -184,7 +183,7 @@ public class GenJava extends Generator {
         //toString
         ps.println1("@Override");
         ps.println1("public String toString() {");
-        ps.println2("return \"(\" + " + String.join(" + \",\" + ", tbean.fields.keySet().stream().map(Utils::lower1).collect(Collectors.toList())) + " + \")\";");
+        ps.println2("return \"(\" + " + String.join(" + \",\" + ", tbean.fields.keySet().stream().map(Generator::lower1).collect(Collectors.toList())) + " + \")\";");
         ps.println1("}");
         ps.println();
 
@@ -202,16 +201,16 @@ public class GenJava extends Generator {
 
             int end = begin + t.columnSpan();
             if (t instanceof TPrimitive) {
-                ps.println2(Utils.lower1(n) + " = " + parsePrimitive(t, "data.get(" + begin + ")") + ";");
+                ps.println2(lower1(n) + " = " + parsePrimitive(t, "data.get(" + begin + ")") + ";");
 
             } else if (t instanceof TBean) {
-                ps.println2(Utils.lower1(n) + "._parse(data.subList(" + begin + ", " + end + "));");
+                ps.println2(lower1(n) + "._parse(data.subList(" + begin + ", " + end + "));");
 
             } else if (t instanceof TList) {
                 TList type = (TList) t;
                 if (type.count == 0) {
                     ps.println2("for (String e : " + pkg + ".CSV.parseList(data.get(" + begin + ")))");
-                    ps.println3(Utils.lower1(n) + ".add(" + parsePrimitive(type.value, "e") + ");");
+                    ps.println3(lower1(n) + ".add(" + parsePrimitive(type.value, "e") + ");");
                 } else {
                     int vs = type.value.columnSpan();
                     for (int i = 0; i < type.count; i++) {
@@ -221,7 +220,7 @@ public class GenJava extends Generator {
                         hasA = true;
                         ps.println2(prefix + "a = data.get(" + b + ");");
                         ps.println2("if (!a.isEmpty())");
-                        ps.println3(Utils.lower1(n) + ".add(" + value + ");");
+                        ps.println3(lower1(n) + ".add(" + value + ");");
                     }
                 }
 
@@ -238,7 +237,7 @@ public class GenJava extends Generator {
                     hasA = true;
                     ps.println2(prefix + "a = data.get(" + b + ");");
                     ps.println2("if (!a.isEmpty())");
-                    ps.println3(Utils.lower1(n) + ".put(" + key + ", " + value + ");");
+                    ps.println3(lower1(n) + ".put(" + key + ", " + value + ");");
                 }
             }
             begin = end;
@@ -259,7 +258,7 @@ public class GenJava extends Generator {
                 if (t.hasRef()) {
                     if (t instanceof TList) {
                         TList tt = (TList) t;
-                        ps.println2(Utils.lower1(n) + ".forEach( e -> {");
+                        ps.println2(lower1(n) + ".forEach( e -> {");
                         if (tt.value instanceof TBean && tt.value.hasRef()) {
                             ps.println3("e._resolve();");
                         }
@@ -272,7 +271,7 @@ public class GenJava extends Generator {
                         ps.println2("});");
                     } else if (t instanceof TMap) {
                         TMap tt = (TMap) t;
-                        ps.println2(Utils.lower1(n) + ".forEach( (k, v) -> {");
+                        ps.println2(lower1(n) + ".forEach( (k, v) -> {");
                         if (tt.key instanceof TBean && tt.key.hasRef()) {
                             ps.println3("k._resolve();");
                         }
@@ -298,11 +297,11 @@ public class GenJava extends Generator {
                         ps.println2("});");
                     } else {
                         if (t instanceof TBean && t.hasRef()) {
-                            ps.println2(Utils.lower1(n) + "._resolve();");
+                            ps.println2(lower1(n) + "._resolve();");
                         }
 
                         for (SRef sr : t.constraint.refs) {
-                            ps.println2(refName(sr) + " = " + fullName(sr.ref) + ".get(" + Utils.lower1(n) + ");");
+                            ps.println2(refName(sr) + " = " + fullName(sr.ref) + ".get(" + lower1(n) + ");");
                             if (!sr.nullable)
                                 ps.println2("java.util.Objects.requireNonNull(" + refName(sr) + ");");
                         }
@@ -323,7 +322,7 @@ public class GenJava extends Generator {
                 for (int i = 0; i < l.keys.length; i++) {
                     String k = l.keys[i];
                     String rk = l.refKeys[i];
-                    eqs.add(equal("v.get" + Utils.upper1(rk) + "()", Utils.lower1(k), tbean.fields.get(k)));
+                    eqs.add(equal("v.get" + upper1(rk) + "()", lower1(k), tbean.fields.get(k)));
                 }
                 ps.println3("if (" + String.join(" && ", eqs) + ")");
                 ps.println4(refName(l) + ".add(v);");
@@ -339,11 +338,11 @@ public class GenJava extends Generator {
             if (keys.size() > 1) {
                 //static Key class
                 ps.println1("private static class Key {");
-                keys.forEach((n, t) -> ps.println2("private " + type(t) + " " + Utils.lower1(n) + ";"));
+                keys.forEach((n, t) -> ps.println2("private " + type(t) + " " + lower1(n) + ";"));
                 ps.println();
 
                 ps.println2("Key(" + formalParams(keys) + ") {");
-                keys.forEach((n, t) -> ps.println3("this." + Utils.lower1(n) + " = " + Utils.lower1(n) + ";"));
+                keys.forEach((n, t) -> ps.println3("this." + lower1(n) + " = " + lower1(n) + ";"));
                 ps.println2("}");
                 ps.println();
 
@@ -554,15 +553,15 @@ public class GenJava extends Generator {
     }
 
     private String refName(SRef sr) {
-        return (sr.nullable ? "NullableRef" : "Ref") + Utils.upper1(sr.name);
+        return (sr.nullable ? "NullableRef" : "Ref") + upper1(sr.name);
     }
 
     private String refName(MRef mr) {
-        return (mr.define.nullable ? "NullableRef" : "Ref") + Utils.upper1(mr.define.name);
+        return (mr.define.nullable ? "NullableRef" : "Ref") + upper1(mr.define.name);
     }
 
     private String refName(ListRef lr) {
-        return "ListRef" + Utils.upper1(lr.name);
+        return "ListRef" + upper1(lr.name);
     }
 
     private String refInitialValue(Type t) {
@@ -576,16 +575,16 @@ public class GenJava extends Generator {
     }
 
     private String formalParams(Map<String, Type> fs) {
-        return String.join(", ", fs.entrySet().stream().map(e -> type(e.getValue()) + " " + Utils.lower1(e.getKey())).collect(Collectors.toList()));
+        return String.join(", ", fs.entrySet().stream().map(e -> type(e.getValue()) + " " + lower1(e.getKey())).collect(Collectors.toList()));
     }
 
     private static String actualParams(String[] keys) {
-        return String.join(", ", Arrays.asList(keys).stream().map(Utils::lower1).collect(Collectors.toList()));
+        return String.join(", ", Arrays.asList(keys).stream().map(Generator::lower1).collect(Collectors.toList()));
     }
 
 
     private static String actualParamsKey(Map<String, Type> keys, String pre) {
-        String p = String.join(", ", keys.entrySet().stream().map(e -> pre + Utils.lower1(e.getKey())).collect(Collectors.toList()));
+        String p = String.join(", ", keys.entrySet().stream().map(e -> pre + lower1(e.getKey())).collect(Collectors.toList()));
         return keys.size() > 1 ? "new Key(" + p + ")" : p;
     }
 
@@ -594,7 +593,7 @@ public class GenJava extends Generator {
     }
 
     private static String hashCode(String name, Type t) {
-        String n = Utils.lower1(name);
+        String n = lower1(name);
         return t.accept(new TypeVisitorT<String>() {
             @Override
             public String visit(TBool type) {
@@ -645,7 +644,7 @@ public class GenJava extends Generator {
     }
 
     private String equals(Map<String, Type> fs) {
-        return String.join(" && ", fs.entrySet().stream().map(e -> equal(Utils.lower1(e.getKey()), "o." + Utils.lower1(e.getKey()), e.getValue())).collect(Collectors.toList()));
+        return String.join(" && ", fs.entrySet().stream().map(e -> equal(lower1(e.getKey()), "o." + lower1(e.getKey()), e.getValue())).collect(Collectors.toList()));
     }
 
     private String equal(String a, String b, Type t) {
@@ -730,7 +729,7 @@ public class GenJava extends Generator {
     private void genCSV() throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/CSV.java");
              BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/configgen/CSV.java"), "GBK"));
-             PrintStream ps = Utils.cachedPrintStream(new File(dstDir, "CSV.java"), encoding)) {
+             PrintStream ps = cachedPrintStream(new File(dstDir, "CSV.java"), encoding)) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 if (line.equals("package configgen;"))
                     line = "package " + pkg + ";";
@@ -740,7 +739,7 @@ public class GenJava extends Generator {
     }
 
     private void genCSVLoader() throws IOException {
-        try (PrintStream stream = Utils.cachedPrintStream(new File(dstDir, "CSVLoader.java"), encoding)) {
+        try (PrintStream stream = cachedPrintStream(new File(dstDir, "CSVLoader.java"), encoding)) {
             TabPrintStream ps = new TabPrintStream(stream);
 
             ps.println("package " + pkg + ";");

@@ -1,6 +1,6 @@
 package configgen.gen;
 
-import configgen.Utils;
+import configgen.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -31,10 +31,10 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
     @Override
     public void close() throws IOException {
         if (!file.toFile().exists()) {
-            Utils.println("create file: " + file);
+            Logger.log("create file: " + file);
             writeFile();
         } else if (!Arrays.equals(Files.readAllBytes(file), toByteArray())) {
-            Utils.println("modify file: " + file);
+            Logger.log("modify file: " + file);
             writeFile();
         }
     }
@@ -53,17 +53,17 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
                 files = file.listFiles();
                 if (files != null && files.length == 0) {
                     if (file.delete()) {
-                        Utils.println("delete dir: " + file);
+                        Logger.log("delete dir: " + file);
                     } else {
-                        Utils.println("delete dir fail: " + file);
+                        Logger.log("delete dir fail: " + file);
                     }
                 }
 
             } else {
                 if (file.delete()) {
-                    Utils.println("delete file: " + file);
+                    Logger.log("delete file: " + file);
                 } else {
-                    Utils.println("delete file fail: " + file);
+                    Logger.log("delete file fail: " + file);
                 }
             }
 

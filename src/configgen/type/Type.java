@@ -22,7 +22,6 @@ public abstract class Type extends Node {
 
     public abstract <T> T accept(TypeVisitorT<T> visitor);
 
-
     protected Type resolveType(String link, Constraint cons, String type, String key, String value, int count) {
         Type t = resolveType(link, cons, type);
         if (t != null)
@@ -54,5 +53,4 @@ public abstract class Type extends Node {
         }
         return ((Cfgs) root).tbeans.get(type);
     }
-
 }

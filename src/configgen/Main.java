@@ -6,7 +6,6 @@ import configgen.gen.Context;
 import configgen.gen.Generator;
 import configgen.type.Cfgs;
 import configgen.value.CfgVs;
-import org.w3c.dom.Document;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -43,7 +42,7 @@ public final class Main {
                     contexts.add(new Context(args[++i]));
                     break;
                 case "-v":
-                    Utils.enableVerbose(true);
+                    Logger.enableVerbose(true);
                     break;
                 default:
                     usage("unknown args " + args[i]);
@@ -59,42 +58,40 @@ public final class Main {
 
         Path dir = Paths.get(configDir);
         File xml = dir.resolve("config.xml").toFile();
-        Utils.verbose("parse xml to define");
-        ConfigCollection define = new ConfigCollection(Utils.rootElement(xml));
+        Logger.verbose("parse xml to define");
+        ConfigCollection define = new ConfigCollection(xml);
 
-        Utils.verbose("resolve define to type");
+        Logger.verbose("resolve define to type");
         Cfgs type = new Cfgs(define);
         type.resolve();
 
-        Utils.verbose("read and analyze data to refine define");
+        Logger.verbose("read and analyze data to refine define");
         Datas data = new Datas(dir, encoding);
         data.refineDefine(type);
 
-        Utils.verbose("save to xml");
-        Document doc = Utils.newDocument();
-        define.save(doc);
-        Utils.prettySaveDocument(doc, xml, encoding);
+        Logger.verbose("save to xml");
+        define.save(xml, encoding);
 
-        Utils.verbose("resolve refined define to new type");
+        Logger.verbose("resolve refined define to new type");
         Cfgs newType = new Cfgs(define);
         newType.resolve();
 
-        Utils.verbose("construct value from new type and data");
+        Logger.verbose("construct value from new type and data");
         CfgVs value = new CfgVs(newType, data);
 
-        Utils.verbose("verify value constraint");
+        Logger.verbose("verify value constraint");
         value.verifyConstraint();
 
         for (Context ctx : contexts) {
             Generator g = ctx.create(dir, value);
             if (g != null) {
-                Utils.verbose("generate " + ctx);
+                Logger.verbose("generate " + ctx);
                 g.gen();
             } else {
                 System.err.println("not support " + ctx);
             }
         }
 
-        Utils.verbose("end");
+        Logger.verbose("end");
     }
 }

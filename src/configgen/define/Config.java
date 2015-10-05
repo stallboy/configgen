@@ -1,7 +1,6 @@
 package configgen.define;
 
 import configgen.Node;
-import configgen.Utils;
 import org.w3c.dom.Element;
 
 public class Config extends Node {
@@ -44,7 +43,7 @@ public class Config extends Node {
     }
 
     public void save(Element parent) {
-        Element self = Utils.newChild(parent, "config");
+        Element self = DomUtils.newChild(parent, "config");
         bean.update(self);
         if (!enumStr.isEmpty())
             self.setAttribute("enum", enumStr);

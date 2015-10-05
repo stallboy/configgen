@@ -2,7 +2,6 @@ package configgen.data;
 
 import configgen.CSV;
 import configgen.Node;
-import configgen.Utils;
 import configgen.define.Config;
 import configgen.define.ConfigCollection;
 import configgen.type.Cfg;
@@ -29,7 +28,7 @@ public class Datas extends Node {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes a) throws IOException {
                 if (file.toString().endsWith(".csv")) {
-                    String name = Utils.path2Name(dataDir.relativize(file).toString());
+                    String name = path2ConfigName(dataDir.relativize(file).toString());
                     try (Reader reader = new InputStreamReader(new FileInputStream(file.toFile()), inputEncoding)) {
                         datas.put(name, new Data(Datas.this, name, CSV.parse(reader, false)));
                     }
@@ -37,6 +36,13 @@ public class Datas extends Node {
                 return FileVisitResult.CONTINUE;
             }
         });
+    }
+
+    private static String path2ConfigName(String p) {
+        String[] res = p.split("\\\\|/");
+        String last = res[res.length - 1];
+        res[res.length - 1] = last.substring(0, last.length() - 4);
+        return String.join(".", res).toLowerCase();
     }
 
     public void refineDefine(Cfgs cfgs) {

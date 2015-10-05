@@ -1,7 +1,6 @@
 package configgen.define;
 
 import configgen.Node;
-import configgen.Utils;
 import org.w3c.dom.Element;
 
 public class ListRef extends Node {
@@ -12,7 +11,7 @@ public class ListRef extends Node {
 
     public ListRef(Bean parent, Element self) {
         super(parent, "");
-        String[] attrs = Utils.attributes(self, "name", "keys", "ref", "refkeys");
+        String[] attrs = DomUtils.attributes(self, "name", "keys", "ref", "refkeys");
         name = attrs[0];
         link = name;
         String r = attrs[1].trim();
@@ -29,7 +28,7 @@ public class ListRef extends Node {
     }
 
     public void save(Element parent) {
-        Element self = Utils.newChild(parent, "listref");
+        Element self = DomUtils.newChild(parent, "listref");
         self.setAttribute("name", name);
         self.setAttribute("keys", String.join(",", keys));
         self.setAttribute("ref", ref);

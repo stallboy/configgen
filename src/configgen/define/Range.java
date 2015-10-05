@@ -1,7 +1,6 @@
 package configgen.define;
 
 import configgen.Node;
-import configgen.Utils;
 import org.w3c.dom.Element;
 
 public class Range extends Node {
@@ -11,7 +10,7 @@ public class Range extends Node {
 
     public Range(Bean parent, Element self) {
         super(parent, "");
-        String[] attr = Utils.attributes(self, "key", "min", "max");
+        String[] attr = DomUtils.attributes(self, "key", "min", "max");
         key = attr[0];
         link = key;
         min = Integer.decode(attr[1]);
@@ -21,7 +20,7 @@ public class Range extends Node {
     }
 
     public void save(Element parent) {
-        Element self = Utils.newChild(parent, "range");
+        Element self = DomUtils.newChild(parent, "range");
         self.setAttribute("key", key);
         self.setAttribute("min", String.valueOf(min));
         self.setAttribute("max", String.valueOf(max));

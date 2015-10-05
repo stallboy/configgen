@@ -1,7 +1,6 @@
 package configgen.define;
 
 import configgen.Node;
-import configgen.Utils;
 import org.w3c.dom.Element;
 
 import java.util.*;
@@ -20,7 +19,7 @@ public class Bean extends Node {
     public Bean(ConfigCollection collection, Config config, Element self) {
         super(config != null ? config : collection, "");
 
-        String[] attrs = Utils.attributes(self, "name", "own", "compress", "enum", "keys");
+        String[] attrs = DomUtils.attributes(self, "name", "own", "compress", "enum", "keys");
         name = attrs[0];
         if (config == null)
             link = name;
@@ -31,7 +30,7 @@ public class Bean extends Node {
             Assert(config == null, "config not allowed compress");
         }
 
-        List<List<Element>> eles = Utils.elementsList(self, "field", "ref", "range", "listref");
+        List<List<Element>> eles = DomUtils.elementsList(self, "field", "ref", "range", "listref");
         for (Element ef : eles.get(0)) {
             Field f = new Field(this, ef);
             Assert(null == fields.put(f.name, f), "field duplicate name=" + f.name);
@@ -71,7 +70,7 @@ public class Bean extends Node {
     }
 
     public void save(Element parent) {
-        update(Utils.newChild(parent, "bean"));
+        update(DomUtils.newChild(parent, "bean"));
     }
 
     void update(Element self) {

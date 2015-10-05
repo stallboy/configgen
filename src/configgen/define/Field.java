@@ -17,7 +17,7 @@ public class Field extends Node {
 
     public Field(Bean parent, Element self) {
         super(parent, "");
-        String[] attrs = Utils.attributes(self, "desc", "name", "type",
+        String[] attrs = DomUtils.attributes(self, "desc", "name", "type",
                 "ref", "nullableref", "keyref", "listref", "range", "own");
         desc = attrs[0];
         name = attrs[1];
@@ -56,7 +56,7 @@ public class Field extends Node {
     }
 
     public void save(Element parent) {
-        Element self = Utils.newChild(parent, "field");
+        Element self = DomUtils.newChild(parent, "field");
         if (!desc.isEmpty())
             self.setAttribute("desc", desc);
         self.setAttribute("name", name);

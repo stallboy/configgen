@@ -1,6 +1,5 @@
-package configgen;
+package configgen.define;
 
-import configgen.gen.CachedFileOutputStream;
 import org.w3c.dom.*;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
@@ -15,11 +14,16 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public final class Utils {
+final class DomUtils {
     public static Element rootElement(File file) throws ParserConfigurationException, IOException, SAXException {
         return DocumentBuilderFactory.newInstance()
                 .newDocumentBuilder().parse(file)
@@ -117,52 +121,5 @@ public final class Utils {
         Element e = parent.getOwnerDocument().createElement(tag);
         parent.appendChild(e);
         return e;
-    }
-
-    public static String upper1(String value) {
-        return value.substring(0, 1).toUpperCase() + value.substring(1);
-    }
-
-    public static String lower1(String value) {
-        return value.substring(0, 1).toLowerCase() + value.substring(1);
-    }
-
-    public static String path2Name(String p) {
-        String[] res = p.split("\\\\|/");
-        if (res.length > 0) {
-            String last = res[res.length - 1];
-            res[res.length - 1] = last.substring(0, last.length() - 4);
-        }
-        return String.join(".", res);
-    }
-
-    public static PrintStream cachedPrintStream(File file, String encoding) throws IOException {
-        return new PrintStream(new CachedFileOutputStream(file), false, encoding);
-    }
-
-    public static void mkdirs(File path) {
-        if (!path.exists()) {
-            if (!path.mkdirs()) {
-                println("mkdirs fail: " + path);
-            }
-        }
-    }
-
-    private static boolean verboseEnabled = false;
-
-    public static void enableVerbose(boolean enable) {
-        verboseEnabled = enable;
-    }
-
-    private final static SimpleDateFormat df = new SimpleDateFormat("HH.mm.ss.SSS");
-
-    public static void verbose(String s) {
-        if (verboseEnabled) {
-            println(s);
-        }
-    }
-
-    public static void println(String s) {
-        System.out.println(df.format(Calendar.getInstance().getTime()) + ": " + s);
     }
 }

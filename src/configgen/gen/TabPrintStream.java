@@ -9,12 +9,12 @@ public class TabPrintStream {
         this.ps = ps;
     }
 
-    public void println(String str) {
-        ps.println(str);
-    }
-
     public void println() {
         ps.println();
+    }
+
+    public void println(String str) {
+        ps.println(str);
     }
 
     public void println1(String str) {

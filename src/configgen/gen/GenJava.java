@@ -740,7 +740,6 @@ public class GenJava extends Generator {
     }
 
     private void genCSVLoader() throws IOException {
-        Set<String> s = new LinkedHashSet<>(Arrays.asList("", "a"));
         try (PrintStream stream = Utils.cachedPrintStream(new File(dstDir, "CSVLoader.java"), encoding)) {
             TabPrintStream ps = new TabPrintStream(stream);
 

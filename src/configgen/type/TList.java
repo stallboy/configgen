@@ -13,7 +13,7 @@ public class TList extends Type {
             Assert(!ref.nullable, "list not support nullableRef");
             Assert(null == ref.keyRef, "list not support keyRef");
         }
-        this.value = resolve(this, "value", cons, value);
+        this.value = resolveType("value", cons, value);
         this.count = count;
     }
 

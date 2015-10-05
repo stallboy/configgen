@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Node {
-    public final Node root;
+    protected final Node root;
     protected final Node parent;
     protected String link = "";
     protected final List<Node> children = new ArrayList<>();

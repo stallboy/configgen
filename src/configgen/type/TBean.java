@@ -118,7 +118,7 @@ public class TBean extends Type {
             listRefs.add(new ListRef(this, f.name, f.listRef, f.listRefKey));
         }
 
-        Type res = Type.resolve(this, f.name, cons, t, k, v, c);
+        Type res = resolveType(f.name, cons, t, k, v, c);
         f.Assert(res != null, "type resolve err", f.type);
         fields.put(f.name, res);
     }

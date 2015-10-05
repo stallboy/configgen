@@ -21,8 +21,8 @@ public class TMap extends Type {
                 vc.refs.add(new SRef("", ref.ref, false, null));
         }
 
-        this.key = resolve(this, "key", kc, key);
-        this.value = resolve(this, "value", vc, value);
+        this.key = resolveType("key", kc, key);
+        this.value = resolveType("value", vc, value);
         this.count = count;
     }
 

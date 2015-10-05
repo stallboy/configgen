@@ -23,36 +23,36 @@ public abstract class Type extends Node {
     public abstract <T> T accept(TypeVisitorT<T> visitor);
 
 
-    static Type resolve(Node parent, String link, Constraint cons, String type, String key, String value, int count) {
-        Type t = resolve(parent, link, cons, type);
-        if (t!= null)
+    protected Type resolveType(String link, Constraint cons, String type, String key, String value, int count) {
+        Type t = resolveType(link, cons, type);
+        if (t != null)
             return t;
 
         switch (type) {
             case "list":
-                return new TList(parent, link, cons, value, count);
+                return new TList(this, link, cons, value, count);
             case "map":
-                return new TMap(parent, link, cons, key, value, count);
+                return new TMap(this, link, cons, key, value, count);
         }
         return null;
     }
 
-    static Type resolve(Node parent, String link, Constraint cons, String type) {
-        switch (type){
+    protected Type resolveType(String link, Constraint cons, String type) {
+        switch (type) {
             case "int":
-                return new TInt(parent, link, cons);
+                return new TInt(this, link, cons);
             case "long":
-                return new TLong(parent, link, cons);
+                return new TLong(this, link, cons);
             case "string":
-                return new TString(parent, link, cons);
+                return new TString(this, link, cons);
             case "bool":
-                return new TBool(parent, link, cons);
+                return new TBool(this, link, cons);
             case "float":
-                return new TFloat(parent, link, cons);
+                return new TFloat(this, link, cons);
             case "text":
-                return new TText(parent, link, cons);
+                return new TText(this, link, cons);
         }
-        return ((Cfgs)parent.root).tbeans.get(type);
+        return ((Cfgs) root).tbeans.get(type);
     }
 
 }

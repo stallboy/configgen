@@ -114,7 +114,7 @@ public class GenCs extends Generator {
         tbean.fields.forEach((n, t) -> {
             Field f = tbean.define.fields.get(n);
             String c = f.desc.isEmpty() ? "" : " // " + f.desc;
-            ps.println2("public " + type(t) + " " + upper1(n) + " { get; private set; };" + c);
+            ps.println2("public " + type(t) + " " + upper1(n) + " { get; private set; }" + c);
             t.constraint.refs.forEach(r -> ps.println2("public " + refType(t, r) + " " + refName(r) + " { get; private set; }"));
         });
 
@@ -206,7 +206,7 @@ public class GenCs extends Generator {
             ps.println2("public static " + name.className + " Get(" + formalParams(keys) + ")");
             ps.println2("{");
             ps.println3(name.className + " v;");
-            ps.println3("return all.TryGetValue(" + actualParams(keys, "") + ", out v) ? v : null;");
+            ps.println3("return all.TryGetValue(" + actualParams(keys) + ", out v) ? v : null;");
             ps.println2("}");
             ps.println();
 
@@ -313,7 +313,7 @@ public class GenCs extends Generator {
                             ps.println3("{");
                             ps.println4("var r = " + fullName(sr.ref) + ".Get(e);");
                             ps.println4("if (r == null) errors.RefNull(" + csv + ", ToString() , " + field + ", e);");
-                            ps.println3(refName(sr) + ".Add(r);");
+                            ps.println4(refName(sr) + ".Add(r);");
                             ps.println3("}");
                         }
                     } else if (t instanceof TMap) {
@@ -403,12 +403,12 @@ public class GenCs extends Generator {
         return String.join(", ", Arrays.asList(keys).stream().map(Generator::upper1).collect(Collectors.toList()));
     }
 
-    private String actualParams(Map<String, Type> keys, String pre) {
-        return String.join(", ", keys.keySet().stream().map(n -> pre + upper1(n)).collect(Collectors.toList()));
+    private String actualParams(Map<String, Type> keys) {
+        return String.join(", ", keys.keySet().stream().map(Generator::lower1).collect(Collectors.toList()));
     }
 
     private String actualParamsKey(Map<String, Type> keys, String pre) {
-        String p = actualParams(keys, pre);
+        String p = String.join(", ", keys.keySet().stream().map(n -> pre + upper1(n)).collect(Collectors.toList()));
         return keys.size() > 1 ? "new Key(" + p + ")" : p;
     }
 

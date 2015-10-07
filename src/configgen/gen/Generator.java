@@ -11,16 +11,15 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 
 public abstract class Generator {
-    protected Path configDir;
+    protected final Path configDir;
     protected CfgVs value;
-    protected Context ctx;
+    protected final Context ctx;
 
     public Generator(Path dir, CfgVs value, Context ctx) {
         this.configDir = dir;
         this.value = value;
         this.ctx = ctx;
     }
-
 
     public abstract void gen() throws IOException;
 
@@ -48,6 +47,10 @@ public abstract class Generator {
 
     protected static String upper1(String value) {
         return value.substring(0, 1).toUpperCase() + value.substring(1);
+    }
+
+    protected static String upper1Only(String value) {
+        return value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
     }
 
     protected static String lower1(String value) {

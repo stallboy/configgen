@@ -11,9 +11,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GenJava extends Generator {
-    private File dstDir;
-    private String pkg;
-    private String encoding;
+    private final File dstDir;
+    private final String pkg;
+    private final String encoding;
 
     public GenJava(Path dir, CfgVs value, Context ctx) {
         super(dir, value, ctx);
@@ -41,23 +41,22 @@ public class GenJava extends Generator {
         CachedFileOutputStream.doRemoveFiles();
     }
 
+    private static class Name {
+        final String pkg;
+        final String className;
+        final String fullName;
+        final String path;
 
-    private class Name {
-        String pkg;
-        String className;
-        String fullName;
-        String path;
+        Name(String topPkg, String configName) {
+            String[] seps = configName.split("\\.");
+            String c = seps[seps.length - 1];
+            className = c.substring(0, 1).toUpperCase() + c.substring(1);
 
-        Name(String name) {
-            String[] seps = name.split("\\.");
             String[] pks = Arrays.copyOf(seps, seps.length - 1);
             if (pks.length == 0)
-                pkg = GenJava.this.pkg;
+                pkg = topPkg;
             else
-                pkg = GenJava.this.pkg + "." + String.join(".", pks);
-
-            String c = upper1(seps[seps.length - 1]);
-            className = c.substring(0, 1).toUpperCase() + c.substring(1).toLowerCase();
+                pkg = topPkg + "." + String.join(".", pks);
 
             fullName = pkg + "." + className;
             if (pks.length == 0)
@@ -68,10 +67,9 @@ public class GenJava extends Generator {
     }
 
     private void genBean(TBean tbean, Cfg cfg) throws IOException {
-        Name name = new Name(tbean.define.name);
+        Name name = new Name(pkg, tbean.define.name);
         File javaFile = dstDir.toPath().resolve(name.path).toFile();
         mkdirs(javaFile.getParentFile());
-
         try (PrintStream ps = cachedPrintStream(javaFile, encoding)) {
             genBean(tbean, cfg, name, new TabPrintStream(ps));
         }
@@ -533,7 +531,7 @@ public class GenJava extends Generator {
     }
 
     private String fullName(TBean tbean) {
-        return new Name(tbean.define.name).fullName;
+        return new Name(pkg, tbean.define.name).fullName;
     }
 
     private String fullName(Cfg cfg) {

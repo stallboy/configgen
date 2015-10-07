@@ -255,21 +255,14 @@ public final class CSV {
         return t.isEmpty() ? 0 : Long.decode(t);
     }
 
-    private static String path2Name(String p) {
-        String[] res = p.split("\\\\|/");
-        if (res.length > 0) {
-            String last = res[res.length - 1];
-            res[res.length - 1] = last.substring(0, last.length() - 4);
-        }
-        return String.join(".", res);
+    private static String path2ConfigName(String path) {
+        return String.join(".", path.split("\\\\|/")).toLowerCase();
     }
 
-    private static String[] name2ClassPath(String name) {
-        String[] seps = name.split("\\.");
-        if (seps.length > 0) {
-            String c = seps[seps.length - 1];
-            seps[seps.length - 1] = c.substring(0, 1).toUpperCase() + c.substring(1).toLowerCase();
-        }
+    private static String[] configName2ClassFullName(String configName) {
+        String[] seps = configName.split("\\.");
+        String c = seps[seps.length - 1];
+        seps[seps.length - 1] = c.substring(0, 1).toUpperCase() + c.substring(1);
         return seps;
     }
 
@@ -281,16 +274,16 @@ public final class CSV {
             Collection<Class<?>> classList = new ArrayList<>();
             for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
                 if (entry.getName().endsWith(".csv")) {
-                    String name = path2Name(entry.getName());
+                    String configName = path2ConfigName(entry.getName().substring(0, entry.getName().length() - 4));
                     try {
-                        Class<?> clz = Class.forName(packageName + "." + String.join(".", name2ClassPath(name)));
+                        Class<?> clz = Class.forName(packageName + "." + String.join(".", configName2ClassFullName(configName)));
                         if (clz != null) {
                             classList.add(clz);
                             Method initialize = clz.getDeclaredMethod("initialize", List.class);
                             initialize.setAccessible(true);
                             List<List<String>> res = parse(new BufferedReader(new InputStreamReader(zis, encoding)), true);
                             initialize.invoke(null, res.subList(2, res.size()));
-                            loaded.add(name);
+                            loaded.add(configName);
                         }
                     } catch (ClassNotFoundException ignore) {
                     }

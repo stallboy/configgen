@@ -1,6 +1,6 @@
 # configgen
 
-用于配置生成，可以认为是个的生成只读object的object-relational mapping。
+配置生成工具，可以认为是个生成只读object的object-relational mapping。
 
 ## 项目概况
 
@@ -104,40 +104,48 @@
 
 ## 其他
 
+* 为什么使用csv？
+
+   比xml简洁，可被版本管理系统diff，可用excel编辑。如果要用excel高级功能，请策划把用excel原始格式，把csv作为导出格式
+
 * enum要不要允许部分设置，部分空白？
->   有时候允许部分设置是很方便的，比如掉落表，一般用id索引，但有些行如果能配置enum导出引用，则程序会方便的多。
+
+    有时候允许部分设置是很方便的，比如掉落表，一般用id索引，但有些行如果能配置enum导出引用，则程序会方便的多。
     所以enum在实现上，java中如果部分enum则用静态成员，如果全部enum则生成enum；c#中生成为一个静态成员。
     枚举的作用就是要消除代码里的魔数。
 
 * 为什么要支持nullableref？
->   java，c#的引用可以为null，应该是个设计错误。简单点说原因就是允许为null妨碍了类型状态的最小化。后来java引入
+
+    java，c#的引用可以为null，应该是个设计错误。简单点说原因就是允许为null妨碍了类型状态的最小化。后来java引入
     Optional<T>就感觉是个nullableref的含义。idea引入@Nullable都是为了弥补这个。
     这里我们约定ref就是必须有引用的，（配置加载时会做检测）nullableref是可为null的，逻辑使用时检测。
     参考：http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare
 
 * 嵌套结构支持？
->   可以在一个csv里直接随意嵌套bean
+
+    可以在一个csv里直接随意嵌套bean
     也可以通过ref,nullableref支持了简单嵌套结构，
     通过list,map，和ref，nullableref，keyref的使用支持了容器嵌套结构。
     还可以通过listref，支持来list嵌套结构，到底引用了哪些是另外一个表说了算。
 
 * listref的使用场景？
->   比如一般任务task，有个前置任务配置pretaskid，
+
+    比如一般任务task，有个前置任务配置pretaskid，
     指的是这个任务完成前必须先完成这个前置任务。我需要知道当前任务完成后会开启哪些任务。
     这时配置<field name=”id”, listref="task,pretaskid”/>自动生成List<Task> ListrefId。
     比如配置掉落表loot，然后lootitem是具体信息，loot里不用指明包含哪些lootitemid，而是在lootitem里指明lootid。
     这样再给lootid配上listref="lootitem,lootid"。
 
-
 * keyref的使用场景？
->   只针对map，现在没用到，完整性上来说要应该有啊，特别是它的key是enum这种应该挺常见。
+
+    只针对map，现在没用到，完整性上来说要应该有啊，特别是它的key是enum这种应该挺常见。
 
 * 对set的支持呢？
->   不支持，这种配置不会太多，使用list效率够了。这个现在的想法是不支持。
+
+    不支持，这种配置不会太多，使用list效率够了。这个现在的想法是不支持。
 
 * 待定
->   C#版本加了个KeyedList用于对应java的LinkedHashMap，里面虽说有Generic，但对所有引用应该只生成一份代码，按说不会占用很多代码段，
+
+    C#版本加了个KeyedList用于对应java的LinkedHashMap，里面虽说有Generic，但对所有引用应该只生成一份代码，按说不会占用很多代码段，
     但不知道Mono是否这样？
     C#版本最后数据文件汇总，如果考虑更新，是不是应该分开文件更新？
-
-* 一些其他考虑

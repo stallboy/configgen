@@ -57,10 +57,10 @@ public class VBean extends Value {
                 vs.add(map.get(k));
             }
             VList key = new VList(this, "__ref_" + mr.define.name, vs);
-            if (mr.ref != null){
-                if (isNull()){
+            if (mr.ref != null) {
+                if (isNull()) {
                     Assert(mr.define.nullable, key.toString(), "null not support ref", mr.ref.location());
-                }else{
+                } else {
                     Assert(mr.ref.value.vkeys.contains(key), key.toString(), "not found in ref", mr.ref.location());
                 }
             }

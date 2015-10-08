@@ -33,9 +33,9 @@ public final class Column extends Node {
         }
     }
 
-    void updateDesc(Field f){
+    void updateDesc(Field f) {
         f.desc = descs.get(0);
-        if (f.type.startsWith("map,")){
+        if (f.type.startsWith("map,")) {
             f.desc += "," + descs.get(1);
         }
     }

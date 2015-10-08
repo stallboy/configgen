@@ -1,6 +1,6 @@
 package configgen.define;
 
-import configgen.*;
+import configgen.Node;
 import org.w3c.dom.Element;
 
 public class Field extends Node {

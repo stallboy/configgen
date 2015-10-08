@@ -1,6 +1,8 @@
 package configgen.type;
 
-import configgen.define.*;
+import configgen.define.Bean;
+import configgen.define.Field;
+import configgen.define.Ref;
 
 import java.util.*;
 

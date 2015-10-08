@@ -7,25 +7,32 @@ import configgen.value.CfgVs;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GenJava extends Generator {
-    private final File dstDir;
-    private final String pkg;
-    private final String encoding;
+    private CfgVs value;
+    private File dstDir;
+    private String pkg;
+    private String encoding;
 
-    public GenJava(Path dir, CfgVs value, Context ctx) {
-        super(dir, value, ctx);
-        String _dir = ctx.get("dir", ".");
+    public GenJava() {
+        providers.put("java", this);
+        Context.providers.put("java", "java,dir:config,pkg:config,encoding:GBK");
+    }
+
+    @Override
+    public void generate(Path configDir, CfgVs value, Context ctx) throws IOException {
+        this.value = value;
+        String _dir = ctx.get("dir", "config");
         pkg = ctx.get("pkg", "config");
         encoding = ctx.get("encoding", "GBK");
         ctx.end();
         dstDir = Paths.get(_dir).resolve(pkg.replace('.', '/')).toFile();
-    }
 
-    @Override
-    public void gen() throws IOException {
         CachedFileOutputStream.removeOtherFiles(dstDir);
         mkdirs(dstDir);
 
@@ -40,6 +47,7 @@ public class GenJava extends Generator {
 
         CachedFileOutputStream.doRemoveFiles();
     }
+
 
     private static class Name {
         final String pkg;

@@ -15,18 +15,18 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class GenBin extends Generator {
-    private File dstDir;
-    private String zip;
 
-    public GenBin(Path dir, CfgVs value, Context ctx) {
-        super(dir, value, ctx);
-        dstDir = new File(ctx.get("dir", "."));
-        zip = ctx.get("zip", null);
-        ctx.end();
+    public GenBin() {
+        providers.put("bin", this);
+        Context.providers.put("bin", "bin,dir:.    add zip if need");
     }
 
     @Override
-    public void gen() throws IOException {
+    public void generate(Path configDir, CfgVs value, Context ctx) throws IOException {
+        File dstDir = new File(ctx.get("dir", "."));
+        String zip = ctx.get("zip", null);
+        ctx.end();
+
         File byteFile = new File(dstDir, "csv.byte");
         File textFile = new File(dstDir, "csv.string");
         try (DataOutputStream byter = new DataOutputStream(new CachedFileOutputStream(byteFile));
@@ -45,12 +45,8 @@ public class GenBin extends Generator {
                 Files.copy(textFile.toPath(), zos);
             }
 
-            if (!byteFile.delete()) {
-                System.out.println("delete file fail: " + byteFile);
-            }
-            if (!textFile.delete()) {
-                System.out.println("delete file fail: " + textFile);
-            }
+            delete(byteFile);
+            delete(textFile);
         }
     }
 }

@@ -14,25 +14,29 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GenCs extends Generator {
-    private final File dstDir;
-    private final String pkg;
-    private final String encoding;
-    private final String prefix;
+    private CfgVs value;
+    private File dstDir;
+    private String pkg;
+    private String encoding;
+    private String prefix;
 
-    public GenCs(Path dir, CfgVs value, Context ctx) {
-        super(dir, value, ctx);
-        String _dir = ctx.get("dir", ".");
+    public GenCs() {
+        providers.put("cs", this);
+        Context.providers.put("cs", "cs,dir:Config,pkg:Config,encoding:GBK,prefix:Data    add own:x if need");
+    }
+
+    @Override
+    public void generate(Path configDir, CfgVs value, Context ctx) throws IOException {
+        this.value = value;
+        String _dir = ctx.get("dir", "Config");
         pkg = ctx.get("pkg", "Config");
         encoding = ctx.get("encoding", "GBK");
         prefix = ctx.get("prefix", "Data");
         String own = ctx.get("own", null);
         ctx.end();
         dstDir = Paths.get(_dir).resolve(pkg.replace('.', '/')).toFile();
-        applyOwn(own);
-    }
+        value = extract(value, own);
 
-    @Override
-    public void gen() throws IOException {
         CachedFileOutputStream.removeOtherFiles(dstDir);
         mkdirs(dstDir);
 
@@ -51,6 +55,7 @@ public class GenCs extends Generator {
 
         CachedFileOutputStream.doRemoveFiles();
     }
+
 
     private static class Name {
         final String pkg;

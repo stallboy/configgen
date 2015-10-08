@@ -1,15 +1,15 @@
 package configgen.gen;
 
-import configgen.value.CfgVs;
-
-import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Context {
     private String arg;
     private String type;
     private Map<String, String> ctx = new HashMap<>();
+
+    public static final Map<String, String> providers = new LinkedHashMap<>();
 
     public Context(String arg) {
         this.arg = arg;
@@ -25,19 +25,8 @@ public class Context {
         }
     }
 
-    public Generator create(Path dir, CfgVs value) {
-        switch (type) {
-            case "zip":
-                return new GenZip(dir, value, this);
-            case "bin":
-                return new GenBin(dir, value, this);
-            case "java":
-                return new GenJava(dir, value, this);
-            case "cs":
-                return new GenCs(dir, value, this);
-            default:
-                return null;
-        }
+    public Generator create() {
+        return Generator.providers.get(type);
     }
 
     public String get(String key, String def) {

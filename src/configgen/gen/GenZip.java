@@ -15,16 +15,17 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class GenZip extends Generator {
-    private File dst;
 
-    public GenZip(Path dir, CfgVs value, Context ctx) {
-        super(dir, value, ctx);
-        dst = new File(ctx.get("file", "configdata.zip"));
-        ctx.end();
+    public GenZip() {
+        providers.put("zip", this);
+        Context.providers.put("zip", "zip,file:configdata.zip");
     }
 
     @Override
-    public void gen() throws IOException {
+    public void generate(Path configDir, CfgVs value, Context ctx) throws IOException {
+        File dst = new File(ctx.get("file", "configdata.zip"));
+        ctx.end();
+
         try (final ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(dst), new CRC32()))) {
             Files.walkFileTree(configDir, new SimpleFileVisitor<Path>() {
                 @Override

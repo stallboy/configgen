@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="configgen" default="dist">
+    <property name="src" value="src/"/>
+    <property name="build" value="classes/"/>
+
+    <target name="init">
+        <mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <javac encoding="GBK" srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true"
+               debuglevel="lines,source">
+            <compilerarg line="-Xlint:unchecked"/>
+        </javac>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build}"/>
+    </target>
+
+    <target name="dist" depends="clean, compile">
+        <copy file="${src}/configgen/CSV.java" todir="${build}/support"/>
+        <copy file="${src}/support/CSV.cs" todir="${build}/support"/>
+        <copy file="${src}/support/KeyedList.cs" todir="${build}/support"/>
+        <copy file="${src}/support/LoadErrors.cs" todir="${build}/support"/>
+        <copy file="${src}/support/CSVLoader.cs" todir="${build}/support"/>
+        <jar jarfile="configgen.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
+    </target>
+
+</project>

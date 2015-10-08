@@ -13,10 +13,11 @@ public final class Cell {
 
     @Override
     public String toString() {
-        return "row=" + (row+1) + ",col=" + toAZ(col) + ",data=" + data;
+        return "row=" + (row + 1) + ",col=" + toAZ(col) + ",data=" + data;
     }
 
     private static final int N = 'Z' - 'A' + 1;
+
     private static String toAZ(int v) {
         int q = v / N;
         String r = String.valueOf((char) ('A' + (v % N)));

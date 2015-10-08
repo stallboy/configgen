@@ -21,10 +21,10 @@ public abstract class Value extends Node {
 
     protected void verifyRefs() {
         for (SRef ref : type.constraint.refs) {
-            if (ref.ref != null){
-                if (isNull()){
+            if (ref.ref != null) {
+                if (isNull()) {
                     Assert(ref.nullable, toString(), "null not support ref", ref.ref.location());
-                }else{
+                } else {
                     Assert(ref.ref.value.vkeys.contains(this), toString(), "not found in ref", ref.ref.location());
                 }
             }

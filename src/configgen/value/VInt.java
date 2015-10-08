@@ -14,7 +14,7 @@ public class VInt extends VPrimitive {
         super(parent, link, type, data);
         try {
             value = CSV.parseInt(raw.data);
-        }catch (Exception e){
+        } catch (Exception e) {
             Assert(false, e.toString(), raw.toString());
         }
     }

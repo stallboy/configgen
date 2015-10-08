@@ -45,7 +45,7 @@ public class Datas extends Node {
         return String.join(".", res).toLowerCase();
     }
 
-    public void refineDefine(Cfgs cfgs) {
+    public void autoCompleteDefine(Cfgs cfgs) {
         ConfigCollection define = cfgs.define;
         Map<String, Cfg> old = new HashMap<>(cfgs.cfgs);
         define.configs.clear();
@@ -59,7 +59,7 @@ public class Datas extends Node {
             }
             define.configs.put(k, def);
             data.parse(cfg);
-            data.refineDefine(def);
+            data.autoCompleteDefine(def);
         });
     }
 }

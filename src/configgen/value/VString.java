@@ -19,7 +19,7 @@ public class VString extends VPrimitive {
         int len = value.length();
         return len >= range.min && len <= range.max;
     }
-    
+
     @Override
     public boolean equals(Object o) {
         return o != null && o instanceof VString && value.equals(((VString) o).value);

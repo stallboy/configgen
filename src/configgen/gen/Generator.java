@@ -9,32 +9,28 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class Generator {
-    protected final Path configDir;
-    protected CfgVs value;
-    protected final Context ctx;
 
-    public Generator(Path dir, CfgVs value, Context ctx) {
-        this.configDir = dir;
-        this.value = value;
-        this.ctx = ctx;
-    }
+    public abstract void generate(Path configDir, CfgVs value, Context ctx) throws IOException;
 
-    public abstract void gen() throws IOException;
+    public static final Map<String, Generator> providers = new HashMap<>();
 
-    protected void applyOwn(String own) {
+    protected static CfgVs extract(CfgVs value, String own) {
         if (own == null)
-            return;
-        Logger.verbose("extract define(" + own + ")");
+            return value;
+
+        Logger.verbose("extract xml(" + own + ")");
         ConfigCollection ownDefine = value.type.define.extract(own);
-        Logger.verbose("resolve to type(" + own + ")");
         Cfgs ownType = new Cfgs(ownDefine);
         ownType.resolve();
 
-        Logger.verbose("construct and verify value(" + own + ")");
-        value = new CfgVs(ownType, value.data);
-        value.verifyConstraint();
+        Logger.verbose("extract data(" + own + ")");
+        CfgVs v = new CfgVs(ownType, value.data);
+        v.verifyConstraint();
+        return v;
     }
 
     protected static void mkdirs(File path) {
@@ -42,6 +38,12 @@ public abstract class Generator {
             if (!path.mkdirs()) {
                 Logger.log("mkdirs fail: " + path);
             }
+        }
+    }
+
+    protected static void delete(File file) {
+        if (!file.delete()) {
+            Logger.log("delete file fail: " + file);
         }
     }
 

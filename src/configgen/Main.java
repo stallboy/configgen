@@ -2,8 +2,7 @@ package configgen;
 
 import configgen.data.Datas;
 import configgen.define.ConfigCollection;
-import configgen.gen.Context;
-import configgen.gen.Generator;
+import configgen.gen.*;
 import configgen.type.Cfgs;
 import configgen.value.CfgVs;
 
@@ -18,22 +17,32 @@ public final class Main {
         System.err.println(reason);
 
         System.out.println("Usage: java -jar configgen.jar [options]");
-        System.out.println("	-configdir       config data directory. no default");
-        System.out.println("	-encoding        config encoding. default GBK");
-        System.out.println("	-gen             zip,bin,java,cs,lua");
-        System.out.println("	-v               verbose, default false");
+        System.out.println("	-configdir  config data directory.");
+        System.out.println("	-xml        default config.xml in datadir.");
+        System.out.println("	-encoding   csv and xml encoding. default GBK");
+        System.out.println("	-v          verbose, default no");
+        Context.providers.forEach((k, v) -> System.out.println("	-gen        " + v));
         Runtime.getRuntime().exit(1);
     }
 
     public static void main(String[] args) throws Exception {
-        String configDir = null;
+        String configdir = null;
+        String xml = null;
         String encoding = "GBK";
         List<Context> contexts = new ArrayList<>();
+
+        new GenBin();
+        new GenZip();
+        new GenJava();
+        new GenCs();
 
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {
                 case "-configdir":
-                    configDir = args[++i];
+                    configdir = args[++i];
+                    break;
+                case "-xml":
+                    xml = args[++i];
                     break;
                 case "-encoding":
                     encoding = args[++i];
@@ -50,43 +59,35 @@ public final class Main {
             }
         }
 
-        if (configDir == null) {
+        if (configdir == null) {
             usage("-configdir miss");
             return;
         }
 
-
-        Path dir = Paths.get(configDir);
-        File xml = dir.resolve("config.xml").toFile();
-        Logger.verbose("parse xml to define");
-        ConfigCollection define = new ConfigCollection(xml);
-
-        Logger.verbose("resolve define to type");
+        Path dir = Paths.get(configdir);
+        File xmlFile = xml != null ? new File(xml) : dir.resolve("config.xml").toFile();
+        Logger.verbose("parse xml " + xmlFile);
+        ConfigCollection define = new ConfigCollection(xmlFile);
         Cfgs type = new Cfgs(define);
         type.resolve();
 
-        Logger.verbose("read and analyze data to refine define");
+        Logger.verbose("read data " + dir + " then auto complete xml");
         Datas data = new Datas(dir, encoding);
-        data.refineDefine(type);
-
-        Logger.verbose("save to xml");
-        define.save(xml, encoding);
-
-        Logger.verbose("resolve refined define to new type");
+        data.autoCompleteDefine(type);
+        define.save(xmlFile, encoding);
         Cfgs newType = new Cfgs(define);
         newType.resolve();
 
-        Logger.verbose("construct value from new type and data");
+        Logger.verbose("verify constraint");
         CfgVs value = new CfgVs(newType, data);
-
-        Logger.verbose("verify value constraint");
         value.verifyConstraint();
 
+
         for (Context ctx : contexts) {
-            Generator g = ctx.create(dir, value);
+            Generator g = ctx.create();
             if (g != null) {
                 Logger.verbose("generate " + ctx);
-                g.gen();
+                g.generate(dir, value, ctx);
             } else {
                 System.err.println("not support " + ctx);
             }

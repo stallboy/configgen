@@ -29,7 +29,7 @@ public class CfgV extends Node {
 
         data.line2data.forEach((row, rowData) -> {
             List<Cell> order = columnIndexes.stream().map(col -> new Cell(row, col, rowData.get(col))).collect(Collectors.toList());
-            VBean vbean = new VBean(this, ""+row, cfg.tbean, order);
+            VBean vbean = new VBean(this, "" + row, cfg.tbean, order);
             vbeans.add(vbean);
         });
 

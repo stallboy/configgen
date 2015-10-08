@@ -1,36 +1,36 @@
 # configgen
 
-配置生成工具，可以认为是个生成只读object的object-relational mapping。
+配置生成工具，可以认为是个生成只读object的object-relational mapping
 
 ## 项目概况
 
 * 通过配置外键，取值范围，使策划可以随时检测配置数据
-* 通过生成代码，使程序员方便访问配置类型化后的数据，直接访问外键引用和访问单独一行。
+* 通过生成代码，使程序员方便访问配置类型化后的数据，直接访问外键引用和访问单独一行
 * 目前支持java,csharp代码的生成，会马上支持lua
 
 ## 具体设计目标
 
-* 自动生成程序类，加载类。这个是基本目标。
-* 数据文件中每个单元格数据都有类型；schema保存为config.xml，基本自动生成。但可手工配置如下属性
-* config可设置keys，默认是第一个有英文字段说明的列。要配置的话必须多列。这个就是primary key了。
-* config可设置enum，生成代码会包含这个引用，加载类会自动resolve，方便程序访问每行记录。
-* field有type,一般不用改，type可为list，map，自定义bean。
-* field可设置ref，nullableref, keyref，listref，加载类会自动resolve引用。
-* ref可设置多keys引用，可为一个field配置多个引用。这个就是foreign key了
+* 自动生成程序类，加载类。
+* 数据文件中每个单元格数据都有类型；schema保存为config.xml，基本自动生成
+* config可设置keys，不配置的话就是第一个有英文字段说明的列。要配置的话必须多列。primary key
+* config可设置enum，生成代码会包含这个引用，加载类会自动resolve，方便程序访问每行记录
+* field有type,一般不用改，type可以使复杂结构list，map，bean
+* field可设置ref，nullableref, keyref，listref，加载类会自动resolve引用
+* ref可设置多keys引用，可为一个field配置多个引用。foreign key
 * bean可自定义，可嵌套，可支持单个csv文件里嵌套其他bean
-* 在生成数据和代码时直接检测数据type和ref，range范围检测，对应primary key, foreign key 这写constraint的检测
-* 可配置own，用于选择生成部分，因为客户端内存比较稀缺，这样可以最小化资源量，减少内存占用。这样可以服务器客户端公用一份config.xml
+* 在生成数据和代码时直接检测数据type和ref，range范围检测。
+* 可配置own，这样共用一份config.xml，通过own用于选择生成部分，因为客户端内存比较稀缺
 
 ## 使用流程
 
-1. 程序新建或修改 csv文件，csv文件前2行为header，第一行是中文说明，第二行是英文字段生成代码使用
-2. 使用configgen.jar 来生成或完善服务器客户端共同使用的config.xml。可生成java，csharp, configdata.zip, csv.byte, csv.string
-3. 如果默认的行为不满足程序需求，则手动修改config.xml，（在下次程序自动完善config.xml时对已有的field尊重这里的设置）
+1. 程序新建或修改 csv文件，csv文件前2行为header，第一行是中文说明，第二行是英文字段
+2. 使用configgen.jar 来生成或完善服务器客户端共同使用的config.xml
+3. 如果默认的行为不满足程序需求，则手动修改config.xml
 4. 重复1，2，3流程
 
 ## 注意事项
 
-* 单元格中不填的话默认为false,0,""，所以不要用0作为一行的id。
+* 单元格中不填的话默认为false,0,""，所以不要用0作为一行的id
 * 如果有nullableref请不要填0，请用留空。否则程序会检测报错
 
 ## 配置描述
@@ -57,28 +57,27 @@
     - 有引用的情况，成员变量为Ref+首字母大写的name， 成员函数为ref/nullableRef+首字母大写的name
 
 * field.type
-    - bool,int,long,float,string(text),
-    - <bean.name>
-    - list,xx<,count>     List<>, ArrayList<>；count不存在的时候，单元格是list；count存在的话从多列fieldname1，fieldname2。。。中读取数据。
-    - map,xx,yy,count   Map<>, LinkedHashMap<>; ;xx,yy都为基本格式。从多列fieldkey1，fieldvalue1，fieldkey2, fieldvalue2。。。中读取数据。
+    - bool,int,long,float,string(text),bean
+    - list,xx,count     ArrayList；count不存在的时候，单元格是list；count存在的话从多列fieldname1，fieldname2。。。中读取数据。
+    - map,xx,yy,count   LinkedHashMap; ;xx,yy都为基本格式。从多列fieldkey1，fieldvalue1，fieldkey2, fieldvalue2。。。中读取数据。
 
-    - csv一个单元格,可以是基本类型,或者<bean>,或者list，如果是list那元素必须是基本类型，如果是<bean>必须定义compress="true"
-    - <bean>,list通过分号;进行分隔，例如a;b;c，转义规则同csv标准，比如数组里的一个字符串含有;，那么得用"号把它扩起来，如果引号里有引号，则要用双引号
+    - csv一个单元格,可以是基本类型,或者bean,或者list，如果是list那元素必须是基本类型，如果是bean必须定义compress="true"
+    - bean,list通过分号;进行分隔，例如a;b;c，转义规则同csv标准，比如数组里的一个字符串含有;，那么得用"号把它扩起来，如果引号里有引号，则要用双引号
         - "a";b;c   等同与a;b;c
         - "a;b";c   则被分为2组a;b 和c
         - "a"";b";c 也是2组a";b和c
-    - 如果type里包含bean，且不是一个单元格，则要在csv里第二行名字起名为<field.name>@xx，同时从这开始后列名字序列不要断，要和config里的定义顺序一致，方便程序检测这个field的结束点。
+    - 如果type里包含bean，且不是一个单元格，则要在csv里第二行名字起名为field.name@xx，同时从这开始后列名字序列不要断，要和config里的定义顺序一致，方便程序检测这个field的结束点。
 
 * field.ref, nullableref, keyref
-    - 引用，对应<config.name>。keyref只针对map
+    - 引用，对应config.name。keyref只针对map
     - list，map 不能配置nullableref
 
 * field.listref
-    - 引用，对应<config.name>,<config.field.name>。
+    - 引用，对应config.name,config.field.name。
     - list，map 不能配置listref
 
 * field.range
-    - 对应<min>,<max>必须两者同时都有，long数值。对数值是取值区间，对字符串是长度区间，注意现在没有支持keyrange。
+    - 对应min,max必须两者同时都有，对数值是取值区间，对字符串是长度区间。
 
 * ref.name
     - 用于生成代码时使用，如果用field.ref配置没法指定默认等于field.name
@@ -87,19 +86,19 @@
     - 对keys有多个字段config的引用，需要多个keys，配置到这。或者一个field要配置多个ref，都用这个来配置
 
 * ref.ref, keyref
-    - 引用的config的name
+    - 引用的config.name
 
 * ref.nullable
     - 是否可为空，默认是false
 
 * listref.name, keys, ref, refkeys
-    - 参考ref，生成ListRef<name> 引用。
+    - 参考ref，生成ListRefXXX 引用。
 
 * range.key, min, max
-    - 对数值是取值范围，对字符串是长度范围
+    - field.range 的另一种写法。
 
 * config/bean/field.own
-    里面可填任意字符串，配合启动参数使用，contains语义。
+    - 里面可填任意字符串，配合启动参数使用，contains语义。
 
 
 ## 其他
@@ -117,8 +116,8 @@
 * 为什么要支持nullableref？
 
     java，c#的引用可以为null，应该是个设计错误。简单点说原因就是允许为null妨碍了类型状态的最小化。后来java引入
-    Optional<T>就感觉是个nullableref的含义。idea引入@Nullable都是为了弥补这个。
-    这里我们约定ref就是必须有引用的，（配置加载时会做检测）nullableref是可为null的，逻辑使用时检测。
+    Optional就感觉是个nullableref的含义。idea引入@Nullable都是为了弥补这个。
+    这里我们约定ref就是必须有引用的，nullableref是可为null的，生成代码时用前缀ref，nullableRef来做区别，逻辑使用refXx就不用检测是否为null了。
     参考：http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare
 
 * 嵌套结构支持？
@@ -130,9 +129,8 @@
 
 * listref的使用场景？
 
-    比如一般任务task，有个前置任务配置pretaskid，
-    指的是这个任务完成前必须先完成这个前置任务。我需要知道当前任务完成后会开启哪些任务。
-    这时配置<field name=”id”, listref="task,pretaskid”/>自动生成List<Task> ListrefId。
+    比如一般任务task，有个前置任务配置pretaskid，指的是这个任务完成前必须先完成这个前置任务。
+    我需要知道当前任务完成后会开启哪些任务, 这时配置listref="task,pretaskid"。
     比如配置掉落表loot，然后lootitem是具体信息，loot里不用指明包含哪些lootitemid，而是在lootitem里指明lootid。
     这样再给lootid配上listref="lootitem,lootid"。
 

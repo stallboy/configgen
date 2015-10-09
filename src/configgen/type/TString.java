@@ -3,9 +3,22 @@ package configgen.type;
 import configgen.Node;
 
 public class TString extends TPrimitive {
+    public enum Subtype {
+        STRING, TEXT
+    }
 
-    public TString(Node parent, String link, Constraint cons) {
+    public final Subtype subtype;
+
+    public TString(Node parent, String link, Constraint cons, Subtype subtype) {
         super(parent, link, cons);
+        this.subtype = subtype;
+        switch (subtype) {
+            case STRING:
+                break;
+            case TEXT:
+                Assert(cons.refs.isEmpty(), "text not support ref");
+                break;
+        }
     }
 
     @Override
@@ -15,7 +28,7 @@ public class TString extends TPrimitive {
 
     @Override
     public String toString() {
-        return "string";
+        return subtype.toString().toLowerCase();
     }
 
     @Override

@@ -7,10 +7,12 @@ import configgen.type.TString;
 import java.util.List;
 
 public class VString extends VPrimitive {
-    public String value;
+    public final TString tstring;
+    public final String value;
 
     public VString(Node parent, String link, TString type, List<Cell> data) {
         super(parent, link, type, data);
+        tstring = type;
         value = raw.data;
     }
 

@@ -8,15 +8,17 @@ import configgen.type.TFloat;
 import java.util.List;
 
 public class VFloat extends VPrimitive {
-    public float value;
+    public final float value;
 
     public VFloat(Node parent, String link, TFloat type, List<Cell> data) {
         super(parent, link, type, data);
+        float v = 0;
         try {
-            value = CSV.parseFloat(raw.data);
+            v = CSV.parseFloat(raw.data);
         } catch (Exception e) {
             Assert(false, e.toString(), raw.toString());
         }
+        value = v;
     }
 
     @Override

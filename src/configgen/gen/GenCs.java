@@ -496,11 +496,6 @@ public class GenCs extends Generator {
             }
 
             @Override
-            public String visit(TText type) {
-                return "string";
-            }
-
-            @Override
             public String visit(TList type) {
                 return "List<" + type(type.value) + ">";
             }
@@ -541,12 +536,7 @@ public class GenCs extends Generator {
 
             @Override
             public String visit(TString type) {
-                return "Config.CSV.ReadString(br)";
-            }
-
-            @Override
-            public String visit(TText type) {
-                return "Config.CSV.ReadText(br, map)";
+                return type.subtype == TString.Subtype.STRING ? "Config.CSV.ReadString(br)" : "Config.CSV.ReadText(br, map)";
             }
 
             @Override

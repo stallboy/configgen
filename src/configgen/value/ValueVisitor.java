@@ -11,8 +11,6 @@ public interface ValueVisitor {
 
     void visit(VString value);
 
-    void visit(VText value);
-
     void visit(VList value);
 
     void visit(VMap value);

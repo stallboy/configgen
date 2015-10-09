@@ -39,12 +39,14 @@ public class BinOutputStream implements ValueVisitor {
 
     @Override
     public void visit(VString value) {
-        addString(value.value);
-    }
-
-    @Override
-    public void visit(VText value) {
-        addText(value.value);
+        switch (value.tstring.subtype) {
+            case STRING:
+                addString(value.value);
+                break;
+            case TEXT:
+                addText(value.value);
+                break;
+        }
     }
 
     @Override

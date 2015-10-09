@@ -11,8 +11,6 @@ public interface TypeVisitor {
 
     void visit(TString type);
 
-    void visit(TText type);
-
     void visit(TList type);
 
     void visit(TMap type);

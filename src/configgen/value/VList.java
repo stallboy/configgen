@@ -27,25 +27,25 @@ public class VList extends Value {
     public VList(Node parent, String link, TList type, List<Cell> data) {
         super(parent, link, type, data);
 
-        List<Cell> sdata;
+        List<Cell> parsed;
         if (type.count == 0) { //compress
             Assert(data.size() == 1);
             Cell dat = data.get(0);
-            sdata = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+            parsed = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
         } else {
             Assert(data.size() == type.columnSpan());
-            sdata = data;
+            parsed = data;
         }
 
         int vc = type.value.columnSpan();
         int idx = 0;
         for (int i = 0; i < type.count; i++) {
             int s = i * vc;
-            if (!sdata.get(s).data.isEmpty()) { //first as a null clue, see code generator
-                list.add(Value.create(this, String.valueOf(idx), type.value, sdata.subList(s, s + vc)));
+            if (!parsed.get(s).data.isEmpty()) { //first as a null clue, see code generator
+                list.add(Value.create(this, String.valueOf(idx), type.value, parsed.subList(s, s + vc)));
                 idx++;
             } else {
-                for (Cell dc : sdata.subList(s, s + vc)) {
+                for (Cell dc : parsed.subList(s, s + vc)) {
                     Assert(dc.data.isEmpty(), "list value ignored by first cell empty, but part filled, " + dc);
                 }
             }

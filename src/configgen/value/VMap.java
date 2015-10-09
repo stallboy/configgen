@@ -12,7 +12,6 @@ public class VMap extends Value {
 
     public VMap(Node parent, String link, TMap type, List<Cell> data) {
         super(parent, link, type, data);
-        this.type = type;
 
         Assert(data.size() == type.columnSpan());
         int kc = type.key.columnSpan();

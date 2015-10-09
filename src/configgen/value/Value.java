@@ -6,8 +6,8 @@ import configgen.type.*;
 import java.util.List;
 
 public abstract class Value extends Node {
-    protected Type type;
-    protected List<Cell> cells;
+    protected final Type type;
+    protected final List<Cell> cells;
 
     public Value(Node parent, String link, Type type, List<Cell> data) {
         super(parent, link);
@@ -20,15 +20,13 @@ public abstract class Value extends Node {
     public abstract void verifyConstraint();
 
     protected void verifyRefs() {
-        for (SRef ref : type.constraint.refs) {
-            if (ref.ref != null) {
-                if (isNull()) {
-                    Assert(ref.nullable, toString(), "null not support ref", ref.ref.location());
-                } else {
-                    Assert(ref.ref.value.vkeys.contains(this), toString(), "not found in ref", ref.ref.location());
-                }
+        type.constraint.refs.stream().filter(ref -> ref.ref != null).forEach(ref -> {
+            if (isNull()) {
+                Assert(ref.nullable, toString(), "null not support ref", ref.ref.location());
+            } else {
+                Assert(ref.ref.value.vkeys.contains(this), toString(), "not found in ref", ref.ref.location());
             }
-        }
+        });
     }
 
     public boolean isNull() {
@@ -75,11 +73,6 @@ public abstract class Value extends Node {
             @Override
             public Value visit(TString type) {
                 return new VString(parent, link, type, data);
-            }
-
-            @Override
-            public Value visit(TText type) {
-                return new VText(parent, link, type, data);
             }
 
             @Override

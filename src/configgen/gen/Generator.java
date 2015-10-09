@@ -13,10 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Generator {
+    public static final Map<String, Generator> providers = new HashMap<>();
 
     public abstract void generate(Path configDir, CfgVs value, Context ctx) throws IOException;
-
-    public static final Map<String, Generator> providers = new HashMap<>();
 
     protected static CfgVs extract(CfgVs value, String own) {
         if (own == null)
@@ -42,9 +41,9 @@ public abstract class Generator {
     }
 
     protected static void delete(File file) {
-        if (!file.delete()) {
-            Logger.log("delete file fail: " + file);
-        }
+        String dir = file.isDirectory() ? "dir" : "file";
+        String ok = file.delete() ? "" : " fail";
+        Logger.log("delete " + dir + ok + ": " + file);
     }
 
     protected static String upper1(String value) {

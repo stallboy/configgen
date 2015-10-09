@@ -20,14 +20,14 @@ public class VBean extends Value {
         super(parent, link, type, data);
         this.tbean = type;
 
-        List<Cell> sdata;
+        List<Cell> parsed;
         if (type.define.compress) {
             Assert(data.size() == 1);
             Cell dat = data.get(0);
-            sdata = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+            parsed = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
         } else {
             Assert(data.size() == type.columnSpan());
-            sdata = data;
+            parsed = data;
         }
 
         int s = 0;
@@ -35,7 +35,7 @@ public class VBean extends Value {
             String name = e.getKey();
             Type t = e.getValue();
             int span = t.columnSpan();
-            map.put(name, Value.create(this, name, t, sdata.subList(s, s + span)));
+            map.put(name, Value.create(this, name, t, parsed.subList(s, s + span)));
             s += span;
         }
     }

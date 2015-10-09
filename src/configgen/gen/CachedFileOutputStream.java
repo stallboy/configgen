@@ -52,19 +52,11 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
 
                 files = file.listFiles();
                 if (files != null && files.length == 0) {
-                    if (file.delete()) {
-                        Logger.log("delete dir: " + file);
-                    } else {
-                        Logger.log("delete dir fail: " + file);
-                    }
+                    Generator.delete(file);
                 }
 
             } else {
-                if (file.delete()) {
-                    Logger.log("delete file: " + file);
-                } else {
-                    Logger.log("delete file fail: " + file);
-                }
+                Generator.delete(file);
             }
 
         }

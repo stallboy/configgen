@@ -43,13 +43,13 @@ public abstract class Type extends Node {
             case "long":
                 return new TLong(this, link, cons);
             case "string":
-                return new TString(this, link, cons);
+                return new TString(this, link, cons, TString.Subtype.STRING);
             case "bool":
                 return new TBool(this, link, cons);
             case "float":
                 return new TFloat(this, link, cons);
             case "text":
-                return new TText(this, link, cons);
+                return new TString(this, link, cons, TString.Subtype.TEXT);
         }
         return ((Cfgs) root).tbeans.get(type);
     }

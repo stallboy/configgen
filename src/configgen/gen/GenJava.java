@@ -467,11 +467,6 @@ public class GenJava extends Generator {
             }
 
             @Override
-            public String visit(TText type) {
-                return "String";
-            }
-
-            @Override
             public String visit(TList type) {
                 return "java.util.List<" + _type(type.value, true) + ">";
             }
@@ -513,11 +508,6 @@ public class GenJava extends Generator {
 
             @Override
             public String visit(TString type) {
-                return " = \"\"";
-            }
-
-            @Override
-            public String visit(TText type) {
                 return " = \"\"";
             }
 
@@ -626,12 +616,6 @@ public class GenJava extends Generator {
                 return n + ".hashCode()";
             }
 
-
-            @Override
-            public String visit(TText type) {
-                return n + ".hashCode()";
-            }
-
             @Override
             public String visit(TList type) {
                 return n + ".hashCode()";
@@ -677,11 +661,6 @@ public class GenJava extends Generator {
 
             @Override
             public Boolean visit(TString type) {
-                return true;
-            }
-
-            @Override
-            public Boolean visit(TText type) {
                 return true;
             }
 

@@ -12,6 +12,11 @@ public abstract class TPrimitive extends Type {
     }
 
     @Override
+    public boolean hasRef() {
+        return constraint.refs.size() > 0;
+    }
+
+    @Override
     public int columnSpan() {
         return 1;
     }

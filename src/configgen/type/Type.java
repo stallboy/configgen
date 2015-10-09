@@ -10,9 +10,7 @@ public abstract class Type extends Node {
         constraint = cons;
     }
 
-    public boolean hasRef() {
-        return constraint.refs.size() > 0;
-    }
+    public abstract boolean hasRef();
 
     public abstract boolean hasText();
 

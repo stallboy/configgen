@@ -42,6 +42,11 @@ public class TMap extends Type {
     }
 
     @Override
+    public boolean hasRef() {
+        return key.hasRef() || value.hasRef();
+    }
+
+    @Override
     public boolean hasText() {
         return key.hasText() || value.hasText();
     }

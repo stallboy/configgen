@@ -17,6 +17,7 @@ public class TList extends Type {
         this.count = count;
     }
 
+
     @Override
     public String toString() {
         return "list," + value + (count > 0 ? "," + count : "");
@@ -30,6 +31,11 @@ public class TList extends Type {
     @Override
     public <T> T accept(TypeVisitorT<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public boolean hasRef() {
+        return value.hasRef();
     }
 
     @Override

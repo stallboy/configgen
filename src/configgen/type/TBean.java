@@ -2,7 +2,6 @@ package configgen.type;
 
 import configgen.define.Bean;
 import configgen.define.Field;
-import configgen.define.Ref;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -100,11 +99,8 @@ public class TBean extends Type {
 
         Constraint cons = new Constraint();
         resolveConstraint(cons, f.name, f.ref, f.nullableRef, f.keyRef, f.range);
-        for (Ref r : define.refs) {
-            if (r.keys.length == 1 && r.keys[0].equals(f.name)) {
-                resolveConstraint(cons, r.name, (r.nullable ? "" : r.ref), (r.nullable ? r.ref : ""), r.keyRef, "");
-            }
-        }
+        define.refs.stream().filter(r -> r.keys.length == 1 && r.keys[0].equals(f.name)).forEach(r ->
+                resolveConstraint(cons, r.name, (r.nullable ? "" : r.ref), (r.nullable ? r.ref : ""), r.keyRef, ""));
         configgen.define.Range rg = define.ranges.get(f.name);
         if (rg != null) {
             addConstraintRange(cons, new Range(rg.min, rg.max));

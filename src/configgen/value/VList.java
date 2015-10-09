@@ -38,9 +38,7 @@ public class VList extends Value {
         }
 
         int vc = type.value.columnSpan();
-        int idx = 0;
-        for (int i = 0; i < type.count; i++) {
-            int s = i * vc;
+        for (int s = 0, idx = 0; s < parsed.size(); s += vc) {
             if (!parsed.get(s).data.isEmpty()) { //first as a null clue, see code generator
                 list.add(Value.create(this, String.valueOf(idx), type.value, parsed.subList(s, s + vc)));
                 idx++;

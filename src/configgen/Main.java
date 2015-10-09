@@ -82,7 +82,6 @@ public final class Main {
         CfgVs value = new CfgVs(newType, data);
         value.verifyConstraint();
 
-
         for (Context ctx : contexts) {
             Generator g = ctx.create();
             if (g != null) {

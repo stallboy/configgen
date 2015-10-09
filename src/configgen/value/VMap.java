@@ -16,9 +16,8 @@ public class VMap extends Value {
         Assert(data.size() == type.columnSpan());
         int kc = type.key.columnSpan();
         int vc = type.value.columnSpan();
-        int idx = 0;
-        for (int i = 1; i <= type.count; i++) {
-            int s = (i - 1) * (kc + vc);
+        for (int i = 0, idx = 0; i < type.count; i++) {
+            int s = i * (kc + vc);
             if (!data.get(s).data.isEmpty()) {
                 Value key = Value.create(this, "key" + idx, type.key, data.subList(s, s + kc));
                 Value value = Value.create(this, "value" + idx, type.value, data.subList(s + kc, s + kc + vc));

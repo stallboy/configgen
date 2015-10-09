@@ -5,6 +5,7 @@ import configgen.define.Field;
 import configgen.define.Ref;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TBean extends Type {
     public final Bean define;
@@ -57,15 +58,8 @@ public class TBean extends Type {
     }
 
     private void init() {
-        for (Ref r : define.refs) {
-            if (r.keys.length > 1) {
-                mRefs.add(new MRef(this, r));
-            }
-        }
-
-        for (configgen.define.ListRef r : define.listRefs) {
-            listRefs.add(new ListRef(this, r));
-        }
+        mRefs.addAll(define.refs.stream().filter(r -> r.keys.length > 1).map(r -> new MRef(this, r)).collect(Collectors.toList()));
+        listRefs.addAll(define.listRefs.stream().map(r -> new ListRef(this, r)).collect(Collectors.toList()));
     }
 
     public void resolve() {

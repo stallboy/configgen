@@ -211,7 +211,7 @@ public class GenCs extends Generator {
             ps.println2("public static " + name.className + " Get(" + formalParams(keys) + ")");
             ps.println2("{");
             ps.println3(name.className + " v;");
-            ps.println3("return all.TryGetValue(" + actualParams(keys) + ", out v) ? v : null;");
+            ps.println3("return all.TryGetValue(" + actualParamsKey(keys) + ", out v) ? v : null;");
             ps.println2("}");
             ps.println();
 
@@ -234,7 +234,7 @@ public class GenCs extends Generator {
             ps.println3("all = new " + allType + "();");
             ps.println3("for (var i = 0; i < count; i++) {");
             ps.println4("var self = _create(br, map);");
-            ps.println4("all.Add(" + actualParamsKey(keys, "self.") + ", self);");
+            ps.println4("all.Add(" + actualParamsKeySelf(keys) + ", self);");
 
             if (cfg.value.isEnum) {
                 String ef = upper1(cfg.define.enumStr);
@@ -408,12 +408,13 @@ public class GenCs extends Generator {
         return String.join(", ", Arrays.asList(keys).stream().map(Generator::upper1).collect(Collectors.toList()));
     }
 
-    private String actualParams(Map<String, Type> keys) {
-        return String.join(", ", keys.keySet().stream().map(Generator::lower1).collect(Collectors.toList()));
+    private String actualParamsKey(Map<String, Type> keys) {
+        String p = String.join(", ", keys.keySet().stream().map(Generator::lower1).collect(Collectors.toList()));
+        return keys.size() > 1 ? "new Key(" + p + ")" : p;
     }
 
-    private String actualParamsKey(Map<String, Type> keys, String pre) {
-        String p = String.join(", ", keys.keySet().stream().map(n -> pre + upper1(n)).collect(Collectors.toList()));
+    private String actualParamsKeySelf(Map<String, Type> keys) {
+        String p = String.join(", ", keys.keySet().stream().map(n -> "self." + upper1(n)).collect(Collectors.toList()));
         return keys.size() > 1 ? "new Key(" + p + ")" : p;
     }
 

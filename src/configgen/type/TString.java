@@ -23,7 +23,7 @@ public class TString extends TPrimitive {
 
     @Override
     public boolean hasText() {
-        return false;
+        return subtype == Subtype.TEXT;
     }
 
     @Override

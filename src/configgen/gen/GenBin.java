@@ -18,7 +18,7 @@ public class GenBin extends Generator {
 
     public GenBin() {
         providers.put("bin", this);
-        Context.providers.put("bin", "bin,dir:.    add zip if need");
+        Context.providers.put("bin", "bin,dir:.    add ,zip:configdata.zip if need");
     }
 
     @Override

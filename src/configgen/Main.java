@@ -32,6 +32,7 @@ public final class Main {
         List<Context> contexts = new ArrayList<>();
 
         new GenBin();
+        new GenPack();
         new GenZip();
         new GenJava();
         new GenCs();

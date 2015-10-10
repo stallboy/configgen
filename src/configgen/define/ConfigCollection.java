@@ -16,7 +16,7 @@ public class ConfigCollection extends Node {
     public final Map<String, Bean> beans = new TreeMap<>();
     public final Map<String, Config> configs = new TreeMap<>();
 
-    public ConfigCollection(File file) throws IOException, SAXException, ParserConfigurationException {
+    public ConfigCollection(File file) {
         this(file.exists() ? DomUtils.rootElement(file) : null);
     }
 
@@ -43,7 +43,7 @@ public class ConfigCollection extends Node {
         super(null, "define(" + own + ")");
     }
 
-    public void save(File file, String encoding) throws IOException, ParserConfigurationException {
+    public void save(File file, String encoding) throws IOException {
         Document doc = DomUtils.newDocument();
         save(doc);
         DomUtils.prettySaveDocument(doc, file, encoding);

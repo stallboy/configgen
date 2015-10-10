@@ -23,15 +23,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-final class DomUtils {
-    public static Element rootElement(File file) throws ParserConfigurationException, IOException, SAXException {
-        return DocumentBuilderFactory.newInstance()
-                .newDocumentBuilder().parse(file)
-                .getDocumentElement();
+public final class DomUtils {
+    public static Element rootElement(File file) {
+        try {
+            return DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder().parse(file)
+                    .getDocumentElement();
+        } catch (SAXException | IOException | ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static Document newDocument() throws ParserConfigurationException {
-        return DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+    public static Document newDocument() {
+        try {
+            return DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void prettySaveDocument(Document document, File file, String encoding) throws IOException {
@@ -40,7 +48,7 @@ final class DomUtils {
         }
     }
 
-    public static void prettySaveDocument(Document document, OutputStream destination, String encoding) throws IOException {
+    public static void prettySaveDocument(Document document, OutputStream destination, String encoding) {
         DOMImplementation impl = document.getImplementation();
         Object f = impl.getFeature("LS", "3.0");
         if (f != null) {
@@ -63,7 +71,7 @@ final class DomUtils {
             t.setOutputProperty(OutputKeys.ENCODING, encoding);
             t.transform(new DOMSource(document), new StreamResult(destination));
         } catch (TransformerException e) {
-            throw new IOException(e);
+            throw new RuntimeException(e);
         }
     }
 

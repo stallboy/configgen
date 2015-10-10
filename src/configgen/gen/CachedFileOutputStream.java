@@ -14,8 +14,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class CachedFileOutputStream extends ByteArrayOutputStream {
-    private static Set<String> filename_set = new HashSet<>();
-    private static Set<File> remove_files = new HashSet<>();
+    private static final Set<String> filename_set = new HashSet<>();
+    private static final Set<File> remove_files = new HashSet<>();
     private Path file;
 
     public CachedFileOutputStream(File file) throws IOException {

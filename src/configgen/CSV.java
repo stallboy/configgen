@@ -137,19 +137,19 @@ public final class CSV {
         }
 
         if (removeEmptyLine) {
-            return result.stream().filter(line -> !isEmptyLine(line)).collect(Collectors.toList());
+            return result.stream().filter(CSV::isLineHasContent).collect(Collectors.toList());
         } else {
             return result;
         }
     }
 
-    public static boolean isEmptyLine(List<String> line) {
+    public static boolean isLineHasContent(List<String> line) {
         for (String s : line) {
             if (!s.isEmpty()) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     private static final char semicolon = ';';

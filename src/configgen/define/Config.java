@@ -5,7 +5,7 @@ import org.w3c.dom.Element;
 
 public class Config extends Node {
     public final Bean bean;
-    public String enumStr;
+    public final String enumStr;
     public final String[] keys;
 
     public Config(ConfigCollection parent, Element self) {
@@ -27,7 +27,7 @@ public class Config extends Node {
         keys = new String[0];
     }
 
-    public Config(ConfigCollection parent, Config original, Bean ownBean) {
+    private Config(ConfigCollection parent, Config original, Bean ownBean) {
         super(parent, original.link);
         bean = ownBean;
         enumStr = bean.fields.containsKey(original.enumStr) ? original.enumStr : "";

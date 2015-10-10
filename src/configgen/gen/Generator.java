@@ -17,7 +17,7 @@ public abstract class Generator {
 
     public abstract void generate(Path configDir, CfgVs value, Context ctx) throws IOException;
 
-    private static Map<CfgVs, Map<String, CfgVs>> extracted = new HashMap<>();
+    private static final Map<CfgVs, Map<String, CfgVs>> extracted = new HashMap<>();
 
     protected static CfgVs extract(CfgVs value, String own) {
         Map<String, CfgVs> ownMap = extracted.get(value);

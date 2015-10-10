@@ -21,8 +21,8 @@ public class Data extends Node {
     private final List<String> nameLine;
 
     private static class NameType {
-        String name;
-        Type type;
+        final String name;
+        final Type type;
 
         NameType(String n, Type t) {
             name = n;
@@ -30,7 +30,7 @@ public class Data extends Node {
         }
     }
 
-    private Map<String, NameType> defined = new LinkedHashMap<>();
+    private final Map<String, NameType> defined = new LinkedHashMap<>();
     private State state;
     private int index;
     private String name;
@@ -52,7 +52,7 @@ public class Data extends Node {
         nameLine = raw.get(1);
         for (int i = 2; i < raw.size(); i++) {
             List<String> line = raw.get(i);
-            if (!CSV.isEmptyLine(line)) {
+            if (CSV.isLineHasContent(line)) {
                 line2data.put(i, line);
             }
         }

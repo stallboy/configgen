@@ -12,7 +12,7 @@ public class TBean extends Type {
     public final List<MRef> mRefs = new ArrayList<>();
     public final List<ListRef> listRefs = new ArrayList<>();
 
-    private Set<String> refNames = new HashSet<>();
+    private final Set<String> refNames = new HashSet<>();
 
     public TBean(Cfgs parent, Bean bean) {
         super(parent, bean.name, new Constraint());

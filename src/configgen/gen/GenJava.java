@@ -83,7 +83,7 @@ public class GenJava extends Generator {
         }
     }
 
-    private void genBean(TBean tbean, Cfg cfg, Name name, TabPrintStream ps) throws IOException {
+    private void genBean(TBean tbean, Cfg cfg, Name name, TabPrintStream ps) {
         ps.println("package " + name.pkg + ";");
         ps.println();
 

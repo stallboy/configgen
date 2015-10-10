@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 final class Rules {
 
-    private static Pattern INT_POSTFIX_PATTERN = Pattern.compile("(.*\\D)(\\d+)");
+    private static final Pattern INT_POSTFIX_PATTERN = Pattern.compile("(.*\\D)(\\d+)");
 
     enum SepType {
         None, IntPostfix, BeanPrefix
@@ -44,7 +44,7 @@ final class Rules {
         return name + "List";
     }
 
-    private static Pattern LIST_PATTERN = Pattern.compile("(\\D.*)List");
+    private static final Pattern LIST_PATTERN = Pattern.compile("(\\D.*)List");
 
     static String parseListName(String name) {
         Matcher m = LIST_PATTERN.matcher(name);
@@ -57,7 +57,7 @@ final class Rules {
         return key + "2" + value + "Map";
     }
 
-    private static Pattern MAP_PATTERN = Pattern.compile("(.*\\D)2(\\D.*)Map");
+    private static final Pattern MAP_PATTERN = Pattern.compile("(.*\\D)2(\\D.*)Map");
 
     static class Pair {
         String key;

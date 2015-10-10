@@ -10,7 +10,7 @@ public class BinOutputStream implements ValueVisitor {
     private final DataOutputStream byter;
     private final Writer texter;
     private int index;
-    private byte writeBuffer[] = new byte[8];
+    private final byte[] writeBuffer = new byte[8];
 
     public BinOutputStream(DataOutputStream byter, Writer texter) {
         this.byter = byter;
@@ -80,7 +80,7 @@ public class BinOutputStream implements ValueVisitor {
         cfgv.vbeans.forEach(v -> v.accept(this));
     }
 
-    public void addText(String text) {
+    private void addText(String text) {
         index++;
         try {
             texter.write(String.valueOf(index));
@@ -93,7 +93,7 @@ public class BinOutputStream implements ValueVisitor {
         addSize(index);
     }
 
-    public void addBool(boolean v) {
+    private void addBool(boolean v) {
         try {
             byter.writeBoolean(v);
         } catch (IOException e) {
@@ -101,7 +101,7 @@ public class BinOutputStream implements ValueVisitor {
         }
     }
 
-    public void addSize(int v) {
+    private void addSize(int v) {
         if (v > 0xFFFF)
             throw new RuntimeException("size > 0xFFFF");
         try {
@@ -112,7 +112,7 @@ public class BinOutputStream implements ValueVisitor {
         }
     }
 
-    public void addInt(int v) {
+    private void addInt(int v) {
         try {
             byter.write((v) & 0xFF);
             byter.write((v >>> 8) & 0xFF);
@@ -123,7 +123,7 @@ public class BinOutputStream implements ValueVisitor {
         }
     }
 
-    public void addLong(long v) {
+    private void addLong(long v) {
         writeBuffer[0] = (byte) (v);
         writeBuffer[1] = (byte) (v >>> 8);
         writeBuffer[2] = (byte) (v >>> 16);
@@ -139,11 +139,11 @@ public class BinOutputStream implements ValueVisitor {
         }
     }
 
-    public void addFloat(float v) {
+    private void addFloat(float v) {
         addInt(Float.floatToIntBits(v));
     }
 
-    public void addString(String v) {
+    private void addString(String v) {
         try {
             byte[] b = v.getBytes("UTF-8");
             addSize(b.length);
@@ -153,7 +153,7 @@ public class BinOutputStream implements ValueVisitor {
         }
     }
 
-    static String escape(String s) {
+    private static String escape(String s) {
         return "\"" + s.replace("\"", "\"\"") + "\"";
     }
 

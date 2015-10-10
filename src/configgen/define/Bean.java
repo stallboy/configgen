@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class Bean extends Node {
     public final String name; // a.b.c
-    public final String own;
+    private final String own;
     public final boolean compress;
 
     public final Map<String, Field> fields = new LinkedHashMap<>();
@@ -53,7 +53,7 @@ public class Bean extends Node {
         compress = false;
     }
 
-    public Bean(ConfigCollection collection, Config config, Bean original, Map<String, Field> ownFields) {
+    private Bean(ConfigCollection collection, Config config, Bean original, Map<String, Field> ownFields) {
         super(config != null ? config : collection, original.link);
         name = original.name;
         own = original.name;

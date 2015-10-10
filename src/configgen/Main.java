@@ -51,7 +51,7 @@ public final class Main {
                     contexts.add(new Context(args[++i]));
                     break;
                 case "-v":
-                    Logger.enableVerbose(true);
+                    Logger.enableVerbose();
                     break;
                 default:
                     usage("unknown args " + args[i]);

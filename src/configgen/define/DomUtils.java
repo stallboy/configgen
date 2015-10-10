@@ -30,7 +30,7 @@ final class DomUtils {
                 .getDocumentElement();
     }
 
-    public static Document newDocument() throws ParserConfigurationException, IOException, SAXException {
+    public static Document newDocument() throws ParserConfigurationException {
         return DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
     }
 

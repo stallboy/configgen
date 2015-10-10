@@ -43,7 +43,7 @@ public class ConfigCollection extends Node {
         super(null, "define(" + own + ")");
     }
 
-    public void save(File file, String encoding) throws IOException, SAXException, ParserConfigurationException {
+    public void save(File file, String encoding) throws IOException, ParserConfigurationException {
         Document doc = DomUtils.newDocument();
         save(doc);
         DomUtils.prettySaveDocument(doc, file, encoding);
@@ -74,7 +74,7 @@ public class ConfigCollection extends Node {
         return part;
     }
 
-    void extract2() {
+    private void extract2() {
         beans.values().forEach(Bean::extract2);
         configs.values().forEach(Config::extract2);
     }

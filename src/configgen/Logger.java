@@ -6,8 +6,8 @@ import java.util.Calendar;
 public class Logger {
     private static boolean verboseEnabled = false;
 
-    public static void enableVerbose(boolean enable) {
-        verboseEnabled = enable;
+    public static void enableVerbose() {
+        verboseEnabled = true;
     }
 
     public static void verbose(String s) {

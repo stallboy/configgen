@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class Column extends Node {
-    public final String name;
+    private final String name;
     public final List<Integer> indexes = new ArrayList<>();
     public final List<String> descs = new ArrayList<>();
 
@@ -55,8 +55,8 @@ public final class Column extends Node {
     }
 
     private static class Pair {
-        Set<String> key = new HashSet<>();
-        Set<String> value = new HashSet<>();
+        final Set<String> key = new HashSet<>();
+        final Set<String> value = new HashSet<>();
     }
 
     private Pair dataKeyValueSet() {

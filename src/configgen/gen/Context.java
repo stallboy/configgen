@@ -6,9 +6,9 @@ import java.util.Map;
 
 public class Context {
     public static final Map<String, String> providers = new LinkedHashMap<>();
-    private String arg;
-    private String type;
-    private Map<String, String> ctx = new HashMap<>();
+    private final String arg;
+    private final String type;
+    private final Map<String, String> ctx = new HashMap<>();
 
     public Context(String arg) {
         this.arg = arg;

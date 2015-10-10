@@ -22,12 +22,11 @@ public class GenCs extends Generator {
 
     public GenCs() {
         providers.put("cs", this);
-        Context.providers.put("cs", "cs,dir:Config,pkg:Config,encoding:GBK,prefix:Data    add own:x if need");
+        Context.providers.put("cs", "cs,dir:Config,pkg:Config,encoding:GBK,prefix:Data    add ,own:x if need");
     }
 
     @Override
     public void generate(Path configDir, CfgVs value, Context ctx) throws IOException {
-        this.value = value;
         String _dir = ctx.get("dir", "Config");
         pkg = ctx.get("pkg", "Config");
         encoding = ctx.get("encoding", "GBK");
@@ -35,7 +34,7 @@ public class GenCs extends Generator {
         String own = ctx.get("own", null);
         ctx.end();
         dstDir = Paths.get(_dir).resolve(pkg.replace('.', '/')).toFile();
-        value = extract(value, own);
+        this.value = own != null ? extract(value, own) : value;
 
         CachedFileOutputStream.removeOtherFiles(dstDir);
         mkdirs(dstDir);
@@ -55,7 +54,6 @@ public class GenCs extends Generator {
 
         CachedFileOutputStream.doRemoveFiles();
     }
-
 
     private static class Name {
         final String pkg;

@@ -17,9 +17,15 @@ public abstract class Generator {
 
     public abstract void generate(Path configDir, CfgVs value, Context ctx) throws IOException;
 
+    private static Map<CfgVs, Map<String, CfgVs>> extracted = new HashMap<>();
+
     protected static CfgVs extract(CfgVs value, String own) {
-        if (own == null)
-            return value;
+        Map<String, CfgVs> ownMap = extracted.get(value);
+        if (ownMap != null) {
+            CfgVs v = ownMap.get(own);
+            if (v != null)
+                return v;
+        }
 
         Logger.verbose("extract xml(" + own + ")");
         ConfigCollection ownDefine = value.type.define.extract(own);
@@ -29,6 +35,12 @@ public abstract class Generator {
         Logger.verbose("extract data(" + own + ")");
         CfgVs v = new CfgVs(ownType, value.data);
         v.verifyConstraint();
+
+        if (ownMap == null) {
+            ownMap = new HashMap<>();
+            extracted.put(value, ownMap);
+        }
+        ownMap.put(own, v);
         return v;
     }
 

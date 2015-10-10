@@ -21,7 +21,7 @@ public class GenJava extends Generator {
 
     public GenJava() {
         providers.put("java", this);
-        Context.providers.put("java", "java,dir:config,pkg:config,encoding:GBK");
+        Context.providers.put("java", "java,dir:config,pkg:config,encoding:GBK    cooperate with -gen zip");
     }
 
     @Override

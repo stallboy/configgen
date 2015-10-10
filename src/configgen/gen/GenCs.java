@@ -22,7 +22,7 @@ public class GenCs extends Generator {
 
     public GenCs() {
         providers.put("cs", this);
-        Context.providers.put("cs", "cs,dir:Config,pkg:Config,encoding:GBK,prefix:Data    add ,own:x if need");
+        Context.providers.put("cs", "cs,dir:Config,pkg:Config,encoding:GBK,prefix:Data    add ,own:x if need, cooperate with -gen bin, -gen pack");
     }
 
     @Override
@@ -577,7 +577,7 @@ public class GenCs extends Generator {
 
             ps.println1("public static partial class CSVLoader {");
             ps.println();
-            ps.println2("public static LoadErrors DoLoad(BinaryReader byter, Dictionary<string, Dictionary<ushort, string>> allTextMap)");
+            ps.println2("public static LoadErrors DoLoad(List<BinaryReader> byterList, Dictionary<string, Dictionary<ushort, string>> allTextMap)");
             ps.println2("{");
             ps.println3("var errors = new LoadErrors();");
             ps.println3("var configNulls = new List<string>");
@@ -587,6 +587,8 @@ public class GenCs extends Generator {
             }
             ps.println3("};");
 
+            ps.println3("foreach (var byter in byterList)");
+            ps.println3("{");
             ps.println3("for(;;)");
             ps.println3("{");
             ps.println4("try");
@@ -617,6 +619,7 @@ public class GenCs extends Generator {
             ps.println5("break;");
             ps.println4("}");
 
+            ps.println3("}");
             ps.println3("}");
 
             ps.println3("foreach (var csv in configNulls)");

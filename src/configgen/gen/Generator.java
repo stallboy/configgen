@@ -47,7 +47,7 @@ public abstract class Generator {
     protected static void mkdirs(File path) {
         if (!path.exists()) {
             if (!path.mkdirs()) {
-                Logger.log("mkdirs fail: " + path.toPath().toAbsolutePath());
+                Logger.log("mkdirs fail: " + path.toPath().toAbsolutePath().normalize());
             }
         }
     }
@@ -55,7 +55,7 @@ public abstract class Generator {
     protected static void delete(File file) {
         String dir = file.isDirectory() ? "dir" : "file";
         String ok = file.delete() ? "" : " fail";
-        Logger.log("delete " + dir + ok + ": " + file.toPath().toAbsolutePath());
+        Logger.log("delete " + dir + ok + ": " + file.toPath().toAbsolutePath().normalize());
     }
 
     protected static String upper1(String value) {

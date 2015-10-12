@@ -18,8 +18,8 @@
 * field可设置ref，nullableref, keyref，listref，加载类会自动resolve引用
 * ref可设置多keys引用，可为一个field配置多个引用。foreign key
 * bean可自定义，可嵌套，可支持单个csv文件里嵌套其他bean
-* 在生成数据和代码时直接检测数据type和ref，range范围检测。
-* 可配置own，这样共用一份config.xml，通过own用于选择生成部分，因为客户端内存比较稀缺
+* 在生成数据和代码时直接检测数据type和ref，range范围检测
+* 可配置own，这样共用一份config.xml，通过own用于选择生成部分
 
 ## 使用流程
 
@@ -44,7 +44,7 @@
     - 默认是false，如果这个bean是被放到单元格里，要配置为true
 
 * field.desc, name
-    - config.jar会从csv文件第1,2行提取，
+    - configgen.jar会从csv文件第1,2行提取，
     - list a1,a2: name为aList
     - map a1,b1,a2,b2: name为a2bMap
     - 生成代码时保留csv中配置名称的大小写。
@@ -57,6 +57,7 @@
     - map,xx,yy,count   LinkedHashMap; ;xx,yy都为基本格式。从多列fieldkey1，fieldvalue1，fieldkey2, fieldvalue2。。。中读取数据。
 
     - csv一个单元格,可以是基本类型,或者bean,或者list，如果是list那元素必须是基本类型，如果是bean必须定义compress="true"
+    - text用于客户端实现国际化需求，所有配置为text的字段数据会被单独放入一个文件中，只要修改这个文件就自动起作用了。
     - bean,list通过分号;进行分隔，例如a;b;c，转义规则同csv标准，比如数组里的一个字符串含有;，那么得用"号把它扩起来，如果引号里有引号，则要用双引号
         - "a";b;c   等同与a;b;c
         - "a;b";c   则被分为2组a;b 和c
@@ -74,17 +75,11 @@
 * field.range
     - 对应min,max必须两者同时都有，对数值是取值区间，对字符串是长度区间。
 
-* ref.name
+* ref.name, keys, ref, keyref, nullable
     - 用于生成代码时使用，如果用field.ref配置没法指定默认等于field.name
-
-* ref.keys
     - 对keys有多个字段config的引用，需要多个keys，配置到这。或者一个field要配置多个ref，都用这个来配置
-
-* ref.ref, keyref
-    - 引用的config.name
-
-* ref.nullable
-    - 是否可为空，默认是false
+    - ref, keyref 引用的config.name
+    - nullable是否可为空，默认是false
 
 * listref.name, keys, ref, refkeys
     - 参考ref，生成ListRefXXX 引用。
@@ -100,12 +95,12 @@
 
 * 有哪些注意事项？
 
-   单元格中不填的话默认为false,0,""，所以不要用0作为一行的id。
-   如果有nullableref请不要填0，请用留空。否则程序会检测报错
+    单元格中不填的话默认为false,0,""，所以不要用0作为一行的id。
+    如果有nullableref请不要填0，请用留空。否则程序会检测报错
 
 * 为什么使用csv？
 
-   比xml简洁，可被版本管理系统diff，可用excel编辑。如果要用excel高级功能，请策划使用excel原始格式，把csv作为导出格式
+    比xml简洁，可被版本管理系统diff，可用excel编辑。如果要用excel高级功能，请策划使用excel原始格式，导出csv
 
 * enum要不要允许部分设置，部分空白？
 

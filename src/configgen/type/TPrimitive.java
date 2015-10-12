@@ -17,6 +17,11 @@ public abstract class TPrimitive extends Type {
     }
 
     @Override
+    public boolean hasSubBean() {
+        return false;
+    }
+
+    @Override
     public int columnSpan() {
         return 1;
     }

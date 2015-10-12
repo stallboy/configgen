@@ -3,13 +3,13 @@ package configgen.type;
 import configgen.Node;
 import configgen.define.ConfigCollection;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class Cfgs extends Node {
     public final ConfigCollection define;
-    public final Map<String, TBean> tbeans = new HashMap<>();
-    public final Map<String, Cfg> cfgs = new HashMap<>();
+    public final Map<String, TBean> tbeans = new TreeMap<>();
+    public final Map<String, Cfg> cfgs = new TreeMap<>();
 
     public Cfgs(ConfigCollection cc) {
         super(null, "type");

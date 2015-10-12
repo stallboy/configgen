@@ -39,6 +39,11 @@ public class TList extends Type {
     }
 
     @Override
+    public boolean hasSubBean() {
+        return value instanceof TBean;
+    }
+
+    @Override
     public boolean hasText() {
         return value.hasText();
     }

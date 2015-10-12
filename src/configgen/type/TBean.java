@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 public class TBean extends Type {
     public final Bean define;
+    public final boolean isBean;
     public final Map<String, Type> fields = new LinkedHashMap<>();
     public final List<MRef> mRefs = new ArrayList<>();
     public final List<ListRef> listRefs = new ArrayList<>();
@@ -17,18 +18,25 @@ public class TBean extends Type {
     public TBean(Cfgs parent, Bean bean) {
         super(parent, bean.name, new Constraint());
         this.define = bean;
+        isBean = true;
         init();
     }
 
     public TBean(Cfg parent, Bean bean) {
         super(parent, "", new Constraint());
         this.define = bean;
+        isBean = false;
         init();
     }
 
     @Override
     public boolean hasRef() {
         return mRefs.size() > 0 || listRefs.size() > 0 || fields.values().stream().filter(Type::hasRef).count() > 0;
+    }
+
+    @Override
+    public boolean hasSubBean() {
+        return fields.values().stream().filter(t -> t.hasSubBean() || t instanceof TBean).count() > 0;
     }
 
     @Override

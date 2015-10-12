@@ -62,6 +62,7 @@
         - "a";b;c   等同与a;b;c
         - "a;b";c   则被分为2组a;b 和c
         - "a"";b";c 也是2组a";b和c
+    - map, lua不支持map的key为bean。
     - 如果type里包含bean，且不是一个单元格，则要在csv里第二行名字起名为field.name@xx，同时从这开始后列名字序列不要断，要和config里的定义顺序一致，方便程序检测这个field的结束点。
 
 * field.ref, nullableref, keyref
@@ -117,7 +118,7 @@
 
 * 嵌套结构支持？
 
-    可以在一个csv里直接随意嵌套bean
+    可以在一个csv里直接随意嵌套bean；
     也可以通过ref,nullableref支持了简单嵌套结构，
     通过list,map，和ref，nullableref，keyref的使用支持了容器嵌套结构。
     还可以通过listref，支持来list嵌套结构，到底引用了哪些是另外一个表说了算。
@@ -135,7 +136,7 @@
 
 * 客户端更新策略？
 
-    如果配置数据不大，使用 -gen bin,zip:configdata.zip 来生成单一文件。使用CSVLoader.LoadBin来加载
+    如果配置数据不大，使用 -gen bin,zip:configdata.zip 来生成单一文件。使用CSVLoader.LoadBin来加载；
     如果大，则分包处理，使用 -gen pack 配合pack.xml来生成分包文件。使用CSVLoader.LoadPack来加载
 
 * 对set的支持呢？

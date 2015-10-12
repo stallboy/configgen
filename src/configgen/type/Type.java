@@ -12,6 +12,8 @@ public abstract class Type extends Node {
 
     public abstract boolean hasRef();
 
+    public abstract boolean hasSubBean();
+
     public abstract boolean hasText();
 
     public abstract int columnSpan();

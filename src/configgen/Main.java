@@ -36,6 +36,7 @@ public final class Main {
         new GenZip();
         new GenJava();
         new GenCs();
+        new GenLua();
 
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {

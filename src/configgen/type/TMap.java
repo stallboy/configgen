@@ -47,6 +47,11 @@ public class TMap extends Type {
     }
 
     @Override
+    public boolean hasSubBean() {
+        return key instanceof TBean || value instanceof TBean;
+    }
+
+    @Override
     public boolean hasText() {
         return key.hasText() || value.hasText();
     }

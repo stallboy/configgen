@@ -138,6 +138,11 @@
 
     只针对map，现在没用到，完整性上来说要应该有啊，特别是它的key是enum这种应该挺常见。
 
+* 客户端更新策略？
+
+    如果配置数据不大，使用 -gen bin,zip:configdata.zip 来生成单一文件。使用CSVLoader.LoadBin来加载
+    如果大，则分包处理，使用 -gen pack 配合pack.xml来生成分包文件。使用CSVLoader.LoadPack来加载
+
 * 对set的支持呢？
 
     不支持，这种配置不会太多，使用list效率够了。这个现在的想法是不支持。
@@ -146,4 +151,3 @@
 
     C#版本加了个KeyedList用于对应java的LinkedHashMap，里面虽说有Generic，但对所有引用应该只生成一份代码，按说不会占用很多代码段，
     但不知道Mono是否这样？
-    C#版本最后数据文件汇总，如果考虑更新，是不是应该分开文件更新？

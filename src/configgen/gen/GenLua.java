@@ -7,9 +7,7 @@ import configgen.value.CfgVs;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GenLua extends Generator {
@@ -45,7 +43,7 @@ public class GenLua extends Generator {
         try (PrintStream ps = cachedPrintStream(new File(dstDir, "_beans.lua"), encoding)) {
             TabPrintStream tps = new TabPrintStream(ps);
             for (TBean b : value.type.tbeans.values()) {
-                genBean(b, null, b.define.name.toLowerCase(), tps);
+                genBean(b, null, tps);
             }
 
             tps.println("return {");
@@ -60,7 +58,7 @@ public class GenLua extends Generator {
             File csFile = dstDir.toPath().resolve(name.path).toFile();
             mkdirs(csFile.getParentFile());
             try (PrintStream ps = cachedPrintStream(csFile, encoding)) {
-                genBean(c.tbean, c, name.className, new TabPrintStream(ps));
+                genBean(c.tbean, c, new TabPrintStream(ps));
             }
         }
 
@@ -115,12 +113,104 @@ public class GenLua extends Generator {
         }
         ps.println();
 
-
+        value.type.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> genCfgResolve(t, ps));
+        value.type.cfgs.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> genCfgResolve(c.tbean, ps));
 
         ps.println("return " + pkg);
     }
 
-    private void genBean(TBean tbean, Cfg cfg, String className, TabPrintStream ps) {
+    private void genCfgResolve(TBean tbean, TabPrintStream ps) {
+        String csv = "\"" + tbean.define.name + "\"";
+
+        ps.println("local function " + resolveFuncName(tbean) + "(o, errors)");
+        tbean.fields.forEach((n, t) -> {
+                    if (t.hasRef()) {
+                        String field = "\"" + n + "\"";
+                        if (t instanceof TList) {
+                            TList tt = (TList) t;
+                            if (tt.value instanceof TBean && tt.value.hasRef()) {
+                                ps.println1("for _, v in ipairs(o." + lower1(n) + ") do");
+                                ps.println2(resolveFuncName((TBean) tt.value) + "(v, errors)");
+                                ps.println1("end");
+                            }
+                            for (SRef sr : t.constraint.refs) {
+                                ps.println1("o." + refName(sr) + " = {};");
+                                ps.println1("for _, v in ipairs(o." + lower1(n) + ") do");
+                                ps.println2("local r = " + fullName(sr.ref) + ".get(v)");
+                                ps.println2("if r == nil then");
+                                ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
+                                ps.println2("end");
+                                ps.println2("table.insert(o." + refName(sr) + ", r)");
+                                ps.println1("end");
+                            }
+                        } else if (t instanceof TMap) {
+                            TMap tt = (TMap) t;
+                            if (tt.value instanceof TBean && tt.value.hasRef()) {
+                                ps.println1("for _, v in pairs(o." + lower1(n) + ") do");
+                                ps.println2(resolveFuncName((TBean) tt.value) + "(v, errors)");
+                                ps.println1("end");
+                            }
+                            for (SRef sr : t.constraint.refs) {
+                                if (sr.ref != null) {
+                                    ps.println1("o." + refName(sr) + " = {};");
+                                    ps.println1("for k, v in pairs(o." + lower1(n) + ") do");
+                                    ps.println2("local r = " + fullName(sr.ref) + ".get(v)");
+                                    ps.println2("if r == nil then");
+                                    ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
+                                    ps.println2("end");
+                                    ps.println2("o." + refName(sr) + "[k] = r");
+                                    ps.println1("end");
+                                }
+                            }
+                        } else {
+                            if (t instanceof TBean && t.hasRef()) {
+                                ps.println1(resolveFuncName((TBean) t) + "(o." + lower1(n) + ", errors)");
+                            }
+                            for (SRef sr : t.constraint.refs) {
+                                ps.println1("o." + refName(sr) + " = " + fullName(sr.ref) + ".get(o." + lower1(n) + ")");
+                                if (!sr.nullable) {
+                                    ps.println1("if o." + refName(sr) + " == nil then");
+                                    ps.println2("errors.refNil(" + csv + ", " + field + ", o." + lower1(n) + ")");
+                                    ps.println1("end");
+                                }
+                            }
+                        }
+                    }
+                }
+        );
+
+        tbean.mRefs.forEach(m -> {
+                    ps.println1("o." + refName(m) + " = " + fullName(m.ref) + ".get(" + actualParams(m.define.keys) + ");");
+                    if (!m.define.nullable) {
+                        ps.println1("if " + refName(m) + " == nil then");
+                        ps.println2("errors.refNil(" + csv + ", \"" + m.define.name + "\", 0)");
+                        ps.println1("end");
+                    }
+                }
+        );
+
+        tbean.listRefs.forEach(l -> {
+                    ps.println1("for _, v in pairs(" + fullName(l.ref) + ".all) do");
+                    List<String> eqs = new ArrayList<>();
+                    for (int i = 0; i < l.keys.length; i++) {
+                        String k = l.keys[i];
+                        String rk = l.refKeys[i];
+                        eqs.add("v." + lower1(rk) + " == o." + lower1(k));
+                    }
+                    ps.println2("if " + String.join(" and ", eqs) + " then");
+                    ps.println3("table.insert(o." + refName(l) + ", v)");
+                    ps.println2("end");
+                    ps.println1("end");
+                }
+
+        );
+
+        ps.println("end");
+        ps.println();
+    }
+
+    private void genBean(TBean tbean, Cfg cfg, TabPrintStream ps) {
+        String className = className(tbean);
         if (cfg != null && tbean.hasSubBean()) {
             ps.println("local Beans = require(\"" + pkg + "._beans\")");
             ps.println();
@@ -168,7 +258,7 @@ public class GenLua extends Generator {
         String csv = "\"" + tbean.define.name + "\"";
         if (cfg != null) {
             //static get
-            ps.println("function " + className + "._get(" + formalParams(keys) + ")");
+            ps.println("function " + className + ".get(" + formalParams(keys) + ")");
             ps.println1("return " + className + ".all[" + actualParams(keys, "") + "]");
             ps.println("end");
             ps.println();
@@ -178,11 +268,11 @@ public class GenLua extends Generator {
             ps.println1("for _ = 1, os.readUInt16() do");
             ps.println2("local v = _create(os)");
             if (cfg.value.isEnum) {
-                ps.println2("if #(v." + cfg.define.enumStr + ") > 0 then");
+                ps.println2("if #(v." + lower1(cfg.define.enumStr) + ") > 0 then");
                 ps.println3(className + "[v." + lower1(cfg.define.enumStr) + "] = v");
                 ps.println2("end");
             }
-            ps.println2(className + ".all[" + actualParams(keys, "v") + "] = v");
+            ps.println2(className + ".all[" + actualParams(keys, "v.") + "] = v");
             ps.println1("end");
             if (cfg.value.isEnum) {
                 cfg.value.enumNames.forEach(e -> {
@@ -206,6 +296,10 @@ public class GenLua extends Generator {
         return String.join(" ..", keys.keySet().stream().map(n -> prefix + lower1(n)).collect(Collectors.toList()));
     }
 
+    private String actualParams(String[] keys) {
+        return String.join(", ", Arrays.asList(keys).stream().map(Generator::lower1).collect(Collectors.toList()));
+    }
+
     private String refName(SRef sr) {
         return (sr.nullable ? "NullableRef" : "Ref") + upper1(sr.name);
     }
@@ -224,6 +318,14 @@ public class GenLua extends Generator {
 
     private String fullName(Cfg cfg) {
         return fullName(cfg.tbean);
+    }
+
+    private String className(TBean tbean) {
+        return tbean.isBean ? tbean.define.name.toLowerCase() : new Name(pkg, tbean.define.name).className;
+    }
+
+    private String resolveFuncName(TBean tbean) {
+        return "_resolve_" + fullName(tbean).replace(".", "_");
     }
 
     private String _create(Type t) {

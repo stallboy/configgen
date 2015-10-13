@@ -417,7 +417,7 @@ public class GenLua extends Generator {
 
     private void appendFile(String file, PrintStream ps) throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/" + file);
-             BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/support/" + file), "GBK"));) {
+             BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/support/" + file), "GBK"))) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 ps.println(line);
             }

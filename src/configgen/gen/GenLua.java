@@ -12,9 +12,7 @@ import java.util.stream.Collectors;
 
 public class GenLua extends Generator {
     private CfgVs value;
-    private File dstDir;
     private String pkg;
-    private String encoding;
 
     public GenLua() {
         providers.put("lua", this);
@@ -25,25 +23,20 @@ public class GenLua extends Generator {
     public void generate(Path configDir, CfgVs _value, Context ctx) throws IOException {
         String _dir = ctx.get("dir", ".");
         pkg = ctx.get("pkg", "cfg");
-        encoding = ctx.get("encoding", "UTF-8");
+        String encoding = ctx.get("encoding", "UTF-8");
         String own = ctx.get("own", null);
         ctx.end();
-        dstDir = Paths.get(_dir).resolve(pkg.replace('.', '/')).toFile();
+        File dstDir = Paths.get(_dir).resolve(pkg.replace('.', '/')).toFile();
         value = own != null ? extract(_value, own) : _value;
 
         CachedFileOutputStream.removeOtherFiles(dstDir);
         mkdirs(dstDir);
 
-        copyFile("CSV.cs");
-        copyFile("CSVLoader.cs");
-        copyFile("LoadErrors.cs");
-        copyFile("KeyedList.cs");
-        genCSVLoaderDoLoad();
-
         try (PrintStream ps = cachedPrintStream(new File(dstDir, "_beans.lua"), encoding)) {
             TabPrintStream tps = new TabPrintStream(ps);
             for (TBean b : value.type.tbeans.values()) {
-                genBean(b, null, tps);
+                ps.println("local " + className(b) + " = {}");
+                genCreate(b, tps);
             }
 
             tps.println("return {");
@@ -58,7 +51,7 @@ public class GenLua extends Generator {
             File csFile = dstDir.toPath().resolve(name.path).toFile();
             mkdirs(csFile.getParentFile());
             try (PrintStream ps = cachedPrintStream(csFile, encoding)) {
-                genBean(c.tbean, c, new TabPrintStream(ps));
+                genCfg(c, new TabPrintStream(ps));
             }
         }
 
@@ -99,7 +92,80 @@ public class GenLua extends Generator {
         }
     }
 
-    private void genCfgs(TabPrintStream ps) {
+    private void genCfg(Cfg cfg, TabPrintStream ps) {
+        String className = className(cfg.tbean);
+        if (cfg.tbean.hasSubBean()) {
+            ps.println("local Beans = require(\"" + pkg + "._beans\")");
+            ps.println();
+        }
+
+        ps.println("local " + className + " = {}");
+        ps.println(className + ".all = {}");
+        cfg.value.enumNames.forEach(e -> ps.println(className + "." + e + " = nil"));
+        ps.println();
+        genCreate(cfg.tbean, ps);
+
+        //static get
+        ps.println("function " + className + ".get(" + formalParams(cfg.keys) + ")");
+        ps.println1("return " + className + ".all[" + actualParams(cfg.keys, "") + "]");
+        ps.println("end");
+        ps.println();
+
+        //static _initialize
+        ps.println("function " + className + "._initialize(os, errors)");
+        ps.println1("for _ = 1, os.ReadSize() do");
+        ps.println2("local v = _create(os)");
+        if (cfg.value.isEnum) {
+            ps.println2("if #(v." + lower1(cfg.define.enumStr) + ") > 0 then");
+            ps.println3(className + "[v." + lower1(cfg.define.enumStr) + "] = v");
+            ps.println2("end");
+        }
+        ps.println2(className + ".all[" + actualParams(cfg.keys, "v.") + "] = v");
+        ps.println1("end");
+        if (cfg.value.isEnum) {
+            cfg.value.enumNames.forEach(e -> {
+                ps.println1("if " + className + "." + e + " == nil then");
+                ps.println2("errors.enumNil(\"" + cfg.tbean.define.name + "\", \"" + e + "\");");
+                ps.println1("end");
+            });
+        }
+        ps.println("end");
+        ps.println();
+
+        ps.println("return " + className);
+    }
+
+    private void genCreate(TBean tbean, TabPrintStream ps) {
+        ps.println("function " + className(tbean) + "._create(os)");
+        ps.println1("local o = {}");
+        tbean.fields.forEach((n, t) -> {
+            Field f = tbean.define.fields.get(n);
+            String c = f.desc.isEmpty() ? "" : " -- " + f.desc;
+
+            if (t instanceof TList) {
+                ps.println1("o." + lower1(n) + " = {}" + c);
+                ps.println1("for _ = 1, os.ReadSize() do");
+                ps.println2("table.insert(o." + lower1(n) + ", " + _create(((TList) t).value) + ")");
+                ps.println1("end");
+            } else if (t instanceof TMap) {
+                ps.println1("o." + lower1(n) + " = {}" + c);
+                ps.println1("for _ = 1, os.ReadSize() do");
+                ps.println2("o." + lower1(n) + "[" + _create(((TMap) t).key) + "] = " + _create(((TMap) t).value));
+                ps.println1("end");
+            } else {
+                ps.println1("o." + lower1(n) + " = " + _create(t) + c);
+            }
+
+            t.constraint.refs.forEach(r -> ps.println1("o." + refName(r) + " = nil"));
+        });
+        tbean.mRefs.forEach(m -> ps.println1("o." + refName(m) + " = nil"));
+        tbean.listRefs.forEach(l -> ps.println1("o." + refName(l) + " = {}"));
+        ps.println1("return o");
+        ps.println("end");
+        ps.println();
+    }
+
+    private void genCfgs(TabPrintStream ps) throws IOException {
         ps.println("local " + pkg + " = {}");
         Set<String> created = new HashSet<>();
         created.add(pkg);
@@ -113,13 +179,17 @@ public class GenLua extends Generator {
         }
         ps.println();
 
-        value.type.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> genCfgResolve(t, ps));
-        value.type.cfgs.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> genCfgResolve(c.tbean, ps));
+        value.type.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> genResolve(t, ps));
+        value.type.cfgs.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> genResolve(c.tbean, ps));
+        ps.println();
+
+        genResolveAll(ps);
+        genInitializeAll(ps);
 
         ps.println("return " + pkg);
     }
 
-    private void genCfgResolve(TBean tbean, TabPrintStream ps) {
+    private void genResolve(TBean tbean, TabPrintStream ps) {
         String csv = "\"" + tbean.define.name + "\"";
 
         ps.println("local function " + resolveFuncName(tbean) + "(o, errors)");
@@ -150,18 +220,16 @@ public class GenLua extends Generator {
                                 ps.println2(resolveFuncName((TBean) tt.value) + "(v, errors)");
                                 ps.println1("end");
                             }
-                            for (SRef sr : t.constraint.refs) {
-                                if (sr.ref != null) {
-                                    ps.println1("o." + refName(sr) + " = {};");
-                                    ps.println1("for k, v in pairs(o." + lower1(n) + ") do");
-                                    ps.println2("local r = " + fullName(sr.ref) + ".get(v)");
-                                    ps.println2("if r == nil then");
-                                    ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
-                                    ps.println2("end");
-                                    ps.println2("o." + refName(sr) + "[k] = r");
-                                    ps.println1("end");
-                                }
-                            }
+                            t.constraint.refs.stream().filter(sr -> sr.ref != null).forEach(sr -> {
+                                ps.println1("o." + refName(sr) + " = {};");
+                                ps.println1("for k, v in pairs(o." + lower1(n) + ") do");
+                                ps.println2("local r = " + fullName(sr.ref) + ".get(v)");
+                                ps.println2("if r == nil then");
+                                ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
+                                ps.println2("end");
+                                ps.println2("o." + refName(sr) + "[k] = r");
+                                ps.println1("end");
+                            });
                         } else {
                             if (t instanceof TBean && t.hasRef()) {
                                 ps.println1(resolveFuncName((TBean) t) + "(o." + lower1(n) + ", errors)");
@@ -202,91 +270,57 @@ public class GenLua extends Generator {
                     ps.println2("end");
                     ps.println1("end");
                 }
-
         );
 
         ps.println("end");
         ps.println();
     }
 
-    private void genBean(TBean tbean, Cfg cfg, TabPrintStream ps) {
-        String className = className(tbean);
-        if (cfg != null && tbean.hasSubBean()) {
-            ps.println("local Beans = require(\"" + pkg + "._beans\")");
-            ps.println();
-        }
-
-        ps.println("local " + className + " = {}");
-
-        //static enum
-        if (cfg != null) {
-            ps.println(className + ".all = {}");
-            cfg.value.enumNames.forEach(e -> ps.println(className + "." + e + " = nil"));
-            ps.println();
-        }
-
-        // static _create
-        ps.println("function " + className + "._create(os)");
-        ps.println1("local o = {}");
-        tbean.fields.forEach((n, t) -> {
-            Field f = tbean.define.fields.get(n);
-            String c = f.desc.isEmpty() ? "" : " -- " + f.desc;
-
-            if (t instanceof TList) {
-                ps.println1("o." + lower1(n) + " = {}" + c);
-                ps.println1("for _ = 1, os.readUInt16() do");
-                ps.println2("table.insert(o." + lower1(n) + ", " + _create(((TList) t).value) + ")");
-                ps.println1("end");
-            } else if (t instanceof TMap) {
-                ps.println1("o." + lower1(n) + " = {}" + c);
-                ps.println1("for _ = 1, os.readUInt16() do");
-                ps.println2("o." + lower1(n) + "[" + _create(((TMap) t).key) + "] = " + _create(((TMap) t).value));
-                ps.println1("end");
-            } else {
-                ps.println1("o." + lower1(n) + " = " + _create(t) + c);
-            }
-
-            t.constraint.refs.forEach(r -> ps.println1("o." + refName(r) + " = nil"));
+    private void genResolveAll(TabPrintStream ps) {
+        ps.println("local function _resolveAll(errors)");
+        value.type.cfgs.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> {
+            ps.println1("for _, v in pairs(" + fullName(c) + ".all) do");
+            ps.println2(resolveFuncName(c.tbean) + "(v, errors)");
+            ps.println1("end");
         });
-        tbean.mRefs.forEach(m -> ps.println1("o." + refName(m) + " = nil"));
-        tbean.listRefs.forEach(l -> ps.println1("o." + refName(l) + " = {}"));
-        ps.println1("return o");
         ps.println("end");
         ps.println();
-
-        Map<String, Type> keys = cfg != null ? cfg.keys : tbean.fields;
-        String csv = "\"" + tbean.define.name + "\"";
-        if (cfg != null) {
-            //static get
-            ps.println("function " + className + ".get(" + formalParams(keys) + ")");
-            ps.println1("return " + className + ".all[" + actualParams(keys, "") + "]");
-            ps.println("end");
-            ps.println();
-
-            //static _initialize
-            ps.println("function " + className + "._initialize(os, errors)");
-            ps.println1("for _ = 1, os.readUInt16() do");
-            ps.println2("local v = _create(os)");
-            if (cfg.value.isEnum) {
-                ps.println2("if #(v." + lower1(cfg.define.enumStr) + ") > 0 then");
-                ps.println3(className + "[v." + lower1(cfg.define.enumStr) + "] = v");
-                ps.println2("end");
-            }
-            ps.println2(className + ".all[" + actualParams(keys, "v.") + "] = v");
-            ps.println1("end");
-            if (cfg.value.isEnum) {
-                cfg.value.enumNames.forEach(e -> {
-                    ps.println1("if " + className + "." + e + " == nil then");
-                    ps.println2("errors.enumNil(" + csv + ", \"" + e + "\");");
-                    ps.println1("end");
-                });
-            }
-            ps.println("end");
-            ps.println();
-
-            ps.println("return " + className);
-        }
     }
+
+    private void genInitializeAll(TabPrintStream ps) throws IOException {
+        appendFile("errors.lua", ps.ps);
+        ps.println();
+
+        ps.println("local function _CSVProcessor(os)");
+        ps.println1("local cfgNils = {}");
+        for (String name : value.type.cfgs.keySet()) {
+            ps.println1("cfgNils[\"" + name + "\"] = 1");
+        }
+
+        ps.println1("while true do");
+        ps.println2("local c = os.ReadCfg()");
+        ps.println2("if c == nil then");
+        ps.println3("break");
+        ps.println2("end");
+        ps.println2("cfgNils[c] = nil");
+        ps.println2("local cc = _get(" + pkg + ", c)");
+        ps.println2("if cc == nil then");
+        ps.println3("errors.cfgDataAdd(c)");
+        ps.println2("else");
+        ps.println3("cc._initialize(os, errors)");
+        ps.println2("end");
+        ps.println1("end");
+
+        ps.println1("for c, _ in pairs(cfgNils) do");
+        ps.println2("errors.cfgNil(c)");
+        ps.println1("end");
+
+        ps.println1("_resolveAll(errors)");
+
+        ps.println("end");
+        ps.println();
+    }
+
 
     private String formalParams(Map<String, Type> fs) {
         return String.join(", ", fs.keySet().stream().map(Generator::lower1).collect(Collectors.toList()));
@@ -332,27 +366,27 @@ public class GenLua extends Generator {
         return t.accept(new TypeVisitorT<String>() {
             @Override
             public String visit(TBool type) {
-                return "os.readBool()";
+                return "os.ReadBool()";
             }
 
             @Override
             public String visit(TInt type) {
-                return "os.readInt32()";
+                return "os.ReadInt32()";
             }
 
             @Override
             public String visit(TLong type) {
-                return "os.readInt64()";
+                return "os.ReadInt64()";
             }
 
             @Override
             public String visit(TFloat type) {
-                return "os.readSingle()";
+                return "os.ReadSingle()";
             }
 
             @Override
             public String visit(TString type) {
-                return type.subtype == TString.Subtype.STRING ? "os.readString()" : "os.readText()";
+                return type.subtype == TString.Subtype.STRING ? "os.ReadString()" : "os.ReadText()";
             }
 
             @Override
@@ -372,89 +406,12 @@ public class GenLua extends Generator {
         });
     }
 
-    private void copyFile(String file) throws IOException {
+    private void appendFile(String file, PrintStream ps) throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/" + file);
-             BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/support/" + file), "GBK"));
-             PrintStream ps = cachedPrintStream(new File(dstDir, file), encoding)) {
+             BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/support/" + file), "GBK"));) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 ps.println(line);
             }
         }
     }
-
-    private void genCSVLoaderDoLoad() throws IOException {
-        try (PrintStream stream = cachedPrintStream(new File(dstDir, "CSVLoaderDoLoad.cs"), encoding)) {
-            TabPrintStream ps = new TabPrintStream(stream);
-            ps.println("using System.Collections.Generic;");
-            ps.println("using System.IO;");
-            ps.println();
-
-            ps.println("namespace Config");
-            ps.println("{");
-
-            ps.println1("public static partial class CSVLoader {");
-            ps.println();
-            ps.println2("public static LoadErrors DoLoad(List<BinaryReader> byterList, Dictionary<string, Dictionary<ushort, string>> allTextMap)");
-            ps.println2("{");
-            ps.println3("var errors = new LoadErrors();");
-            ps.println3("var configNulls = new List<string>");
-            ps.println3("{");
-            for (String name : value.type.cfgs.keySet()) {
-                ps.println4("\"" + name + "\",");
-            }
-            ps.println3("};");
-
-            ps.println3("foreach (var byter in byterList)");
-            ps.println3("{");
-            ps.println3("for(;;)");
-            ps.println3("{");
-            ps.println4("try");
-            ps.println4("{");
-            ps.println5("var csv = CSV.ReadString(byter);");
-            ps.println5("var count = byter.ReadUInt16();");
-            ps.println5("Dictionary<ushort, string> textMap;");
-            ps.println5("allTextMap.TryGetValue(csv, out textMap);");
-
-            ps.println5("switch(csv)");
-            ps.println5("{");
-
-            value.type.cfgs.forEach((name, cfg) -> {
-                ps.println6("case \"" + name + "\":");
-                ps.println7("configNulls.Remove(csv);");
-                ps.println7(fullName(cfg.tbean) + ".Initialize(count, byter, textMap, errors);");
-                ps.println7("break;");
-            });
-
-            ps.println6("default:");
-            ps.println7("errors.ConfigDataAdd(csv);");
-            ps.println7("break;");
-            ps.println5("}");
-
-            ps.println4("}");
-            ps.println4("catch (EndOfStreamException)");
-            ps.println4("{");
-            ps.println5("break;");
-            ps.println4("}");
-
-            ps.println3("}");
-            ps.println3("}");
-
-            ps.println3("foreach (var csv in configNulls)");
-            ps.println4("errors.ConfigNull(csv);");
-
-            value.type.cfgs.forEach((n, c) -> {
-                if (c.tbean.hasRef()) {
-                    ps.println3(fullName(c) + ".Resolve(errors);");
-                }
-            });
-
-            ps.println3("return errors;");
-            ps.println2("}");
-            ps.println();
-            ps.println1("}");
-            ps.println("}");
-            ps.println();
-        }
-    }
-
 }

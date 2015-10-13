@@ -14,7 +14,11 @@ namespace Config
 
         private enum State
         {
-            Start, NotInQuote, InQuote, InQuote2, InCr,
+            Start,
+            NotInQuote,
+            InQuote,
+            InQuote2,
+            InCr,
         }
 
         public static List<List<string>> Parse(TextReader reader)
@@ -26,7 +30,7 @@ namespace Config
 
             for (int i = reader.Read(); i != -1; i = reader.Read())
             {
-                var c = (char)i;
+                var c = (char) i;
 
                 switch (state)
                 {
@@ -167,7 +171,7 @@ namespace Config
         {
             var result = new Dictionary<string, Dictionary<ushort, string>>();
             var one = new Dictionary<ushort, string>();
-            
+
             foreach (var record in Parse(reader))
             {
                 var s = record[0];
@@ -184,17 +188,6 @@ namespace Config
             }
             return result;
         }
-        
-        public static string ReadString(BinaryReader reader)
-        {
-            var count = reader.ReadUInt16();
-            return Encoding.UTF8.GetString(reader.ReadBytes(count));
-        }
-
-        public static string ReadText(BinaryReader reader, Dictionary<ushort, string> map)
-        {
-            return map[reader.ReadUInt16()];
-        }
 
         public static string ToString<T>(List<T> data)
         {
@@ -205,9 +198,7 @@ namespace Config
                 sdata[i] = d.ToString();
                 i++;
             }
-
-
-            return "[" + String.Join(", ", sdata) + "]";
+            return "[" + string.Join(", ", sdata) + "]";
         }
 
         public static string ToString<TKey, TValue>(KeyedList<TKey, TValue> data)
@@ -219,10 +210,7 @@ namespace Config
                 sdata[i] = k + "=" + data.OrderedValues[i];
                 i++;
             }
-
-
-            return "{" + String.Join(", ", sdata) + "}";
+            return "{" + string.Join(", ", sdata) + "}";
         }
     }
-
 }

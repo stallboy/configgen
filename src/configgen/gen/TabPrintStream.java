@@ -3,7 +3,7 @@ package configgen.gen;
 import java.io.PrintStream;
 
 public class TabPrintStream {
-    private final PrintStream ps;
+    final PrintStream ps;
 
     public TabPrintStream(PrintStream ps) {
         this.ps = ps;

@@ -43,7 +43,7 @@ public class GenCs extends Generator {
         copyFile("CSVLoader.cs");
         copyFile("LoadErrors.cs");
         copyFile("KeyedList.cs");
-        genCSVLoaderDoLoad();
+        genCSVProcessor();
 
         for (TBean b : value.type.tbeans.values()) {
             genBean(b, null);
@@ -227,11 +227,11 @@ public class GenCs extends Generator {
             ps.println();
 
             //static initialize
-            ps.println2("internal static void Initialize(int count, BinaryReader br, Dictionary<ushort, string> map, Config.LoadErrors errors)");
+            ps.println2("internal static void Initialize(Config.Stream os, Config.LoadErrors errors)");
             ps.println2("{");
             ps.println3("all = new " + allType + "();");
-            ps.println3("for (var i = 0; i < count; i++) {");
-            ps.println4("var self = _create(br, map);");
+            ps.println3("for (var i = 0; i < os.ReadSize(); i++) {");
+            ps.println4("var self = _create(os);");
             ps.println4("all.Add(" + actualParamsKeySelf(keys) + ", self);");
 
             if (cfg.value.isEnum) {
@@ -274,17 +274,17 @@ public class GenCs extends Generator {
         } // end cfg != null
 
         //static create
-        ps.println2("internal static " + name.className + " _create(BinaryReader br, Dictionary<ushort, string> map)");
+        ps.println2("internal static " + name.className + " _create(Config.Stream os)");
         ps.println2("{");
         ps.println3("var self = new " + name.className + "();");
         tbean.fields.forEach((n, t) -> {
             if (t instanceof TList) {
                 ps.println3("self." + upper1(n) + " = new " + type(t) + "();");
-                ps.println3("for (var c = (int)br.ReadUInt16(); c > 0; c--)");
+                ps.println3("for (var c = (int)os.ReadSize(); c > 0; c--)");
                 ps.println4("self." + upper1(n) + ".Add(" + _create(((TList) t).value) + ");");
             } else if (t instanceof TMap) {
                 ps.println3("self." + upper1(n) + " = new " + type(t) + "();");
-                ps.println3("for (var c = (int)br.ReadUInt16(); c > 0; c--)");
+                ps.println3("for (var c = (int)br.ReadSize(); c > 0; c--)");
                 ps.println4("self." + upper1(n) + ".Add(" + _create(((TMap) t).key) + ", " + _create(((TMap) t).value) + ");");
             } else {
                 ps.println3("self." + upper1(n) + " = " + _create(t) + ";");
@@ -515,27 +515,27 @@ public class GenCs extends Generator {
         return t.accept(new TypeVisitorT<String>() {
             @Override
             public String visit(TBool type) {
-                return "br.ReadBoolean()";
+                return "os.ReadBool()";
             }
 
             @Override
             public String visit(TInt type) {
-                return "br.ReadInt32()";
+                return "os.ReadInt32()";
             }
 
             @Override
             public String visit(TLong type) {
-                return "br.ReadInt64()";
+                return "os.ReadInt64()";
             }
 
             @Override
             public String visit(TFloat type) {
-                return "br.ReadSingle()";
+                return "os.ReadSingle()";
             }
 
             @Override
             public String visit(TString type) {
-                return type.subtype == TString.Subtype.STRING ? "Config.CSV.ReadString(br)" : "Config.CSV.ReadText(br, map)";
+                return type.subtype == TString.Subtype.STRING ? "os.ReadString()" : "os.ReadText()";
             }
 
             @Override
@@ -550,7 +550,7 @@ public class GenCs extends Generator {
 
             @Override
             public String visit(TBean type) {
-                return fullName(type) + "._create(br, map)";
+                return fullName(type) + "._create(os)";
             }
         });
     }
@@ -565,21 +565,20 @@ public class GenCs extends Generator {
         }
     }
 
-    private void genCSVLoaderDoLoad() throws IOException {
-        try (PrintStream stream = cachedPrintStream(new File(dstDir, "CSVLoaderDoLoad.cs"), encoding)) {
+    private void genCSVProcessor() throws IOException {
+        try (PrintStream stream = cachedPrintStream(new File(dstDir, "CSVProcessor.cs"), encoding)) {
             TabPrintStream ps = new TabPrintStream(stream);
             ps.println("using System.Collections.Generic;");
-            ps.println("using System.IO;");
             ps.println();
-
             ps.println("namespace Config");
             ps.println("{");
 
-            ps.println1("public static partial class CSVLoader {");
+            ps.println1("public static class CSVProcessor");
+            ps.println1("{");
+            ps.println2("public static readonly LoadErrors Errors = new LoadErrors();");
             ps.println();
-            ps.println2("public static LoadErrors DoLoad(List<BinaryReader> byterList, Dictionary<string, Dictionary<ushort, string>> allTextMap)");
+            ps.println2("public static void Process(Config.Stream os)");
             ps.println2("{");
-            ps.println3("var errors = new LoadErrors();");
             ps.println3("var configNulls = new List<string>");
             ps.println3("{");
             for (String name : value.type.cfgs.keySet()) {
@@ -587,51 +586,35 @@ public class GenCs extends Generator {
             }
             ps.println3("};");
 
-            ps.println3("foreach (var byter in byterList)");
-            ps.println3("{");
             ps.println3("for(;;)");
             ps.println3("{");
-            ps.println4("try");
-            ps.println4("{");
-            ps.println5("var csv = CSV.ReadString(byter);");
-            ps.println5("var count = byter.ReadUInt16();");
-            ps.println5("Dictionary<ushort, string> textMap;");
-            ps.println5("allTextMap.TryGetValue(csv, out textMap);");
-
-            ps.println5("switch(csv)");
-            ps.println5("{");
-
-            value.type.cfgs.forEach((name, cfg) -> {
-                ps.println6("case \"" + name + "\":");
-                ps.println7("configNulls.Remove(csv);");
-                ps.println7(fullName(cfg.tbean) + ".Initialize(count, byter, textMap, errors);");
-                ps.println7("break;");
-            });
-
-            ps.println6("default:");
-            ps.println7("errors.ConfigDataAdd(csv);");
-            ps.println7("break;");
-            ps.println5("}");
-
-            ps.println4("}");
-            ps.println4("catch (EndOfStreamException)");
-            ps.println4("{");
+            ps.println4("var csv = os.ReadCfg();");
+            ps.println4("if (csv == null)");
             ps.println5("break;");
-            ps.println4("}");
 
-            ps.println3("}");
+            ps.println4("switch(csv)");
+            ps.println4("{");
+            value.type.cfgs.forEach((name, cfg) -> {
+                ps.println5("case \"" + name + "\":");
+                ps.println6("configNulls.Remove(csv);");
+                ps.println6(fullName(cfg.tbean) + ".Initialize(os, Errors);");
+                ps.println6("break;");
+            });
+            ps.println5("default:");
+            ps.println6("Errors.ConfigDataAdd(csv);");
+            ps.println6("break;");
+            ps.println4("}");
             ps.println3("}");
 
             ps.println3("foreach (var csv in configNulls)");
-            ps.println4("errors.ConfigNull(csv);");
+            ps.println4("Errors.ConfigNull(csv);");
 
             value.type.cfgs.forEach((n, c) -> {
                 if (c.tbean.hasRef()) {
-                    ps.println3(fullName(c) + ".Resolve(errors);");
+                    ps.println3(fullName(c) + ".Resolve(Errors);");
                 }
             });
 
-            ps.println3("return errors;");
             ps.println2("}");
             ps.println();
             ps.println1("}");

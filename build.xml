@@ -24,6 +24,7 @@
         <copy file="${src}/support/KeyedList.cs" todir="${build}/support"/>
         <copy file="${src}/support/LoadErrors.cs" todir="${build}/support"/>
         <copy file="${src}/support/CSVLoader.cs" todir="${build}/support"/>
+        <copy file="${src}/support/errors.lua" todir="${build}/support"/>
         <jar jarfile="configgen.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
     </target>
 

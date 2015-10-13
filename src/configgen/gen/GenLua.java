@@ -185,6 +185,7 @@ public class GenLua extends Generator {
 
         genResolveAll(ps);
         genInitializeAll(ps);
+        genLoad(ps);
 
         ps.println("return " + pkg);
     }
@@ -321,6 +322,14 @@ public class GenLua extends Generator {
         ps.println();
     }
 
+    private void genLoad(TabPrintStream ps) {
+        ps.println("function " + pkg + ".Load(packDir)");
+        ps.println1("Config.CSVLoader.Processor = _CSVProcessor");
+        ps.println1("Config.CSVLoader.LoadPack(packDir)");
+        ps.println1("return errors");
+        ps.println("end");
+        ps.println();
+    }
 
     private String formalParams(Map<String, Type> fs) {
         return String.join(", ", fs.keySet().stream().map(Generator::lower1).collect(Collectors.toList()));

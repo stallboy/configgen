@@ -113,8 +113,8 @@ public class GenLua extends Generator {
 
         //static _initialize
         ps.println("function " + className + "._initialize(os, errors)");
-        ps.println1("for _ = 1, os.ReadSize() do");
-        ps.println2("local v = _create(os)");
+        ps.println1("for _ = 1, os:ReadSize() do");
+        ps.println2("local v = " + className + "._create(os)");
         if (cfg.value.isEnum) {
             ps.println2("if #(v." + lower1(cfg.define.enumStr) + ") > 0 then");
             ps.println3(className + "[v." + lower1(cfg.define.enumStr) + "] = v");
@@ -144,12 +144,12 @@ public class GenLua extends Generator {
 
             if (t instanceof TList) {
                 ps.println1("o." + lower1(n) + " = {}" + c);
-                ps.println1("for _ = 1, os.ReadSize() do");
+                ps.println1("for _ = 1, os:ReadSize() do");
                 ps.println2("table.insert(o." + lower1(n) + ", " + _create(((TList) t).value) + ")");
                 ps.println1("end");
             } else if (t instanceof TMap) {
                 ps.println1("o." + lower1(n) + " = {}" + c);
-                ps.println1("for _ = 1, os.ReadSize() do");
+                ps.println1("for _ = 1, os:ReadSize() do");
                 ps.println2("o." + lower1(n) + "[" + _create(((TMap) t).key) + "] = " + _create(((TMap) t).value));
                 ps.println1("end");
             } else {
@@ -249,9 +249,9 @@ public class GenLua extends Generator {
         );
 
         tbean.mRefs.forEach(m -> {
-                    ps.println1("o." + refName(m) + " = " + fullName(m.ref) + ".get(" + actualParams(m.define.keys) + ");");
+                    ps.println1("o." + refName(m) + " = " + fullName(m.ref) + ".get(" + actualParams(m.define.keys, "o.") + ");");
                     if (!m.define.nullable) {
-                        ps.println1("if " + refName(m) + " == nil then");
+                        ps.println1("if o." + refName(m) + " == nil then");
                         ps.println2("errors.refNil(" + csv + ", \"" + m.define.name + "\", 0)");
                         ps.println1("end");
                     }
@@ -299,7 +299,7 @@ public class GenLua extends Generator {
         }
 
         ps.println1("while true do");
-        ps.println2("local c = os.ReadCfg()");
+        ps.println2("local c = os:ReadCfg()");
         ps.println2("if c == nil then");
         ps.println3("break");
         ps.println2("end");
@@ -326,7 +326,7 @@ public class GenLua extends Generator {
         ps.println("function " + pkg + ".Load(packDir)");
         ps.println1("Config.CSVLoader.Processor = _CSVProcessor");
         ps.println1("Config.CSVLoader.LoadPack(packDir)");
-        ps.println1("return errors");
+        ps.println1("return errors.errors");
         ps.println("end");
         ps.println();
     }
@@ -336,11 +336,13 @@ public class GenLua extends Generator {
     }
 
     private String actualParams(Map<String, Type> keys, String prefix) {
-        return String.join(" ..", keys.keySet().stream().map(n -> prefix + lower1(n)).collect(Collectors.toList()));
+        return String.join(" ..\",\".. ", keys.entrySet().stream().map(e ->
+                        e.getValue() instanceof TBool ? "(" + prefix + lower1(e.getKey()) + " and 1 or 0)" : prefix + lower1(e.getKey())
+        ).collect(Collectors.toList()));
     }
 
-    private String actualParams(String[] keys) {
-        return String.join(", ", Arrays.asList(keys).stream().map(Generator::lower1).collect(Collectors.toList()));
+    private String actualParams(String[] keys, String prefix) {
+        return String.join(", ", Arrays.asList(keys).stream().map(n -> prefix + lower1(n)).collect(Collectors.toList()));
     }
 
     private String refName(SRef sr) {
@@ -375,27 +377,27 @@ public class GenLua extends Generator {
         return t.accept(new TypeVisitorT<String>() {
             @Override
             public String visit(TBool type) {
-                return "os.ReadBool()";
+                return "os:ReadBool()";
             }
 
             @Override
             public String visit(TInt type) {
-                return "os.ReadInt32()";
+                return "os:ReadInt32()";
             }
 
             @Override
             public String visit(TLong type) {
-                return "os.ReadInt64()";
+                return "os:ReadInt64()";
             }
 
             @Override
             public String visit(TFloat type) {
-                return "os.ReadSingle()";
+                return "os:ReadSingle()";
             }
 
             @Override
             public String visit(TString type) {
-                return type.subtype == TString.Subtype.STRING ? "os.ReadString()" : "os.ReadText()";
+                return type.subtype == TString.Subtype.STRING ? "os:ReadString()" : "os:ReadText()";
             }
 
             @Override

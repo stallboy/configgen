@@ -429,7 +429,7 @@ public class GenCs extends Generator {
     }
 
     private String toString(String n, Type t) {
-        if (t instanceof TList || t instanceof TMap)
+        if (t instanceof TList)
             return "CSV.ToString(" + upper1(n) + ")";
         else
             return upper1(n);

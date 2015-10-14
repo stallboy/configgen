@@ -1,19 +1,20 @@
-local errors = { cfgNils = {}, cfgDataAdds = {}, refNils = {}, enumNils = {} }
+local errors = {}
+errors.errors = { cfgNils = {}, cfgDataAdds = {}, refNils = {}, enumNils = {} }
 
 function errors.cfgDataAdd(cfg)
-    table.insert(errors.cfgDataAdds, cfg)
+    table.insert(errors.errors.cfgDataAdds, cfg)
 end
 
 function errors.cfgNil(cfg)
-    table.insert(errors.cfgNils, cfg)
+    table.insert(errors.errors.cfgNils, cfg)
 end
 
 function errors.refNil(cfg, col, v)
-    table.insert(errors.refNils, { cfg = cfg, col = col, v = v })
+    table.insert(errors.errors.refNils, { cfg = cfg, col = col, v = v })
 end
 
 function errors.enumNil(cfg, ename)
-    table.insert(errors.enumNils, { cfg = cfg, ename = ename })
+    table.insert(errors.errors.enumNils, { cfg = cfg, ename = ename })
 end
 
 local function _get(t, namespace)

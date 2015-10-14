@@ -20,11 +20,9 @@
 
     <target name="dist" depends="clean, compile">
         <copy file="${src}/configgen/CSV.java" todir="${build}/support"/>
-        <copy file="${src}/support/CSV.cs" todir="${build}/support"/>
-        <copy file="${src}/support/KeyedList.cs" todir="${build}/support"/>
-        <copy file="${src}/support/LoadErrors.cs" todir="${build}/support"/>
-        <copy file="${src}/support/CSVLoader.cs" todir="${build}/support"/>
-        <copy file="${src}/support/errors.lua" todir="${build}/support"/>
+        <copy todir="${build}/support">
+            <fileset dir="${src}/support"/>
+        </copy>
         <jar jarfile="configgen.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
     </target>
 

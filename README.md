@@ -5,27 +5,13 @@
 ## 项目概况
 
 * 通过配置外键，取值范围，使策划可以随时检测配置数据
-* 通过生成代码，使程序员方便访问配置类型化后的数据，直接访问外键引用和访问单独一行
-* 目前支持java,csharp,lua代码生成
-
-## 具体设计目标
-
-* 自动生成程序类，加载类。
-* 数据文件中每个单元格数据都有类型；schema保存为config.xml，基本自动生成
-* config可设置keys，不配置的话就是第一个有英文字段说明的列。要配置的话必须多列。primary key
-* config可设置enum，生成代码会包含这个引用，加载类会自动resolve，方便程序访问每行记录
-* field有type,一般不用改，type可以使复杂结构list，map，bean
-* field可设置ref，nullableref, keyref，listref，加载类会自动resolve引用
-* ref可设置多keys引用，可为一个field配置多个引用。foreign key
-* bean可自定义，可嵌套，可支持单个csv文件里嵌套其他bean
-* 在生成数据和代码时直接检测数据type和ref，range范围检测
-* 可配置own，这样共用一份config.xml，通过own用于选择生成部分
+* 通过生成代码，使程序员方便访问配置类型化后的数据，直接访问外键引用和访问单独一行，支持java,csharp,lua
 
 ## 使用流程
 
 1. 程序新建或修改 csv文件，csv文件前2行为header，第一行是中文说明，第二行是英文字段
 2. 使用configgen.jar 来生成或完善服务器客户端共同使用的config.xml
-3. 如果默认的行为不满足程序需求，则手动修改config.xml
+3. 如果默认的行为不满足程序需求，则手动修改config.xml，比如修改type，增加ref，enum，range
 4. 重复1，2，3流程
 
 ## 配置描述
@@ -36,6 +22,7 @@
 
 * config.keys
     - 默认不用配置，是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
+    - 生成代码会包含这个引用，加载类会自动resolve，方便程序访问每行记录
 
 * config.enum
     - 默认不用配置，如果要把它作为enum，请配置，比如enum="aa"就是field aa作为enum名称

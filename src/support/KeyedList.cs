@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Config
 {
-    public class KeyedList<TKey, TValue> 
+    public class KeyedList<TKey, TValue>
     {
         public KeyedList()
         {
@@ -27,5 +27,16 @@ namespace Config
             return Map.TryGetValue(key, out val);
         }
 
+        public override string ToString()
+        {
+            var sdata = new string[OrderedKeys.Count];
+            var i = 0;
+            foreach (var k in OrderedKeys)
+            {
+                sdata[i] = k + "=" + OrderedValues[i];
+                i++;
+            }
+            return "{" + string.Join(", ", sdata) + "}";
+        }
     }
 }

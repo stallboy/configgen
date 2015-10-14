@@ -200,17 +200,5 @@ namespace Config
             }
             return "[" + string.Join(", ", sdata) + "]";
         }
-
-        public static string ToString<TKey, TValue>(KeyedList<TKey, TValue> data)
-        {
-            var sdata = new string[data.OrderedKeys.Count];
-            var i = 0;
-            foreach (var k in data.OrderedKeys)
-            {
-                sdata[i] = k + "=" + data.OrderedValues[i];
-                i++;
-            }
-            return "{" + string.Join(", ", sdata) + "}";
-        }
     }
 }

@@ -266,7 +266,6 @@ public final class CSV {
         return seps;
     }
 
-    @SuppressWarnings("unused")
     static Set<String> load(Path zipPath, String encoding) throws Exception {
         Set<String> loaded = new HashSet<>();
         String packageName = CSV.class.getPackage().getName();

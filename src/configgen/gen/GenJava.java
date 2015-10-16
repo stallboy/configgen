@@ -16,23 +16,31 @@ import java.util.stream.Collectors;
 public class GenJava extends Generator {
     private CfgVs value;
     private File dstDir;
+    private String dir;
     private String pkg;
     private String encoding;
 
     public GenJava() {
         providers.put("java", this);
-        Context.providers.put("java", "java,dir:config,pkg:config,encoding:GBK    cooperate with -gen zip");
     }
 
     @Override
-    public void generate(Path configDir, CfgVs value, Context ctx) throws IOException {
-        this.value = value;
-        String _dir = ctx.get("dir", "config");
+    public String usage() {
+        return "dir:config,pkg:config,encoding:GBK    cooperate with -gen zip";
+    }
+
+    @Override
+    public boolean parse(Context ctx) {
+        dir = ctx.get("dir", "config");
         pkg = ctx.get("pkg", "config");
         encoding = ctx.get("encoding", "GBK");
-        ctx.end();
-        dstDir = Paths.get(_dir).resolve(pkg.replace('.', '/')).toFile();
+        return ctx.end();
+    }
 
+    @Override
+    public void generate(Path configDir, CfgVs _value) throws IOException {
+        value = _value;
+        dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         CachedFileOutputStream.removeOtherFiles(dstDir);
         mkdirs(dstDir);
 

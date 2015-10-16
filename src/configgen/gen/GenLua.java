@@ -11,22 +11,33 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GenLua extends Generator {
-    private CfgVs value;
+    private String dir;
     private String pkg;
+    private String encoding;
+    private String own;
+    private CfgVs value;
 
     public GenLua() {
         providers.put("lua", this);
-        Context.providers.put("lua", "cs,dir:.,pkg:cfg,encoding:UTF-8    add ,own:x if need, cooperate with -gen bin, -gen pack");
     }
 
     @Override
-    public void generate(Path configDir, CfgVs _value, Context ctx) throws IOException {
-        String _dir = ctx.get("dir", ".");
+    public String usage() {
+        return "dir:.,pkg:cfg,encoding:UTF-8    add ,own:x if need, cooperate with -gen bin, -gen pack";
+    }
+
+    @Override
+    public boolean parse(Context ctx) {
+        dir = ctx.get("dir", ".");
         pkg = ctx.get("pkg", "cfg");
-        String encoding = ctx.get("encoding", "UTF-8");
-        String own = ctx.get("own", null);
-        ctx.end();
-        File dstDir = Paths.get(_dir).resolve(pkg.replace('.', '/')).toFile();
+        encoding = ctx.get("encoding", "UTF-8");
+        own = ctx.get("own", null);
+        return ctx.end();
+    }
+
+    @Override
+    public void generate(Path configDir, CfgVs _value) throws IOException {
+        File dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = own != null ? extract(_value, own) : _value;
 
         CachedFileOutputStream.removeOtherFiles(dstDir);

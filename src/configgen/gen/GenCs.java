@@ -14,27 +14,37 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GenCs extends Generator {
-    private CfgVs value;
-    private File dstDir;
+    private String dir;
     private String pkg;
     private String encoding;
     private String prefix;
+    private String own;
+    private File dstDir;
+    private CfgVs value;
 
     public GenCs() {
         providers.put("cs", this);
-        Context.providers.put("cs", "cs,dir:Config,pkg:Config,encoding:GBK,prefix:Data    add ,own:x if need, cooperate with -gen bin, -gen pack");
     }
 
     @Override
-    public void generate(Path configDir, CfgVs value, Context ctx) throws IOException {
-        String _dir = ctx.get("dir", "Config");
+    public String usage() {
+        return "dir:Config,pkg:Config,encoding:GBK,prefix:Data    add ,own:x if need, cooperate with -gen bin, -gen pack";
+    }
+
+    @Override
+    public boolean parse(Context ctx) {
+        dir = ctx.get("dir", "Config");
         pkg = ctx.get("pkg", "Config");
         encoding = ctx.get("encoding", "GBK");
         prefix = ctx.get("prefix", "Data");
-        String own = ctx.get("own", null);
-        ctx.end();
-        dstDir = Paths.get(_dir).resolve(pkg.replace('.', '/')).toFile();
-        this.value = own != null ? extract(value, own) : value;
+        own = ctx.get("own", null);
+        return ctx.end();
+    }
+
+    @Override
+    public void generate(Path configDir, CfgVs _value) throws IOException {
+        dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
+        value = own != null ? extract(_value, own) : _value;
 
         CachedFileOutputStream.removeOtherFiles(dstDir);
         mkdirs(dstDir);

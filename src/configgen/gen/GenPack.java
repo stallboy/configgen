@@ -21,18 +21,27 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class GenPack extends Generator {
+    private File dstDir;
+    private String xml;
 
     public GenPack() {
         providers.put("pack", this);
-        Context.providers.put("pack", "pack,dir:cfg    add ,xml:pack.xml if xml not default pack.xml in configdir");
     }
 
     @Override
-    public void generate(Path configDir, CfgVs value, Context ctx) throws IOException {
-        File dstDir = new File(ctx.get("dir", "cfg"));
-        String xml = ctx.get("xml", null);
-        ctx.end();
+    public String usage() {
+        return "dir:cfg    add ,xml:pack.xml if xml not default pack.xml in configdir";
+    }
 
+    @Override
+    public boolean parse(Context ctx) {
+        dstDir = new File(ctx.get("dir", "cfg"));
+        xml = ctx.get("xml", null);
+        return ctx.end();
+    }
+
+    @Override
+    public void generate(Path configDir, CfgVs value) throws IOException {
         Map<String, Set<String>> packs = new HashMap<>();
         Set<String> source = new HashSet<>(value.cfgvs.keySet());
         Set<String> picked = new HashSet<>();

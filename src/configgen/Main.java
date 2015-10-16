@@ -2,7 +2,7 @@ package configgen;
 
 import configgen.data.Datas;
 import configgen.define.ConfigCollection;
-import configgen.gen.*;
+import configgen.gen.Generator;
 import configgen.type.Cfgs;
 import configgen.value.CfgVs;
 
@@ -21,7 +21,7 @@ public final class Main {
         System.out.println("	-xml        default config.xml in datadir.");
         System.out.println("	-encoding   csv and xml encoding. default GBK");
         System.out.println("	-v          verbose, default no");
-        Context.providers.forEach((k, v) -> System.out.println("	-gen        " + v));
+        Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
         Runtime.getRuntime().exit(1);
     }
 
@@ -29,14 +29,7 @@ public final class Main {
         String configdir = null;
         String xml = null;
         String encoding = "GBK";
-        List<Context> contexts = new ArrayList<>();
-
-        new GenBin();
-        new GenPack();
-        new GenZip();
-        new GenJava();
-        new GenCs();
-        new GenLua();
+        List<Generator> generators = new ArrayList<>();
 
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {
@@ -50,7 +43,10 @@ public final class Main {
                     encoding = args[++i];
                     break;
                 case "-gen":
-                    contexts.add(new Context(args[++i]));
+                    Generator generator = Generator.create(args[++i]);
+                    if (generator == null)
+                        usage("");
+                    generators.add(generator);
                     break;
                 case "-v":
                     Logger.enableVerbose();
@@ -84,14 +80,9 @@ public final class Main {
         CfgVs value = new CfgVs(newType, data);
         value.verifyConstraint();
 
-        for (Context ctx : contexts) {
-            Generator g = ctx.create();
-            if (g != null) {
-                Logger.verbose("generate " + ctx);
-                g.generate(dir, value, ctx);
-            } else {
-                System.err.println("not support " + ctx);
-            }
+        for (Generator generator : generators) {
+            Logger.verbose("generate " + generator.context.arg);
+            generator.generate(dir, value);
         }
 
         Logger.verbose("end");

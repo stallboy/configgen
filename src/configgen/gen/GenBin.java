@@ -15,18 +15,27 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class GenBin extends Generator {
+    private File dstDir;
+    private String zip;
 
     public GenBin() {
         providers.put("bin", this);
-        Context.providers.put("bin", "bin,dir:.    add ,zip:configdata.zip if need");
     }
 
     @Override
-    public void generate(Path configDir, CfgVs value, Context ctx) throws IOException {
-        File dstDir = new File(ctx.get("dir", "."));
-        String zip = ctx.get("zip", null);
-        ctx.end();
+    public String usage() {
+        return "dir:.    add ,zip:configdata.zip if need";
+    }
 
+    @Override
+    public boolean parse(Context ctx) {
+        dstDir = new File(ctx.get("dir", "."));
+        zip = ctx.get("zip", null);
+        return ctx.end();
+    }
+
+    @Override
+    public void generate(Path configDir, CfgVs value) throws IOException {
         File byteFile = new File(dstDir, "csv.byte");
         File textFile = new File(dstDir, "csv.string");
         try (DataOutputStream byter = new DataOutputStream(new CachedFileOutputStream(byteFile));

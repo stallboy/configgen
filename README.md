@@ -7,6 +7,11 @@
 * 通过配置外键，取值范围，使策划可以随时检测配置数据
 * 通过生成代码，使程序方便访问类型化数据，外键引用和单独一行，支持java,csharp,lua
 
+## 快速开始
+* example/config 下是个csv文件目录，里面的config.xml 是配置文件，
+  里面演示了ref，enum，nullableref，listref，bean等的使用
+* example/java, cs, lua目录下文件是gen.bat生成的代码文件，供参考，gen.bat生成的数据文件就没有上传了。
+
 ## 使用流程
 
 1. 程序新建或修改 csv文件，csv文件前2行为header，第一行是中文说明，第二行是英文字段

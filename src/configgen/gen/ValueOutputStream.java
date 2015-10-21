@@ -6,13 +6,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Writer;
 
-public class BinOutputStream implements ValueVisitor {
+public class ValueOutputStream implements ValueVisitor {
     private final DataOutputStream byter;
     private final Writer texter;
     private int index;
     private final byte[] writeBuffer = new byte[8];
 
-    public BinOutputStream(DataOutputStream byter, Writer texter) {
+    public ValueOutputStream(DataOutputStream byter, Writer texter) {
         this.byter = byter;
         this.texter = texter;
     }
@@ -73,7 +73,7 @@ public class BinOutputStream implements ValueVisitor {
         index = 0;
         if (cfgv.type.tbean.hasText()) {
             texter.write(escape("#" + cfgv.type.tbean.define.name));
-            texter.write("\r\n");
+            texter.write(",\r\n");
         }
         addString(cfgv.type.tbean.define.name);
         addSize(cfgv.vbeans.size());
@@ -154,7 +154,10 @@ public class BinOutputStream implements ValueVisitor {
     }
 
     private static String escape(String s) {
-        return "\"" + s.replace("\"", "\"\"") + "\"";
+        if (s.contains(","))
+            return "\"" + s.replace("\"", "\"\"") + "\"";
+        else
+            return s;
     }
 
 }

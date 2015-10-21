@@ -109,7 +109,7 @@ public class GenPack extends Generator {
                 if (!packCfgs.isEmpty()) {
                     File byteFile = new File(dstDir, packName);
                     try (DataOutputStream byter = new DataOutputStream(new CachedFileOutputStream(byteFile))) {
-                        BinOutputStream os = new BinOutputStream(byter, texter);
+                        ValueOutputStream os = new ValueOutputStream(byter, texter);
                         for (String cfg : packCfgs) {
                             CfgV cv = value.cfgvs.get(cfg);
                             os.addCfgV(cv);

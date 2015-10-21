@@ -1,0 +1,9 @@
+属性类型,程序用名字,策划注释
+id,name,
+1,attack,攻击
+2,defence,防御
+3,hp,生命
+4,critical,暴击
+5,critical_resist,暴击抵抗
+6,block,格挡
+7,break_armor,破甲

@@ -40,7 +40,7 @@ public class GenBin extends Generator {
         File textFile = new File(dstDir, "csv.string");
         try (DataOutputStream byter = new DataOutputStream(new CachedFileOutputStream(byteFile));
              OutputStreamWriter texter = new OutputStreamWriter(new CachedFileOutputStream(textFile), "UTF-8")) {
-            BinOutputStream os = new BinOutputStream(byter, texter);
+            ValueOutputStream os = new ValueOutputStream(byter, texter);
             for (CfgV v : value.cfgvs.values()) {
                 os.addCfgV(v);
             }

@@ -1,0 +1,14 @@
+礼包ID,普通奖励,,,,,,,,,,vip奖励,,,,领取vip奖励的最低等级,礼包图标
+id,item1,count1,item2,count2,item3,count3,item4,count4,item5,count5,vipitem1,vipcount1,vipitem2,vipcount2,viplevel,IconFile
+1,10001,1,,,,,,,,,,,,,,texture/t_i10005.bundle
+2,10014,1,,,,,,,,,,,,,,texture/t_i10006.bundle
+3,30001,1,,,,,,,,,,,,,,texture/t_i10007.bundle
+4,10001,5,30002,5,30001,5,,,,,10001,10,,,,texture/t_i10008.bundle
+5,10001,1,,,,,,,,,,,,,,texture/t_i10009.bundle
+6,10025,1,,,,,,,,,,,,,,texture/t_i10010.bundle
+7,30001,1,,,,,,,,,,,,,,texture/t_i10005.bundle
+8,10001,5,30002,5,30001,5,,,,,10001,10,,,,texture/t_i10006.bundle
+9,10001,1,,,,,,,,,,,,,,texture/t_i10007.bundle
+10,10040,1,,,,,,,,,,,,,,texture/t_i10008.bundle
+11,30001,1,,,,,,,,,,,,,,texture/t_i10009.bundle
+12,10001,5,30002,5,30001,5,,,,,10001,10,,,,texture/t_i10010.bundle

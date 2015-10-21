@@ -45,16 +45,13 @@ public class GenLua extends Generator {
 
         try (PrintStream ps = cachedPrintStream(new File(dstDir, "_beans.lua"), encoding)) {
             TabPrintStream tps = new TabPrintStream(ps);
+            tps.println("local Beans = {}");
             for (TBean b : value.type.tbeans.values()) {
-                ps.println("local " + className(b) + " = {}");
+                tps.println("Beans." + className(b) + " = {}");
                 genCreate(b, tps);
             }
 
-            tps.println("return {");
-            for (TBean b : value.type.tbeans.values()) {
-                tps.println1(b.define.name.toLowerCase() + " = " + b.define.name.toLowerCase() + ",");
-            }
-            tps.println("}");
+            tps.println("return Beans");
         }
 
         for (Cfg c : value.type.cfgs.values()) {
@@ -147,7 +144,7 @@ public class GenLua extends Generator {
     }
 
     private void genCreate(TBean tbean, TabPrintStream ps) {
-        ps.println("function " + className(tbean) + "._create(os)");
+        ps.println("function Beans." + className(tbean) + "._create(os)");
         ps.println1("local o = {}");
         tbean.fields.forEach((n, t) -> {
             Field f = tbean.define.fields.get(n);

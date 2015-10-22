@@ -48,7 +48,7 @@ public class GenLua extends Generator {
             tps.println("local Beans = {}");
             for (TBean b : value.type.tbeans.values()) {
                 tps.println("Beans." + className(b) + " = {}");
-                genCreate(b, tps);
+                genCreate(b, tps, "Beans.");
             }
 
             tps.println("return Beans");
@@ -111,7 +111,7 @@ public class GenLua extends Generator {
         ps.println(className + ".all = {}");
         cfg.value.enumNames.forEach(e -> ps.println(className + "." + e + " = nil"));
         ps.println();
-        genCreate(cfg.tbean, ps);
+        genCreate(cfg.tbean, ps, "");
 
         //static get
         ps.println("function " + className + ".get(" + formalParams(cfg.keys) + ")");
@@ -143,8 +143,8 @@ public class GenLua extends Generator {
         ps.println("return " + className);
     }
 
-    private void genCreate(TBean tbean, TabPrintStream ps) {
-        ps.println("function Beans." + className(tbean) + "._create(os)");
+    private void genCreate(TBean tbean, TabPrintStream ps, String prefix) {
+        ps.println("function " + prefix + className(tbean) + "._create(os)");
         ps.println1("local o = {}");
         tbean.fields.forEach((n, t) -> {
             Field f = tbean.define.fields.get(n);

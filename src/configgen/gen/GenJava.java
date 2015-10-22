@@ -86,8 +86,8 @@ public class GenJava extends Generator {
         Name name = new Name(pkg, tbean.define.name);
         File javaFile = dstDir.toPath().resolve(name.path).toFile();
         mkdirs(javaFile.getParentFile());
-        try (PrintStream ps = cachedPrintStream(javaFile, encoding)) {
-            genBean(tbean, cfg, name, new TabPrintStream(ps));
+        try (TabPrintStream ps = cachedPrintStream(javaFile, encoding)) {
+            genBean(tbean, cfg, name, ps);
         }
     }
 
@@ -722,7 +722,7 @@ public class GenJava extends Generator {
     private void genCSV() throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/CSV.java");
              BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/configgen/CSV.java"), "GBK"));
-             PrintStream ps = cachedPrintStream(new File(dstDir, "CSV.java"), encoding)) {
+             TabPrintStream ps = cachedPrintStream(new File(dstDir, "CSV.java"), encoding)) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 if (line.equals("package configgen;"))
                     line = "package " + pkg + ";";
@@ -732,9 +732,7 @@ public class GenJava extends Generator {
     }
 
     private void genCSVLoader() throws IOException {
-        try (PrintStream stream = cachedPrintStream(new File(dstDir, "CSVLoader.java"), encoding)) {
-            TabPrintStream ps = new TabPrintStream(stream);
-
+        try (TabPrintStream ps = cachedPrintStream(new File(dstDir, "CSVLoader.java"), encoding)) {
             ps.println("package " + pkg + ";");
             ps.println();
 

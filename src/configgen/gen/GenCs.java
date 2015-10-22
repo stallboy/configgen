@@ -99,13 +99,12 @@ public class GenCs extends Generator {
         Name name = new Name(pkg, prefix, tbean.define.name);
         File csFile = dstDir.toPath().resolve(name.path).toFile();
         mkdirs(csFile.getParentFile());
-        try (PrintStream ps = cachedPrintStream(csFile, encoding)) {
-            genBean(tbean, cfg, name, new TabPrintStream(ps));
+        try (TabPrintStream ps = cachedPrintStream(csFile, encoding)) {
+            genBean(tbean, cfg, name, ps);
         }
     }
 
     private void genBean(TBean tbean, Cfg cfg, Name name, TabPrintStream ps) {
-
         ps.println("using System;");
         ps.println("using System.Collections.Generic;");
         ps.println("using System.IO;");
@@ -568,7 +567,7 @@ public class GenCs extends Generator {
     private void copyFile(String file) throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/" + file);
              BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/support/" + file), "GBK"));
-             PrintStream ps = cachedPrintStream(new File(dstDir, file), encoding)) {
+             TabPrintStream ps = cachedPrintStream(new File(dstDir, file), encoding)) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 ps.println(line);
             }
@@ -576,8 +575,7 @@ public class GenCs extends Generator {
     }
 
     private void genCSVProcessor() throws IOException {
-        try (PrintStream stream = cachedPrintStream(new File(dstDir, "CSVProcessor.cs"), encoding)) {
-            TabPrintStream ps = new TabPrintStream(stream);
+        try (TabPrintStream ps = cachedPrintStream(new File(dstDir, "CSVProcessor.cs"), encoding)) {
             ps.println("using System.Collections.Generic;");
             ps.println();
             ps.println("namespace Config");

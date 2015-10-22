@@ -1,9 +1,11 @@
 package configgen.gen;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.PrintStream;
 
-public class TabPrintStream {
-    final PrintStream ps;
+public class TabPrintStream implements Closeable {
+    public final PrintStream ps;
 
     public TabPrintStream(PrintStream ps) {
         this.ps = ps;
@@ -45,4 +47,8 @@ public class TabPrintStream {
         ps.println("                            " + str);
     }
 
+    @Override
+    public void close() throws IOException {
+        ps.close();
+    }
 }

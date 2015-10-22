@@ -43,28 +43,26 @@ public class GenLua extends Generator {
         CachedFileOutputStream.removeOtherFiles(dstDir);
         mkdirs(dstDir);
 
-        try (PrintStream ps = cachedPrintStream(new File(dstDir, "_beans.lua"), encoding)) {
-            TabPrintStream tps = new TabPrintStream(ps);
-            tps.println("local Beans = {}");
+        try (TabPrintStream ps = cachedPrintStream(new File(dstDir, "_beans.lua"), encoding)) {
+            ps.println("local Beans = {}");
             for (TBean b : value.type.tbeans.values()) {
-                tps.println("Beans." + className(b) + " = {}");
-                genCreate(b, tps, "Beans.");
+                ps.println("Beans." + className(b) + " = {}");
+                genCreate(b, ps, "Beans.");
             }
-
-            tps.println("return Beans");
+            ps.println("return Beans");
         }
 
         for (Cfg c : value.type.cfgs.values()) {
             Name name = new Name(pkg, c.tbean.define.name);
             File csFile = dstDir.toPath().resolve(name.path).toFile();
             mkdirs(csFile.getParentFile());
-            try (PrintStream ps = cachedPrintStream(csFile, encoding)) {
-                genCfg(c, new TabPrintStream(ps));
+            try (TabPrintStream ps = cachedPrintStream(csFile, encoding)) {
+                genCfg(c, ps);
             }
         }
 
-        try (PrintStream ps = cachedPrintStream(new File(dstDir, "_cfgs.lua"), encoding)) {
-            genCfgs(new TabPrintStream(ps));
+        try (TabPrintStream ps = cachedPrintStream(new File(dstDir, "_cfgs.lua"), encoding)) {
+            genCfgs(ps);
         }
 
         CachedFileOutputStream.doRemoveFiles();
@@ -143,8 +141,8 @@ public class GenLua extends Generator {
         ps.println("return " + className);
     }
 
-    private void genCreate(TBean tbean, TabPrintStream ps, String prefix) {
-        ps.println("function " + prefix + className(tbean) + "._create(os)");
+    private void genCreate(TBean tbean, TabPrintStream ps, String namespace) {
+        ps.println("function " + namespace + className(tbean) + "._create(os)");
         ps.println1("local o = {}");
         tbean.fields.forEach((n, t) -> {
             Field f = tbean.define.fields.get(n);

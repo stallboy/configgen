@@ -131,8 +131,7 @@ public abstract class Generator {
         return value.substring(0, 1).toLowerCase() + value.substring(1);
     }
 
-    protected static PrintStream cachedPrintStream(File file, String encoding) throws IOException {
-        return new PrintStream(new CachedFileOutputStream(file), false, encoding);
+    protected static TabPrintStream cachedPrintStream(File file, String encoding) throws IOException {
+        return new TabPrintStream(new PrintStream(new CachedFileOutputStream(file), false, encoding));
     }
-
 }

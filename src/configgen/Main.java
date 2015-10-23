@@ -2,15 +2,21 @@ package configgen;
 
 import configgen.data.Datas;
 import configgen.define.ConfigCollection;
+import configgen.gen.CachedFileOutputStream;
 import configgen.gen.Generator;
 import configgen.type.Cfgs;
 import configgen.value.CfgVs;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public final class Main {
     private static void usage(String reason) {
@@ -22,6 +28,7 @@ public final class Main {
         System.out.println("	-encoding   csv and xml encoding. default GBK");
         System.out.println("	-v          verbose, default no");
         Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
+        System.out.println("	-packtext   for i18n, pack text.csv to text.zip");
         Runtime.getRuntime().exit(1);
     }
 
@@ -51,6 +58,16 @@ public final class Main {
                 case "-v":
                     Logger.enableVerbose();
                     break;
+
+                case "-packtext":
+                    File file = new File(args[++i]);
+                    try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File("text.zip")), new CRC32()))) {
+                        ZipEntry ze = new ZipEntry("text.csv");
+                        ze.setTime(0);
+                        zos.putNextEntry(ze);
+                        Files.copy(file.toPath(), zos);
+                    }
+                    return;
                 default:
                     usage("unknown args " + args[i]);
                     break;

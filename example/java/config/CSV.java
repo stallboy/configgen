@@ -264,7 +264,6 @@ public final class CSV {
         String c = seps[seps.length - 1];
         seps[seps.length - 1] = c.substring(0, 1).toUpperCase() + c.substring(1);
         return seps;
-
     }
 
     static Set<String> load(Path zipPath, String encoding) throws Exception {

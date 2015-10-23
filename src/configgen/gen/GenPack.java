@@ -5,10 +5,8 @@ import configgen.value.CfgV;
 import configgen.value.CfgVs;
 import org.w3c.dom.Element;
 
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -104,16 +102,15 @@ public class GenPack extends Generator {
             ZipEntry tze = new ZipEntry("text.csv");
             tze.setTime(0);
             textOS.putNextEntry(tze);
-            try (OutputStreamWriter texter = new OutputStreamWriter(textOS, "UTF-8")) {
-                for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
-                    String packName = entry.getKey();
-                    Set<String> packCfgs = entry.getValue();
-                    if (!packCfgs.isEmpty()) {
-                        try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File(dstDir, packName + ".zip")), new CRC32()))) {
-                            ZipEntry ze = new ZipEntry(packName);
-                            ze.setTime(0);
-                            zos.putNextEntry(ze);
-                            ValueOutputStream os = new ValueOutputStream(new DataOutputStream(zos), texter);
+            for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
+                String packName = entry.getKey();
+                Set<String> packCfgs = entry.getValue();
+                if (!packCfgs.isEmpty()) {
+                    try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File(dstDir, packName + ".zip")), new CRC32()))) {
+                        ZipEntry ze = new ZipEntry(packName);
+                        ze.setTime(0);
+                        zos.putNextEntry(ze);
+                        try (ValueOutputStream os = new ValueOutputStream(zos, textOS)) {
                             for (String cfg : packCfgs) {
                                 CfgV cv = value.cfgvs.get(cfg);
                                 os.addCfgV(cv);

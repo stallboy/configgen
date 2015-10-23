@@ -3,10 +3,8 @@ package configgen.gen;
 import configgen.value.CfgV;
 import configgen.value.CfgVs;
 
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.CRC32;
@@ -38,9 +36,7 @@ public class GenBin extends Generator {
     public void generate(Path configDir, CfgVs value) throws IOException {
         File byteFile = new File(dstDir, "csv.byte");
         File textFile = new File(dstDir, "text.csv");
-        try (DataOutputStream byter = new DataOutputStream(new CachedFileOutputStream(byteFile));
-             OutputStreamWriter texter = new OutputStreamWriter(new CachedFileOutputStream(textFile), "UTF-8")) {
-            ValueOutputStream os = new ValueOutputStream(byter, texter);
+        try (ValueOutputStream os = new ValueOutputStream(new CachedFileOutputStream(byteFile), new CachedFileOutputStream(textFile))) {
             for (CfgV v : value.cfgvs.values()) {
                 os.addCfgV(v);
             }

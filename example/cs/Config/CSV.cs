@@ -151,16 +151,16 @@ namespace Config
             var filtered = new List<List<string>>();
             foreach (var rec in result)
             {
-                var allempty = true;
+                var allEmpty = true;
                 foreach (var s in rec)
                 {
                     if (s.Length > 0)
                     {
-                        allempty = false;
+                        allEmpty = false;
                         break;
                     }
                 }
-                if (!allempty)
+                if (!allEmpty)
                     filtered.Add(rec);
             }
 
@@ -191,14 +191,14 @@ namespace Config
 
         public static string ToString<T>(List<T> data)
         {
-            var sdata = new string[data.Count];
+            var elements = new string[data.Count];
             var i = 0;
             foreach (var d in data)
             {
-                sdata[i] = d.ToString();
+                elements[i] = d.ToString();
                 i++;
             }
-            return "[" + string.Join(", ", sdata) + "]";
+            return "[" + string.Join(", ", elements) + "]";
         }
     }
 }

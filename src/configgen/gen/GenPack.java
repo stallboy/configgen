@@ -9,7 +9,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,35 +100,29 @@ public class GenPack extends Generator {
         Assert(source.isEmpty(), source + " not contained in pack.xml");
 
         mkdirs(dstDir);
-        File textFile = new File(dstDir, "text.csv");
-        try (OutputStreamWriter texter = new OutputStreamWriter(new CachedFileOutputStream(textFile), "UTF-8")) {
-            for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
-                String packName = entry.getKey();
-                Set<String> packCfgs = entry.getValue();
-                if (!packCfgs.isEmpty()) {
-                    File byteFile = new File(dstDir, packName);
-                    try (DataOutputStream byter = new DataOutputStream(new CachedFileOutputStream(byteFile))) {
-                        ValueOutputStream os = new ValueOutputStream(byter, texter);
-                        for (String cfg : packCfgs) {
-                            CfgV cv = value.cfgvs.get(cfg);
-                            os.addCfgV(cv);
+        try (ZipOutputStream textOS = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File(dstDir, "text.zip")), new CRC32()))) {
+            ZipEntry tze = new ZipEntry("text.csv");
+            tze.setTime(0);
+            textOS.putNextEntry(tze);
+            try (OutputStreamWriter texter = new OutputStreamWriter(textOS, "UTF-8")) {
+                for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
+                    String packName = entry.getKey();
+                    Set<String> packCfgs = entry.getValue();
+                    if (!packCfgs.isEmpty()) {
+                        try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File(dstDir, packName + ".zip")), new CRC32()))) {
+                            ZipEntry ze = new ZipEntry(packName);
+                            ze.setTime(0);
+                            zos.putNextEntry(ze);
+                            ValueOutputStream os = new ValueOutputStream(new DataOutputStream(zos), texter);
+                            for (String cfg : packCfgs) {
+                                CfgV cv = value.cfgvs.get(cfg);
+                                os.addCfgV(cv);
+                            }
                         }
                     }
-                    try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File(dstDir, packName + ".zip")), new CRC32()))) {
-                        zos.putNextEntry(new ZipEntry(packName));
-                        Files.copy(byteFile.toPath(), zos);
-                    }
-
-                    delete(byteFile);
                 }
             }
         }
-
-        try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File(dstDir, "text.zip")), new CRC32()))) {
-            zos.putNextEntry(new ZipEntry("text.csv"));
-            Files.copy(textFile.toPath(), zos);
-        }
-        delete(textFile);
     }
 
     private void Assert(boolean cond, String... str) {

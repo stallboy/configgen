@@ -37,7 +37,7 @@ public class GenBin extends Generator {
     @Override
     public void generate(Path configDir, CfgVs value) throws IOException {
         File byteFile = new File(dstDir, "csv.byte");
-        File textFile = new File(dstDir, "csv.string");
+        File textFile = new File(dstDir, "text.csv");
         try (DataOutputStream byter = new DataOutputStream(new CachedFileOutputStream(byteFile));
              OutputStreamWriter texter = new OutputStreamWriter(new CachedFileOutputStream(textFile), "UTF-8")) {
             ValueOutputStream os = new ValueOutputStream(byter, texter);
@@ -48,9 +48,14 @@ public class GenBin extends Generator {
 
         if (zip != null) {
             try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File(dstDir, zip)), new CRC32()))) {
-                zos.putNextEntry(new ZipEntry("csv.byte"));
+                ZipEntry ze = new ZipEntry("csv.byte");
+                ze.setTime(0);
+                zos.putNextEntry(ze);
                 Files.copy(byteFile.toPath(), zos);
-                zos.putNextEntry(new ZipEntry("csv.string"));
+
+                ze = new ZipEntry("text.csv");
+                ze.setTime(0);
+                zos.putNextEntry(ze);
                 Files.copy(textFile.toPath(), zos);
             }
 

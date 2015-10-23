@@ -29,14 +29,14 @@ namespace Config
 
         public override string ToString()
         {
-            var sdata = new string[OrderedKeys.Count];
+            var elements = new string[OrderedKeys.Count];
             var i = 0;
             foreach (var k in OrderedKeys)
             {
-                sdata[i] = k + "=" + OrderedValues[i];
+                elements[i] = k + "=" + OrderedValues[i];
                 i++;
             }
-            return "{" + string.Join(", ", sdata) + "}";
+            return "{" + string.Join(", ", elements) + "}";
         }
     }
 }

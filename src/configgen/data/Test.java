@@ -2,7 +2,9 @@ package configgen.data;
 
 import configgen.CSV;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.List;
 
@@ -28,6 +30,9 @@ final class Test {
         septest("123abc@", "123abc");
         septestf("a123a");
         septestf("1231");
+
+        // need strip bom
+        System.out.println(CSV.parse(new InputStreamReader(new FileInputStream("text.csv"), "UTF-8"), true));
     }
 
     private static void test(String source, int rowcnt, int testrow, String... row) throws IOException {

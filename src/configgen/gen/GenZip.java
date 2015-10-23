@@ -40,7 +40,9 @@ public class GenZip extends Generator {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     String fn = configDir.relativize(file).toString();
                     if (fn.endsWith(".csv")) {
-                        zos.putNextEntry(new ZipEntry(fn));
+                        ZipEntry ze = new ZipEntry(fn);
+                        ze.setTime(0);
+                        zos.putNextEntry(ze);
                         Files.copy(file, zos);
                     }
                     return FileVisitResult.CONTINUE;

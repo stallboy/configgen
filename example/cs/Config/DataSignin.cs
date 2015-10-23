@@ -68,10 +68,10 @@ namespace Config
             var self = new DataSignin();
             self.Id = os.ReadInt32();
             self.Item2countMap = new KeyedList<int, int>();
-            for (var c = (int)br.ReadSize(); c > 0; c--)
+            for (var c = (int)os.ReadSize(); c > 0; c--)
                 self.Item2countMap.Add(os.ReadInt32(), os.ReadInt32());
             self.Vipitem2vipcountMap = new KeyedList<int, int>();
-            for (var c = (int)br.ReadSize(); c > 0; c--)
+            for (var c = (int)os.ReadSize(); c > 0; c--)
                 self.Vipitem2vipcountMap.Add(os.ReadInt32(), os.ReadInt32());
             self.Viplevel = os.ReadInt32();
             self.IconFile = os.ReadString();

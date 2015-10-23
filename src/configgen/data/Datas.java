@@ -2,6 +2,7 @@ package configgen.data;
 
 import configgen.CSV;
 import configgen.Node;
+import configgen.UnicodeReader;
 import configgen.define.Config;
 import configgen.define.ConfigCollection;
 import configgen.type.Cfg;
@@ -29,7 +30,7 @@ public class Datas extends Node {
             public FileVisitResult visitFile(Path file, BasicFileAttributes a) throws IOException {
                 if (file.toString().endsWith(".csv")) {
                     String name = path2ConfigName(dataDir.relativize(file).toString());
-                    try (Reader reader = new InputStreamReader(new FileInputStream(file.toFile()), inputEncoding)) {
+                    try (Reader reader = inputEncoding.startsWith("UTF") ? new InputStreamReader(new FileInputStream(file.toFile()), inputEncoding) : new UnicodeReader(new FileInputStream(file.toFile()), inputEncoding)) {
                         datas.put(name, new Data(Datas.this, name, CSV.parse(reader, false)));
                     }
                 }

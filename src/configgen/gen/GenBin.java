@@ -36,7 +36,7 @@ public class GenBin extends Generator {
     public void generate(Path configDir, CfgVs value) throws IOException {
         File byteFile = new File(dstDir, "csv.byte");
         File textFile = new File(dstDir, "text.csv");
-        try (ValueOutputStream os = new ValueOutputStream(new CachedFileOutputStream(byteFile), new CachedFileOutputStream(textFile))) {
+        try (UTF8Writer texter = new UTF8Writer(new CachedFileOutputStream(textFile)); ValueOutputStream os = new ValueOutputStream(new CachedFileOutputStream(byteFile), texter)) {
             for (CfgV v : value.cfgvs.values()) {
                 os.addCfgV(v);
             }
@@ -54,7 +54,6 @@ public class GenBin extends Generator {
                 zos.putNextEntry(ze);
                 Files.copy(textFile.toPath(), zos);
             }
-
             delete(byteFile);
             delete(textFile);
         }

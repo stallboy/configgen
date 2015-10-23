@@ -2,21 +2,20 @@ package configgen.gen;
 
 import configgen.value.*;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class ValueOutputStream implements ValueVisitor, Closeable {
     private final DataOutputStream byter;
-    private final Writer texter;
-    private final OutputStream texterOS;
-    private boolean texterTouched;
+    private final UTF8Writer texter;
     private int index;
     private final byte[] writeBuffer = new byte[8];
-    private static final byte[] UTF8_BOM = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
 
-    public ValueOutputStream(OutputStream _byter, OutputStream _texterOS) throws UnsupportedEncodingException {
+    public ValueOutputStream(OutputStream _byter, UTF8Writer _texter) {
         this.byter = new DataOutputStream(_byter);
-        this.texterOS = _texterOS;
-        this.texter = new OutputStreamWriter(texterOS, "UTF-8");
+        this.texter = _texter;
     }
 
     @Override
@@ -74,10 +73,6 @@ public class ValueOutputStream implements ValueVisitor, Closeable {
     public void addCfgV(CfgV cfgv) throws IOException {
         index = 0;
         if (cfgv.type.tbean.hasText()) {
-            if (!texterTouched) {
-                texterOS.write(UTF8_BOM);
-                texterTouched = true;
-            }
             texter.write(escape("#" + cfgv.type.tbean.define.name));
             texter.write(",\r\n");
         }
@@ -169,6 +164,5 @@ public class ValueOutputStream implements ValueVisitor, Closeable {
     @Override
     public void close() throws IOException {
         byter.close();
-        texter.close();
     }
 }

@@ -1,7 +1,6 @@
 package configgen.gen;
 
 import configgen.define.DomUtils;
-import configgen.value.CfgV;
 import configgen.value.CfgVs;
 import org.w3c.dom.Element;
 
@@ -102,23 +101,25 @@ public class GenPack extends Generator {
             ZipEntry tze = new ZipEntry("text.csv");
             tze.setTime(0);
             textOS.putNextEntry(tze);
-            for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
-                String packName = entry.getKey();
-                Set<String> packCfgs = entry.getValue();
-                if (!packCfgs.isEmpty()) {
-                    try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File(dstDir, packName + ".zip")), new CRC32()))) {
-                        ZipEntry ze = new ZipEntry(packName);
-                        ze.setTime(0);
-                        zos.putNextEntry(ze);
-                        try (ValueOutputStream os = new ValueOutputStream(zos, textOS)) {
-                            for (String cfg : packCfgs) {
-                                CfgV cv = value.cfgvs.get(cfg);
-                                os.addCfgV(cv);
+            try (UTF8Writer texter = new UTF8Writer(textOS)) {
+                for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
+                    String packName = entry.getKey();
+                    Set<String> packCfgs = entry.getValue();
+                    if (!packCfgs.isEmpty()) {
+                        try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File(dstDir, packName + ".zip")), new CRC32()))) {
+                            ZipEntry ze = new ZipEntry(packName);
+                            ze.setTime(0);
+                            zos.putNextEntry(ze);
+                            try (ValueOutputStream vos = new ValueOutputStream(zos, texter)) {
+                                for (String cfg : packCfgs) {
+                                    vos.addCfgV(value.cfgvs.get(cfg));
+                                }
                             }
                         }
                     }
                 }
             }
+
         }
     }
 

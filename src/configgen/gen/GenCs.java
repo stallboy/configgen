@@ -239,7 +239,7 @@ public class GenCs extends Generator {
             ps.println2("internal static void Initialize(Config.Stream os, Config.LoadErrors errors)");
             ps.println2("{");
             ps.println3("all = new " + allType + "();");
-            ps.println3("for (var i = 0; i < os.ReadSize(); i++) {");
+            ps.println3("for (var c = os.ReadSize(); c > 0; c--) {");
             ps.println4("var self = _create(os);");
             ps.println4("all.Add(" + actualParamsKeySelf(keys) + ", self);");
 

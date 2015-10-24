@@ -14,7 +14,7 @@
 
 ## 使用流程
 
-1. 程序新建或修改 csv文件，csv文件前2行为header，第一行是中文说明，第二行是英文字段
+1. 新建或修改 csv文件，csv文件前2行为header，第一行是中文说明，第二行是英文字段
 2. 使用configgen.jar 来生成或完善服务器客户端共同使用的config.xml
 3. 如果默认的行为不满足程序需求，则手动修改config.xml，比如修改type，增加ref，enum，range
 4. 重复1，2，3流程

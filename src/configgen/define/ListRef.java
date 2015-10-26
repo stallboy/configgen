@@ -4,16 +4,13 @@ import configgen.Node;
 import org.w3c.dom.Element;
 
 public class ListRef extends Node {
-    public final String name;
     public final String[] keys;
     public final String ref;
     public final String[] refKeys;
 
     public ListRef(Bean parent, Element self) {
-        super(parent, "");
+        super(parent, self.getAttribute("name"));
         String[] attrs = DomUtils.attributes(self, "name", "keys", "ref", "refkeys");
-        name = attrs[0];
-        link = name;
         String r = attrs[1].trim();
         if (!r.isEmpty())
             keys = r.split(",");

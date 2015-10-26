@@ -6,12 +6,12 @@ public class TList extends Type {
     public final Type value;
     public final int count; // >=0; 0 means list store in one column separated by ;
 
-    public TList(Node parent, String link, Constraint cons, String value, int count) {
-        super(parent, link, cons);
-        Assert(cons.range == null, "list not support range");
+    public TList(Node parent, String name, Constraint cons, String value, int count) {
+        super(parent, name, cons);
+        require(cons.range == null, "list not support range");
         for (SRef ref : cons.refs) {
-            Assert(!ref.nullable, "list not support nullableRef");
-            Assert(null == ref.keyRef, "list not support keyRef");
+            require(!ref.nullable, "list not support nullableRef");
+            require(null == ref.keyRef, "list not support keyRef");
         }
         this.value = resolveType("value", cons, value);
         this.count = count;
@@ -52,6 +52,5 @@ public class TList extends Type {
     public int columnSpan() {
         return count == 0 ? 1 : (value.columnSpan() * count);
     }
-
 
 }

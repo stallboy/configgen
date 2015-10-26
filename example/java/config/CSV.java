@@ -255,7 +255,7 @@ public final class CSV {
         return t.isEmpty() ? 0 : Long.decode(t);
     }
 
-    private static String path2ConfigName(String path) {
+    static String path2ConfigName(String path) {
         return String.join(".", path.split("\\\\|/")).toLowerCase();
     }
 

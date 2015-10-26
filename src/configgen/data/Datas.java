@@ -1,8 +1,7 @@
 package configgen.data;
 
-import configgen.CSV;
+import configgen.Logger;
 import configgen.Node;
-import configgen.UnicodeReader;
 import configgen.define.Config;
 import configgen.define.ConfigCollection;
 import configgen.type.Cfg;
@@ -21,29 +20,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Datas extends Node {
+    public final Path dataDir;
     public final Map<String, Data> datas = new HashMap<>();
 
-    public Datas(Path dataDir, String inputEncoding) throws IOException {
+    public Datas(Path _dataDir, String encoding) throws IOException {
         super(null, "data");
+        dataDir = _dataDir;
         Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes a) throws IOException {
-                if (file.toString().endsWith(".csv")) {
-                    String name = path2ConfigName(dataDir.relativize(file).toString());
-                    try (Reader reader = inputEncoding.startsWith("UTF") ? new InputStreamReader(new FileInputStream(file.toFile()), inputEncoding) : new UnicodeReader(new FileInputStream(file.toFile()), inputEncoding)) {
+                String path = dataDir.relativize(file).toString();
+                if (path.endsWith(".csv")) {
+                    String name = CSV.path2ConfigName(path.substring(0, path.length() - 4));
+                    try (Reader reader = encoding.startsWith("UTF") ? new InputStreamReader(new FileInputStream(file.toFile()), encoding) : new UnicodeReader(new FileInputStream(file.toFile()), encoding)) {
                         datas.put(name, new Data(Datas.this, name, CSV.parse(reader, false)));
                     }
                 }
                 return FileVisitResult.CONTINUE;
             }
         });
-    }
-
-    private static String path2ConfigName(String p) {
-        String[] res = p.split("\\\\|/");
-        String last = res[res.length - 1];
-        res[res.length - 1] = last.substring(0, last.length() - 4);
-        return String.join(".", res).toLowerCase();
     }
 
     public void autoCompleteDefine(Cfgs cfgs) {
@@ -57,10 +52,13 @@ public class Datas extends Node {
                 def = cfg.define;
             } else {
                 def = new Config(define, k);
+                Logger.verbose("new config " + def.fullName());
             }
             define.configs.put(k, def);
             data.parse(cfg);
             data.autoCompleteDefine(def);
         });
+
+        old.forEach((k, cfg) -> Logger.verbose("delete config " + cfg.fullName()));
     }
 }

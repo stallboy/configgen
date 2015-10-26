@@ -10,10 +10,10 @@ import java.util.Map;
 public class VMap extends Value {
     public final Map<Value, Value> map = new LinkedHashMap<>();
 
-    public VMap(Node parent, String link, TMap type, List<Cell> data) {
-        super(parent, link, type, data);
+    public VMap(Node parent, String name, TMap type, List<Cell> data) {
+        super(parent, name, type, data);
 
-        Assert(data.size() == type.columnSpan());
+        require(data.size() == type.columnSpan());
         int kc = type.key.columnSpan();
         int vc = type.value.columnSpan();
         for (int i = 0, idx = 0; i < type.count; i++) {
@@ -21,11 +21,11 @@ public class VMap extends Value {
             if (!data.get(s).data.isEmpty()) {
                 Value key = Value.create(this, "key" + idx, type.key, data.subList(s, s + kc));
                 Value value = Value.create(this, "value" + idx, type.value, data.subList(s + kc, s + kc + vc));
-                Assert(null == map.put(key, value), "map key duplicate", toString());
+                require(null == map.put(key, value), "map key duplicate", toString());
                 idx++;
             } else {
                 for (Cell dc : data.subList(s, s + kc + vc)) {
-                    Assert(dc.data.trim().isEmpty(), "map entry ignore by first cell empty, but part filled", dc.toString());
+                    require(dc.data.trim().isEmpty(), "map entry ignore by first cell empty, but part filled", dc.toString());
                 }
             }
         }

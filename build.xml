@@ -19,7 +19,7 @@
     </target>
 
     <target name="dist" depends="clean, compile">
-        <copy file="${src}/configgen/CSV.java" todir="${build}/support"/>
+        <copy file="${src}/configgen/data/CSV.java" todir="${build}/support"/>
         <copy todir="${build}/support">
             <fileset dir="${src}/support"/>
         </copy>

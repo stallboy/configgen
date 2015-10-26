@@ -1,4 +1,4 @@
-package configgen;
+package configgen.data;
 
 /**
  * version: 1.1 / 2007-01-25
@@ -34,8 +34,7 @@ public class UnicodeReader extends Reader {
     private static final int BOM_SIZE = 4;
 
     /**
-     *
-     * @param in  inputstream to be read
+     * @param in         inputstream to be read
      * @param defaultEnc default encoding if stream does not have
      *                   BOM marker. Give NULL to use system-level default.
      */

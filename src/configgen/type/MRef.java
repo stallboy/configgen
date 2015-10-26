@@ -14,6 +14,6 @@ public class MRef extends Node {
 
     public void resolve() {
         ref = ((Cfgs) root).cfgs.get(define.ref);
-        Assert(ref != null, "ref not found", define.location());
+        require(ref != null, "ref not found", define.fullName());
     }
 }

@@ -8,19 +8,21 @@ import configgen.value.CfgVs;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedOutputStream;
+import java.util.zip.ZipOutputStream;
 
 public abstract class Generator {
 
-    public static class Context {
+    public static class Parameter {
         public final String arg;
         public final String type;
-        public final Map<String, String> ctx = new HashMap<>();
+        private final Map<String, String> params = new HashMap<>();
 
-        public Context(String arg) {
+        public Parameter(String arg) {
             this.arg = arg;
             String[] sp = arg.split(",");
             type = sp[0];
@@ -28,55 +30,76 @@ public abstract class Generator {
                 String s = sp[i];
                 int c = s.indexOf(':');
                 if (-1 == c)
-                    ctx.put(s, null);
+                    params.put(s, null);
                 else
-                    ctx.put(s.substring(0, c), s.substring(c + 1));
+                    params.put(s.substring(0, c), s.substring(c + 1));
             }
         }
 
         public String get(String key, String def) {
-            String v = ctx.remove(key);
+            String v = params.remove(key);
             return v != null ? v : def;
         }
 
-        public boolean end() {
-            if (!ctx.isEmpty()) {
-                System.err.println("-gen " + type + " not support argument: " + ctx);
-                return false;
+        public String getNotEmpty(String key, String def) {
+            String v = params.remove(key);
+            if (v != null && v.isEmpty()) {
+                throw new AssertionError("-gen " + type + " " + key + " empty");
             }
-            return true;
+            return v != null ? v : def;
+        }
+
+        public void end() {
+            if (!params.isEmpty()) {
+                throw new AssertionError("-gen " + type + " not support parameter: " + params);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return arg;
         }
     }
 
-    public static final Map<String, Generator> providers = new LinkedHashMap<>();
+    public interface Provider {
+        Generator create(Parameter parameter);
+
+        String usage();
+    }
+
+    public static final Map<String, Provider> providers = new LinkedHashMap<>();
 
     static {
-        new GenPack();
-        new GenZip();
-        new GenBin();
-        new GenJava();
-        new GenCs();
-        new GenLua();
+        GenBin.register();
+        GenPack.register();
+        GenJava.register();
+        GenCs.register();
+        GenLua.register();
     }
 
     public static Generator create(String arg) {
-        Context ctx = new Context(arg);
-        Generator gen = providers.get(ctx.type);
-        if (gen == null) {
-            System.err.println(ctx.type + " not support");
+        Parameter parameter = new Parameter(arg);
+        Provider provider = providers.get(parameter.type);
+        if (provider == null) {
+            System.err.println(parameter.type + " not support");
             return null;
         }
-        gen.context = ctx;
-        return gen.parse(ctx) ? gen : null;
+        return provider.create(parameter);
     }
 
-    public Context context;
+    public final Parameter parameter;
 
-    public abstract String usage();
+    protected Generator(Parameter parameter) {
+        this.parameter = parameter;
+    }
 
-    public abstract boolean parse(Context ctx);
+    public abstract void generate(CfgVs value) throws IOException;
 
-    public abstract void generate(Path configDir, CfgVs value) throws IOException;
+    protected void require(boolean cond, String... str) {
+        if (!cond)
+            throw new AssertionError(getClass().getSimpleName() + ": " + String.join(",", str));
+    }
+
 
     private static final Map<CfgVs, Map<String, CfgVs>> extracted = new HashMap<>();
 
@@ -105,18 +128,12 @@ public abstract class Generator {
         return v;
     }
 
-    protected static void mkdirs(File path) {
-        if (!path.exists()) {
-            if (!path.mkdirs()) {
-                Logger.log("mkdirs fail: " + path.toPath().toAbsolutePath().normalize());
-            }
-        }
+    protected static TabPrintStream createSource(File file, String encoding) throws IOException {
+        return new TabPrintStream(new PrintStream(new CachedFileOutputStream(file), false, encoding));
     }
 
-    protected static void delete(File file) {
-        String dir = file.isDirectory() ? "dir" : "file";
-        String ok = file.delete() ? "" : " fail";
-        Logger.log("delete " + dir + ok + ": " + file.toPath().toAbsolutePath().normalize());
+    protected static ZipOutputStream createZip(File file) throws IOException {
+        return new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(file), new CRC32()));
     }
 
     protected static String upper1(String value) {
@@ -129,9 +146,5 @@ public abstract class Generator {
 
     protected static String lower1(String value) {
         return value.substring(0, 1).toLowerCase() + value.substring(1);
-    }
-
-    protected static TabPrintStream cachedPrintStream(File file, String encoding) throws IOException {
-        return new TabPrintStream(new PrintStream(new CachedFileOutputStream(file), false, encoding));
     }
 }

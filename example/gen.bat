@@ -1,2 +1,2 @@
-java -jar ../configgen.jar -configdir config -gen lua,dir:lua -gen java,dir:java -gen cs,dir:cs -gen zip,file:java/configdata.zip -gen pack,dir:cs/cfg
+java -jar ../configgen.jar -configdir config -pack java/configdata.zip -gen lua,dir:lua -gen java,dir:java -gen cs,dir:cs -gen pack,dir:cs/cfg
 pause

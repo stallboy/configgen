@@ -10,13 +10,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class Column extends Node {
-    private final String name;
     public final List<Integer> indexes = new ArrayList<>();
     public final List<String> descs = new ArrayList<>();
 
     public Column(Data parent, String name) {
         super(parent, name);
-        this.name = name;
     }
 
     String guessType() {
@@ -24,7 +22,7 @@ public final class Column extends Node {
             if (name.endsWith("List")) {
                 return "list," + Rules.guessPrimitiveType(dataSet()) + "," + indexes.size();
             } else {
-                Assert(indexes.size() % 2 == 0);
+                require(indexes.size() % 2 == 0);
                 Pair pair = dataKeyValueSet();
                 return "map," + Rules.guessPrimitiveType(pair.key) + "," + Rules.guessPrimitiveType(pair.value) + "," + indexes.size() / 2;
             }

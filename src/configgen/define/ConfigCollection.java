@@ -3,9 +3,7 @@ package configgen.define;
 import configgen.Node;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -28,13 +26,13 @@ public class ConfigCollection extends Node {
 
             for (Element e : elements.get(0)) {
                 Bean b = new Bean(this, null, e);
-                Assert(null == beans.put(b.name, b), "bean duplicate name=" + b.name);
+                require(null == beans.put(b.name, b), "bean duplicate name=" + b.name);
             }
 
             for (Element e : elements.get(1)) {
                 Config c = new Config(this, e);
-                Assert(null == configs.put(c.bean.name, c), "config duplicate name=" + c.bean.name);
-                Assert(!beans.containsKey(c.bean.name), "config bean duplicate name=" + c.bean.name);
+                require(null == configs.put(c.bean.name, c), "config duplicate name=" + c.bean.name);
+                require(!beans.containsKey(c.bean.name), "config bean duplicate name=" + c.bean.name);
             }
         }
     }

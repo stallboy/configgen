@@ -1,7 +1,7 @@
 package configgen.define;
 
-import configgen.CSV;
 import configgen.Node;
+import configgen.data.CSV;
 import org.w3c.dom.Element;
 
 public class Ref extends Node {
@@ -12,10 +12,9 @@ public class Ref extends Node {
     public final String keyRef;
 
     public Ref(Bean parent, Element self) {
-        super(parent, "");
+        super(parent, self.getAttribute("name"));
         String[] attrs = DomUtils.attributes(self, "name", "keys", "ref", "nullable", "keyref");
         name = attrs[0];
-        link = name;
         String r = attrs[1].trim();
         if (!r.isEmpty())
             keys = r.split(",");

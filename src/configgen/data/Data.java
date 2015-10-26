@@ -1,6 +1,6 @@
 package configgen.data;
 
-import configgen.CSV;
+import configgen.Logger;
 import configgen.Node;
 import configgen.define.Bean;
 import configgen.define.Config;
@@ -33,7 +33,7 @@ public class Data extends Node {
     private final Map<String, NameType> defined = new LinkedHashMap<>();
     private State state;
     private int index;
-    private String name;
+    private String _name;
     private Rules.Sep nameSep;
     private NameType nameSepField;
 
@@ -46,8 +46,8 @@ public class Data extends Node {
         NORM, MAYBE_LIST_OR_MAP, LIST, MAYBE_MAP, MAYBE_MAP2, MAP
     }
 
-    public Data(Datas parent, String link, List<List<String>> raw) {
-        super(parent, link);
+    public Data(Datas parent, String name, List<List<String>> raw) {
+        super(parent, name);
         descLine = raw.get(0);
         nameLine = raw.get(1);
         for (int i = 2; i < raw.size(); i++) {
@@ -62,15 +62,17 @@ public class Data extends Node {
         Bean define = config.bean;
         Map<String, Field> old = new LinkedHashMap<>(define.fields);
         define.fields.clear();
-        columns.forEach((name, col) -> {
-            Field f = old.get(name);
+        columns.forEach((n, col) -> {
+            Field f = old.remove(n);
             if (f == null) {
-                f = new Field(define, name, col.guessType());
+                f = new Field(define, n, col.guessType());
+                Logger.verbose("new field " + f.fullName());
             }
             define.fields.put(f.name, f);
             col.updateDesc(f);
         });
-        //todo refine ref,range
+
+        old.forEach((k, f) -> Logger.verbose("delete field " + f.fullName()));
     }
 
     void parse(Cfg cfg) {
@@ -85,8 +87,8 @@ public class Data extends Node {
             if (s.isEmpty())
                 continue;
 
-            name = s;
-            nameSep = Rules.trySep(name);
+            _name = s;
+            nameSep = Rules.trySep(_name);
 
             switch (state) {
                 case LIST:
@@ -123,12 +125,12 @@ public class Data extends Node {
                     defined.put(k, new NameType(k, t));
                 } else {
                     String columnName = (type.value instanceof TBean) ? k : Rules.parseListName(k);
-                    Assert(null == defined.put(columnName, new NameType(k, t)), "list field name duplicate");
+                    require(null == defined.put(columnName, new NameType(k, t)), "list field name duplicate");
                 }
             } else if (t instanceof TMap) {
                 TMap type = (TMap) t;
                 String columnName = (type.key instanceof TBean || type.value instanceof TBean) ? k : Rules.parseMapName(k).key;
-                Assert(null == defined.put(columnName, new NameType(k, t)), "map field name duplicate");
+                require(null == defined.put(columnName, new NameType(k, t)), "map field name duplicate");
             } else {
                 defined.put(k, new NameType(k, t));
             }
@@ -136,9 +138,9 @@ public class Data extends Node {
     }
 
     private boolean isDefined() {
-        NameType t = defined.get(name);
+        NameType t = defined.get(_name);
         if (t != null) {
-            Assert(t.type.columnSpan() == 1);
+            require(t.type.columnSpan() == 1);
             return true;
         }
         return false;
@@ -149,7 +151,7 @@ public class Data extends Node {
             NameType t = defined.get(nameSep.field);
             if (t != null) {
                 if (nameSep.type == Rules.SepType.IntPostfix)
-                    Assert(nameSep.num == 1);
+                    require(nameSep.num == 1);
                 nameSepField = t;
                 nameSepVisited = 1;
                 return true;
@@ -177,7 +179,7 @@ public class Data extends Node {
         }
 
         if (isDefined()) {
-            put(name, index);
+            put(_name, index);
             return;
         }
 
@@ -192,14 +194,14 @@ public class Data extends Node {
             ABSpan.add(index);
             state = State.MAYBE_LIST_OR_MAP;
         } else {
-            put(name, index);
+            put(_name, index);
         }
     }
 
     private void onMaybeListOrMap() {
         if (isDefined()) {
             put(A + "1", ABSpan.get(0));
-            put(name, index);
+            put(_name, index);
             state = State.NORM;
             return;
         }
@@ -211,7 +213,7 @@ public class Data extends Node {
             return;
         }
 
-        if (name.equals(A + "2")) {
+        if (_name.equals(A + "2")) {
             ABSpan.add(index);
             state = State.LIST;
         } else if (nameSep.type == Rules.SepType.IntPostfix && nameSep.num == 1) {
@@ -228,7 +230,7 @@ public class Data extends Node {
     private void onList() {
         if (isDefined()) {
             put(Rules.makeListName(A), ABSpan);
-            put(name, index);
+            put(_name, index);
             state = State.NORM;
             return;
         }
@@ -240,7 +242,7 @@ public class Data extends Node {
             return;
         }
 
-        if (name.equals(A + (ABSpan.size() + 1))) {
+        if (_name.equals(A + (ABSpan.size() + 1))) {
             ABSpan.add(index);
         } else {
             put(Rules.makeListName(A), ABSpan);
@@ -253,7 +255,7 @@ public class Data extends Node {
         if (isDefined()) {
             put(A + "1", ABSpan.get(0));
             put(B + "1", ABSpan.get(1));
-            put(name, index);
+            put(_name, index);
             state = State.NORM;
             return;
         }
@@ -266,10 +268,10 @@ public class Data extends Node {
             return;
         }
 
-        if (name.equals(A + "2")) {
+        if (_name.equals(A + "2")) {
             ABSpan.add(index);
             state = State.MAYBE_MAP2;
-        } else if (name.equals(B + "2")) {
+        } else if (_name.equals(B + "2")) {
             put(A + "1", ABSpan.remove(0));
             A = B;
             ABSpan.add(index);
@@ -288,7 +290,7 @@ public class Data extends Node {
             put(A + "1", ABSpan.get(0));
             put(B + "1", ABSpan.get(1));
             put(A + "2", ABSpan.get(2));
-            put(name, index);
+            put(_name, index);
             state = State.NORM;
             return;
         }
@@ -302,7 +304,7 @@ public class Data extends Node {
             return;
         }
 
-        if (name.equals(B + "2")) {
+        if (_name.equals(B + "2")) {
             ABSpan.add(index);
             state = State.MAP;
         } else {
@@ -316,27 +318,27 @@ public class Data extends Node {
 
     private void onMap() {
         if (isDefined()) {
-            Assert(ABSpan.size() % 2 == 0);
+            require(ABSpan.size() % 2 == 0);
             put(Rules.makeMapName(A, B), ABSpan);
-            put(name, index);
+            put(_name, index);
             state = State.NORM;
             return;
         }
 
         if (isNameSepDefined()) {
-            Assert(ABSpan.size() % 2 == 0);
+            require(ABSpan.size() % 2 == 0);
             put(Rules.makeMapName(A, B), ABSpan);
             put(nameSepField.name, index);
             state = State.NORM;
             return;
         }
 
-        if (ABSpan.size() % 2 == 0 && name.equals(A + (ABSpan.size() / 2 + 1))) {
+        if (ABSpan.size() % 2 == 0 && _name.equals(A + (ABSpan.size() / 2 + 1))) {
             ABSpan.add(index);
-        } else if (ABSpan.size() % 2 == 1 && name.equals(B + (ABSpan.size() / 2 + 1))) {
+        } else if (ABSpan.size() % 2 == 1 && _name.equals(B + (ABSpan.size() / 2 + 1))) {
             ABSpan.add(index);
         } else {
-            Assert(ABSpan.size() % 2 == 0);
+            require(ABSpan.size() % 2 == 0);
             put(Rules.makeMapName(A, B), ABSpan);
             state = State.NORM;
             onNorm();
@@ -350,7 +352,7 @@ public class Data extends Node {
                 put(Rules.makeListName(A), ABSpan);
                 break;
             case MAP:
-                Assert(ABSpan.size() % 2 == 0);
+                require(ABSpan.size() % 2 == 0);
                 put(Rules.makeMapName(A, B), ABSpan);
                 break;
             case MAYBE_LIST_OR_MAP:
@@ -382,7 +384,7 @@ public class Data extends Node {
         Column col = new Column(this, s);
         col.indexes.addAll(a);
         col.descs.addAll(a.stream().map(descLine::get).collect(Collectors.toList()));
-        Assert(null == columns.put(s, col), "field duplicate");
+        require(null == columns.put(s, col), "field duplicate");
     }
 
     private void add(String s, int i) {

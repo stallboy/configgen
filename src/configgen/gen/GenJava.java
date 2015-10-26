@@ -2,10 +2,10 @@ package configgen.gen;
 
 import configgen.define.Field;
 import configgen.type.*;
+import configgen.value.CfgV;
 import configgen.value.CfgVs;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,46 +14,48 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GenJava extends Generator {
+
+    static void register() {
+        providers.put("java", new Provider() {
+            @Override
+            public Generator create(Parameter parameter) {
+                return new GenJava(parameter);
+            }
+
+            @Override
+            public String usage() {
+                return "dir:config,pkg:config,encoding:GBK    cooperate with -gen zip";
+            }
+        });
+    }
+
     private CfgVs value;
     private File dstDir;
     private String dir;
     private String pkg;
     private String encoding;
 
-    public GenJava() {
-        providers.put("java", this);
+    public GenJava(Parameter parameter) {
+        super(parameter);
+        dir = parameter.get("dir", "config");
+        pkg = parameter.getNotEmpty("pkg", "config");
+        encoding = parameter.get("encoding", "GBK");
+        parameter.end();
     }
 
     @Override
-    public String usage() {
-        return "dir:config,pkg:config,encoding:GBK    cooperate with -gen zip";
-    }
-
-    @Override
-    public boolean parse(Context ctx) {
-        dir = ctx.get("dir", "config");
-        pkg = ctx.get("pkg", "config");
-        encoding = ctx.get("encoding", "GBK");
-        return ctx.end();
-    }
-
-    @Override
-    public void generate(Path configDir, CfgVs _value) throws IOException {
+    public void generate(CfgVs _value) throws IOException {
         value = _value;
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
-        CachedFileOutputStream.removeOtherFiles(dstDir);
-        mkdirs(dstDir);
-
         for (TBean b : value.type.tbeans.values()) {
-            genBean(b, null);
+            genBean(b, null, null);
         }
-        for (Cfg c : value.type.cfgs.values()) {
-            genBean(c.tbean, c);
+        for (CfgV c : value.cfgvs.values()) {
+            genBean(c.type.tbean, c.type, c);
         }
         genCSV();
         genCSVLoader();
-
-        CachedFileOutputStream.doRemoveFiles();
+        CachedFileOutputStream.deleteOtherFiles(dstDir);
     }
 
 
@@ -82,36 +84,35 @@ public class GenJava extends Generator {
         }
     }
 
-    private void genBean(TBean tbean, Cfg cfg) throws IOException {
+    private void genBean(TBean tbean, Cfg cfg, CfgV cfgv) throws IOException {
         Name name = new Name(pkg, tbean.define.name);
         File javaFile = dstDir.toPath().resolve(name.path).toFile();
-        mkdirs(javaFile.getParentFile());
-        try (TabPrintStream ps = cachedPrintStream(javaFile, encoding)) {
-            genBean(tbean, cfg, name, ps);
+        try (TabPrintStream ps = createSource(javaFile, encoding)) {
+            genBean(tbean, cfg, cfgv, name, ps);
         }
     }
 
-    private void genBean(TBean tbean, Cfg cfg, Name name, TabPrintStream ps) {
+    private void genBean(TBean tbean, Cfg cfg, CfgV cfgv, Name name, TabPrintStream ps) {
         ps.println("package " + name.pkg + ";");
         ps.println();
 
-        boolean isEnumFull = (cfg != null && cfg.value.isEnum && !cfg.value.isEnumPart);
-        boolean isEnumPart = (cfg != null && cfg.value.isEnum && cfg.value.isEnumPart);
+        boolean isEnumFull = (cfg != null && cfgv.isEnum && !cfgv.isEnumPart);
+        boolean isEnumPart = (cfg != null && cfgv.isEnum && cfgv.isEnumPart);
 
         ps.println((isEnumFull ? "public enum " : "public class ") + name.className + " {");
 
         //static enum
         if (isEnumFull) {
-            String es = String.join("," + System.lineSeparator() + "    ", cfg.value.enumNames.stream()
+            String es = String.join("," + System.lineSeparator() + "    ", cfgv.enumNames.stream()
                     .map(String::toUpperCase).collect(Collectors.toList()));
             ps.println1(es + ";");
             ps.println();
         } else if (isEnumPart) {
-            cfg.value.enumNames.forEach(s ->
+            cfgv.enumNames.forEach(s ->
                     ps.println1("private static " + name.className + " " + s.toUpperCase() + "_;"));
             ps.println();
 
-            cfg.value.enumNames.forEach(s ->
+            cfgv.enumNames.forEach(s ->
                     ps.println1("public static " + name.className + " " + s.toUpperCase() + "() { return " + s.toUpperCase() + "_; }"));
             ps.println();
         }
@@ -396,19 +397,19 @@ public class GenJava extends Generator {
 
             //static initialize
             ps.println1("static void initialize(java.util.List<java.util.List<String>> dataList) {");
-            ps.println2("java.util.List<Integer> indexes = java.util.Arrays.asList(" + String.join(", ", cfg.value.columnIndexes.stream().map(String::valueOf).collect(Collectors.toList())) + ");");
+            ps.println2("java.util.List<Integer> indexes = java.util.Arrays.asList(" + String.join(", ", cfgv.columnIndexes.stream().map(String::valueOf).collect(Collectors.toList())) + ");");
             ps.println2("for (java.util.List<String> row : dataList) {");
             ps.println3("java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());");
             if (isEnumFull) {
-                ps.println3(name.className + " self = valueOf(row.get(" + cfg.value.enumColumnIndex + ").trim().toUpperCase())._parse(data);");
+                ps.println3(name.className + " self = valueOf(row.get(" + cfgv.enumColumnIndex + ").trim().toUpperCase())._parse(data);");
                 ps.println3("All.put(" + actualParamsKey(keys, "self.") + ", self);");
             } else {
                 ps.println3(name.className + " self = new " + name.className + "()._parse(data);");
                 ps.println3("All.put(" + actualParamsKey(keys, "self.") + ", self);");
                 if (isEnumPart) {
-                    ps.println3("String name = row.get(" + cfg.value.enumColumnIndex + ").trim().toUpperCase();");
+                    ps.println3("String name = row.get(" + cfgv.enumColumnIndex + ").trim().toUpperCase();");
                     ps.println3("switch (name) {");
-                    cfg.value.enumNames.forEach(s -> {
+                    cfgv.enumNames.forEach(s -> {
                         ps.println4("case \"" + s.toUpperCase() + "\":");
                         ps.println5(s.toUpperCase() + "_ = self;");
                         ps.println5("break;");
@@ -422,7 +423,7 @@ public class GenJava extends Generator {
                 ps.println2("if (values().length != all().size()) ");
                 ps.println3("throw new RuntimeException(\"Enum Uncompleted: " + name.className + "\");");
             } else if (isEnumPart) {
-                cfg.value.enumNames.forEach(s -> ps.println2("java.util.Objects.requireNonNull(" + s.toUpperCase() + "_);"));
+                cfgv.enumNames.forEach(s -> ps.println2("java.util.Objects.requireNonNull(" + s.toUpperCase() + "_);"));
             }
             ps.println1("}");
             ps.println();
@@ -722,9 +723,9 @@ public class GenJava extends Generator {
     private void genCSV() throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/CSV.java");
              BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/configgen/CSV.java"), "GBK"));
-             TabPrintStream ps = cachedPrintStream(new File(dstDir, "CSV.java"), encoding)) {
+             TabPrintStream ps = createSource(new File(dstDir, "CSV.java"), encoding)) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
-                if (line.equals("package configgen;"))
+                if (line.equals("package configgen.data;"))
                     line = "package " + pkg + ";";
                 ps.println(line);
             }
@@ -732,7 +733,7 @@ public class GenJava extends Generator {
     }
 
     private void genCSVLoader() throws IOException {
-        try (TabPrintStream ps = cachedPrintStream(new File(dstDir, "CSVLoader.java"), encoding)) {
+        try (TabPrintStream ps = createSource(new File(dstDir, "CSVLoader.java"), encoding)) {
             ps.println("package " + pkg + ";");
             ps.println();
 

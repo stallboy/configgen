@@ -5,8 +5,8 @@ import configgen.Node;
 public abstract class Type extends Node {
     public final Constraint constraint;
 
-    public Type(Node parent, String link, Constraint cons) {
-        super(parent, link);
+    public Type(Node parent, String name, Constraint cons) {
+        super(parent, name);
         constraint = cons;
     }
 

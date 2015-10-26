@@ -9,8 +9,8 @@ public abstract class Value extends Node {
     protected final Type type;
     protected final List<Cell> cells;
 
-    public Value(Node parent, String link, Type type, List<Cell> data) {
-        super(parent, link);
+    public Value(Node parent, String name, Type type, List<Cell> data) {
+        super(parent, name);
         this.type = type;
         this.cells = data;
     }
@@ -20,11 +20,11 @@ public abstract class Value extends Node {
     public abstract void verifyConstraint();
 
     protected void verifyRefs() {
-        type.constraint.refs.stream().filter(ref -> ref.ref != null).forEach(ref -> {
+        type.constraint.refs.stream().forEach(ref -> {
             if (isNull()) {
-                Assert(ref.nullable, toString(), "null not support ref", ref.ref.location());
+                require(ref.nullable, toString(), "null not support ref", ref.ref.fullName());
             } else {
-                Assert(ref.ref.value.vkeys.contains(this), toString(), "not found in ref", ref.ref.location());
+                require(((CfgVs) root).cfgvs.get(ref.ref.name).vkeys.contains(this), toString(), "not found in ref", ref.ref.fullName());
             }
         });
     }
@@ -91,6 +91,4 @@ public abstract class Value extends Node {
             }
         });
     }
-
-
 }

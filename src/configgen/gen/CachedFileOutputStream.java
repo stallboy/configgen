@@ -15,7 +15,6 @@ import java.util.Set;
 
 public class CachedFileOutputStream extends ByteArrayOutputStream {
     private static final Set<String> filename_set = new HashSet<>();
-    private static final Set<File> remove_files = new HashSet<>();
     private Path file;
 
     public CachedFileOutputStream(File file) throws IOException {
@@ -24,6 +23,7 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
     }
 
     private void writeFile() throws IOException {
+        mkdirs(file.getParent().toFile());
         Files.write(file, toByteArray(), StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
@@ -39,6 +39,20 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
         }
     }
 
+    private static void mkdirs(File path) {
+        if (!path.exists()) {
+            if (!path.mkdirs()) {
+                Logger.log("mkdirs fail: " + path.toPath().toAbsolutePath().normalize());
+            }
+        }
+    }
+
+    private static void delete(File file) {
+        String dir = file.isDirectory() ? "dir" : "file";
+        String ok = file.delete() ? "" : " fail";
+        Logger.log("delete " + dir + ok + ": " + file.toPath().toAbsolutePath().normalize());
+    }
+
     private static void doRemoveFile(File file) {
         String absolutePath = file.getAbsolutePath();
         if (!filename_set.contains(absolutePath.toLowerCase())) {
@@ -49,26 +63,18 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
                         doRemoveFile(f);
                     }
                 }
-
                 files = file.listFiles();
                 if (files != null && files.length == 0) {
-                    Generator.delete(file);
+                    delete(file);
                 }
-
             } else {
-                Generator.delete(file);
+                delete(file);
             }
-
         }
     }
 
-    public static void doRemoveFiles() {
-        remove_files.stream().filter(File::exists)
+    public static void deleteOtherFiles(File... files) {
+        Arrays.asList(files).stream().filter(File::exists)
                 .forEach(CachedFileOutputStream::doRemoveFile);
-        remove_files.clear();
-    }
-
-    public static void removeOtherFiles(File file) {
-        remove_files.add(file);
     }
 }

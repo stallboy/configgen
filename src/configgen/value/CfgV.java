@@ -20,12 +20,11 @@ public class CfgV extends Node {
     public final Set<String> enumNames = new LinkedHashSet<>();
     public final int enumColumnIndex;
 
-    public CfgV(CfgVs parent, String link, Cfg cfg, Data data) {
-        super(parent, link);
+    public CfgV(CfgVs parent, String name, Cfg cfg, Data data) {
+        super(parent, name);
         type = cfg;
-        type.value = this;
-        cfg.tbean.fields.forEach((name, type) -> columnIndexes.addAll(data.columns.get(name).indexes));
-        Assert(columnIndexes.size() > 0);
+        cfg.tbean.fields.forEach((fn, type) -> columnIndexes.addAll(data.columns.get(fn).indexes));
+        require(columnIndexes.size() > 0);
 
         data.line2data.forEach((row, rowData) -> {
             List<Cell> order = columnIndexes.stream().map(col -> new Cell(row, col, rowData.get(col))).collect(Collectors.toList());
@@ -41,12 +40,12 @@ public class CfgV extends Node {
                 List<Value> vs = new ArrayList<>();
                 for (String k : type.define.keys) {
                     Value v = vbean.map.get(k);
-                    Assert(v != null);
+                    require(v != null);
                     vs.add(v);
                 }
                 key = new VList(this, "keys", vs);
             }
-            Assert(vkeys.add(key), "key duplicate", key.toString());
+            require(vkeys.add(key), "key duplicate", key.toString());
         }
 
         isEnum = !type.define.enumStr.isEmpty();
@@ -60,7 +59,7 @@ public class CfgV extends Node {
                 if (e.isEmpty()) {
                     part = true;
                 } else {
-                    Assert(names.add(e.toUpperCase()), "enum data duplicate", e);
+                    require(names.add(e.toUpperCase()), "enum data duplicate", e);
                     enumNames.add(e);
                 }
             }

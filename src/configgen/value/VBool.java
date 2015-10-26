@@ -9,11 +9,11 @@ import java.util.List;
 public class VBool extends VPrimitive {
     public final boolean value;
 
-    public VBool(Node parent, String link, TBool type, List<Cell> data) {
-        super(parent, link, type, data);
+    public VBool(Node parent, String name, TBool type, List<Cell> data) {
+        super(parent, name, type, data);
         String s = raw.data.trim();
         value = s.equalsIgnoreCase("true") || s.equals("1");
-        Assert(s.isEmpty() || s.equalsIgnoreCase("false") || s.equals("0") || value, "not bool", raw.toString());
+        require(s.isEmpty() || s.equalsIgnoreCase("false") || s.equals("0") || value, "not bool", raw.toString());
     }
 
     @Override

@@ -1,7 +1,5 @@
 package configgen.data;
 
-import configgen.CSV;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -68,5 +66,4 @@ final class Test {
         Rules.Sep s = Rules.trySep(a);
         equal(Rules.SepType.None, s.type);
     }
-
 }

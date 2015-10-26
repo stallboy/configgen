@@ -7,14 +7,14 @@ public class TMap extends Type {
     public final Type value;
     public final int count; // must > 0
 
-    public TMap(Node parent, String link, Constraint cons, String key, String value, int count) {
-        super(parent, link, cons);
-        Assert(cons.range == null, "map not support range");
+    public TMap(Node parent, String name, Constraint cons, String key, String value, int count) {
+        super(parent, name, cons);
+        require(cons.range == null, "map not support range");
 
         Constraint kc = new Constraint();
         Constraint vc = new Constraint();
         for (SRef ref : cons.refs) {
-            Assert(!ref.nullable, "map not support nullableRef");
+            require(!ref.nullable, "map not support nullableRef");
             if (null != ref.keyRef)
                 kc.refs.add(new SRef("", ref.keyRef, false, null));
             if (null != ref.ref)

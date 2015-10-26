@@ -4,8 +4,8 @@ import configgen.Node;
 
 public class TInt extends TPrimitive {
 
-    public TInt(Node parent, String link, Constraint cons) {
-        super(parent, link, cons);
+    public TInt(Node parent, String name, Constraint cons) {
+        super(parent, name, cons);
     }
 
     @Override
@@ -27,6 +27,5 @@ public class TInt extends TPrimitive {
     public <T> T accept(TypeVisitorT<T> visitor) {
         return visitor.visit(this);
     }
-
 
 }

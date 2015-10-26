@@ -4,9 +4,9 @@ import configgen.Node;
 
 public class TFloat extends TPrimitive {
 
-    public TFloat(Node parent, String link, Constraint cons) {
-        super(parent, link, cons);
-        Assert(cons.refs.isEmpty(), "float not support ref");
+    public TFloat(Node parent, String name, Constraint cons) {
+        super(parent, name, cons);
+        require(cons.refs.isEmpty(), "float not support ref");
     }
 
     @Override

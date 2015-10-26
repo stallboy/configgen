@@ -4,8 +4,8 @@ import configgen.Node;
 
 public class TLong extends TPrimitive {
 
-    public TLong(Node parent, String link, Constraint cons) {
-        super(parent, link, cons);
+    public TLong(Node parent, String name, Constraint cons) {
+        super(parent, name, cons);
     }
 
     @Override

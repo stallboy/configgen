@@ -1,7 +1,7 @@
 package configgen.value;
 
-import configgen.CSV;
 import configgen.Node;
+import configgen.data.CSV;
 import configgen.type.Range;
 import configgen.type.TLong;
 
@@ -10,13 +10,13 @@ import java.util.List;
 public class VLong extends VPrimitive {
     public final long value;
 
-    public VLong(Node parent, String link, TLong type, List<Cell> data) {
-        super(parent, link, type, data);
+    public VLong(Node parent, String name, TLong type, List<Cell> data) {
+        super(parent, name, type, data);
         long v = 0;
         try {
             v = CSV.parseLong(raw.data);
         } catch (Exception e) {
-            Assert(false, e.toString(), raw.toString());
+            require(false, e.toString(), raw.toString());
         }
         value = v;
     }

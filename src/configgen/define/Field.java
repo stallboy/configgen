@@ -5,7 +5,6 @@ import org.w3c.dom.Element;
 
 public class Field extends Node {
     public String desc;
-    public final String name;
     public final String type;
     public final String ref;
     public final String nullableRef;
@@ -16,12 +15,10 @@ public class Field extends Node {
     public final String own;
 
     public Field(Bean parent, Element self) {
-        super(parent, "");
+        super(parent, self.getAttribute("name"));
         String[] attrs = DomUtils.attributes(self, "desc", "name", "type",
                 "ref", "nullableref", "keyref", "listref", "range", "own");
         desc = attrs[0];
-        name = attrs[1];
-        link = name;
         type = attrs[2];
 
         ref = attrs[3];
@@ -41,10 +38,8 @@ public class Field extends Node {
     }
 
     public Field(Bean parent, String name, String type) {
-        super(parent, "");
-        this.name = name;
+        super(parent, name);
         this.type = type;
-        link = name;
 
         ref = "";
         nullableRef = "";

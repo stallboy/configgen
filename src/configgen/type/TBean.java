@@ -23,7 +23,7 @@ public class TBean extends Type {
     }
 
     public TBean(Cfg parent, Bean bean) {
-        super(parent, "", new Constraint());
+        super(parent, bean.name, new Constraint());
         this.define = bean;
         isBean = false;
         init();
@@ -73,13 +73,13 @@ public class TBean extends Type {
         define.fields.values().forEach(this::resolveField);
         mRefs.forEach(kr -> {
             kr.resolve();
-            Assert(refNames.add(kr.define.name), "ref name conflict", kr.define.name);
+            require(refNames.add(kr.define.name), "ref name conflict", kr.define.name);
         });
         listRefs.forEach(ListRef::resolve);
 
-        Assert(fields.size() > 0, "has no fields");
+        require(fields.size() > 0, "has no fields");
         if (define.compress) {
-            fields.values().forEach(t -> Assert(t instanceof TPrimitive, "compress field must be primitive"));
+            fields.values().forEach(t -> require(t instanceof TPrimitive, "compress field must be primitive"));
         }
     }
 
@@ -92,7 +92,7 @@ public class TBean extends Type {
             v = sp[1].trim();
             if (sp.length > 2) {
                 c = Integer.parseInt(sp[2].trim());
-                Assert(c >= 1);
+                require(c >= 1);
             }
         } else if (f.type.startsWith("map,")) {
             t = "map";
@@ -100,7 +100,7 @@ public class TBean extends Type {
             k = sp[1].trim();
             v = sp[2].trim();
             c = Integer.parseInt(sp[3].trim());
-            Assert(c >= 1);
+            require(c >= 1);
         } else {
             t = f.type;
         }
@@ -119,7 +119,7 @@ public class TBean extends Type {
         }
 
         Type res = resolveType(f.name, cons, t, k, v, c);
-        f.Assert(res != null, "type resolve err", f.type);
+        f.require(res != null, "type resolve err", f.type);
         fields.put(f.name, res);
     }
 
@@ -131,23 +131,23 @@ public class TBean extends Type {
         Cfg kc = null;
         if (!ref.isEmpty()) {
             c = cfgs.cfgs.get(ref);
-            Assert(c != null, "ref not found", ref);
+            require(c != null, "ref not found", ref);
             hasRef = true;
         } else if (!nullableRef.isEmpty()) {
             c = cfgs.cfgs.get(nullableRef);
-            Assert(c != null, "nullableRef not found", nullableRef);
+            require(c != null, "nullableRef not found", nullableRef);
             nullable = true;
             hasRef = true;
         }
 
         if (!keyRef.isEmpty()) {
             kc = cfgs.cfgs.get(keyRef);
-            Assert(c != null, "keyRef not found", keyRef);
+            require(c != null, "keyRef not found", keyRef);
             hasRef = true;
         }
 
         if (hasRef) {
-            Assert(refNames.add(name), "ref name conflict", name);
+            require(refNames.add(name), "ref name conflict", name);
             cons.refs.add(new SRef(name, c, nullable, kc));
         }
 
@@ -155,14 +155,13 @@ public class TBean extends Type {
             String[] sp = range.split(",");
             int min = Integer.decode(sp[0]);
             int max = Integer.decode(sp[1]);
-            Assert(max > min, "range.max must > range.min");
+            require(max > min, "range.max must > range.min");
             addConstraintRange(cons, new Range(min, max));
         }
     }
 
     private void addConstraintRange(Constraint cons, Range r) {
-        Assert(cons.range == null, "range allow one per field");
+        require(cons.range == null, "range allow one per field");
         cons.range = r;
     }
-
 }

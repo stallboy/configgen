@@ -9,9 +9,9 @@ import java.util.List;
 public abstract class VPrimitive extends Value {
     protected final Cell raw;
 
-    public VPrimitive(Node parent, String link, TPrimitive type, List<Cell> data) {
-        super(parent, link, type, data);
-        Assert(data.size() == 1);
+    public VPrimitive(Node parent, String name, TPrimitive type, List<Cell> data) {
+        super(parent, name, type, data);
+        require(data.size() == 1);
         raw = data.get(0);
     }
 
@@ -20,7 +20,7 @@ public abstract class VPrimitive extends Value {
 
         Range range = type.constraint.range;
         if (range != null) {
-            Assert(checkRange(range), "range err", toString());
+            require(checkRange(range), "range err", toString());
         }
     }
 

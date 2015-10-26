@@ -9,14 +9,13 @@ public class Range extends Node {
     public final int max;
 
     public Range(Bean parent, Element self) {
-        super(parent, "");
+        super(parent, self.getAttribute("key"));
         String[] attr = DomUtils.attributes(self, "key", "min", "max");
         key = attr[0];
-        link = key;
         min = Integer.decode(attr[1]);
         max = Integer.decode(attr[2]);
 
-        Assert(max >= min, attr[1]);
+        require(max >= min, attr[1]);
     }
 
     public void save(Element parent) {

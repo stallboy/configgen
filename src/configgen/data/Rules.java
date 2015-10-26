@@ -1,7 +1,5 @@
 package configgen.data;
 
-import configgen.CSV;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -142,5 +140,4 @@ final class Rules {
         }
         return true;
     }
-
 }

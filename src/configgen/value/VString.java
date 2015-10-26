@@ -10,8 +10,8 @@ public class VString extends VPrimitive {
     public final TString tstring;
     public final String value;
 
-    public VString(Node parent, String link, TString type, List<Cell> data) {
-        super(parent, link, type, data);
+    public VString(Node parent, String name, TString type, List<Cell> data) {
+        super(parent, name, type, data);
         tstring = type;
         value = raw.data;
     }

@@ -1,7 +1,7 @@
 package configgen.value;
 
-import configgen.CSV;
 import configgen.Node;
+import configgen.data.CSV;
 import configgen.type.Range;
 import configgen.type.TFloat;
 
@@ -10,13 +10,13 @@ import java.util.List;
 public class VFloat extends VPrimitive {
     public final float value;
 
-    public VFloat(Node parent, String link, TFloat type, List<Cell> data) {
-        super(parent, link, type, data);
+    public VFloat(Node parent, String name, TFloat type, List<Cell> data) {
+        super(parent, name, type, data);
         float v = 0;
         try {
             v = CSV.parseFloat(raw.data);
         } catch (Exception e) {
-            Assert(false, e.toString(), raw.toString());
+            require(false, e.toString(), raw.toString());
         }
         value = v;
     }

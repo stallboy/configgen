@@ -9,9 +9,8 @@ public class Config extends Node {
     public final String[] keys;
 
     public Config(ConfigCollection parent, Element self) {
-        super(parent, "");
+        super(parent, self.getAttribute("name"));
         bean = new Bean(parent, this, self);
-        link = bean.name;
         enumStr = self.getAttribute("enum");
         String k = self.getAttribute("keys").trim();
         if (!k.isEmpty())
@@ -28,18 +27,17 @@ public class Config extends Node {
     }
 
     private Config(ConfigCollection parent, Config original, Bean ownBean) {
-        super(parent, original.link);
+        super(parent, original.name);
         bean = ownBean;
         enumStr = bean.fields.containsKey(original.enumStr) ? original.enumStr : "";
         keys = original.keys;
         if (keys.length > 0) {
             for (String key : keys) {
-                Assert(bean.fields.containsKey(key), "must own primary keys");
+                require(bean.fields.containsKey(key), "must own primary keys");
             }
         } else {
-            Assert(bean.fields.containsKey(original.bean.fields.keySet().iterator().next()), "must own primary key");
+            require(bean.fields.containsKey(original.bean.fields.keySet().iterator().next()), "must own primary key");
         }
-
     }
 
     public void save(Element parent) {

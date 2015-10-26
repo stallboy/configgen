@@ -2,18 +2,17 @@ package configgen;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class Node {
     protected final Node root;
     protected final Node parent;
-    protected String link = "";
+    public final String name;
     protected final List<Node> children = new ArrayList<>();
 
-    public Node(Node parent, String link) {
+    public Node(Node parent, String name) {
         this.parent = parent;
-        this.link = link;
+        this.name = name;
         if (parent != null) {
             root = parent.root;
             parent.children.add(this);
@@ -22,15 +21,11 @@ public class Node {
         }
     }
 
-    public final String location() {
-        List<String> par = new LinkedList<>();
-        for (Node p = this; p != null; p = p.parent) {
-            par.add(0, p.link);
-        }
-        return String.join(".", par);
+    public String fullName() {
+        return (parent != null ? parent.fullName() + "." : "") + name;
     }
 
-    public final void dump(PrintStream ps) {
+    public void dump(PrintStream ps) {
         if (parent == null)
             for (Node child : children)
                 child.dump(ps, "");
@@ -39,13 +34,13 @@ public class Node {
     }
 
     private void dump(PrintStream ps, String tab) {
-        ps.println(tab + "[" + getClass().getSimpleName() + "]" + link);
+        ps.println(tab + "[" + getClass().getSimpleName() + "]" + name);
         for (Node child : children)
             child.dump(ps, tab + "\t");
     }
 
-    public final void Assert(boolean cond, String... str) {
+    public final void require(boolean cond, String... str) {
         if (!cond)
-            throw new AssertionError(location() + ": " + String.join(",", str));
+            throw new AssertionError(fullName() + ": " + String.join(",", str));
     }
 }

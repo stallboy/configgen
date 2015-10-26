@@ -9,14 +9,14 @@ public class TString extends TPrimitive {
 
     public final Subtype subtype;
 
-    public TString(Node parent, String link, Constraint cons, Subtype subtype) {
-        super(parent, link, cons);
+    public TString(Node parent, String name, Constraint cons, Subtype subtype) {
+        super(parent, name, cons);
         this.subtype = subtype;
         switch (subtype) {
             case STRING:
                 break;
             case TEXT:
-                Assert(cons.refs.isEmpty(), "text not support ref");
+                require(cons.refs.isEmpty(), "text not support ref");
                 break;
         }
     }

@@ -2,10 +2,10 @@ package configgen.gen;
 
 import configgen.define.Field;
 import configgen.type.*;
+import configgen.value.CfgV;
 import configgen.value.CfgVs;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +14,21 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GenCs extends Generator {
+
+    static void register() {
+        providers.put("cs", new Provider() {
+            @Override
+            public Generator create(Parameter parameter) {
+                return new GenCs(parameter);
+            }
+
+            @Override
+            public String usage() {
+                return "dir:Config,pkg:Config,encoding:GBK,prefix:Data    add ,own:x if need, cooperate with -gen bin, -gen pack";
+            }
+        });
+    }
+
     private String dir;
     private String pkg;
     private String encoding;
@@ -22,47 +37,32 @@ public class GenCs extends Generator {
     private File dstDir;
     private CfgVs value;
 
-    public GenCs() {
-        providers.put("cs", this);
+    public GenCs(Parameter parameter) {
+        super(parameter);
+        dir = parameter.get("dir", "Config");
+        pkg = parameter.getNotEmpty("pkg", "Config");
+        encoding = parameter.get("encoding", "GBK");
+        prefix = parameter.get("prefix", "Data");
+        own = parameter.get("own", null);
+        parameter.end();
     }
 
     @Override
-    public String usage() {
-        return "dir:Config,pkg:Config,encoding:GBK,prefix:Data    add ,own:x if need, cooperate with -gen bin, -gen pack";
-    }
-
-    @Override
-    public boolean parse(Context ctx) {
-        dir = ctx.get("dir", "Config");
-        pkg = ctx.get("pkg", "Config");
-        encoding = ctx.get("encoding", "GBK");
-        prefix = ctx.get("prefix", "Data");
-        own = ctx.get("own", null);
-        return ctx.end();
-    }
-
-    @Override
-    public void generate(Path configDir, CfgVs _value) throws IOException {
+    public void generate(CfgVs _value) throws IOException {
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = own != null ? extract(_value, own) : _value;
-
-        CachedFileOutputStream.removeOtherFiles(dstDir);
-        mkdirs(dstDir);
-
         copyFile("CSV.cs");
         copyFile("CSVLoader.cs");
         copyFile("LoadErrors.cs");
         copyFile("KeyedList.cs");
         genCSVProcessor();
-
         for (TBean b : value.type.tbeans.values()) {
-            genBean(b, null);
+            genBean(b, null, null);
         }
-        for (Cfg c : value.type.cfgs.values()) {
-            genBean(c.tbean, c);
+        for (CfgV c : value.cfgvs.values()) {
+            genBean(c.type.tbean, c.type, c);
         }
-
-        CachedFileOutputStream.doRemoveFiles();
+        CachedFileOutputStream.deleteOtherFiles(dstDir);
     }
 
     private static class Name {
@@ -95,16 +95,15 @@ public class GenCs extends Generator {
         }
     }
 
-    private void genBean(TBean tbean, Cfg cfg) throws IOException {
+    private void genBean(TBean tbean, Cfg cfg, CfgV cfgv) throws IOException {
         Name name = new Name(pkg, prefix, tbean.define.name);
         File csFile = dstDir.toPath().resolve(name.path).toFile();
-        mkdirs(csFile.getParentFile());
-        try (TabPrintStream ps = cachedPrintStream(csFile, encoding)) {
-            genBean(tbean, cfg, name, ps);
+        try (TabPrintStream ps = createSource(csFile, encoding)) {
+            genBean(tbean, cfg, cfgv, name, ps);
         }
     }
 
-    private void genBean(TBean tbean, Cfg cfg, Name name, TabPrintStream ps) {
+    private void genBean(TBean tbean, Cfg cfg, CfgV cfgv, Name name, TabPrintStream ps) {
         ps.println("using System;");
         ps.println("using System.Collections.Generic;");
         ps.println("using System.IO;");
@@ -117,8 +116,8 @@ public class GenCs extends Generator {
         ps.println1("{");
 
         //static enum
-        if (cfg != null && cfg.value.isEnum) {
-            cfg.value.enumNames.forEach(e -> ps.println2("public static " + name.className + " " + upper1(e) + " { get; private set; }"));
+        if (cfg != null && cfgv.isEnum) {
+            cfgv.enumNames.forEach(e -> ps.println2("public static " + name.className + " " + upper1(e) + " { get; private set; }"));
             ps.println();
         }
 
@@ -243,13 +242,13 @@ public class GenCs extends Generator {
             ps.println4("var self = _create(os);");
             ps.println4("all.Add(" + actualParamsKeySelf(keys) + ", self);");
 
-            if (cfg.value.isEnum) {
+            if (cfgv.isEnum) {
                 String ef = upper1(cfg.define.enumStr);
                 ps.println4("if (self." + ef + ".Trim().Length == 0)");
                 ps.println5("continue;");
                 ps.println4("switch(self." + ef + ".Trim())");
                 ps.println4("{");
-                cfg.value.enumNames.forEach(e -> {
+                cfgv.enumNames.forEach(e -> {
                     ps.println5("case \"" + e + "\":");
                     ps.println6("if (" + upper1(e) + " != null)");
                     ps.println7("errors.EnumDup(" + csv + ", self.ToString());");
@@ -263,8 +262,8 @@ public class GenCs extends Generator {
             }
             ps.println3("}");
 
-            if (cfg.value.isEnum) {
-                cfg.value.enumNames.forEach(e -> {
+            if (cfgv.isEnum) {
+                cfgv.enumNames.forEach(e -> {
                     ps.println3("if (" + upper1(e) + " == null)");
                     ps.println4("errors.EnumNull(" + csv + ", \"" + e + "\");");
                 });
@@ -567,7 +566,7 @@ public class GenCs extends Generator {
     private void copyFile(String file) throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/" + file);
              BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/support/" + file), "GBK"));
-             TabPrintStream ps = cachedPrintStream(new File(dstDir, file), encoding)) {
+             TabPrintStream ps = createSource(new File(dstDir, file), encoding)) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 ps.println(line);
             }
@@ -575,7 +574,7 @@ public class GenCs extends Generator {
     }
 
     private void genCSVProcessor() throws IOException {
-        try (TabPrintStream ps = cachedPrintStream(new File(dstDir, "CSVProcessor.cs"), encoding)) {
+        try (TabPrintStream ps = createSource(new File(dstDir, "CSVProcessor.cs"), encoding)) {
             ps.println("using System.Collections.Generic;");
             ps.println();
             ps.println("namespace Config");

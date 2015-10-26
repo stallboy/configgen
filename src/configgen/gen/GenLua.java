@@ -2,48 +2,50 @@ package configgen.gen;
 
 import configgen.define.Field;
 import configgen.type.*;
+import configgen.value.CfgV;
 import configgen.value.CfgVs;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class GenLua extends Generator {
+
+    static void register() {
+        providers.put("lua", new Provider() {
+            @Override
+            public Generator create(Parameter parameter) {
+                return new GenLua(parameter);
+            }
+
+            @Override
+            public String usage() {
+                return "dir:.,pkg:cfg,encoding:UTF-8    add ,own:x if need, cooperate with -gen bin, -gen pack";
+            }
+        });
+    }
+
     private String dir;
     private String pkg;
     private String encoding;
     private String own;
     private CfgVs value;
 
-    public GenLua() {
-        providers.put("lua", this);
+    public GenLua(Parameter parameter) {
+        super(parameter);
+        dir = parameter.get("dir", ".");
+        pkg = parameter.getNotEmpty("pkg", "cfg");
+        encoding = parameter.get("encoding", "UTF-8");
+        own = parameter.get("own", null);
+        parameter.end();
     }
 
     @Override
-    public String usage() {
-        return "dir:.,pkg:cfg,encoding:UTF-8    add ,own:x if need, cooperate with -gen bin, -gen pack";
-    }
-
-    @Override
-    public boolean parse(Context ctx) {
-        dir = ctx.get("dir", ".");
-        pkg = ctx.get("pkg", "cfg");
-        encoding = ctx.get("encoding", "UTF-8");
-        own = ctx.get("own", null);
-        return ctx.end();
-    }
-
-    @Override
-    public void generate(Path configDir, CfgVs _value) throws IOException {
+    public void generate(CfgVs _value) throws IOException {
         File dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = own != null ? extract(_value, own) : _value;
-
-        CachedFileOutputStream.removeOtherFiles(dstDir);
-        mkdirs(dstDir);
-
-        try (TabPrintStream ps = cachedPrintStream(new File(dstDir, "_beans.lua"), encoding)) {
+        try (TabPrintStream ps = createSource(new File(dstDir, "_beans.lua"), encoding)) {
             ps.println("local Beans = {}");
             for (TBean b : value.type.tbeans.values()) {
                 ps.println("Beans." + className(b) + " = {}");
@@ -51,21 +53,17 @@ public class GenLua extends Generator {
             }
             ps.println("return Beans");
         }
-
-        for (Cfg c : value.type.cfgs.values()) {
-            Name name = new Name(pkg, c.tbean.define.name);
+        for (CfgV c : value.cfgvs.values()) {
+            Name name = new Name(pkg, c.name);
             File csFile = dstDir.toPath().resolve(name.path).toFile();
-            mkdirs(csFile.getParentFile());
-            try (TabPrintStream ps = cachedPrintStream(csFile, encoding)) {
-                genCfg(c, ps);
+            try (TabPrintStream ps = createSource(dstDir.toPath().resolve(name.path).toFile(), encoding)) {
+                genCfg(c.type, c, ps);
             }
         }
-
-        try (TabPrintStream ps = cachedPrintStream(new File(dstDir, "_cfgs.lua"), encoding)) {
+        try (TabPrintStream ps = createSource(new File(dstDir, "_cfgs.lua"), encoding)) {
             genCfgs(ps);
         }
-
-        CachedFileOutputStream.doRemoveFiles();
+        CachedFileOutputStream.deleteOtherFiles(dstDir);
     }
 
     private static class Name {
@@ -98,7 +96,7 @@ public class GenLua extends Generator {
         }
     }
 
-    private void genCfg(Cfg cfg, TabPrintStream ps) {
+    private void genCfg(Cfg cfg, CfgV cfgv, TabPrintStream ps) {
         String className = className(cfg.tbean);
         if (cfg.tbean.hasSubBean()) {
             ps.println("local Beans = require(\"" + pkg + "._beans\")");
@@ -107,7 +105,7 @@ public class GenLua extends Generator {
 
         ps.println("local " + className + " = {}");
         ps.println(className + ".all = {}");
-        cfg.value.enumNames.forEach(e -> ps.println(className + "." + e + " = nil"));
+        cfgv.enumNames.forEach(e -> ps.println(className + "." + e + " = nil"));
         ps.println();
         genCreate(cfg.tbean, ps, "");
 
@@ -121,15 +119,15 @@ public class GenLua extends Generator {
         ps.println("function " + className + "._initialize(os, errors)");
         ps.println1("for _ = 1, os:ReadSize() do");
         ps.println2("local v = " + className + "._create(os)");
-        if (cfg.value.isEnum) {
+        if (cfgv.isEnum) {
             ps.println2("if #(v." + lower1(cfg.define.enumStr) + ") > 0 then");
             ps.println3(className + "[v." + lower1(cfg.define.enumStr) + "] = v");
             ps.println2("end");
         }
         ps.println2(className + ".all[" + actualParams(cfg.keys, "v.") + "] = v");
         ps.println1("end");
-        if (cfg.value.isEnum) {
-            cfg.value.enumNames.forEach(e -> {
+        if (cfgv.isEnum) {
+            cfgv.enumNames.forEach(e -> {
                 ps.println1("if " + className + "." + e + " == nil then");
                 ps.println2("errors.enumNil(\"" + cfg.tbean.define.name + "\", \"" + e + "\");");
                 ps.println1("end");

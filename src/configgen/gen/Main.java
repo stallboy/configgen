@@ -1,20 +1,17 @@
-package configgen;
+package configgen.gen;
 
+import configgen.Logger;
 import configgen.data.Datas;
 import configgen.define.ConfigCollection;
-import configgen.gen.CachedFileOutputStream;
-import configgen.gen.Generator;
 import configgen.type.Cfgs;
 import configgen.value.CfgVs;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.CRC32;
-import java.util.zip.CheckedOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -28,7 +25,9 @@ public final class Main {
         System.out.println("	-encoding   csv and xml encoding. default GBK");
         System.out.println("	-v          verbose, default no");
         Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
+        System.out.println("	-pack       default configdata.zip, pack [configdir]");
         System.out.println("	-packtext   for i18n, pack text.csv to text.zip");
+
         Runtime.getRuntime().exit(1);
     }
 
@@ -36,6 +35,8 @@ public final class Main {
         String configdir = null;
         String xml = null;
         String encoding = "GBK";
+        String pack = null;
+        String packtext = null;
         List<Generator> generators = new ArrayList<>();
 
         for (int i = 0; i < args.length; ++i) {
@@ -60,17 +61,24 @@ public final class Main {
                     break;
 
                 case "-packtext":
-                    File file = new File(args[++i]);
-                    try (ZipOutputStream zos = new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(new File("text.zip")), new CRC32()))) {
-                        ZipEntry ze = new ZipEntry("text.csv");
-                        ze.setTime(0);
-                        zos.putNextEntry(ze);
-                        Files.copy(file.toPath(), zos);
-                    }
-                    return;
+                    packtext = args[++i];
+                    break;
+                case "-pack":
+                    pack = args[++i];
+                    break;
                 default:
                     usage("unknown args " + args[i]);
                     break;
+            }
+        }
+
+        if (packtext != null) {
+            Logger.verbose("generate text.zip");
+            try (ZipOutputStream zos = Generator.createZip(new File("text.zip"))) {
+                ZipEntry ze = new ZipEntry("text.csv");
+                ze.setTime(0);
+                zos.putNextEntry(ze);
+                Files.copy(Paths.get(packtext), zos);
             }
         }
 
@@ -78,11 +86,31 @@ public final class Main {
             usage("-configdir miss");
             return;
         }
-
         Path dir = Paths.get(configdir);
+
+        if (pack != null) {
+            Logger.verbose("generate " + pack);
+            try (final ZipOutputStream zos = Generator.createZip(new File(pack))) {
+                Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        String fn = dir.relativize(file).toString();
+                        if (fn.endsWith(".csv")) {
+                            ZipEntry ze = new ZipEntry(fn);
+                            ze.setTime(0);
+                            zos.putNextEntry(ze);
+                            Files.copy(file, zos);
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            }
+        }
+
         File xmlFile = xml != null ? new File(xml) : dir.resolve("config.xml").toFile();
         Logger.verbose("parse xml " + xmlFile);
         ConfigCollection define = new ConfigCollection(xmlFile);
+        //define.dump(System.out);
         Cfgs type = new Cfgs(define);
         type.resolve();
 
@@ -96,10 +124,11 @@ public final class Main {
         Logger.verbose("verify constraint");
         CfgVs value = new CfgVs(newType, data);
         value.verifyConstraint();
+        //value.dump(System.out);
 
         for (Generator generator : generators) {
-            Logger.verbose("generate " + generator.context.arg);
-            generator.generate(dir, value);
+            Logger.verbose("generate " + generator.parameter);
+            generator.generate(value);
         }
 
         Logger.verbose("end");

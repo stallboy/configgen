@@ -3,7 +3,6 @@ package configgen.type;
 import configgen.Node;
 
 public class ListRef extends Node {
-    public final String name;
     public final String[] keys;
     public Cfg ref;
     public final String[] refKeys;
@@ -20,7 +19,6 @@ public class ListRef extends Node {
 
     private ListRef(TBean parent, String name, String[] keys, String ref, String[] refKeys) {
         super(parent, name);
-        this.name = name;
         this.keys = keys;
         this.refStr = ref;
         this.refKeys = refKeys;
@@ -28,14 +26,14 @@ public class ListRef extends Node {
 
     public void resolve() {
         ref = ((Cfgs) root).cfgs.get(refStr);
-        Assert(ref != null, "ref not found", refStr);
+        require(ref != null, "ref not found", refStr);
 
         for (String key : keys) {
-            Assert(null != ((TBean) parent).define.fields.get(key), "key not exist", key);
+            require(null != ((TBean) parent).define.fields.get(key), "key not exist", key);
         }
 
         for (String rk : refKeys) {
-            Assert(null != ref.tbean.define.fields.get(rk), "ref key not exist", rk);
+            require(null != ref.tbean.define.fields.get(rk), "ref key not exist", rk);
         }
     }
 }

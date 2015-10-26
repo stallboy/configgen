@@ -7,7 +7,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Bean extends Node {
-    public final String name; // a.b.c
     private final String own;
     public final boolean compress;
 
@@ -17,54 +16,41 @@ public class Bean extends Node {
     public final Map<String, Range> ranges = new HashMap<>();
 
     public Bean(ConfigCollection collection, Config config, Element self) {
-        super(config != null ? config : collection, "");
-
+        super(config != null ? config : collection, self.getAttribute("name"));
         String[] attrs = DomUtils.attributes(self, "name", "own", "compress", "enum", "keys");
-        name = attrs[0];
-        if (config == null)
-            link = name;
-
         own = attrs[1];
         compress = attrs[2].equalsIgnoreCase("true") || attrs[2].equals("1");
         if (compress) {
-            Assert(config == null, "config not allowed compress");
+            require(config == null, "config not allowed compress");
         }
-
         List<List<Element>> eles = DomUtils.elementsList(self, "field", "ref", "range", "listref");
         for (Element ef : eles.get(0)) {
             Field f = new Field(this, ef);
-            Assert(null == fields.put(f.name, f), "field duplicate name=" + f.name);
+            require(null == fields.put(f.name, f), "field duplicate name=" + f.name);
         }
-
         refs.addAll(eles.get(1).stream().map(ec -> new Ref(this, ec)).collect(Collectors.toList()));
-
         for (Element ef : eles.get(2)) {
             Range r = new Range(this, ef);
-            Assert(null == ranges.put(r.key, r), "range duplicate key=" + r.key);
+            require(null == ranges.put(r.key, r), "range duplicate key=" + r.key);
         }
-
         listRefs.addAll(eles.get(3).stream().map(ec -> new ListRef(this, ec)).collect(Collectors.toList()));
     }
 
     public Bean(Config config, String name) {
-        super(config, "");
-        this.name = name;
+        super(config, name);
         own = "";
         compress = false;
     }
 
     private Bean(ConfigCollection collection, Config config, Bean original, Map<String, Field> ownFields) {
-        super(config != null ? config : collection, original.link);
-        name = original.name;
-        own = original.name;
+        super(config != null ? config : collection, original.name);
+        own = original.own;
         compress = original.compress;
         fields.putAll(ownFields);
-
         original.ranges.forEach((n, r) -> {
             if (fields.containsKey(n))
                 ranges.put(n, r);
         });
-
         refs.addAll(original.refs); //wait extract2 to delete
         listRefs.addAll(original.listRefs);
     }
@@ -115,7 +101,6 @@ public class Bean extends Node {
             if (!r.keyRef.isEmpty() && !((ConfigCollection) root).configs.containsKey(r.keyRef))
                 dr.add(r);
         });
-
         refs.removeAll(dr);
 
         List<ListRef> dl = new ArrayList<>();
@@ -128,6 +113,5 @@ public class Bean extends Node {
                 dl.add(r);
         });
         listRefs.removeAll(dl);
-
     }
 }

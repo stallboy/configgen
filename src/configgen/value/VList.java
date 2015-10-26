@@ -1,7 +1,7 @@
 package configgen.value;
 
-import configgen.CSV;
 import configgen.Node;
+import configgen.data.CSV;
 import configgen.type.TList;
 
 import java.util.ArrayList;
@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 public class VList extends Value {
     public final List<Value> list = new ArrayList<>();
 
-    public VList(Node parent, String link, List<Value> vs) { // for keys and keysRef
-        super(parent, link, null, toRaw(vs));
+    public VList(Node parent, String name, List<Value> vs) { // for keys and keysRef
+        super(parent, name, null, toRaw(vs));
         list.addAll(vs);
     }
 
@@ -29,11 +29,11 @@ public class VList extends Value {
 
         List<Cell> parsed;
         if (type.count == 0) { //compress
-            Assert(data.size() == 1);
+            require(data.size() == 1);
             Cell dat = data.get(0);
             parsed = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
         } else {
-            Assert(data.size() == type.columnSpan());
+            require(data.size() == type.columnSpan());
             parsed = data;
         }
 
@@ -44,7 +44,7 @@ public class VList extends Value {
                 idx++;
             } else {
                 for (Cell dc : parsed.subList(s, s + vc)) {
-                    Assert(dc.data.isEmpty(), "list value ignored by first cell empty, but part filled, " + dc);
+                    require(dc.data.isEmpty(), "list value ignored by first cell empty, but part filled, " + dc);
                 }
             }
         }

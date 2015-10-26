@@ -4,10 +4,10 @@ import configgen.Node;
 
 public class TBool extends TPrimitive {
 
-    public TBool(Node parent, String link, Constraint cons) {
-        super(parent, link, cons);
-        Assert(cons.refs.isEmpty(), "bool not support ref");
-        Assert(cons.range == null, "bool not support range");
+    public TBool(Node parent, String name, Constraint cons) {
+        super(parent, name, cons);
+        require(cons.refs.isEmpty(), "bool not support ref");
+        require(cons.range == null, "bool not support range");
     }
 
     @Override

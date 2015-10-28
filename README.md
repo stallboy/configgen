@@ -154,6 +154,11 @@
     对于需要国际化的字段，配置为text类型，生成时会单独放到text.csv里，只要翻译这个文件就ok了。
     分包的话，翻译完毕使用 -packtext text.csv 来打包text.zip。
 
+* 为什么java生成没有用public final？
+
+    的确用public final int a; 这样就不用写getter了，简洁不少。
+    但ref得用函数，enum类也得用函数，太不统一了。
+
 * 对set的支持呢？
 
     不支持，这种配置不会太多，使用list效率够了。这个现在的想法是不支持。

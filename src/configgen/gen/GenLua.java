@@ -26,10 +26,10 @@ public class GenLua extends Generator {
         });
     }
 
-    private String dir;
-    private String pkg;
-    private String encoding;
-    private String own;
+    private final String dir;
+    private final String pkg;
+    private final String encoding;
+    private final String own;
     private CfgVs value;
 
     public GenLua(Parameter parameter) {
@@ -55,7 +55,6 @@ public class GenLua extends Generator {
         }
         for (CfgV c : value.cfgvs.values()) {
             Name name = new Name(pkg, c.name);
-            File csFile = dstDir.toPath().resolve(name.path).toFile();
             try (TabPrintStream ps = createSource(dstDir.toPath().resolve(name.path).toFile(), encoding)) {
                 genCfg(c.type, c, ps);
             }

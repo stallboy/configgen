@@ -31,9 +31,9 @@ public class GenJava extends Generator {
 
     private CfgVs value;
     private File dstDir;
-    private String dir;
-    private String pkg;
-    private String encoding;
+    private final String dir;
+    private final String pkg;
+    private final String encoding;
 
     public GenJava(Parameter parameter) {
         super(parameter);

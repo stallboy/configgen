@@ -30,8 +30,8 @@ public class GenPack extends Generator {
         });
     }
 
-    private File dstDir;
-    private String xml;
+    private final File dstDir;
+    private final String xml;
 
     public GenPack(Parameter parameter) {
         super(parameter);

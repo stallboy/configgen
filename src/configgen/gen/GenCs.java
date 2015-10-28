@@ -29,11 +29,11 @@ public class GenCs extends Generator {
         });
     }
 
-    private String dir;
-    private String pkg;
-    private String encoding;
-    private String prefix;
-    private String own;
+    private final String dir;
+    private final String pkg;
+    private final String encoding;
+    private final String prefix;
+    private final String own;
     private File dstDir;
     private CfgVs value;
 

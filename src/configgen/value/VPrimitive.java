@@ -7,9 +7,9 @@ import configgen.type.TPrimitive;
 import java.util.List;
 
 public abstract class VPrimitive extends Value {
-    protected final Cell raw;
+    final Cell raw;
 
-    public VPrimitive(Node parent, String name, TPrimitive type, List<Cell> data) {
+    VPrimitive(Node parent, String name, TPrimitive type, List<Cell> data) {
         super(parent, name, type, data);
         require(data.size() == 1);
         raw = data.get(0);

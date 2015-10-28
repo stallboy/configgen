@@ -39,7 +39,7 @@ public class Node {
             child.dump(ps, tab + "\t");
     }
 
-    public final void require(boolean cond, String... str) {
+    public void require(boolean cond, String... str) {
         if (!cond)
             throw new AssertionError(fullName() + ": " + String.join(",", str));
     }

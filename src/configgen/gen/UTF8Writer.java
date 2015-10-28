@@ -3,8 +3,8 @@ package configgen.gen;
 import java.io.*;
 
 public class UTF8Writer implements Closeable {
-    private OutputStream stream;
-    private OutputStreamWriter writer;
+    private final OutputStream stream;
+    private final OutputStreamWriter writer;
     private boolean touched;
     private static final byte[] UTF8_BOM = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
 

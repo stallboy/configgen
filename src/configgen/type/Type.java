@@ -5,7 +5,7 @@ import configgen.Node;
 public abstract class Type extends Node {
     public final Constraint constraint;
 
-    public Type(Node parent, String name, Constraint cons) {
+    Type(Node parent, String name, Constraint cons) {
         super(parent, name);
         constraint = cons;
     }
@@ -22,7 +22,7 @@ public abstract class Type extends Node {
 
     public abstract <T> T accept(TypeVisitorT<T> visitor);
 
-    protected Type resolveType(String link, Constraint cons, String type, String key, String value, int count) {
+    Type resolveType(String link, Constraint cons, String type, String key, String value, int count) {
         Type t = resolveType(link, cons, type);
         if (t != null)
             return t;
@@ -36,7 +36,7 @@ public abstract class Type extends Node {
         return null;
     }
 
-    protected Type resolveType(String link, Constraint cons, String type) {
+    Type resolveType(String link, Constraint cons, String type) {
         switch (type) {
             case "int":
                 return new TInt(this, link, cons);

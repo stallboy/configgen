@@ -8,7 +8,7 @@
 * 通过生成代码，使程序方便访问类型化数据，外键引用和单独一行，支持java,csharp,lua
 
 ## 快速开始
-* example/config 下是个csv文件目录，里面的config.xml 是配置文件，
+* example/config 下是csv，里面的config.xml 是配置文件，
   里面演示了ref，enum，nullableref，listref，bean等的使用
 * example/java, cs, lua目录下文件是gen.bat生成的代码文件，供参考，gen.bat生成的数据文件就没有上传了。
 
@@ -95,11 +95,21 @@
 
     比xml简洁，可被版本管理系统diff，可用excel编辑。如果要用excel高级功能，请策划使用excel原始格式，导出csv
 
-* enum要不要允许部分设置，部分空白？
+* 为什么支持enum？
+
+    当你要一个knowledge，客户端，服务器，策划都要了解的时候，放到csv里。
+
+* 为什么enum支持部分设置，部分空白？
 
     有时候允许部分设置是很方便的，比如掉落表，一般用id索引，但有些行如果能配置enum导出引用，则程序会方便的多。
     所以enum在实现上，java中如果部分enum则用静态成员，如果全部enum则生成enum；c#中生成为一个静态成员。
     枚举的作用就是要消除代码里的魔数。
+
+* keys, ref是什么？
+
+    keys对应于sql概念多种的primary key，默认不用配置，就是第一列。
+    ref对应于foreign key，因为我们不支持额外的unique key，只要说明ref对应到那个table就行了。
+    ref，不但用于策划数据一致性检测，也会直接生成代码，让程序员直接访问
 
 * 为什么要支持nullableref？
 
@@ -107,13 +117,6 @@
     Optional就感觉是个nullableref的含义。idea引入@Nullable都是为了弥补这个。
     这里我们约定ref就是必须有引用的，nullableref是可为null的，生成代码时用前缀ref，nullableRef来做区别，逻辑使用refXx就不用检测是否为null了。
     参考：http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare
-
-* 嵌套结构支持？
-
-    可以在一个csv里直接随意嵌套bean；
-    也可以通过ref,nullableref支持了简单嵌套结构，
-    通过list,map，和ref，nullableref，keyref的使用支持了容器嵌套结构。
-    还可以通过listref，支持来list嵌套结构，到底引用了哪些是另外一个表说了算。
 
 * listref的使用场景？
 
@@ -126,10 +129,30 @@
 
     只针对map，现在没用到，完整性上来说要应该有啊，特别是它的key是enum这种应该挺常见。
 
+* 嵌套结构支持？
+
+    可以在一个csv里直接随意嵌套bean；
+    也可以通过ref,nullableref支持了简单嵌套结构，
+    通过list,map，和ref，nullableref，keyref的使用支持了容器嵌套结构。
+    还可以通过listref，支持来list嵌套结构，到底引用了哪些是另外一个表说了算。
+
+* 继承支持？
+
+    不支持，但有2中方法来处理：
+    如果只是客户端用，使用csharp的partial机制，自己写个接口类，然后把想继承的配置类声明上implement。
+    比如各种类型的item客户端想要统一处理。
+    如果服务器要用，java没有partial，就用组合来做，定义一个bean。想继承的配置都使用这个bean。
+    比如Fighter需要传cfg，但可能是monster，hero。
+
 * 客户端更新策略？
 
     如果配置数据不大，使用 -gen bin,zip:configdata.zip 来生成单一文件。使用CSVLoader.LoadBin来加载；
     如果大，则分包处理，使用 -gen pack 配合pack.xml来生成分包文件。使用CSVLoader.LoadPack来加载
+
+* 国际化策略？
+
+    对于需要国际化的字段，配置为text类型，生成时会单独放到text.csv里，只要翻译这个文件就ok了。
+    分包的话，翻译完毕使用 -packtext text.csv 来打包text.zip。
 
 * 对set的支持呢？
 

@@ -9,7 +9,7 @@
 
 ## 快速开始
 * example/config 下是csv，里面的config.xml 是配置文件，
-  里面演示了ref，enum，nullableref，listref，bean等的使用
+  演示了ref，enum，nullableref，listref，bean的使用
 * example/java, cs, lua目录下文件是gen.bat生成的代码文件，供参考，gen.bat生成的数据文件就没有上传了。
 
 ## 使用流程
@@ -146,8 +146,8 @@
 
 * 客户端更新策略？
 
-    如果配置数据不大，使用 -gen bin,zip:configdata.zip 来生成单一文件。使用CSVLoader.LoadBin来加载；
-    如果大，则分包处理，使用 -gen pack 配合pack.xml来生成分包文件。使用CSVLoader.LoadPack来加载
+    分包处理，使用 -gen pack 配合pack.xml来生成分包文件。pack.xml里声明哪些文件打成一个包，使用CSVLoader.LoadPack来加载。
+    如果不想分包，只要pack.xml不存在就行了，全打到all.zip里。
 
 * 国际化策略？
 

@@ -70,7 +70,6 @@ public abstract class Generator {
     public static final Map<String, Provider> providers = new LinkedHashMap<>();
 
     static {
-        GenBin.register();
         GenPack.register();
         GenJava.register();
         GenCs.register();

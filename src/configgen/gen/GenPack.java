@@ -1,5 +1,6 @@
 package configgen.gen;
 
+import configgen.Logger;
 import configgen.define.DomUtils;
 import configgen.value.CfgVs;
 import org.w3c.dom.Element;
@@ -24,7 +25,7 @@ public class GenPack extends Generator {
 
             @Override
             public String usage() {
-                return "dir:cfg    add ,xml:pack.xml if xml not default pack.xml in configdir";
+                return "dir:cfg    default ,xml:pack.xml, if not exist pack.xml, pack to all.zip";
             }
         });
     }
@@ -41,10 +42,46 @@ public class GenPack extends Generator {
 
     @Override
     public void generate(CfgVs value) throws IOException {
+        File packXmlFile = xml != null ? new File(xml) : value.data.dataDir.resolve("pack.xml").toFile();
         Map<String, Set<String>> packs = new HashMap<>();
+        if (packXmlFile.exists()) {
+            parsePack(packs, packXmlFile, value);
+        } else {
+            Logger.log(packXmlFile.getCanonicalPath() + "  not exist, pack to all.zip");
+            packs.put("all", value.cfgvs.keySet());
+        }
+
+        try (ZipOutputStream textOS = createZip(new File(dstDir, "text.zip"))) {
+            ZipEntry tze = new ZipEntry("text.csv");
+            tze.setTime(0);
+            textOS.putNextEntry(tze);
+            try (UTF8Writer texter = new UTF8Writer(textOS)) {
+                for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
+                    String packName = entry.getKey();
+                    Set<String> packCfgs = entry.getValue();
+                    if (!packCfgs.isEmpty()) {
+                        try (ZipOutputStream zos = createZip(new File(dstDir, packName + ".zip"))) {
+                            ZipEntry ze = new ZipEntry(packName);
+                            ze.setTime(0);
+                            zos.putNextEntry(ze);
+                            try (ValueOutputStream vos = new ValueOutputStream(zos, texter)) {
+                                for (String cfg : packCfgs) {
+                                    vos.addCfgV(value.cfgvs.get(cfg));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        CachedFileOutputStream.deleteOtherFiles(dstDir);
+    }
+
+    private void parsePack(Map<String, Set<String>> packs, File packXmlFile, CfgVs value) {
         Set<String> source = new HashSet<>(value.cfgvs.keySet());
         Set<String> picked = new HashSet<>();
-        File packXmlFile = xml != null ? new File(xml) : value.data.dataDir.resolve("pack.xml").toFile();
+
         Element root = DomUtils.rootElement(packXmlFile);
         for (Element ep : DomUtils.elementsList(root, "pack").get(0)) {
             String[] attributes = DomUtils.attributes(ep, "name", "cfgs");
@@ -98,31 +135,5 @@ public class GenPack extends Generator {
         }
         source.removeAll(picked);
         require(source.isEmpty(), source + " not contained in pack.xml");
-
-        try (ZipOutputStream textOS = createZip(new File(dstDir, "text.zip"))) {
-            ZipEntry tze = new ZipEntry("text.csv");
-            tze.setTime(0);
-            textOS.putNextEntry(tze);
-            try (UTF8Writer texter = new UTF8Writer(textOS)) {
-                for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
-                    String packName = entry.getKey();
-                    Set<String> packCfgs = entry.getValue();
-                    if (!packCfgs.isEmpty()) {
-                        try (ZipOutputStream zos = createZip(new File(dstDir, packName + ".zip"))) {
-                            ZipEntry ze = new ZipEntry(packName);
-                            ze.setTime(0);
-                            zos.putNextEntry(ze);
-                            try (ValueOutputStream vos = new ValueOutputStream(zos, texter)) {
-                                for (String cfg : packCfgs) {
-                                    vos.addCfgV(value.cfgvs.get(cfg));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        CachedFileOutputStream.deleteOtherFiles(dstDir);
     }
 }

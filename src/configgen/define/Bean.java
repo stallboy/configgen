@@ -47,23 +47,6 @@ public class Bean extends Node {
         compress = original.compress;
     }
 
-    public void save(Element parent) {
-        update(DomUtils.newChild(parent, "bean"));
-    }
-
-    void update(Element self) {
-        self.setAttribute("name", name);
-        if (!own.isEmpty())
-            self.setAttribute("own", own);
-        if (compress)
-            self.setAttribute("compress", "true");
-
-        fields.values().forEach(f -> f.save(self));
-        refs.forEach(c -> c.save(self));
-        listRefs.forEach(c -> c.save(self));
-        ranges.values().forEach(c -> c.save(self));
-    }
-
     Bean extract(Node _parent, String _own) {
         Bean part = new Bean(_parent, this);
 
@@ -91,7 +74,7 @@ public class Bean extends Node {
 
     void resolveExtract() {
         fields.values().forEach(Field::resolveExtract);
-        
+
         List<Ref> dr = new ArrayList<>();
         refs.forEach(r -> {
             if (!fields.keySet().containsAll(Arrays.asList(r.keys)))
@@ -115,5 +98,22 @@ public class Bean extends Node {
                 dl.add(r);
         });
         listRefs.removeAll(dl);
+    }
+
+    void save(Element parent) {
+        update(DomUtils.newChild(parent, "bean"));
+    }
+
+    void update(Element self) {
+        self.setAttribute("name", name);
+        if (!own.isEmpty())
+            self.setAttribute("own", own);
+        if (compress)
+            self.setAttribute("compress", "true");
+
+        fields.values().forEach(f -> f.save(self));
+        refs.forEach(c -> c.save(self));
+        listRefs.forEach(c -> c.save(self));
+        ranges.values().forEach(c -> c.save(self));
     }
 }

@@ -24,14 +24,14 @@ public class ListRef extends Node {
             refKeys = new String[0];
     }
 
-    public ListRef(Bean _parent, ListRef original) {
+    ListRef(Bean _parent, ListRef original) {
         super(_parent, original.name);
         keys = original.keys.clone();
         ref = original.ref;
         refKeys = original.refKeys.clone();
     }
 
-    public void save(Element parent) {
+    void save(Element parent) {
         Element self = DomUtils.newChild(parent, "listref");
         self.setAttribute("name", name);
         self.setAttribute("keys", String.join(",", keys));

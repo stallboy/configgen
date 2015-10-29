@@ -24,7 +24,7 @@ public class Range extends Node {
         max = original.max;
     }
 
-    public void save(Element parent) {
+    void save(Element parent) {
         Element self = DomUtils.newChild(parent, "range");
         self.setAttribute("key", key);
         self.setAttribute("min", String.valueOf(min));

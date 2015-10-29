@@ -32,15 +32,6 @@ public class Config extends Node {
         keys = original.keys.clone();
     }
 
-    public void save(Element parent) {
-        Element self = DomUtils.newChild(parent, "config");
-        bean.update(self);
-        if (!enumStr.isEmpty())
-            self.setAttribute("enum", enumStr);
-        if (keys.length > 0)
-            self.setAttribute("keys", String.join(",", keys));
-    }
-
     Config extract(ConfigCollection _parent, String own) {
         Config part = new Config(_parent, this);
         Bean pb = bean.extract(part, own);
@@ -60,5 +51,14 @@ public class Config extends Node {
                 require(bean.fields.containsKey(key), "must own primary keys");
             }
         }
+    }
+
+    void save(Element parent) {
+        Element self = DomUtils.newChild(parent, "config");
+        bean.update(self);
+        if (!enumStr.isEmpty())
+            self.setAttribute("enum", enumStr);
+        if (keys.length > 0)
+            self.setAttribute("keys", String.join(",", keys));
     }
 }

@@ -7,7 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class ValueOutputStream implements ValueVisitor, Closeable {
+class ValueOutputStream implements ValueVisitor, Closeable {
     private final DataOutputStream byter;
     private final UTF8Writer texter;
     private int index;

@@ -23,7 +23,7 @@ public class Ref extends Node {
         keyRef = attrs[4];
     }
 
-    public Ref(Bean _parent, Ref original) {
+    Ref(Bean _parent, Ref original) {
         super(_parent, original.name);
         keys = original.keys.clone();
         ref = original.ref;
@@ -31,7 +31,7 @@ public class Ref extends Node {
         keyRef = original.keyRef;
     }
 
-    public void save(Element parent) {
+    void save(Element parent) {
         Element self = DomUtils.newChild(parent, "ref");
         self.setAttribute("name", name);
         self.setAttribute("keys", String.join(",", keys));

@@ -41,19 +41,6 @@ public class ConfigCollection extends Node {
         super(null, "define(" + own + ")");
     }
 
-    public void save(File file, String encoding) throws IOException {
-        Document doc = DomUtils.newDocument();
-        save(doc);
-        DomUtils.prettySaveDocument(doc, file, encoding);
-    }
-
-    private void save(Document doc) {
-        Element self = doc.createElement("configcollection");
-        doc.appendChild(self);
-        beans.values().forEach(b -> b.save(self));
-        configs.values().forEach(c -> c.save(self));
-    }
-
     public ConfigCollection extract(String own) {
         ConfigCollection part = new ConfigCollection(own);
         beans.forEach((k, v) -> {
@@ -72,9 +59,21 @@ public class ConfigCollection extends Node {
         return part;
     }
 
-    private void resolveExtract() {
+    void resolveExtract() {
         beans.values().forEach(Bean::resolveExtract);
         configs.values().forEach(Config::resolveExtract);
     }
 
+    public void save(File file, String encoding) throws IOException {
+        Document doc = DomUtils.newDocument();
+        save(doc);
+        DomUtils.prettySaveDocument(doc, file, encoding);
+    }
+
+    void save(Document doc) {
+        Element self = doc.createElement("configcollection");
+        doc.appendChild(self);
+        beans.values().forEach(b -> b.save(self));
+        configs.values().forEach(c -> c.save(self));
+    }
 }

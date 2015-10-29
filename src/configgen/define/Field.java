@@ -40,7 +40,6 @@ public class Field extends Node {
     public Field(Bean parent, String name, String type) {
         super(parent, name);
         this.type = type;
-
         ref = "";
         nullableRef = "";
         keyRef = "";
@@ -54,7 +53,6 @@ public class Field extends Node {
         super(_parent, original.name);
         desc = original.desc;
         type = original.type;
-
         ref = original.ref;
         nullableRef = original.nullableRef;
         keyRef = original.keyRef;
@@ -94,7 +92,7 @@ public class Field extends Node {
         }
     }
 
-    public void save(Element parent) {
+    void save(Element parent) {
         Element self = DomUtils.newChild(parent, "field");
         if (!desc.isEmpty())
             self.setAttribute("desc", desc);

@@ -5,7 +5,6 @@ import configgen.data.CSV;
 import org.w3c.dom.Element;
 
 public class Ref extends Node {
-    public final String name;
     public final String[] keys;
     public final String ref;
     public final boolean nullable;
@@ -14,7 +13,6 @@ public class Ref extends Node {
     public Ref(Bean parent, Element self) {
         super(parent, self.getAttribute("name"));
         String[] attrs = DomUtils.attributes(self, "name", "keys", "ref", "nullable", "keyref");
-        name = attrs[0];
         String r = attrs[1].trim();
         if (!r.isEmpty())
             keys = r.split(",");
@@ -25,6 +23,14 @@ public class Ref extends Node {
         keyRef = attrs[4];
     }
 
+    public Ref(Bean _parent, Ref original) {
+        super(_parent, original.name);
+        keys = original.keys.clone();
+        ref = original.ref;
+        nullable = original.nullable;
+        keyRef = original.keyRef;
+    }
+
     public void save(Element parent) {
         Element self = DomUtils.newChild(parent, "ref");
         self.setAttribute("name", name);
@@ -33,7 +39,6 @@ public class Ref extends Node {
             self.setAttribute("ref", ref);
         if (nullable)
             self.setAttribute("nullable", "true");
-
         if (!keyRef.isEmpty())
             self.setAttribute("keyref", keyRef);
     }

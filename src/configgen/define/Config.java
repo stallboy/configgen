@@ -4,13 +4,13 @@ import configgen.Node;
 import org.w3c.dom.Element;
 
 public class Config extends Node {
-    public final Bean bean;
-    public final String enumStr;
+    public Bean bean;
+    public String enumStr;
     public final String[] keys;
 
     public Config(ConfigCollection parent, Element self) {
         super(parent, self.getAttribute("name"));
-        bean = new Bean(parent, this, self);
+        bean = new Bean(this, self);
         enumStr = self.getAttribute("enum");
         String k = self.getAttribute("keys").trim();
         if (!k.isEmpty())
@@ -26,18 +26,10 @@ public class Config extends Node {
         keys = new String[0];
     }
 
-    private Config(ConfigCollection parent, Config original, Bean ownBean) {
-        super(parent, original.name);
-        bean = ownBean;
-        enumStr = bean.fields.containsKey(original.enumStr) ? original.enumStr : "";
-        keys = original.keys;
-        if (keys.length > 0) {
-            for (String key : keys) {
-                require(bean.fields.containsKey(key), "must own primary keys");
-            }
-        } else {
-            require(bean.fields.containsKey(original.bean.fields.keySet().iterator().next()), "must own primary key");
-        }
+    private Config(ConfigCollection _parent, Config original) {
+        super(_parent, original.name);
+        enumStr = original.enumStr;
+        keys = original.keys.clone();
     }
 
     public void save(Element parent) {
@@ -49,14 +41,24 @@ public class Config extends Node {
             self.setAttribute("keys", String.join(",", keys));
     }
 
-    public Config extract(ConfigCollection parent, String own) {
-        Bean ownBean = bean.extract(parent, this, own);
-        if (ownBean == null)
+    Config extract(ConfigCollection _parent, String own) {
+        Config part = new Config(_parent, this);
+        Bean pb = bean.extract(part, own);
+        if (pb == null)
             return null;
-        return new Config(parent, this, ownBean);
+        part.bean = pb;
+        return part;
     }
 
-    void extract2() {
-        bean.extract2();
+    void resolveExtract() {
+        bean.resolveExtract();
+        String original = enumStr;
+        enumStr = bean.fields.containsKey(original) ? original : "";
+
+        if (keys.length > 0) {
+            for (String key : keys) {
+                require(bean.fields.containsKey(key), "must own primary keys");
+            }
+        }
     }
 }

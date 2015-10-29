@@ -14,8 +14,14 @@ public class Range extends Node {
         key = attr[0];
         min = Integer.decode(attr[1]);
         max = Integer.decode(attr[2]);
-
         require(max >= min, attr[1]);
+    }
+
+    Range(Bean _parent, Range original) {
+        super(_parent, original.name);
+        key = original.key;
+        min = original.min;
+        max = original.max;
     }
 
     public void save(Element parent) {

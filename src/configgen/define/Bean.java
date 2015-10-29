@@ -7,21 +7,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Bean extends Node {
-    private final String own;
-    public final boolean compress;
-
     public final Map<String, Field> fields = new LinkedHashMap<>();
     public final List<Ref> refs = new ArrayList<>();
     public final List<ListRef> listRefs = new ArrayList<>();
     public final Map<String, Range> ranges = new HashMap<>();
+    public final boolean compress;
+    private final String own;
 
-    public Bean(ConfigCollection collection, Config config, Element self) {
-        super(config != null ? config : collection, self.getAttribute("name"));
+    public Bean(Node _parent, Element self) {
+        super(_parent, self.getAttribute("name"));
         String[] attrs = DomUtils.attributes(self, "name", "own", "compress", "enum", "keys");
         own = attrs[1];
         compress = attrs[2].equalsIgnoreCase("true") || attrs[2].equals("1");
         if (compress) {
-            require(config == null, "config not allowed compress");
+            require(_parent instanceof ConfigCollection, "config not allowed compress");
         }
         List<List<Element>> eles = DomUtils.elementsList(self, "field", "ref", "range", "listref");
         for (Element ef : eles.get(0)) {
@@ -42,17 +41,10 @@ public class Bean extends Node {
         compress = false;
     }
 
-    private Bean(ConfigCollection collection, Config config, Bean original, Map<String, Field> ownFields) {
-        super(config != null ? config : collection, original.name);
+    private Bean(Node _parent, Bean original) {
+        super(_parent, original.name);
         own = original.own;
         compress = original.compress;
-        fields.putAll(ownFields);
-        original.ranges.forEach((n, r) -> {
-            if (fields.containsKey(n))
-                ranges.put(n, r);
-        });
-        refs.addAll(original.refs); //wait extract2 to delete
-        listRefs.addAll(original.listRefs);
     }
 
     public void save(Element parent) {
@@ -72,24 +64,34 @@ public class Bean extends Node {
         ranges.values().forEach(c -> c.save(self));
     }
 
-    Bean extract(ConfigCollection root, Config config, String own) {
-        Map<String, Field> ownFields = new LinkedHashMap<>();
-        fields.forEach((name, f) -> {
-            if (f.own.contains(own))
-                ownFields.put(name, f);
-        });
+    Bean extract(Node _parent, String _own) {
+        Bean part = new Bean(_parent, this);
 
-        if (ownFields.isEmpty()) {
-            if (this.own.contains(own))
-                ownFields.putAll(fields);
-            else
-                return null;
+        fields.forEach((name, f) -> {
+            Field pf = f.extract(part, _own);
+            if (pf != null)
+                part.fields.put(name, pf);
+        });
+        if (part.fields.isEmpty() && own.contains(_own)) {
+            fields.forEach((name, f) -> part.fields.put(name, new Field(part, f)));
         }
 
-        return new Bean(root, config, this, ownFields);
+        if (part.fields.isEmpty())
+            return null;
+
+        ranges.forEach((n, r) -> {
+            if (part.fields.containsKey(n))
+                part.ranges.put(n, new Range(part, r));
+        });
+
+        part.refs.addAll(refs.stream().map(r -> new Ref(part, r)).collect(Collectors.toList()));
+        part.listRefs.addAll(listRefs.stream().map(r -> new ListRef(part, r)).collect(Collectors.toList()));
+        return part;
     }
 
-    void extract2() {
+    void resolveExtract() {
+        fields.values().forEach(Field::resolveExtract);
+        
         List<Ref> dr = new ArrayList<>();
         refs.forEach(r -> {
             if (!fields.keySet().containsAll(Arrays.asList(r.keys)))

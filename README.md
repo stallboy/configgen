@@ -1,22 +1,21 @@
 # configgen
 
-配置生成工具，可以认为是个生成只读object的object-relational mapping
+配置生成工具，可认为是个生成只读object的object-relational mapping工具。
 
 ## 项目概况
 
-* 通过配置外键，取值范围，使策划可以随时检测配置数据
+* 通过配置外键，取值范围，使策划可以随时检测数据一致性
 * 通过生成代码，使程序方便访问类型化数据，外键引用和单独一行，支持java,csharp,lua
 
 ## 快速开始
-* example/config 下是csv，里面的config.xml 是配置文件，
-  演示了ref，enum，nullableref，listref，bean的使用
-* example/java, cs, lua目录下文件是gen.bat生成的代码文件，供参考，gen.bat生成的数据文件就没有上传了。
+* example/config 下是csv，config.xml 是配置文件，演示了ref，enum，nullableref，listref，bean的使用
+* example/java, cs, lua目录下文件是gen.bat生成的代码文件。
 
 ## 使用流程
 
-1. 新建或修改 csv文件，csv文件前2行为header，第一行是中文说明，第二行是英文字段
-2. 使用configgen.jar 来生成或完善服务器客户端共同使用的config.xml
-3. 如果默认的行为不满足程序需求，则手动修改config.xml，比如修改type，增加ref，enum，range
+1. 新建或修改csv文件，csv文件前2行为header，第一行是desc，第二行是name
+2. 使用configgen.jar 来生成或完善config.xml
+3. 如果config.xml不满足需求，则手动修改config.xml，比如修改type，增加ref，enum，range
 4. 重复1，2，3流程
 
 ## 配置描述
@@ -26,22 +25,20 @@
     - bean必须自己手工在config.xml里定义；field.type包含bean的时候也必须手工指定；这些没法自动猜测。
 
 * config.keys
-    - 默认不用配置，是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
-    - 生成代码会包含这个引用，加载类会自动resolve，方便程序访问每行记录
+    - 默认是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
 
 * config.enum
-    - 默认不用配置，如果要把它作为enum，请配置，比如enum="aa"就是field aa作为enum名称
+    - 如果程序想访问单独一行，配置这个，比如enum="aa"就是field aa作为enum名称
 
 * bean.compress
-    - 默认是false，如果这个bean是被放到单元格里，要配置为true
+    - 如果要把bean整个放到一个单元格里，配置这个为true
 
 * field.desc, name
-    - configgen.jar会从csv文件第1,2行提取，
+    - configgen.jar会从csv文件第1,2行提取
     - list a1,a2: name为aList
     - map a1,b1,a2,b2: name为a2bMap
-    - 生成代码时保留csv中配置名称的大小写。
-    - 成员变量为首字母小写的name，成员函数为get+首字母大写的name
-    - 有引用的情况，成员变量为Ref+首字母大写的name， 成员函数为ref/nullableRef+首字母大写的name
+    - 生成代码时保留csv中配置名称的大小写，成员变量为首字母小写的name
+    - 引用的成员变量为Ref+首字母大写的name
 
 * field.type
     - bool,int,long,float,string(text),bean
@@ -82,7 +79,7 @@
 
 * config/bean/field.own
     - 里面可填任意字符串，配合启动参数使用，contains语义。
-    - 共用一份config.xml，通过启动参数own和这里的own选择生成部分，因为客户端内存比较稀缺
+    - 共用一份config.xml，通过启动参数own和这里的own选择生成部分，想省客户端内存用这个
 
 ## 其他
 
@@ -97,7 +94,7 @@
 
 * 为什么支持enum？
 
-    当你要一个knowledge，客户端，服务器，策划都要了解的时候，放到csv里。
+    当你要一个knowledge，客户端，服务器，策划都要了解的时候，放到csv里。程序也不用写魔数了。
 
 * 为什么enum支持部分设置，部分空白？
 
@@ -134,29 +131,27 @@
     可以在一个csv里直接随意嵌套bean；
     也可以通过ref,nullableref支持了简单嵌套结构，
     通过list,map，和ref，nullableref，keyref的使用支持了容器嵌套结构。
-    还可以通过listref，支持来list嵌套结构，到底引用了哪些是另外一个表说了算。
+    还可以通过listref，支持来list嵌套结构。
 
 * 继承支持？
 
     不支持，但有2中方法来处理：
-    如果只是客户端用，使用csharp的partial机制，自己写个接口类，然后把想继承的配置类声明上implement。
-    比如各种类型的item客户端想要统一处理。
-    如果服务器要用，java没有partial，就用组合来做，定义一个bean。想继承的配置都使用这个bean。
-    比如Fighter需要传cfg，但可能是monster，hero。
+    - 组合来做，定义一个bean。想继承的配置都使用这个bean。比如Fighter需要传cfg，但可能是monster，hero。
+    - 使用csharp的partial机制，自己写个接口类，然后把想继承的配置类声明上，比如各种类型的item可放到不同的csv中。
 
 * 客户端更新策略？
 
     分包处理，使用 -gen pack 配合pack.xml来生成分包文件。pack.xml里声明哪些文件打成一个包，使用CSVLoader.LoadPack来加载。
-    如果不想分包，只要pack.xml不存在就行了，全打到all.zip里。
+    如果pack.xml不存在，就全打包到all.zip。
 
 * 国际化策略？
 
     对于需要国际化的字段，配置为text类型，生成时会单独放到text.csv里，只要翻译这个文件就ok了。
-    分包的话，翻译完毕使用 -packtext text.csv 来打包text.zip。
+    翻译完毕使用 -packtext text.csv 来打包text.zip。
 
 * 为什么java生成没有用public final？
 
-    的确用public final int a; 这样就不用写getter了，简洁不少。
+    用public final int a; 这样就不用写getter了，简洁不少。
     但ref得用函数，enum类也得用函数，太不统一了。
 
 * 对set的支持呢？

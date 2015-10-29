@@ -6,11 +6,11 @@ import org.w3c.dom.Element;
 public class Field extends Node {
     public String desc;
     public final String type;
-    public final String ref;
-    public final String nullableRef;
-    public final String keyRef;
-    public final String listRef;
-    public final String listRefKey;
+    public String ref;
+    public String nullableRef;
+    public String keyRef;
+    public String listRef;
+    public String listRefKey;
     public final String range;
     public final String own;
 
@@ -48,6 +48,50 @@ public class Field extends Node {
         listRefKey = "";
         range = "";
         own = "";
+    }
+
+    Field(Bean _parent, Field original) {
+        super(_parent, original.name);
+        desc = original.desc;
+        type = original.type;
+
+        ref = original.ref;
+        nullableRef = original.nullableRef;
+        keyRef = original.keyRef;
+        listRef = original.listRef;
+        listRefKey = original.listRefKey;
+        range = original.range;
+        own = original.own;
+    }
+
+    Field extract(Bean _parent, String _own) {
+        if (own.contains(_own))
+            return new Field(_parent, this);
+        return null;
+    }
+
+    void resolveExtract() {
+        if (!ref.isEmpty() && !((ConfigCollection) root).configs.containsKey(ref))
+            ref = "";
+
+        if (!nullableRef.isEmpty() && !((ConfigCollection) root).configs.containsKey(nullableRef))
+            nullableRef = "";
+
+        if (!keyRef.isEmpty() && !((ConfigCollection) root).configs.containsKey(keyRef))
+            keyRef = "";
+
+        if (!listRef.isEmpty()) {
+            Config cfg = ((ConfigCollection) root).configs.get(listRef);
+            if (cfg == null) {
+                listRef = "";
+                listRefKey = "";
+            } else {
+                if (!cfg.bean.fields.containsKey(listRefKey)) {
+                    listRef = "";
+                    listRefKey = "";
+                }
+            }
+        }
     }
 
     public void save(Element parent) {

@@ -25,7 +25,7 @@ public class ConfigCollection extends Node {
             List<List<Element>> elements = DomUtils.elementsList(self, "bean", "config");
 
             for (Element e : elements.get(0)) {
-                Bean b = new Bean(this, null, e);
+                Bean b = new Bean(this, e);
                 require(null == beans.put(b.name, b), "bean duplicate name=" + b.name);
             }
 
@@ -57,24 +57,24 @@ public class ConfigCollection extends Node {
     public ConfigCollection extract(String own) {
         ConfigCollection part = new ConfigCollection(own);
         beans.forEach((k, v) -> {
-            Bean o = v.extract(this, null, own);
-            if (o != null)
-                part.beans.put(k, o);
+            Bean pb = v.extract(part, own);
+            if (pb != null)
+                part.beans.put(k, pb);
         });
 
         configs.forEach((k, v) -> {
-            Config o = v.extract(this, own);
-            if (o != null)
-                part.configs.put(k, o);
+            Config pc = v.extract(part, own);
+            if (pc != null)
+                part.configs.put(k, pc);
         });
 
-        part.extract2();
+        part.resolveExtract();
         return part;
     }
 
-    private void extract2() {
-        beans.values().forEach(Bean::extract2);
-        configs.values().forEach(Config::extract2);
+    private void resolveExtract() {
+        beans.values().forEach(Bean::resolveExtract);
+        configs.values().forEach(Config::resolveExtract);
     }
 
 }

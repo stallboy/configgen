@@ -58,7 +58,6 @@ public class GenJava extends Generator {
         CachedFileOutputStream.deleteOtherFiles(dstDir);
     }
 
-
     private static class Name {
         final String pkg;
         final String className;
@@ -138,6 +137,25 @@ public class GenJava extends Generator {
             ps.println1("}");
             ps.println();
         }
+
+        //assign
+        ps.println1((cfg == null ? "public " : "private ") + "void assign(" + name.className + " other) {");
+        tbean.fields.forEach((n, t) -> {
+            if (t instanceof TBean) {
+                ps.println2(lower1(n) + ".assign(other." + lower1(n) + ");");
+            } else if (t instanceof TMap) {
+                ps.println2(lower1(n) + ".clear();");
+                ps.println2(lower1(n) + ".putAll(other." + lower1(n) + ");");
+            } else if (t instanceof TList) {
+                ps.println2(lower1(n) + ".clear();");
+                ps.println2(lower1(n) + ".addAll(other." + lower1(n) + ");");
+            } else {
+                ps.println2(lower1(n) + " = other." + lower1(n) + ";");
+            }
+        });
+        ps.println1("}");
+        ps.println();
+
 
         //getter
         tbean.fields.forEach((n, t) -> {
@@ -425,6 +443,19 @@ public class GenJava extends Generator {
             } else if (isEnumPart) {
                 cfgv.enumNames.forEach(s -> ps.println2("java.util.Objects.requireNonNull(" + s.toUpperCase() + "_);"));
             }
+            ps.println1("}");
+            ps.println();
+
+            //static reload
+            ps.println1("static void reload(java.util.List<java.util.List<String>> dataList) {");
+            ps.println2("java.util.Map<" + (keys.size() > 1 ? "Key" : boxType(keys.values().iterator().next())) + ", " + name.className + "> old = new java.util.LinkedHashMap<>(All);");
+            ps.println2("All.clear();");
+            ps.println2("initialize(dataList);");
+            ps.println2("All.forEach((k, v) -> {");
+            ps.println3(name.className + " ov = old.get(k);");
+            ps.println3("if (ov != null)");
+            ps.println4("ov.assign(v);");
+            ps.println2("});");
             ps.println1("}");
             ps.println();
 
@@ -722,7 +753,7 @@ public class GenJava extends Generator {
 
     private void genCSV() throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/CSV.java");
-             BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/configgen/CSV.java"), "GBK"));
+             BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/configgen/data/CSV.java"), "GBK"));
              TabPrintStream ps = createSource(new File(dstDir, "CSV.java"), encoding)) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 if (line.equals("package configgen.data;"))
@@ -745,8 +776,8 @@ public class GenJava extends Generator {
             ps.println("public class CSVLoader {");
             ps.println();
 
-            ps.println1("public static Set<String> load(Path zipPath, String encoding) throws Exception {");
-            ps.println2("Set<String> configsInZip = CSV.load(zipPath, encoding);");
+            ps.println1("public static Set<String> load(Path zipPath, String encoding, boolean reload) throws Exception {");
+            ps.println2("Set<String> configsInZip = CSV.load(zipPath, encoding, reload);");
             String configsInCode = String.join("," + System.lineSeparator() + "            ", value.cfgvs.keySet().stream().map(k -> "\"" + k + "\"").collect(Collectors.toList()));
             ps.println2("Set<String> configsInCode = new LinkedHashSet<>(java.util.Arrays.asList(" + configsInCode + "));");
             ps.println2("configsInCode.removeAll(configsInZip);");
@@ -755,7 +786,7 @@ public class GenJava extends Generator {
             ps.println();
 
             ps.println1("public static void main(String[] args) throws Exception {");
-            ps.println2("System.out.println(\"missed: \" + load(java.nio.file.Paths.get(\"configdata.zip\"), \"GBK\"));");
+            ps.println2("System.out.println(\"missed: \" + load(java.nio.file.Paths.get(\"configdata.zip\"), \"GBK\", false));");
             ps.println1("}");
 
             ps.println("}");

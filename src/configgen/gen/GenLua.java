@@ -49,7 +49,7 @@ public class GenLua extends Generator {
             ps.println("local Beans = {}");
             for (TBean b : value.type.tbeans.values()) {
                 ps.println("Beans." + className(b) + " = {}");
-                genCreate(b, ps, "Beans.");
+                genCreateAndAssign(b, ps, "Beans.");
             }
             ps.println("return Beans");
         }
@@ -106,7 +106,7 @@ public class GenLua extends Generator {
         ps.println(className + ".all = {}");
         cfgv.enumNames.forEach(e -> ps.println(className + "." + e + " = nil"));
         ps.println();
-        genCreate(cfg.tbean, ps, "");
+        genCreateAndAssign(cfg.tbean, ps, "");
 
         //static get
         ps.println("function " + className + ".get(" + formalParams(cfg.keys) + ")");
@@ -135,10 +135,24 @@ public class GenLua extends Generator {
         ps.println("end");
         ps.println();
 
+        //static _reload
+        ps.println("function " + className + "._reload(os, errors)");
+        ps.println1("local old = " + className + ".all");
+        ps.println1(className + ".all = {}");
+        ps.println1(className + "._initialize(os, errors)");
+        ps.println1("for k, v in pairs(" + className + ".all) do");
+        ps.println2("local ov = old[k]");
+        ps.println2("if ov then");
+        ps.println3("ov:_assign(v)");
+        ps.println2("end");
+        ps.println1("end");
+        ps.println("end");
+        ps.println();
+
         ps.println("return " + className);
     }
 
-    private void genCreate(TBean tbean, TabPrintStream ps, String namespace) {
+    private void genCreateAndAssign(TBean tbean, TabPrintStream ps, String namespace) {
         ps.println("function " + namespace + className(tbean) + "._create(os)");
         ps.println1("local o = {}");
         tbean.fields.forEach((n, t) -> {
@@ -164,6 +178,24 @@ public class GenLua extends Generator {
         tbean.mRefs.forEach(m -> ps.println1("o." + refName(m) + " = nil"));
         tbean.listRefs.forEach(l -> ps.println1("o." + refName(l) + " = {}"));
         ps.println1("return o");
+        ps.println("end");
+        ps.println();
+
+        //_assign
+        ps.println("function " + namespace + className(tbean) + ":_assign(other)");
+        tbean.fields.forEach((n, t) -> {
+            Field f = tbean.define.fields.get(n);
+
+            if (t instanceof TBean) {
+                ps.println1("self." + lower1(n) + ":_assign(other." + lower1(n) + ")");
+            } else if (t instanceof TList || t instanceof TMap) {
+                ps.println1("for k, v in pairs(other." + lower1(n) + ") do");
+                ps.println2("self." + lower1(n) + "[k] = v");
+                ps.println1("end");
+            } else {
+                ps.println1("self." + lower1(n) + " = other." + lower1(n));
+            }
+        });
         ps.println("end");
         ps.println();
     }
@@ -295,6 +327,7 @@ public class GenLua extends Generator {
         appendFile("errors.lua", ps.ps);
         ps.println();
 
+        ps.println("local _reload = false");
         ps.println("local function _CSVProcessor(os)");
         ps.println1("local cfgNils = {}");
         for (String name : value.type.cfgs.keySet()) {
@@ -310,6 +343,8 @@ public class GenLua extends Generator {
         ps.println2("local cc = _get(" + pkg + ", c)");
         ps.println2("if cc == nil then");
         ps.println3("errors.cfgDataAdd(c)");
+        ps.println2("elseif _reload then");
+        ps.println3("cc._reload(os, errors)");
         ps.println2("else");
         ps.println3("cc._initialize(os, errors)");
         ps.println2("end");
@@ -326,7 +361,8 @@ public class GenLua extends Generator {
     }
 
     private void genLoad(TabPrintStream ps) {
-        ps.println("function " + pkg + ".Load(packDir)");
+        ps.println("function " + pkg + ".Load(packDir, reload)");
+        ps.println1("_reload = reload");
         ps.println1("Config.CSVLoader.Processor = _CSVProcessor");
         ps.println1("Config.CSVLoader.LoadPack(packDir)");
         ps.println1("return errors.errors");

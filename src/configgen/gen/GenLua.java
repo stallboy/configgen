@@ -117,7 +117,7 @@ public class GenLua extends Generator {
         //static _initialize
         ps.println("function " + className + "._initialize(os, errors)");
         ps.println1("for _ = 1, os:ReadSize() do");
-        ps.println2("local v = " + className + "._create(os)");
+        ps.println2("local v = " + className + ":_create(os)");
         if (cfgv.isEnum) {
             ps.println2("if #(v." + lower1(cfg.define.enumStr) + ") > 0 then");
             ps.println3(className + "[v." + lower1(cfg.define.enumStr) + "] = v");
@@ -153,8 +153,10 @@ public class GenLua extends Generator {
     }
 
     private void genCreateAndAssign(TBean tbean, TabPrintStream ps, String namespace) {
-        ps.println("function " + namespace + className(tbean) + "._create(os)");
+        ps.println("function " + namespace + className(tbean) + ":_create(os)");
         ps.println1("local o = {}");
+        ps.println1("setmetatable(o, self)");
+        ps.println1("self.__index = self");
         tbean.fields.forEach((n, t) -> {
             Field f = tbean.define.fields.get(n);
             String c = f.desc.isEmpty() ? "" : " -- " + f.desc;
@@ -451,7 +453,7 @@ public class GenLua extends Generator {
 
             @Override
             public String visit(TBean type) {
-                return fullName(type) + "._create(os)";
+                return fullName(type) + ":_create(os)";
             }
         });
     }

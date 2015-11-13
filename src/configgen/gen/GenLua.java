@@ -62,7 +62,7 @@ public class GenLua extends Generator {
         try (TabPrintStream ps = createSource(new File(dstDir, "_cfgs.lua"), encoding)) {
             genCfgs(ps);
         }
-        CachedFileOutputStream.deleteOtherFiles(dstDir);
+        CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
     }
 
     private static class Name {

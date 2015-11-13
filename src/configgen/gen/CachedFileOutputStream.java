@@ -53,14 +53,19 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
         Logger.log("delete " + dir + ok + ": " + file.toPath().toAbsolutePath().normalize());
     }
 
-    private static void doRemoveFile(File file) {
-        String absolutePath = file.getAbsolutePath();
-        if (!filename_set.contains(absolutePath.toLowerCase())) {
+    private static void doRemoveFile(File file, boolean keepMeta) {
+        String absolutePath = file.getAbsolutePath().toLowerCase();
+        boolean remove;
+        if (keepMeta)
+            remove = !filename_set.contains(absolutePath) && !filename_set.contains(absolutePath + ".meta");
+        else
+            remove = !filename_set.contains(absolutePath);
+        if (remove) {
             if (file.isDirectory()) {
                 File[] files = file.listFiles();
                 if (files != null) {
                     for (File f : files) {
-                        doRemoveFile(f);
+                        doRemoveFile(f, keepMeta);
                     }
                 }
                 files = file.listFiles();
@@ -75,6 +80,11 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
 
     public static void deleteOtherFiles(File... files) {
         Arrays.asList(files).stream().filter(File::exists)
-                .forEach(CachedFileOutputStream::doRemoveFile);
+                .forEach(f -> doRemoveFile(f, false));
+    }
+
+    public static void keepMetaAndDeleteOtherFiles(File... files) {
+        Arrays.asList(files).stream().filter(File::exists)
+                .forEach(f -> doRemoveFile(f, true));
     }
 }

@@ -242,7 +242,7 @@ public class GenLua extends Generator {
                                 ps.println1("end");
                             }
                             for (SRef sr : t.constraint.refs) {
-                                ps.println1("o." + refName(sr) + " = {};");
+                                ps.println1("o." + refName(sr) + " = {}");
                                 ps.println1("for _, v in ipairs(o." + lower1(n) + ") do");
                                 ps.println2("local r = " + fullName(sr.ref) + ".get(v)");
                                 ps.println2("if r == nil then");
@@ -259,7 +259,7 @@ public class GenLua extends Generator {
                                 ps.println1("end");
                             }
                             t.constraint.refs.stream().filter(sr -> sr.ref != null).forEach(sr -> {
-                                ps.println1("o." + refName(sr) + " = {};");
+                                ps.println1("o." + refName(sr) + " = {}");
                                 ps.println1("for k, v in pairs(o." + lower1(n) + ") do");
                                 ps.println2("local r = " + fullName(sr.ref) + ".get(v)");
                                 ps.println2("if r == nil then");

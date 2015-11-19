@@ -11,6 +11,12 @@ public enum Rank {
     private String rankName = "";
     private String rankShowName = "";
 
+    private void assign(Rank other) {
+        rankID = other.rankID;
+        rankName = other.rankName;
+        rankShowName = other.rankShowName;
+    }
+
     /**
      * Ï¡ÓÐ¶È
      */
@@ -63,6 +69,17 @@ public enum Rank {
         }
         if (values().length != all().size()) 
             throw new RuntimeException("Enum Uncompleted: Rank");
+    }
+
+    static void reload(java.util.List<java.util.List<String>> dataList) {
+        java.util.Map<Integer, Rank> old = new java.util.LinkedHashMap<>(All);
+        All.clear();
+        initialize(dataList);
+        All.forEach((k, v) -> {
+            Rank ov = old.get(k);
+            if (ov != null)
+                ov.assign(v);
+        });
     }
 
 }

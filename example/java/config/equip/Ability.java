@@ -12,6 +12,11 @@ public enum Ability {
     private int id;
     private String name = "";
 
+    private void assign(Ability other) {
+        id = other.id;
+        name = other.name;
+    }
+
     /**
      *  Ù–‘¿‡–Õ
      */
@@ -56,6 +61,17 @@ public enum Ability {
         }
         if (values().length != all().size()) 
             throw new RuntimeException("Enum Uncompleted: Ability");
+    }
+
+    static void reload(java.util.List<java.util.List<String>> dataList) {
+        java.util.Map<Integer, Ability> old = new java.util.LinkedHashMap<>(All);
+        All.clear();
+        initialize(dataList);
+        All.forEach((k, v) -> {
+            Ability ov = old.get(k);
+            if (ov != null)
+                ov.assign(v);
+        });
     }
 
 }

@@ -90,6 +90,7 @@ local function _get(t, namespace)
     end
 end
 
+local _reload = false
 local function _CSVProcessor(os)
     local cfgNils = {}
     cfgNils["equip.ability"] = 1
@@ -111,6 +112,8 @@ local function _CSVProcessor(os)
         local cc = _get(cfg, c)
         if cc == nil then
             errors.cfgDataAdd(c)
+        elseif _reload then
+            cc._reload(os, errors)
         else
             cc._initialize(os, errors)
         end
@@ -121,7 +124,8 @@ local function _CSVProcessor(os)
     _resolveAll(errors)
 end
 
-function cfg.Load(packDir)
+function cfg.Load(packDir, reload)
+    _reload = reload
     Config.CSVLoader.Processor = _CSVProcessor
     Config.CSVLoader.LoadPack(packDir)
     return errors.errors

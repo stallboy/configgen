@@ -6,8 +6,8 @@ import java.util.LinkedHashSet;
 
 public class CSVLoader {
 
-    public static Set<String> load(Path zipPath, String encoding) throws Exception {
-        Set<String> configsInZip = CSV.load(zipPath, encoding);
+    public static Set<String> load(Path zipPath, String encoding, boolean reload) throws Exception {
+        Set<String> configsInZip = CSV.load(zipPath, encoding, reload);
         Set<String> configsInCode = new LinkedHashSet<>(java.util.Arrays.asList("equip.ability",
             "equip.jewelry",
             "equip.jewelryrandom",
@@ -23,6 +23,6 @@ public class CSVLoader {
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println("missed: " + load(java.nio.file.Paths.get("configdata.zip"), "GBK"));
+        System.out.println("missed: " + load(java.nio.file.Paths.get("configdata.zip"), "GBK", false));
     }
 }

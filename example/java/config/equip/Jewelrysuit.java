@@ -11,6 +11,19 @@ public class Jewelrysuit {
     private int ability3Value;
     private java.util.List<Integer> suitList = new java.util.ArrayList<>();
 
+    private void assign(Jewelrysuit other) {
+        suitID = other.suitID;
+        name = other.name;
+        ability1 = other.ability1;
+        ability1Value = other.ability1Value;
+        ability2 = other.ability2;
+        ability2Value = other.ability2Value;
+        ability3 = other.ability3;
+        ability3Value = other.ability3Value;
+        suitList.clear();
+        suitList.addAll(other.suitList);
+    }
+
     /**
      * ÊÎÆ·Ì××°ID
      */
@@ -133,6 +146,17 @@ public class Jewelrysuit {
             Jewelrysuit self = new Jewelrysuit()._parse(data);
             All.put(self.suitID, self);
         }
+    }
+
+    static void reload(java.util.List<java.util.List<String>> dataList) {
+        java.util.Map<Integer, Jewelrysuit> old = new java.util.LinkedHashMap<>(All);
+        All.clear();
+        initialize(dataList);
+        All.forEach((k, v) -> {
+            Jewelrysuit ov = old.get(k);
+            if (ov != null)
+                ov.assign(v);
+        });
     }
 
 }

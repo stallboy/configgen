@@ -8,11 +8,18 @@ ability.critical_resist = nil
 ability.block = nil
 ability.break_armor = nil
 
-function ability._create(os)
+function ability:_create(os)
     local o = {}
+    setmetatable(o, self)
+    self.__index = self
     o.id = os:ReadInt32() -- 属性类型
     o.name = os:ReadString() -- 程序用名字
     return o
+end
+
+function ability:_assign(other)
+    self.id = other.id
+    self.name = other.name
 end
 
 function ability.get(id)
@@ -21,7 +28,7 @@ end
 
 function ability._initialize(os, errors)
     for _ = 1, os:ReadSize() do
-        local v = ability._create(os)
+        local v = ability:_create(os)
         if #(v.name) > 0 then
             ability[v.name] = v
         end
@@ -47,6 +54,18 @@ function ability._initialize(os, errors)
     end
     if ability.break_armor == nil then
         errors.enumNil("equip.ability", "break_armor");
+    end
+end
+
+function ability._reload(os, errors)
+    local old = ability.all
+    ability.all = {}
+    ability._initialize(os, errors)
+    for k, v in pairs(ability.all) do
+        local ov = old[k]
+        if ov then
+            ov:_assign(v)
+        end
     end
 end
 

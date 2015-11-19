@@ -13,6 +13,11 @@ public class LevelRank {
         this.rank = rank;
     }
 
+    public void assign(LevelRank other) {
+        level = other.level;
+        rank = other.rank;
+    }
+
     /**
      * µÈ¼¶
      */

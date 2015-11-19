@@ -7,6 +7,14 @@ public class Lootitem {
     private int countmin;
     private int countmax;
 
+    private void assign(Lootitem other) {
+        lootid = other.lootid;
+        itemid = other.itemid;
+        chance = other.chance;
+        countmin = other.countmin;
+        countmax = other.countmax;
+    }
+
     /**
      * µôÂäid
      */
@@ -109,6 +117,17 @@ public class Lootitem {
             Lootitem self = new Lootitem()._parse(data);
             All.put(new Key(self.lootid, self.itemid), self);
         }
+    }
+
+    static void reload(java.util.List<java.util.List<String>> dataList) {
+        java.util.Map<Key, Lootitem> old = new java.util.LinkedHashMap<>(All);
+        All.clear();
+        initialize(dataList);
+        All.forEach((k, v) -> {
+            Lootitem ov = old.get(k);
+            if (ov != null)
+                ov.assign(v);
+        });
     }
 
 }

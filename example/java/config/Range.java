@@ -12,6 +12,11 @@ public class Range {
         this.max = max;
     }
 
+    public void assign(Range other) {
+        min = other.min;
+        max = other.max;
+    }
+
     /**
      * ื๎ะก
      */

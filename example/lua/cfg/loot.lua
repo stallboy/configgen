@@ -4,8 +4,10 @@ loot.combo1 = nil
 loot.combo2 = nil
 loot.combo3 = nil
 
-function loot._create(os)
+function loot:_create(os)
     local o = {}
+    setmetatable(o, self)
+    self.__index = self
     o.lootid = os:ReadInt32() -- 序号
     o.ename = os:ReadString()
     o.name = os:ReadString() -- 名字
@@ -17,13 +19,22 @@ function loot._create(os)
     return o
 end
 
+function loot:_assign(other)
+    self.lootid = other.lootid
+    self.ename = other.ename
+    self.name = other.name
+    for k, v in pairs(other.chanceList) do
+        self.chanceList[k] = v
+    end
+end
+
 function loot.get(lootid)
     return loot.all[lootid]
 end
 
 function loot._initialize(os, errors)
     for _ = 1, os:ReadSize() do
-        local v = loot._create(os)
+        local v = loot:_create(os)
         if #(v.ename) > 0 then
             loot[v.ename] = v
         end
@@ -37,6 +48,18 @@ function loot._initialize(os, errors)
     end
     if loot.combo3 == nil then
         errors.enumNil("loot", "combo3");
+    end
+end
+
+function loot._reload(os, errors)
+    local old = loot.all
+    loot.all = {}
+    loot._initialize(os, errors)
+    for k, v in pairs(loot.all) do
+        local ov = old[k]
+        if ov then
+            ov:_assign(v)
+        end
     end
 end
 

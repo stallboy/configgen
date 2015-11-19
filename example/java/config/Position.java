@@ -14,6 +14,12 @@ public class Position {
         this.z = z;
     }
 
+    public void assign(Position other) {
+        x = other.x;
+        y = other.y;
+        z = other.z;
+    }
+
     public int getX() {
         return x;
     }

@@ -15,6 +15,14 @@ public class Loot {
     private java.util.List<Integer> chanceList = new java.util.ArrayList<>();
     private java.util.List<config.Lootitem> ListRefLootid = new java.util.ArrayList<>();
 
+    private void assign(Loot other) {
+        lootid = other.lootid;
+        ename = other.ename;
+        name = other.name;
+        chanceList.clear();
+        chanceList.addAll(other.chanceList);
+    }
+
     /**
      * ÐòºÅ
      */
@@ -129,6 +137,17 @@ public class Loot {
         java.util.Objects.requireNonNull(COMBO1_);
         java.util.Objects.requireNonNull(COMBO2_);
         java.util.Objects.requireNonNull(COMBO3_);
+    }
+
+    static void reload(java.util.List<java.util.List<String>> dataList) {
+        java.util.Map<Integer, Loot> old = new java.util.LinkedHashMap<>(All);
+        All.clear();
+        initialize(dataList);
+        All.forEach((k, v) -> {
+            Loot ov = old.get(k);
+            if (ov != null)
+                ov.assign(v);
+        });
     }
 
     static void resolve() {

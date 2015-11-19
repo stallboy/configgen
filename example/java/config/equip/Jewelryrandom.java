@@ -5,6 +5,13 @@ public class Jewelryrandom {
     private config.Range attackRange = new config.Range();
     private java.util.List<config.Range> otherRange = new java.util.ArrayList<>();
 
+    private void assign(Jewelryrandom other) {
+        lvlRank.assign(other.lvlRank);
+        attackRange.assign(other.attackRange);
+        otherRange.clear();
+        otherRange.addAll(other.otherRange);
+    }
+
     /**
      * µÈ¼¶
      */
@@ -83,6 +90,17 @@ public class Jewelryrandom {
             Jewelryrandom self = new Jewelryrandom()._parse(data);
             All.put(self.lvlRank, self);
         }
+    }
+
+    static void reload(java.util.List<java.util.List<String>> dataList) {
+        java.util.Map<config.LevelRank, Jewelryrandom> old = new java.util.LinkedHashMap<>(All);
+        All.clear();
+        initialize(dataList);
+        All.forEach((k, v) -> {
+            Jewelryrandom ov = old.get(k);
+            if (ov != null)
+                ov.assign(v);
+        });
     }
 
     static void resolve() {

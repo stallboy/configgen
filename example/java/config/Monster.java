@@ -4,6 +4,11 @@ public class Monster {
     private int id;
     private config.Position pos = new config.Position();
 
+    private void assign(Monster other) {
+        id = other.id;
+        pos.assign(other.pos);
+    }
+
     /**
      * id
      */
@@ -56,6 +61,17 @@ public class Monster {
             Monster self = new Monster()._parse(data);
             All.put(self.id, self);
         }
+    }
+
+    static void reload(java.util.List<java.util.List<String>> dataList) {
+        java.util.Map<Integer, Monster> old = new java.util.LinkedHashMap<>(All);
+        All.clear();
+        initialize(dataList);
+        All.forEach((k, v) -> {
+            Monster ov = old.get(k);
+            if (ov != null)
+                ov.assign(v);
+        });
     }
 
 }

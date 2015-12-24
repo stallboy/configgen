@@ -384,7 +384,7 @@ public class Data extends Node {
         Column col = new Column(this, s);
         col.indexes.addAll(a);
         col.descs.addAll(a.stream().map(descLine::get).collect(Collectors.toList()));
-        require(null == columns.put(s, col), "field duplicate");
+        require(null == columns.put(s, col), "field duplicate " + s);
     }
 
     private void add(String s, int i) {

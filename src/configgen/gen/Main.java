@@ -25,7 +25,7 @@ public final class Main {
         System.out.println("	-encoding   csv and xml encoding. default GBK");
         System.out.println("	-v          verbose, default no");
         Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
-        System.out.println("	-pack       default configdata.zip, pack [configdir]");
+        System.out.println("	-pack       zip filename");
         System.out.println("	-packtext   for i18n, pack text.csv to text.zip");
 
         Runtime.getRuntime().exit(1);

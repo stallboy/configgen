@@ -32,17 +32,20 @@ public class GenPack extends Generator {
 
     private final File dstDir;
     private final String xml;
+    private final String own;
 
     public GenPack(Parameter parameter) {
         super(parameter);
         dstDir = new File(parameter.getNotEmpty("dir", "cfg"));
         xml = parameter.get("xml", null);
+        own = parameter.get("own", null);
         parameter.end();
     }
 
     @Override
-    public void generate(CfgVs value) throws IOException {
-        File packXmlFile = xml != null ? new File(xml) : value.data.dataDir.resolve("pack.xml").toFile();
+    public void generate(CfgVs _value) throws IOException {
+        File packXmlFile = xml != null ? new File(xml) : _value.data.dataDir.resolve("pack.xml").toFile();
+        CfgVs value = own != null ? extract(_value, own) : _value;
         Map<String, Set<String>> packs = new HashMap<>();
         if (packXmlFile.exists()) {
             parsePack(packs, packXmlFile, value);

@@ -1,9 +1,9 @@
 package configgen.gen;
 
 import configgen.Logger;
-import configgen.define.ConfigCollection;
-import configgen.type.Cfgs;
-import configgen.value.CfgVs;
+import configgen.define.Db;
+import configgen.type.TDb;
+import configgen.value.VDb;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,30 +42,30 @@ public abstract class Generator {
         this.parameter = parameter;
     }
 
-    public abstract void generate(CfgVs value) throws IOException;
+    public abstract void generate(VDb value) throws IOException;
 
     protected void require(boolean cond, String... str) {
         if (!cond)
             throw new AssertionError(getClass().getSimpleName() + ": " + String.join(",", str));
     }
 
-    private static final Map<CfgVs, Map<String, CfgVs>> extracted = new HashMap<>();
+    private static final Map<VDb, Map<String, VDb>> extracted = new HashMap<>();
 
-    protected static CfgVs extract(CfgVs value, String own) {
-        Map<String, CfgVs> ownMap = extracted.get(value);
+    protected static VDb extract(VDb value, String own) {
+        Map<String, VDb> ownMap = extracted.get(value);
         if (ownMap != null) {
-            CfgVs v = ownMap.get(own);
+            VDb v = ownMap.get(own);
             if (v != null)
                 return v;
         }
 
         Logger.verbose("extract xml(" + own + ")");
-        ConfigCollection ownDefine = value.type.define.extract(own);
-        Cfgs ownType = new Cfgs(ownDefine);
+        Db ownDefine = value.dbType.dbDefine.extract(own);
+        TDb ownType = new TDb(ownDefine);
         ownType.resolve();
 
         Logger.verbose("extract data(" + own + ")");
-        CfgVs v = new CfgVs(ownType, value.data);
+        VDb v = new VDb(ownType, value.dbData);
         v.verifyConstraint();
 
         if (ownMap == null) {

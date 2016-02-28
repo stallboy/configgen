@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="GBK"?>
 <packs>
     <!--cfgs用逗号，分割，.* 通配符表示一个这个目录下一级子文件，.** 表示目录下所有子文件-->
-    <pack name="equip" cfgs="equip.*"/>
-    <pack name="global" cfgs=".*"/>
+    <pack name="equip" tables="equip.*"/>
+	<pack name="task" tables="task.*"/>
+    <pack name="global" tables=".*"/>
 </packs>

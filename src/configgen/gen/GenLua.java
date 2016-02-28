@@ -1,9 +1,11 @@
 package configgen.gen;
 
-import configgen.define.Field;
+import configgen.define.Bean;
+import configgen.define.Column;
+import configgen.define.ForeignKey;
 import configgen.type.*;
-import configgen.value.CfgV;
-import configgen.value.CfgVs;
+import configgen.value.VTable;
+import configgen.value.VDb;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -30,7 +32,7 @@ public class GenLua extends Generator {
     private final String pkg;
     private final String encoding;
     private final String own;
-    private CfgVs value;
+    private VDb value;
 
     public GenLua(Parameter parameter) {
         super(parameter);
@@ -42,21 +44,21 @@ public class GenLua extends Generator {
     }
 
     @Override
-    public void generate(CfgVs _value) throws IOException {
+    public void generate(VDb _value) throws IOException {
         File dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = own != null ? extract(_value, own) : _value;
         try (TabPrintStream ps = createSource(new File(dstDir, "_beans.lua"), encoding)) {
             ps.println("local Beans = {}");
-            for (TBean b : value.type.tbeans.values()) {
+            for (TBean b : value.dbType.tbeans.values()) {
                 ps.println("Beans." + className(b) + " = {}");
                 genCreateAndAssign(b, ps, "Beans.");
             }
             ps.println("return Beans");
         }
-        for (CfgV c : value.cfgvs.values()) {
+        for (VTable c : value.vtables.values()) {
             Name name = new Name(pkg, c.name);
             try (TabPrintStream ps = createSource(dstDir.toPath().resolve(name.path).toFile(), encoding)) {
-                genCfg(c.type, c, ps);
+                genCfg(c.tableType, c, ps);
             }
         }
         try (TabPrintStream ps = createSource(new File(dstDir, "_cfgs.lua"), encoding)) {
@@ -95,7 +97,7 @@ public class GenLua extends Generator {
         }
     }
 
-    private void genCfg(Cfg cfg, CfgV cfgv, TabPrintStream ps) {
+    private void genCfg(TTable cfg, VTable cfgv, TabPrintStream ps) {
         String className = className(cfg.tbean);
         if (cfg.tbean.hasSubBean()) {
             ps.println("local Beans = require(\"" + pkg + "._beans\")");
@@ -109,8 +111,8 @@ public class GenLua extends Generator {
         genCreateAndAssign(cfg.tbean, ps, "");
 
         //static get
-        ps.println("function " + className + ".get(" + formalParams(cfg.keys) + ")");
-        ps.println1("return " + className + ".all[" + actualParams(cfg.keys, "") + "]");
+        ps.println("function " + className + ".get(" + formalParams(cfg.primaryKey) + ")");
+        ps.println1("return " + className + ".all[" + actualParams(cfg.primaryKey, "") + "]");
         ps.println("end");
         ps.println();
 
@@ -119,16 +121,16 @@ public class GenLua extends Generator {
         ps.println1("for _ = 1, os:ReadSize() do");
         ps.println2("local v = " + className + ":_create(os)");
         if (cfgv.isEnum) {
-            ps.println2("if #(v." + lower1(cfg.define.enumStr) + ") > 0 then");
-            ps.println3(className + "[v." + lower1(cfg.define.enumStr) + "] = v");
+            ps.println2("if #(v." + lower1(cfg.tableDefine.enumStr) + ") > 0 then");
+            ps.println3(className + "[v." + lower1(cfg.tableDefine.enumStr) + "] = v");
             ps.println2("end");
         }
-        ps.println2(className + ".all[" + actualParams(cfg.keys, "v.") + "] = v");
+        ps.println2(className + ".all[" + actualParams(cfg.primaryKey, "v.") + "] = v");
         ps.println1("end");
         if (cfgv.isEnum) {
             cfgv.enumNames.forEach(e -> {
                 ps.println1("if " + className + "." + e + " == nil then");
-                ps.println2("errors.enumNil(\"" + cfg.tbean.define.name + "\", \"" + e + "\");");
+                ps.println2("errors.enumNil(\"" + cfg.tbean.beanDefine.name + "\", \"" + e + "\");");
                 ps.println1("end");
             });
         }
@@ -157,8 +159,8 @@ public class GenLua extends Generator {
         ps.println1("local o = {}");
         ps.println1("setmetatable(o, self)");
         ps.println1("self.__index = self");
-        tbean.fields.forEach((n, t) -> {
-            Field f = tbean.define.fields.get(n);
+        tbean.columns.forEach((n, t) -> {
+            Column f = tbean.beanDefine.columns.get(n);
             String c = f.desc.isEmpty() ? "" : " -- " + f.desc;
 
             if (t instanceof TList) {
@@ -175,7 +177,7 @@ public class GenLua extends Generator {
                 ps.println1("o." + lower1(n) + " = " + _create(t) + c);
             }
 
-            t.constraint.refs.forEach(r -> ps.println1("o." + refName(r) + " = nil"));
+            t.constraint.references.forEach(r -> ps.println1("o." + refName(r) + " = nil"));
         });
         tbean.mRefs.forEach(m -> ps.println1("o." + refName(m) + " = nil"));
         tbean.listRefs.forEach(l -> ps.println1("o." + refName(l) + " = {}"));
@@ -185,8 +187,8 @@ public class GenLua extends Generator {
 
         //_assign
         ps.println("function " + namespace + className(tbean) + ":_assign(other)");
-        tbean.fields.forEach((n, t) -> {
-            Field f = tbean.define.fields.get(n);
+        tbean.columns.forEach((n, t) -> {
+            Column f = tbean.beanDefine.columns.get(n);
 
             if (t instanceof TBean) {
                 ps.println1("self." + lower1(n) + ":_assign(other." + lower1(n) + ")");
@@ -207,8 +209,8 @@ public class GenLua extends Generator {
         Set<String> created = new HashSet<>();
         created.add(pkg);
 
-        for (Cfg c : value.type.cfgs.values()) {
-            Name name = new Name(pkg, c.tbean.define.name);
+        for (TTable c : value.dbType.ttables.values()) {
+            Name name = new Name(pkg, c.tbean.beanDefine.name);
             if (created.add(name.pkg)) {
                 ps.println(name.pkg + " = {}");
             }
@@ -216,8 +218,8 @@ public class GenLua extends Generator {
         }
         ps.println();
 
-        value.type.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> genResolve(t, ps));
-        value.type.cfgs.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> genResolve(c.tbean, ps));
+        value.dbType.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> genResolve(t, ps));
+        value.dbType.ttables.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> genResolve(c.tbean, ps));
         ps.println();
 
         genResolveAll(ps);
@@ -228,10 +230,10 @@ public class GenLua extends Generator {
     }
 
     private void genResolve(TBean tbean, TabPrintStream ps) {
-        String csv = "\"" + tbean.define.name + "\"";
+        String csv = "\"" + tbean.beanDefine.name + "\"";
 
         ps.println("local function " + resolveFuncName(tbean) + "(o, errors)");
-        tbean.fields.forEach((n, t) -> {
+        tbean.columns.forEach((n, t) -> {
                     if (t.hasRef()) {
                         String field = "\"" + n + "\"";
                         if (t instanceof TList) {
@@ -241,10 +243,10 @@ public class GenLua extends Generator {
                                 ps.println2(resolveFuncName((TBean) tt.value) + "(v, errors)");
                                 ps.println1("end");
                             }
-                            for (SRef sr : t.constraint.refs) {
+                            for (SRef sr : t.constraint.references) {
                                 ps.println1("o." + refName(sr) + " = {}");
                                 ps.println1("for _, v in ipairs(o." + lower1(n) + ") do");
-                                ps.println2("local r = " + fullName(sr.ref) + ".get(v)");
+                                ps.println2("local r = " + fullName(sr.refTable) + ".get(v)");
                                 ps.println2("if r == nil then");
                                 ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
                                 ps.println2("end");
@@ -258,10 +260,10 @@ public class GenLua extends Generator {
                                 ps.println2(resolveFuncName((TBean) tt.value) + "(v, errors)");
                                 ps.println1("end");
                             }
-                            t.constraint.refs.stream().filter(sr -> sr.ref != null).forEach(sr -> {
+                            t.constraint.references.stream().filter(sr -> sr.refTable != null).forEach(sr -> {
                                 ps.println1("o." + refName(sr) + " = {}");
                                 ps.println1("for k, v in pairs(o." + lower1(n) + ") do");
-                                ps.println2("local r = " + fullName(sr.ref) + ".get(v)");
+                                ps.println2("local r = " + fullName(sr.refTable) + ".get(v)");
                                 ps.println2("if r == nil then");
                                 ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
                                 ps.println2("end");
@@ -272,9 +274,9 @@ public class GenLua extends Generator {
                             if (t instanceof TBean && t.hasRef()) {
                                 ps.println1(resolveFuncName((TBean) t) + "(o." + lower1(n) + ", errors)");
                             }
-                            for (SRef sr : t.constraint.refs) {
-                                ps.println1("o." + refName(sr) + " = " + fullName(sr.ref) + ".get(o." + lower1(n) + ")");
-                                if (!sr.nullable) {
+                            for (SRef sr : t.constraint.references) {
+                                ps.println1("o." + refName(sr) + " = " + fullName(sr.refTable) + ".get(o." + lower1(n) + ")");
+                                if (!sr.refNullable) {
                                     ps.println1("if o." + refName(sr) + " == nil then");
                                     ps.println2("errors.refNil(" + csv + ", " + field + ", o." + lower1(n) + ")");
                                     ps.println1("end");
@@ -286,21 +288,21 @@ public class GenLua extends Generator {
         );
 
         tbean.mRefs.forEach(m -> {
-                    ps.println1("o." + refName(m) + " = " + fullName(m.ref) + ".get(" + actualParams(m.define.keys, "o.") + ");");
-                    if (!m.define.nullable) {
+                    ps.println1("o." + refName(m) + " = " + fullName(m.refTable) + ".get(" + actualParams(m.foreignKeyDefine.keys, "o.") + ");");
+                    if (m.foreignKeyDefine.refType != ForeignKey.RefType.NULLABLE) {
                         ps.println1("if o." + refName(m) + " == nil then");
-                        ps.println2("errors.refNil(" + csv + ", \"" + m.define.name + "\", 0)");
+                        ps.println2("errors.refNil(" + csv + ", \"" + m.foreignKeyDefine.name + "\", 0)");
                         ps.println1("end");
                     }
                 }
         );
 
         tbean.listRefs.forEach(l -> {
-                    ps.println1("for _, v in pairs(" + fullName(l.ref) + ".all) do");
+                    ps.println1("for _, v in pairs(" + fullName(l.refTable) + ".all) do");
                     List<String> eqs = new ArrayList<>();
-                    for (int i = 0; i < l.keys.length; i++) {
-                        String k = l.keys[i];
-                        String rk = l.refKeys[i];
+                    for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {
+                        String k = l.foreignKeyDefine.keys[i];
+                        String rk = l.foreignKeyDefine.ref.cols[i];
                         eqs.add("v." + lower1(rk) + " == o." + lower1(k));
                     }
                     ps.println2("if " + String.join(" and ", eqs) + " then");
@@ -316,7 +318,7 @@ public class GenLua extends Generator {
 
     private void genResolveAll(TabPrintStream ps) {
         ps.println("local function _resolveAll(errors)");
-        value.type.cfgs.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> {
+        value.dbType.ttables.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> {
             ps.println1("for _, v in pairs(" + fullName(c) + ".all) do");
             ps.println2(resolveFuncName(c.tbean) + "(v, errors)");
             ps.println1("end");
@@ -332,7 +334,7 @@ public class GenLua extends Generator {
         ps.println("local _reload = false");
         ps.println("local function _CSVProcessor(os)");
         ps.println1("local cfgNils = {}");
-        for (String name : value.type.cfgs.keySet()) {
+        for (String name : value.dbType.ttables.keySet()) {
             ps.println1("cfgNils[\"" + name + "\"] = 1");
         }
 
@@ -387,27 +389,30 @@ public class GenLua extends Generator {
     }
 
     private String refName(SRef sr) {
-        return (sr.nullable ? "NullableRef" : "Ref") + upper1(sr.name);
+        return (sr.refNullable ? "NullableRef" : "Ref") + upper1(sr.name);
     }
 
-    private String refName(MRef mr) {
-        return (mr.define.nullable ? "NullableRef" : "Ref") + upper1(mr.define.name);
-    }
-
-    private String refName(ListRef lr) {
-        return "ListRef" + upper1(lr.name);
+    private String refName(TForeignKey fk) {
+        switch (fk.foreignKeyDefine.refType) {
+            case NORMAL:
+                return "Ref" + upper1(fk.name);
+            case NULLABLE:
+                return "NullableRef" + upper1(fk.name);
+            default:
+                return "ListRef" + upper1(fk.name);
+        }
     }
 
     private String fullName(TBean tbean) {
-        return tbean.isBean ? "Beans." + tbean.define.name.toLowerCase() : new Name(pkg, tbean.define.name).fullName;
+        return tbean.beanDefine.type == Bean.BeanType.NormalBean ? "Beans." + tbean.beanDefine.name.toLowerCase() : new Name(pkg, tbean.beanDefine.name).fullName;
     }
 
-    private String fullName(Cfg cfg) {
+    private String fullName(TTable cfg) {
         return fullName(cfg.tbean);
     }
 
     private String className(TBean tbean) {
-        return tbean.isBean ? tbean.define.name.toLowerCase() : new Name(pkg, tbean.define.name).className;
+        return tbean.beanDefine.type == Bean.BeanType.NormalBean ? tbean.beanDefine.name.toLowerCase() : new Name(pkg, tbean.beanDefine.name).className;
     }
 
     private String resolveFuncName(TBean tbean) {

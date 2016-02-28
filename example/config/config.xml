@@ -1,85 +1,111 @@
 <?xml version="1.0" encoding="GBK"?>
-<configcollection>
+<db>
     <bean name="LevelRank">
-        <field desc="等级" name="Level" type="int"/>
-        <field desc="品质" name="Rank" ref="equip.rank" type="int"/>
+        <column desc="等级" name="Level" type="int"/>
+        <column desc="品质" name="Rank" ref="equip.rank" type="int"/>
     </bean>
     <bean compress="true" name="Position">
-        <field name="x" type="int"/>
-        <field name="y" type="int"/>
-        <field name="z" type="int"/>
+        <column name="x" type="int"/>
+        <column name="y" type="int"/>
+        <column name="z" type="int"/>
     </bean>
     <bean name="Range">
-        <field desc="最小" name="Min" type="int"/>
-        <field desc="最大" name="Max" type="int"/>
+        <column desc="最小" name="Min" type="int"/>
+        <column desc="最大" name="Max" type="int"/>
     </bean>
-    <config enum="name" name="equip.ability">
-        <field desc="属性类型" name="id" type="int"/>
-        <field desc="程序用名字" name="name" type="string"/>
-    </config>
-    <config name="equip.jewelry">
-        <field desc="首饰ID" name="ID" range="1,9999" type="int"/>
-        <field desc="首饰名称" name="Name" type="string"/>
-        <field desc="图标ID" name="IconFile" type="string"/>
-        <field desc="首饰等级" name="LvlRank" ref="equip.jewelryrandom" type="LevelRank"/>
-        <field desc="首饰类型" name="Type" ref="equip.jewelrytype" type="int"/>
-        <field
+    <bean enumRef="task.completeconditiontype" name="task.completecondition">
+        <bean name="KillMonster">
+            <column name="monsterid" ref="monster" type="int"/>
+            <column name="count" type="int"/>
+        </bean>
+        <bean name="TalkNpc">
+            <column name="npcid" type="int"/>
+        </bean>
+        <bean name="CollectItem">
+            <column name="itemid" type="int"/>
+            <column name="count" type="int"/>
+        </bean>
+    </bean>
+    <table enum="name" name="equip.ability" primaryKey="id">
+        <column desc="属性类型" name="id" type="int"/>
+        <column desc="程序用名字" name="name" type="string"/>
+    </table>
+    <table name="equip.jewelry" primaryKey="ID">
+        <column desc="首饰ID" name="ID" range="1,9999" type="int"/>
+        <column desc="首饰名称" name="Name" type="string"/>
+        <column desc="图标ID" name="IconFile" type="string"/>
+        <column desc="首饰等级" name="LvlRank" ref="equip.jewelryrandom" type="LevelRank"/>
+        <column desc="首饰类型" name="Type" ref="equip.jewelrytype" type="int"/>
+        <column
             desc="套装ID（为0是没有不属于套装，首饰品级为4的首饰该参数为套装id，其余情况为0,引用JewelrySuit.csv）"
-            name="SuitID" nullableref="equip.jewelrysuit" type="int"/>
-        <field desc="关键属性类型" name="KeyAbility" ref="equip.ability" type="int"/>
-        <field desc="关键属性数值" name="KeyAbilityValue" type="int"/>
-        <field desc="售卖价格" name="SalePrice" type="int"/>
-        <field
+            name="SuitID" ref="equip.jewelrysuit" refType="NULLABLE" type="int"/>
+        <column desc="关键属性类型" name="KeyAbility" ref="equip.ability" type="int"/>
+        <column desc="关键属性数值" name="KeyAbilityValue" type="int"/>
+        <column desc="售卖价格" name="SalePrice" type="int"/>
+        <column
             desc="描述,根据Lvl和Rank来随机3个属性，第一个属性由Lvl,Rank行随机，剩下2个由Lvl和小于Rank的行里随机。Rank最小的时候都从Lvl，Rank里随机。"
             name="Description" type="string"/>
-    </config>
-    <config name="equip.jewelryrandom">
-        <field desc="等级" name="LvlRank" type="LevelRank"/>
-        <field desc="最小攻击力" name="AttackRange" type="Range"/>
-        <field desc="最小防御力" name="OtherRange" type="list,Range,4"/>
-    </config>
-    <config name="equip.jewelrysuit">
-        <field desc="饰品套装ID" name="SuitID" type="int"/>
-        <field desc="策划用名字" name="Name" type="text"/>
-        <field desc="套装属性类型1（装备套装中的两件时增加的属性）" name="Ability1" type="int"/>
-        <field desc="套装属性1" name="Ability1Value" type="int"/>
-        <field desc="套装属性类型2（装备套装中的三件时增加的属性）" name="Ability2" type="int"/>
-        <field desc="套装属性2" name="Ability2Value" type="int"/>
-        <field desc="套装属性类型3（装备套装中的四件时增加的属性）" name="Ability3" type="int"/>
-        <field desc="套装属性3" name="Ability3Value" type="int"/>
-        <field desc="部件1" name="SuitList" type="list,int,4"/>
-    </config>
-    <config enum="TypeName" name="equip.jewelrytype">
-        <field desc="饰品类型" name="TypeID" type="int"/>
-        <field desc="程序用名字" name="TypeName" type="string"/>
-    </config>
-    <config enum="RankName" name="equip.rank">
-        <field desc="稀有度" name="RankID" type="int"/>
-        <field desc="程序用名字" name="RankName" type="string"/>
-        <field desc="显示名称" name="RankShowName" type="string"/>
-    </config>
-    <config enum="ename" name="loot">
-        <field desc="序号" listref="lootitem,lootid" name="lootid" type="int"/>
-        <field name="ename" type="string"/>
-        <field desc="名字" name="name" type="string"/>
-        <field desc="掉落0件物品的概率" name="chanceList" type="list,int,7"/>
-    </config>
-    <config keys="lootid,itemid" name="lootitem">
-        <field desc="掉落id" name="lootid" type="int"/>
-        <field desc="掉落物品" name="itemid" type="int"/>
-        <field desc="掉落概率" name="chance" type="int"/>
-        <field desc="数量下限" name="countmin" type="int"/>
-        <field desc="数量上限" name="countmax" type="int"/>
-    </config>
-    <config name="monster">
-        <field desc="id" name="id" type="int"/>
-        <field name="pos" type="Position"/>
-    </config>
-    <config name="signin">
-        <field desc="礼包ID" name="id" type="int"/>
-        <field desc="普通奖励," name="item2countMap" type="map,int,int,5"/>
-        <field desc="vip奖励," name="vipitem2vipcountMap" type="map,int,int,2"/>
-        <field desc="领取vip奖励的最低等级" name="viplevel" type="int"/>
-        <field desc="礼包图标" name="IconFile" type="string"/>
-    </config>
-</configcollection>
+    </table>
+    <table name="equip.jewelryrandom" primaryKey="LvlRank">
+        <column desc="等级" name="LvlRank" type="LevelRank"/>
+        <column desc="最小攻击力" name="AttackRange" type="Range"/>
+        <column desc="最小防御力" name="OtherRange" type="list,Range,4"/>
+    </table>
+    <table name="equip.jewelrysuit" primaryKey="SuitID">
+        <column desc="饰品套装ID" name="SuitID" type="int"/>
+        <column desc="策划用名字" name="Name" type="text"/>
+        <column desc="套装属性类型1（装备套装中的两件时增加的属性）" name="Ability1" type="int"/>
+        <column desc="套装属性1" name="Ability1Value" type="int"/>
+        <column desc="套装属性类型2（装备套装中的三件时增加的属性）" name="Ability2" type="int"/>
+        <column desc="套装属性2" name="Ability2Value" type="int"/>
+        <column desc="套装属性类型3（装备套装中的四件时增加的属性）" name="Ability3" type="int"/>
+        <column desc="套装属性3" name="Ability3Value" type="int"/>
+        <column desc="部件1" name="SuitList" type="list,int,4"/>
+    </table>
+    <table enum="TypeName" name="equip.jewelrytype" primaryKey="TypeID">
+        <column desc="饰品类型" name="TypeID" type="int"/>
+        <column desc="程序用名字" name="TypeName" type="string"/>
+    </table>
+    <table enum="RankName" name="equip.rank" primaryKey="RankID">
+        <column desc="稀有度" name="RankID" type="int"/>
+        <column desc="程序用名字" name="RankName" type="string"/>
+        <column desc="显示名称" name="RankShowName" type="string"/>
+    </table>
+    <table enum="ename" name="loot" primaryKey="lootid">
+        <column desc="序号" name="lootid" ref="lootitem,lootid"
+            refType="LIST" type="int"/>
+        <column name="ename" type="string"/>
+        <column desc="名字" name="name" type="string"/>
+        <column desc="掉落0件物品的概率" name="chanceList" type="list,int,7"/>
+    </table>
+    <table name="lootitem" primaryKey="lootid,itemid">
+        <column desc="掉落id" name="lootid" type="int"/>
+        <column desc="掉落物品" name="itemid" type="int"/>
+        <column desc="掉落概率" name="chance" type="int"/>
+        <column desc="数量下限" name="countmin" type="int"/>
+        <column desc="数量上限" name="countmax" type="int"/>
+    </table>
+    <table name="monster" primaryKey="id">
+        <column desc="id" name="id" type="int"/>
+        <column name="pos" type="Position"/>
+    </table>
+    <table name="signin" primaryKey="id">
+        <column desc="礼包ID" name="id" type="int"/>
+        <column desc="普通奖励" name="item2countMap" type="map,int,int,5"/>
+        <column desc="vip奖励" name="vipitem2vipcountMap" type="map,int,int,2"/>
+        <column desc="领取vip奖励的最低等级" name="viplevel" type="int"/>
+        <column desc="礼包图标" name="IconFile" type="string"/>
+    </table>
+    <table name="task.completeconditiontype" primaryKey="id">
+        <column desc="任务完成条件类型（id的范围为1-100）" name="id" type="int"/>
+        <column desc="程序用名字" name="name" type="string"/>
+    </table>
+    <table name="task.task" primaryKey="taskid">
+        <column desc="任务完成条件类型（id的范围为1-100）" name="taskid" type="int"/>
+        <column desc="程序用名字" name="name" type="string"/>
+        <column desc="注释" name="desc" type="string"/>
+        <column name="nexttask" type="int"/>
+        <column name="completecondition" type="task.completecondition"/>
+        <column name="exp" type="int"/>
+    </table>
+</db>

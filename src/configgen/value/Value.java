@@ -4,6 +4,7 @@ import configgen.Node;
 import configgen.type.*;
 
 import java.util.List;
+import java.util.Set;
 
 public abstract class Value extends Node {
     protected final Type type;
@@ -20,13 +21,16 @@ public abstract class Value extends Node {
     public abstract void verifyConstraint();
 
     protected void verifyRefs() {
-        type.constraint.refs.stream().forEach(ref -> {
+        for (SRef sref : type.constraint.references) {
             if (isNull()) {
-                require(ref.nullable, toString(), "null not support ref", ref.ref.fullName());
+                require(sref.refNullable, toString(), "null not support ref", sref.refTable.fullName());
             } else {
-                require(((CfgVs) root).cfgvs.get(ref.ref.name).vkeys.contains(this), toString(), "not found in ref", ref.ref.fullName());
+                require(sref.refTable != null, "");
+                VTable vtable = ((VDb) root).vtables.get(sref.refTable.name);
+                Set<Value> keyValueSet = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
+                require(keyValueSet.contains(this), toString(), "not found in ref", sref.refTable.fullName());
             }
-        });
+        }
     }
 
     public boolean isNull() {

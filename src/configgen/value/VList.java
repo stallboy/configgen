@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public class VList extends Value {
     public final List<Value> list = new ArrayList<>();
 
-    public VList(Node parent, String name, List<Value> vs) { // for keys and keysRef
+    public VList(Node parent, String name, List<Value> vs) { // for primaryKey and keysRef
         super(parent, name, null, toRaw(vs));
         list.addAll(vs);
     }

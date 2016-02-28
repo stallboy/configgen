@@ -2,7 +2,7 @@ package configgen.value;
 
 import configgen.Node;
 import configgen.data.CSV;
-import configgen.type.Range;
+import configgen.define.Range;
 import configgen.type.TFloat;
 
 import java.util.List;

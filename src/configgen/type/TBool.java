@@ -6,7 +6,7 @@ public class TBool extends TPrimitive {
 
     public TBool(Node parent, String name, Constraint cons) {
         super(parent, name, cons);
-        require(cons.refs.isEmpty(), "bool not support ref");
+        require(cons.references.isEmpty(), "bool not support ref");
         require(cons.range == null, "bool not support range");
     }
 

@@ -1,57 +1,87 @@
 package configgen.type;
 
 import configgen.define.Bean;
-import configgen.define.Field;
+import configgen.define.Column;
+import configgen.define.ForeignKey;
+import configgen.define.KeyRange;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TBean extends Type {
-    public final Bean define;
-    public final boolean isBean;
-    public final Map<String, Type> fields = new LinkedHashMap<>();
-    public final List<MRef> mRefs = new ArrayList<>();
-    public final List<ListRef> listRefs = new ArrayList<>();
+    public final Bean beanDefine;
 
-    private final Set<String> refNames = new HashSet<>();
+    public final Map<String, Type> columns = new LinkedHashMap<>();
+    private final List<TForeignKey> foreignKeys = new ArrayList<>();
+    public final List<TForeignKey> mRefs = new ArrayList<>();
+    public final List<TForeignKey> listRefs = new ArrayList<>();
+    private final Set<String> refNames = new HashSet<>(); //make sure generate ok
 
-    public TBean(Cfgs parent, Bean bean) {
+    public TTable actionEnumRef;
+    public final Map<String, TBean> actionBeans = new LinkedHashMap<>();
+
+    public TBean(TDb parent, Bean bean) {
         super(parent, bean.name, new Constraint());
-        this.define = bean;
-        isBean = true;
+        beanDefine = bean;
+        if (beanDefine.type == Bean.BeanType.NormalBean) {
+            init();
+        } else {
+            beanDefine.actionBeans.forEach((n, b) -> actionBeans.put(n, new TBean(this, b)));
+        }
+    }
+
+    public TBean(TTable parent, Bean bean) {
+        super(parent, bean.name, new Constraint());
+        beanDefine = bean;
         init();
     }
 
-    public TBean(Cfg parent, Bean bean) {
+    public TBean(TBean parent, Bean bean) {
         super(parent, bean.name, new Constraint());
-        this.define = bean;
-        isBean = false;
+        beanDefine = bean;
         init();
+    }
+
+    private void init() {
+        for (ForeignKey fk : beanDefine.foreignKeys) {
+            require(refNames.add(fk.name), "ref name conflict for generate", fk.name);
+            foreignKeys.add(new TForeignKey(this, fk));
+        }
+        for (Column col : beanDefine.columns.values()) {
+            ForeignKey fk = col.foreignKey;
+            if (fk != null) {
+                require(refNames.add(fk.name), "ref name conflict for generate", fk.name);
+                foreignKeys.add(new TForeignKey(this, fk));
+            }
+        }
     }
 
     @Override
     public boolean hasRef() {
-        return mRefs.size() > 0 || listRefs.size() > 0 || fields.values().stream().filter(Type::hasRef).count() > 0;
+        return mRefs.size() > 0 || listRefs.size() > 0 || columns.values().stream().filter(Type::hasRef).count() > 0;
     }
 
     @Override
     public boolean hasSubBean() {
-        return fields.values().stream().filter(t -> t.hasSubBean() || t instanceof TBean).count() > 0;
+        return columns.values().stream().filter(t -> t.hasSubBean() || t instanceof TBean).count() > 0;
     }
 
     @Override
     public boolean hasText() {
-        return fields.values().stream().filter(Type::hasText).count() > 0;
+        return columns.values().stream().filter(Type::hasText).count() > 0;
     }
 
     @Override
     public int columnSpan() {
-        return define.compress ? 1 : fields.values().stream().mapToInt(Type::columnSpan).sum();
+        if (beanDefine.type == Bean.BeanType.BaseAction) {
+            return actionBeans.values().stream().mapToInt(TBean::columnSpan).max().getAsInt() + 1;
+        } else {
+            return beanDefine.compress ? 1 : columns.values().stream().mapToInt(Type::columnSpan).sum();
+        }
     }
 
     @Override
     public String toString() {
-        return define.name;
+        return beanDefine.name;
     }
 
     @Override
@@ -64,104 +94,60 @@ public class TBean extends Type {
         return visitor.visit(this);
     }
 
-    private void init() {
-        mRefs.addAll(define.refs.stream().filter(r -> r.keys.length > 1).map(r -> new MRef(this, r)).collect(Collectors.toList()));
-        listRefs.addAll(define.listRefs.stream().map(r -> new ListRef(this, r)).collect(Collectors.toList()));
-    }
-
     public void resolve() {
-        define.fields.values().forEach(this::resolveField);
-        mRefs.forEach(kr -> {
-            kr.resolve();
-            require(refNames.add(kr.define.name), "ref name conflict", kr.define.name);
-        });
-        listRefs.forEach(ListRef::resolve);
-
-        require(fields.size() > 0, "has no fields");
-        if (define.compress) {
-            fields.values().forEach(t -> require(t instanceof TPrimitive, "compress field must be primitive"));
+        if (beanDefine.type == Bean.BeanType.BaseAction) {
+            actionEnumRef = ((TDb) root).ttables.get(beanDefine.actionEnumRef);
+            require(actionEnumRef != null, "action enum ref table not found", beanDefine.actionEnumRef);
+            actionBeans.values().forEach(TBean::resolve);
+        } else {
+            foreignKeys.forEach(TForeignKey::resolve);
+            beanDefine.columns.values().forEach(this::resolveColumn);
+            require(columns.size() > 0, "has no columns");
+            if (beanDefine.compress) {
+                columns.values().forEach(t -> require(t instanceof TPrimitive, "compress field must be primitive"));
+            }
         }
     }
 
-    private void resolveField(Field f) {
+    private void resolveColumn(Column col) {
+        Constraint cons = new Constraint();
+        foreignKeys.forEach(fk -> {
+            if (fk.foreignKeyDefine.refType != ForeignKey.RefType.LIST && fk.foreignKeyDefine.keys.length == 1 && fk.foreignKeyDefine.keys[0].equals(col.name))
+                cons.references.add(new SRef(fk));
+        });
+
+        if (null != col.keyRange) {
+            cons.range = col.keyRange.range;
+        }
+        KeyRange kr = beanDefine.ranges.get(col.name);
+        if (kr != null) {
+            require(cons.range == null, "range allow one per column");
+            cons.range = kr.range;
+        }
+
         String t, k = "", v = "";
         int c = 0;
-        if (f.type.startsWith("list,")) {
+        if (col.type.startsWith("list,")) {
             t = "list";
-            String[] sp = f.type.split(",");
+            String[] sp = col.type.split(",");
             v = sp[1].trim();
             if (sp.length > 2) {
                 c = Integer.parseInt(sp[2].trim());
                 require(c >= 1);
             }
-        } else if (f.type.startsWith("map,")) {
+        } else if (col.type.startsWith("map,")) {
             t = "map";
-            String[] sp = f.type.split(",");
+            String[] sp = col.type.split(",");
             k = sp[1].trim();
             v = sp[2].trim();
             c = Integer.parseInt(sp[3].trim());
             require(c >= 1);
         } else {
-            t = f.type;
+            t = col.type;
         }
 
-        Constraint cons = new Constraint();
-        resolveConstraint(cons, f.name, f.ref, f.nullableRef, f.keyRef, f.range);
-        define.refs.stream().filter(r -> r.keys.length == 1 && r.keys[0].equals(f.name)).forEach(r ->
-                resolveConstraint(cons, r.name, (r.nullable ? "" : r.ref), (r.nullable ? r.ref : ""), r.keyRef, ""));
-        configgen.define.Range rg = define.ranges.get(f.name);
-        if (rg != null) {
-            addConstraintRange(cons, new Range(rg.min, rg.max));
-        }
-
-        if (!f.listRef.isEmpty()) {
-            listRefs.add(new ListRef(this, f.name, f.listRef, f.listRefKey));
-        }
-
-        Type res = resolveType(f.name, cons, t, k, v, c);
-        f.require(res != null, "type resolve err", f.type);
-        fields.put(f.name, res);
-    }
-
-    private void resolveConstraint(Constraint cons, String name, String ref, String nullableRef, String keyRef, String range) {
-        Cfgs cfgs = (Cfgs) root;
-        boolean hasRef = false;
-        Cfg c = null;
-        boolean nullable = false;
-        Cfg kc = null;
-        if (!ref.isEmpty()) {
-            c = cfgs.cfgs.get(ref);
-            require(c != null, "ref not found", ref);
-            hasRef = true;
-        } else if (!nullableRef.isEmpty()) {
-            c = cfgs.cfgs.get(nullableRef);
-            require(c != null, "nullableRef not found", nullableRef);
-            nullable = true;
-            hasRef = true;
-        }
-
-        if (!keyRef.isEmpty()) {
-            kc = cfgs.cfgs.get(keyRef);
-            require(c != null, "keyRef not found", keyRef);
-            hasRef = true;
-        }
-
-        if (hasRef) {
-            require(refNames.add(name), "ref name conflict", name);
-            cons.refs.add(new SRef(name, c, nullable, kc));
-        }
-
-        if (!range.isEmpty()) {
-            String[] sp = range.split(",");
-            int min = Integer.decode(sp[0]);
-            int max = Integer.decode(sp[1]);
-            require(max > min, "range.max must > range.min");
-            addConstraintRange(cons, new Range(min, max));
-        }
-    }
-
-    private void addConstraintRange(Constraint cons, Range r) {
-        require(cons.range == null, "range allow one per field");
-        cons.range = r;
+        Type type = resolveType(col.name, cons, t, k, v, c);
+        col.require(type != null, "type resolve err", col.type);
+        columns.put(col.name, type);
     }
 }

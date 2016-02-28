@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Node {
-    protected final Node root;
-    protected final Node parent;
+    public final Node root;
+    public final Node parent;
     public final String name;
     protected final List<Node> children = new ArrayList<>();
 

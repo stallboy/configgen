@@ -1,10 +1,10 @@
 package configgen.gen;
 
 import configgen.Logger;
-import configgen.data.Datas;
-import configgen.define.ConfigCollection;
-import configgen.type.Cfgs;
-import configgen.value.CfgVs;
+import configgen.data.DDb;
+import configgen.define.Db;
+import configgen.type.TDb;
+import configgen.value.VDb;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +20,7 @@ public final class Main {
         System.err.println(reason);
 
         System.out.println("Usage: java -jar configgen.jar [options]");
-        System.out.println("	-configdir  config data directory.");
+        System.out.println("	-datadir    data directory.");
         System.out.println("	-xml        default config.xml in datadir.");
         System.out.println("	-encoding   csv and xml encoding. default GBK");
         System.out.println("	-v          verbose, default no");
@@ -32,7 +32,7 @@ public final class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        String configdir = null;
+        String datadir = null;
         String xml = null;
         String encoding = "GBK";
         String pack = null;
@@ -41,8 +41,8 @@ public final class Main {
 
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {
-                case "-configdir":
-                    configdir = args[++i];
+                case "-datadir":
+                    datadir = args[++i];
                     break;
                 case "-xml":
                     xml = args[++i];
@@ -82,11 +82,11 @@ public final class Main {
             }
         }
 
-        if (configdir == null) {
+        if (datadir == null) {
             usage("-configdir miss");
             return;
         }
-        Path dir = Paths.get(configdir);
+        Path dir = Paths.get(datadir);
 
         if (pack != null) {
             Logger.verbose("generate " + pack);
@@ -109,20 +109,20 @@ public final class Main {
 
         File xmlFile = xml != null ? new File(xml) : dir.resolve("config.xml").toFile();
         Logger.verbose("parse xml " + xmlFile);
-        ConfigCollection define = new ConfigCollection(xmlFile);
-        //define.dump(System.out);
-        Cfgs type = new Cfgs(define);
+        Db define = new Db(xmlFile);
+        //dbDefine.dump(System.out);
+        TDb type = new TDb(define);
         type.resolve();
 
         Logger.verbose("read data " + dir + " then auto complete xml");
-        Datas data = new Datas(dir, encoding);
+        DDb data = new DDb(dir, encoding);
         data.autoCompleteDefine(type);
         define.save(xmlFile, encoding);
-        Cfgs newType = new Cfgs(define);
+        TDb newType = new TDb(define);
         newType.resolve();
 
         Logger.verbose("verify constraint");
-        CfgVs value = new CfgVs(newType, data);
+        VDb value = new VDb(newType, data);
         value.verifyConstraint();
         //value.dump(System.out);
 

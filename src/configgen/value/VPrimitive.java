@@ -1,7 +1,7 @@
 package configgen.value;
 
 import configgen.Node;
-import configgen.type.Range;
+import configgen.define.Range;
 import configgen.type.TPrimitive;
 
 import java.util.List;
@@ -17,10 +17,8 @@ public abstract class VPrimitive extends Value {
 
     public void verifyConstraint() {
         verifyRefs();
-
-        Range range = type.constraint.range;
-        if (range != null) {
-            require(checkRange(range), "range err", toString());
+        if (type.constraint.range != null) {
+            require(checkRange(type.constraint.range), "range err", toString());
         }
     }
 

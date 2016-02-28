@@ -1,9 +1,11 @@
 package configgen.gen;
 
-import configgen.define.Field;
+import configgen.define.Bean;
+import configgen.define.Column;
+import configgen.define.ForeignKey;
 import configgen.type.*;
-import configgen.value.CfgV;
-import configgen.value.CfgVs;
+import configgen.value.VDb;
+import configgen.value.VTable;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -29,7 +31,7 @@ public class GenJava extends Generator {
         });
     }
 
-    private CfgVs value;
+    private VDb value;
     private File dstDir;
     private final String dir;
     private final String pkg;
@@ -44,14 +46,14 @@ public class GenJava extends Generator {
     }
 
     @Override
-    public void generate(CfgVs _value) throws IOException {
+    public void generate(VDb _value) throws IOException {
         value = _value;
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
-        for (TBean b : value.type.tbeans.values()) {
-            genBean(b, null, null);
+        for (TBean b : value.dbType.tbeans.values()) {
+            genBean(b, null);
         }
-        for (CfgV c : value.cfgvs.values()) {
-            genBean(c.type.tbean, c.type, c);
+        for (VTable v : value.vtables.values()) {
+            genBean(v.tableType.tbean, v);
         }
         genCSV();
         genCSVLoader();
@@ -64,8 +66,15 @@ public class GenJava extends Generator {
         final String fullName;
         final String path;
 
-        Name(String topPkg, String configName) {
-            String[] seps = configName.split("\\.");
+        Name(String topPkg, TBean tbean) {
+            String name;
+            if (tbean.beanDefine.type == Bean.BeanType.Action) {
+                TBean baseAction = (TBean) tbean.parent;
+                name = baseAction.name.toLowerCase() + "." + tbean.name;
+            } else {
+                name = tbean.name;
+            }
+            String[] seps = name.split("\\.");
             String c = seps[seps.length - 1];
             className = c.substring(0, 1).toUpperCase() + c.substring(1);
 
@@ -83,64 +92,65 @@ public class GenJava extends Generator {
         }
     }
 
-    private void genBean(TBean tbean, Cfg cfg, CfgV cfgv) throws IOException {
-        Name name = new Name(pkg, tbean.define.name);
+    private void genBean(TBean tbean, VTable vtable) throws IOException {
+        Name name = new Name(pkg, tbean);
         File javaFile = dstDir.toPath().resolve(name.path).toFile();
         try (TabPrintStream ps = createSource(javaFile, encoding)) {
-            genBean(tbean, cfg, cfgv, name, ps);
+            genBean(tbean, vtable, name, ps);
         }
     }
 
-    private void genBean(TBean tbean, Cfg cfg, CfgV cfgv, Name name, TabPrintStream ps) {
+    private void genBean(TBean tbean, VTable vtable, Name name, TabPrintStream ps) {
+        TTable ttable = vtable.tableType;
         ps.println("package " + name.pkg + ";");
         ps.println();
 
-        boolean isEnumFull = (cfg != null && cfgv.isEnum && !cfgv.isEnumPart);
-        boolean isEnumPart = (cfg != null && cfgv.isEnum && cfgv.isEnumPart);
+        boolean isEnumFull = (ttable != null && vtable.isEnum && !vtable.isEnumPart);
+        boolean isEnumPart = (ttable != null && vtable.isEnum && vtable.isEnumPart);
 
         ps.println((isEnumFull ? "public enum " : "public class ") + name.className + " {");
 
         //static enum
         if (isEnumFull) {
-            String es = String.join("," + System.lineSeparator() + "    ", cfgv.enumNames.stream()
+            String es = String.join("," + System.lineSeparator() + "    ", vtable.enumNames.stream()
                     .map(String::toUpperCase).collect(Collectors.toList()));
             ps.println1(es + ";");
             ps.println();
         } else if (isEnumPart) {
-            cfgv.enumNames.forEach(s ->
+            vtable.enumNames.forEach(s ->
                     ps.println1("private static " + name.className + " " + s.toUpperCase() + "_;"));
             ps.println();
 
-            cfgv.enumNames.forEach(s ->
+            vtable.enumNames.forEach(s ->
                     ps.println1("public static " + name.className + " " + s.toUpperCase() + "() { return " + s.toUpperCase() + "_; }"));
             ps.println();
         }
 
         //field
-        tbean.fields.forEach((n, t) -> {
+        tbean.columns.forEach((n, t) -> {
             ps.println1("private " + type(t) + " " + lower1(n) + initialValue(t) + ";");
-            t.constraint.refs.forEach(r -> ps.println1("private " + refType(t, r) + " " + refName(r) + refInitialValue(t) + ";"));
+            t.constraint.references.forEach(r -> ps.println1("private " + refType(t, r) + " " + refName(r) + refInitialValue(t) + ";"));
         });
 
-        tbean.mRefs.forEach(m -> ps.println1("private " + fullName(m.ref) + " " + refName(m) + ";"));
-        tbean.listRefs.forEach(l -> ps.println1("private java.util.List<" + fullName(l.ref) + "> " + refName(l) + " = new java.util.ArrayList<>();"));
+        tbean.mRefs.forEach(m -> ps.println1("private " + fullName(m.refTable) + " " + refName(m) + ";"));
+        tbean.listRefs.forEach(l -> ps.println1("private java.util.List<" + fullName(l.refTable) + "> " + refName(l) + " = new java.util.ArrayList<>();"));
         ps.println();
 
         //constructor
-        if (cfg == null) {
+        if (ttable == null) {
             ps.println1("public " + name.className + "() {");
             ps.println1("}");
             ps.println();
 
-            ps.println1("public " + name.className + "(" + formalParams(tbean.fields) + ") {");
-            tbean.fields.forEach((n, t) -> ps.println2("this." + lower1(n) + " = " + lower1(n) + ";"));
+            ps.println1("public " + name.className + "(" + formalParams(tbean.columns) + ") {");
+            tbean.columns.forEach((n, t) -> ps.println2("this." + lower1(n) + " = " + lower1(n) + ";"));
             ps.println1("}");
             ps.println();
         }
 
         //assign
-        ps.println1((cfg == null ? "public " : "private ") + "void assign(" + name.className + " other) {");
-        tbean.fields.forEach((n, t) -> {
+        ps.println1((ttable == null ? "public " : "private ") + "void assign(" + name.className + " other) {");
+        tbean.columns.forEach((n, t) -> {
             if (t instanceof TBean) {
                 ps.println2(lower1(n) + ".assign(other." + lower1(n) + ");");
             } else if (t instanceof TMap) {
@@ -158,8 +168,8 @@ public class GenJava extends Generator {
 
 
         //getter
-        tbean.fields.forEach((n, t) -> {
-            Field f = tbean.define.fields.get(n);
+        tbean.columns.forEach((n, t) -> {
+            Column f = tbean.beanDefine.columns.get(n);
             if (!f.desc.isEmpty()) {
                 ps.println1("/**");
                 ps.println1(" * " + f.desc);
@@ -172,7 +182,7 @@ public class GenJava extends Generator {
             ps.println1("}");
             ps.println();
 
-            t.constraint.refs.forEach(r -> {
+            t.constraint.references.forEach(r -> {
                 ps.println1("public " + refType(t, r) + " " + lower1(refName(r)) + "() {");
                 ps.println2("return " + refName(r) + ";");
                 ps.println1("}");
@@ -181,21 +191,21 @@ public class GenJava extends Generator {
         });
 
         tbean.mRefs.forEach(m -> {
-            ps.println1("public " + fullName(m.ref) + " " + lower1(refName(m)) + "() {");
+            ps.println1("public " + fullName(m.refTable) + " " + lower1(refName(m)) + "() {");
             ps.println2("return " + refName(m) + ";");
             ps.println1("}");
             ps.println();
         });
 
         tbean.listRefs.forEach(l -> {
-            ps.println1("public java.util.List<" + fullName(l.ref) + "> " + lower1(refName(l)) + "() {");
+            ps.println1("public java.util.List<" + fullName(l.refTable) + "> " + lower1(refName(l)) + "() {");
             ps.println2("return " + refName(l) + ";");
             ps.println1("}");
             ps.println();
         });
 
         //hashCode, equals
-        Map<String, Type> keys = cfg != null ? cfg.keys : tbean.fields;
+        Map<String, Type> keys = ttable != null ? ttable.primaryKey : tbean.columns;
         if (!isEnumFull) {
             ps.println1("@Override");
             ps.println1("public int hashCode() {");
@@ -216,19 +226,19 @@ public class GenJava extends Generator {
         //toString
         ps.println1("@Override");
         ps.println1("public String toString() {");
-        ps.println2("return \"(\" + " + String.join(" + \",\" + ", tbean.fields.keySet().stream().map(Generator::lower1).collect(Collectors.toList())) + " + \")\";");
+        ps.println2("return \"(\" + " + String.join(" + \",\" + ", tbean.columns.keySet().stream().map(Generator::lower1).collect(Collectors.toList())) + " + \")\";");
         ps.println1("}");
         ps.println();
 
         //_parse
-        ps.println1((cfg == null ? "public " : "") + name.className + " _parse(java.util.List<String> data) {");
-        if (tbean.define.compress) {
+        ps.println1((ttable == null ? "public " : "") + name.className + " _parse(java.util.List<String> data) {");
+        if (tbean.beanDefine.compress) {
             ps.println2("data = " + pkg + ".CSV.parseList(data.get(0));");
         }
 
         boolean hasA = false;
         int begin = 0;
-        for (Map.Entry<String, Type> f : tbean.fields.entrySet()) {
+        for (Map.Entry<String, Type> f : tbean.columns.entrySet()) {
             String n = f.getKey();
             Type t = f.getValue();
 
@@ -283,9 +293,9 @@ public class GenJava extends Generator {
 
         //_resolve
         if (tbean.hasRef()) {
-            ps.println1((cfg == null ? "public " : "") + "void _resolve() {");
+            ps.println1((ttable == null ? "public " : "") + "void _resolve() {");
 
-            for (Map.Entry<String, Type> f : tbean.fields.entrySet()) {
+            for (Map.Entry<String, Type> f : tbean.columns.entrySet()) {
                 String n = f.getKey();
                 Type t = f.getValue();
                 if (t.hasRef()) {
@@ -296,8 +306,8 @@ public class GenJava extends Generator {
                             ps.println3("e._resolve();");
                         }
 
-                        for (SRef sr : t.constraint.refs) {
-                            ps.println3(fullName(sr.ref) + " r = " + fullName(sr.ref) + ".get(e);");
+                        for (SRef sr : t.constraint.references) {
+                            ps.println3(fullName(sr.refTable) + " r = " + fullName(sr.refTable) + ".get(e);");
                             ps.println3("java.util.Objects.requireNonNull(r);");
                             ps.println3(refName(sr) + ".add(r);");
                         }
@@ -312,16 +322,16 @@ public class GenJava extends Generator {
                             ps.println3("v._resolve();");
                         }
 
-                        for (SRef sr : t.constraint.refs) {
+                        for (SRef sr : t.constraint.references) {
                             String k = "k";
-                            if (sr.keyRef != null) {
-                                ps.println3(fullName(sr.keyRef) + " rk = " + fullName(sr.keyRef) + ".get(k);");
+                            if (sr.mapKeyRefTable != null) {
+                                ps.println3(fullName(sr.mapKeyRefTable) + " rk = " + fullName(sr.mapKeyRefTable) + ".get(k);");
                                 ps.println3("java.util.Objects.requireNonNull(rk);");
                                 k = "rk";
                             }
                             String v = "v";
-                            if (sr.ref != null) {
-                                ps.println3(fullName(sr.ref) + " rv = " + fullName(sr.ref) + ".get(v);");
+                            if (sr.refTable != null) {
+                                ps.println3(fullName(sr.refTable) + " rv = " + fullName(sr.refTable) + ".get(v);");
                                 ps.println3("java.util.Objects.requireNonNull(rv);");
                                 v = "rv";
                             }
@@ -333,29 +343,29 @@ public class GenJava extends Generator {
                             ps.println2(lower1(n) + "._resolve();");
                         }
 
-                        for (SRef sr : t.constraint.refs) {
-                            ps.println2(refName(sr) + " = " + fullName(sr.ref) + ".get(" + lower1(n) + ");");
-                            if (!sr.nullable)
+                        for (SRef sr : t.constraint.references) {
+                            ps.println2(refName(sr) + " = " + fullName(sr.refTable) + ".get(" + lower1(n) + ");");
+                            if (!sr.refNullable)
                                 ps.println2("java.util.Objects.requireNonNull(" + refName(sr) + ");");
                         }
 
                     }
                 }
-            } //end fields
+            } //end columns
 
             tbean.mRefs.forEach(m -> {
-                ps.println2(refName(m) + " = " + fullName(m.ref) + ".get(" + actualParams(m.define.keys) + ");");
-                if (!m.define.nullable)
+                ps.println2(refName(m) + " = " + fullName(m.refTable) + ".get(" + actualParams(m.foreignKeyDefine.keys) + ");");
+                if (m.foreignKeyDefine.refType != ForeignKey.RefType.NULLABLE)
                     ps.println2("java.util.Objects.requireNonNull(" + refName(m) + ");");
             });
 
             tbean.listRefs.forEach(l -> {
-                ps.println2(fullName(l.ref) + ".all().forEach( v -> {");
+                ps.println2(fullName(l.refTable) + ".all().forEach( v -> {");
                 List<String> eqs = new ArrayList<>();
-                for (int i = 0; i < l.keys.length; i++) {
-                    String k = l.keys[i];
-                    String rk = l.refKeys[i];
-                    eqs.add(equal("v.get" + upper1(rk) + "()", lower1(k), tbean.fields.get(k)));
+                for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {
+                    String k = l.foreignKeyDefine.keys[i];
+                    String rk = l.foreignKeyDefine.ref.cols[i];
+                    eqs.add(equal("v.get" + upper1(rk) + "()", lower1(k), tbean.columns.get(k)));
                 }
                 ps.println3("if (" + String.join(" && ", eqs) + ")");
                 ps.println4(refName(l) + ".add(v);");
@@ -367,7 +377,7 @@ public class GenJava extends Generator {
         } //end _resolve
 
 
-        if (cfg != null) {
+        if (ttable != null) {
             if (keys.size() > 1) {
                 //static Key class
                 ps.println1("private static class Key {");
@@ -415,19 +425,19 @@ public class GenJava extends Generator {
 
             //static initialize
             ps.println1("static void initialize(java.util.List<java.util.List<String>> dataList) {");
-            ps.println2("java.util.List<Integer> indexes = java.util.Arrays.asList(" + String.join(", ", cfgv.columnIndexes.stream().map(String::valueOf).collect(Collectors.toList())) + ");");
+            ps.println2("java.util.List<Integer> indexes = java.util.Arrays.asList(" + String.join(", ", vtable.columnIndexes.stream().map(String::valueOf).collect(Collectors.toList())) + ");");
             ps.println2("for (java.util.List<String> row : dataList) {");
             ps.println3("java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());");
             if (isEnumFull) {
-                ps.println3(name.className + " self = valueOf(row.get(" + cfgv.enumColumnIndex + ").trim().toUpperCase())._parse(data);");
+                ps.println3(name.className + " self = valueOf(row.get(" + vtable.enumColumnIndex + ").trim().toUpperCase())._parse(data);");
                 ps.println3("All.put(" + actualParamsKey(keys, "self.") + ", self);");
             } else {
                 ps.println3(name.className + " self = new " + name.className + "()._parse(data);");
                 ps.println3("All.put(" + actualParamsKey(keys, "self.") + ", self);");
                 if (isEnumPart) {
-                    ps.println3("String name = row.get(" + cfgv.enumColumnIndex + ").trim().toUpperCase();");
+                    ps.println3("String name = row.get(" + vtable.enumColumnIndex + ").trim().toUpperCase();");
                     ps.println3("switch (name) {");
-                    cfgv.enumNames.forEach(s -> {
+                    vtable.enumNames.forEach(s -> {
                         ps.println4("case \"" + s.toUpperCase() + "\":");
                         ps.println5(s.toUpperCase() + "_ = self;");
                         ps.println5("break;");
@@ -441,7 +451,7 @@ public class GenJava extends Generator {
                 ps.println2("if (values().length != all().size()) ");
                 ps.println3("throw new RuntimeException(\"Enum Uncompleted: " + name.className + "\");");
             } else if (isEnumPart) {
-                cfgv.enumNames.forEach(s -> ps.println2("java.util.Objects.requireNonNull(" + s.toUpperCase() + "_);"));
+                vtable.enumNames.forEach(s -> ps.println2("java.util.Objects.requireNonNull(" + s.toUpperCase() + "_);"));
             }
             ps.println1("}");
             ps.println();
@@ -569,35 +579,38 @@ public class GenJava extends Generator {
     }
 
     private String fullName(TBean tbean) {
-        return new Name(pkg, tbean.define.name).fullName;
+        return new Name(pkg, tbean).fullName;
     }
 
-    private String fullName(Cfg cfg) {
+    private String fullName(TTable cfg) {
         return fullName(cfg.tbean);
     }
 
     private String refType(Type t, SRef ref) {
         if (t instanceof TList) {
-            return "java.util.List<" + fullName(ref.ref) + ">";
+            return "java.util.List<" + fullName(ref.refTable) + ">";
         } else if (t instanceof TMap) {
             return "java.util.Map<"
-                    + (ref.keyRef != null ? fullName(ref.keyRef) : boxType(((TMap) t).key)) + ", "
-                    + (ref.ref != null ? fullName(ref.ref) : boxType(((TMap) t).value)) + ">";
+                    + (ref.mapKeyRefTable != null ? fullName(ref.mapKeyRefTable) : boxType(((TMap) t).key)) + ", "
+                    + (ref.refTable != null ? fullName(ref.refTable) : boxType(((TMap) t).value)) + ">";
         } else {
-            return fullName(ref.ref);
+            return fullName(ref.refTable);
         }
     }
 
     private String refName(SRef sr) {
-        return (sr.nullable ? "NullableRef" : "Ref") + upper1(sr.name);
+        return (sr.refNullable ? "NullableRef" : "Ref") + upper1(sr.name);
     }
 
-    private String refName(MRef mr) {
-        return (mr.define.nullable ? "NullableRef" : "Ref") + upper1(mr.define.name);
-    }
-
-    private String refName(ListRef lr) {
-        return "ListRef" + upper1(lr.name);
+    private String refName(TForeignKey fk) {
+        switch (fk.foreignKeyDefine.refType) {
+            case NORMAL:
+                return "Ref" + upper1(fk.name);
+            case NULLABLE:
+                return "NullableRef" + upper1(fk.name);
+            default:
+                return "ListRef" + upper1(fk.name);
+        }
     }
 
     private String refInitialValue(Type t) {
@@ -778,7 +791,7 @@ public class GenJava extends Generator {
 
             ps.println1("public static Set<String> load(Path zipPath, String encoding, boolean reload) throws Exception {");
             ps.println2("Set<String> configsInZip = CSV.load(zipPath, encoding, reload);");
-            String configsInCode = String.join("," + System.lineSeparator() + "            ", value.cfgvs.keySet().stream().map(k -> "\"" + k + "\"").collect(Collectors.toList()));
+            String configsInCode = String.join("," + System.lineSeparator() + "            ", value.vtables.keySet().stream().map(k -> "\"" + k + "\"").collect(Collectors.toList()));
             ps.println2("Set<String> configsInCode = new LinkedHashSet<>(java.util.Arrays.asList(" + configsInCode + "));");
             ps.println2("configsInCode.removeAll(configsInZip);");
             ps.println2("return configsInCode;");

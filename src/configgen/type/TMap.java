@@ -13,12 +13,12 @@ public class TMap extends Type {
 
         Constraint kc = new Constraint();
         Constraint vc = new Constraint();
-        for (SRef ref : cons.refs) {
-            require(!ref.nullable, "map not support nullableRef");
-            if (null != ref.keyRef)
-                kc.refs.add(new SRef("", ref.keyRef, false, null));
-            if (null != ref.ref)
-                vc.refs.add(new SRef("", ref.ref, false, null));
+        for (SRef sref : cons.references) {
+            require(!sref.refNullable, "map not support nullableRef");
+            if (null != sref.mapKeyRefTable)
+                kc.references.add(new SRef(sref.mapKeyRefTable, sref.mapKeyRefCols));
+            if (null != sref.refTable)
+                vc.references.add(new SRef(sref.refTable, sref.refCols));
         }
 
         this.key = resolveType("key", kc, key);

@@ -9,9 +9,9 @@ public class TList extends Type {
     public TList(Node parent, String name, Constraint cons, String value, int count) {
         super(parent, name, cons);
         require(cons.range == null, "list not support range");
-        for (SRef ref : cons.refs) {
-            require(!ref.nullable, "list not support nullableRef");
-            require(null == ref.keyRef, "list not support keyRef");
+        for (SRef sref : cons.references) {
+            require(!sref.refNullable, "list not support nullableRef");
+            require(null == sref.mapKeyRefTable, "list not support keyRef");
         }
         this.value = resolveType("value", cons, value);
         this.count = count;

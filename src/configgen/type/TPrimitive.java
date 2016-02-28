@@ -6,14 +6,14 @@ public abstract class TPrimitive extends Type {
 
     TPrimitive(Node parent, String name, Constraint cons) {
         super(parent, name, cons);
-        for (SRef ref : cons.refs) {
-            require(null == ref.keyRef, "primitive do not keyRef");
+        for (SRef sref : cons.references) {
+            require(null == sref.mapKeyRefTable, "primitive do not keyRef");
         }
     }
 
     @Override
     public boolean hasRef() {
-        return constraint.refs.size() > 0;
+        return constraint.references.size() > 0;
     }
 
     @Override

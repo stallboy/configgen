@@ -4,45 +4,96 @@ import configgen.Node;
 import org.w3c.dom.Element;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Bean extends Node {
-    public final Map<String, Field> fields = new LinkedHashMap<>();
-    public final List<Ref> refs = new ArrayList<>();
-    public final List<ListRef> listRefs = new ArrayList<>();
-    public final Map<String, Range> ranges = new HashMap<>();
-    public final boolean compress;
-    private final String own;
-
-    public Bean(Node _parent, Element self) {
-        super(_parent, self.getAttribute("name"));
-        String[] attrs = DomUtils.attributes(self, "name", "own", "compress", "enum", "keys");
-        own = attrs[1];
-        compress = attrs[2].equalsIgnoreCase("true") || attrs[2].equals("1");
-        if (compress) {
-            require(_parent instanceof ConfigCollection, "config not allowed compress");
-        }
-        List<List<Element>> eles = DomUtils.elementsList(self, "field", "ref", "range", "listref");
-        for (Element ef : eles.get(0)) {
-            Field f = new Field(this, ef);
-            require(null == fields.put(f.name, f), "field duplicate name=" + f.name);
-        }
-        refs.addAll(eles.get(1).stream().map(ec -> new Ref(this, ec)).collect(Collectors.toList()));
-        for (Element ef : eles.get(2)) {
-            Range r = new Range(this, ef);
-            require(null == ranges.put(r.key, r), "range duplicate key=" + r.key);
-        }
-        listRefs.addAll(eles.get(3).stream().map(ec -> new ListRef(this, ec)).collect(Collectors.toList()));
+    public enum BeanType {
+        NormalBean,
+        Table,
+        BaseAction,
+        Action,
     }
 
-    public Bean(Config config, String name) {
-        super(config, name);
+    public final BeanType type;
+    private final String own;
+    public final boolean compress;
+
+    public final Map<String, Column> columns = new LinkedHashMap<>();
+    public final List<ForeignKey> foreignKeys = new ArrayList<>();
+    public final Map<String, KeyRange> ranges = new LinkedHashMap<>();
+
+    public final String actionEnumRef;
+    public final Map<String, Bean> actionBeans = new LinkedHashMap<>();
+
+    public Bean(Db _parent, Element self) {
+        super(_parent, self.getAttribute("name"));
+        own = self.getAttribute("own");
+        compress = DomUtils.parseBool(self, "compress");
+        actionEnumRef = self.getAttribute("enumRef");
+        if (self.hasAttribute("enumRef")) {
+            type = BeanType.BaseAction;
+            DomUtils.permitAttributes(self, "name", "own", "enumRef");
+            DomUtils.permitElements(self, "bean");
+            for (Element e : DomUtils.elements(self, "bean")) {
+                Bean b = new Bean(this, e);
+                require(null == actionBeans.put(b.name, b), "bean duplicate name=" + b.name);
+            }
+        } else {
+            type = BeanType.NormalBean;
+            DomUtils.permitAttributes(self, "name", "own", "compress");
+            DomUtils.permitElements(self, "column", "foreignKey", "keyRange");
+            init(self);
+        }
+    }
+
+    public Bean(Table _parent, Element self) {
+        super(_parent, self.getAttribute("name"));
+        own = self.getAttribute("own");
+        type = BeanType.Table;
+        compress = false;
+        actionEnumRef = "";
+        init(self);
+    }
+
+    public Bean(Bean _parent, Element self) {
+        super(_parent, self.getAttribute("name"));
+        own = self.getAttribute("own");
+        type = BeanType.Action;
+        compress = false;
+        actionEnumRef = "";
+        DomUtils.permitAttributes(self, "name", "own");
+        DomUtils.permitElements(self, "column", "foreignKey", "keyRange");
+        init(self);
+    }
+
+    private void init(Element self) {
+        for (Element ele : DomUtils.elements(self, "column")) {
+            Column c = new Column(this, ele);
+            require(null == columns.put(c.name, c), "column duplicate name=" + c.name);
+        }
+
+        for (Element ele : DomUtils.elements(self, "foreignKey")) {
+            foreignKeys.add(new ForeignKey(this, ele));
+        }
+
+        for (Element ef : DomUtils.elements(self, "keyRange")) {
+            KeyRange r = new KeyRange(this, ef);
+            require(null == ranges.put(r.key, r), "keyRange duplicate key=" + r.key);
+        }
+    }
+
+
+    Bean(Table table, String name) {
+        super(table, name);
+        type = BeanType.Table;
+        actionEnumRef = "";
         own = "";
         compress = false;
     }
 
     private Bean(Node _parent, Bean original) {
         super(_parent, original.name);
+        type = original.type;
+        actionEnumRef = original.actionEnumRef;
         own = original.own;
         compress = original.compress;
     }
@@ -50,54 +101,36 @@ public class Bean extends Node {
     Bean extract(Node _parent, String _own) {
         Bean part = new Bean(_parent, this);
 
-        fields.forEach((name, f) -> {
-            Field pf = f.extract(part, _own);
-            if (pf != null)
-                part.fields.put(name, pf);
-        });
-        if (part.fields.isEmpty() && own.contains(_own)) {
-            fields.forEach((name, f) -> part.fields.put(name, new Field(part, f)));
+        if (type == BeanType.BaseAction) {
+            actionBeans.forEach((name, actionBean) -> part.actionBeans.put(name, actionBean.extract(part, "_do_not_set_own_on_action_")));
+        } else {
+            columns.forEach((name, c) -> {
+                Column pc = c.extract(part, _own);
+                if (pc != null)
+                    part.columns.put(name, pc);
+            });
+            if (part.columns.isEmpty() && own.contains(_own)) {
+                columns.forEach((name, f) -> part.columns.put(name, new Column(part, f)));
+            }
+            if (part.columns.isEmpty())
+                return null;
+
+            ranges.forEach((n, r) -> {
+                if (part.columns.containsKey(n))
+                    part.ranges.put(n, new KeyRange(part, r));
+            });
+
+            foreignKeys.forEach(fk -> {
+                if (part.columns.keySet().containsAll(Arrays.asList(fk.keys)))
+                    part.foreignKeys.add(new ForeignKey(part, fk));
+            });
         }
-
-        if (part.fields.isEmpty())
-            return null;
-
-        ranges.forEach((n, r) -> {
-            if (part.fields.containsKey(n))
-                part.ranges.put(n, new Range(part, r));
-        });
-
-        part.refs.addAll(refs.stream().map(r -> new Ref(part, r)).collect(Collectors.toList()));
-        part.listRefs.addAll(listRefs.stream().map(r -> new ListRef(part, r)).collect(Collectors.toList()));
         return part;
     }
 
     void resolveExtract() {
-        fields.values().forEach(Field::resolveExtract);
-
-        List<Ref> dr = new ArrayList<>();
-        refs.forEach(r -> {
-            if (!fields.keySet().containsAll(Arrays.asList(r.keys)))
-                dr.add(r);
-
-            if (!r.ref.isEmpty() && !((ConfigCollection) root).configs.containsKey(r.ref))
-                dr.add(r);
-
-            if (!r.keyRef.isEmpty() && !((ConfigCollection) root).configs.containsKey(r.keyRef))
-                dr.add(r);
-        });
-        refs.removeAll(dr);
-
-        List<ListRef> dl = new ArrayList<>();
-        listRefs.forEach(r -> {
-            if (!fields.keySet().containsAll(Arrays.asList(r.keys)))
-                dl.add(r);
-
-            Config ref = ((ConfigCollection) root).configs.get(r.ref);
-            if (null == ref || !ref.bean.fields.keySet().containsAll(Arrays.asList(r.refKeys)))
-                dl.add(r);
-        });
-        listRefs.removeAll(dl);
+        columns.values().forEach(Column::resolveExtract);
+        foreignKeys.removeIf(ForeignKey::invalid);
     }
 
     void save(Element parent) {
@@ -110,10 +143,12 @@ public class Bean extends Node {
             self.setAttribute("own", own);
         if (compress)
             self.setAttribute("compress", "true");
+        if (!actionEnumRef.isEmpty())
+            self.setAttribute("enumRef", actionEnumRef);
 
-        fields.values().forEach(f -> f.save(self));
-        refs.forEach(c -> c.save(self));
-        listRefs.forEach(c -> c.save(self));
+        columns.values().forEach(c -> c.save(self));
+        foreignKeys.forEach(c -> c.save(self));
         ranges.values().forEach(c -> c.save(self));
+        actionBeans.values().forEach(c -> c.save(self));
     }
 }

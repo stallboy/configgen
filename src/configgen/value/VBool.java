@@ -1,7 +1,7 @@
 package configgen.value;
 
 import configgen.Node;
-import configgen.type.Range;
+import configgen.define.Range;
 import configgen.type.TBool;
 
 import java.util.List;

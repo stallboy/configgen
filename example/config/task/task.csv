@@ -1,0 +1,5 @@
+任务完成条件类型（id的范围为1-100）,程序用名字,注释,,,,,
+taskid,name,desc,nexttask,completecondition@enum,param1,param2,exp
+1,杀个怪,杀怪,2,KillMonster,1,3,1000
+2,和npc对话,和npc对话,3,TalkNpc,1,,2000
+3,收集物品,收集物品,,CollectItem,11,1,3000

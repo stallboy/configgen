@@ -1,9 +1,10 @@
 package configgen.gen;
 
-import configgen.define.Field;
+import configgen.define.Column;
+import configgen.define.ForeignKey;
 import configgen.type.*;
-import configgen.value.CfgV;
-import configgen.value.CfgVs;
+import configgen.value.VDb;
+import configgen.value.VTable;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -35,7 +36,7 @@ public class GenCs extends Generator {
     private final String prefix;
     private final String own;
     private File dstDir;
-    private CfgVs value;
+    private VDb value;
 
     public GenCs(Parameter parameter) {
         super(parameter);
@@ -48,7 +49,7 @@ public class GenCs extends Generator {
     }
 
     @Override
-    public void generate(CfgVs _value) throws IOException {
+    public void generate(VDb _value) throws IOException {
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = own != null ? extract(_value, own) : _value;
         copyFile("CSV.cs");
@@ -56,11 +57,11 @@ public class GenCs extends Generator {
         copyFile("LoadErrors.cs");
         copyFile("KeyedList.cs");
         genCSVProcessor();
-        for (TBean b : value.type.tbeans.values()) {
+        for (TBean b : value.dbType.tbeans.values()) {
             genBean(b, null, null);
         }
-        for (CfgV c : value.cfgvs.values()) {
-            genBean(c.type.tbean, c.type, c);
+        for (VTable c : value.vtables.values()) {
+            genBean(c.tableType.tbean, c.tableType, c);
         }
         CachedFileOutputStream.deleteOtherFiles(dstDir);
     }
@@ -95,15 +96,15 @@ public class GenCs extends Generator {
         }
     }
 
-    private void genBean(TBean tbean, Cfg cfg, CfgV cfgv) throws IOException {
-        Name name = new Name(pkg, prefix, tbean.define.name);
+    private void genBean(TBean tbean, TTable cfg, VTable cfgv) throws IOException {
+        Name name = new Name(pkg, prefix, tbean.beanDefine.name);
         File csFile = dstDir.toPath().resolve(name.path).toFile();
         try (TabPrintStream ps = createSource(csFile, encoding)) {
             genBean(tbean, cfg, cfgv, name, ps);
         }
     }
 
-    private void genBean(TBean tbean, Cfg cfg, CfgV cfgv, Name name, TabPrintStream ps) {
+    private void genBean(TBean tbean, TTable cfg, VTable cfgv, Name name, TabPrintStream ps) {
         ps.println("using System;");
         ps.println("using System.Collections.Generic;");
         ps.println("using System.IO;");
@@ -122,15 +123,15 @@ public class GenCs extends Generator {
         }
 
         // property
-        tbean.fields.forEach((n, t) -> {
-            Field f = tbean.define.fields.get(n);
+        tbean.columns.forEach((n, t) -> {
+            Column f = tbean.beanDefine.columns.get(n);
             String c = f.desc.isEmpty() ? "" : " // " + f.desc;
             ps.println2("public " + type(t) + " " + upper1(n) + " { get; private set; }" + c);
-            t.constraint.refs.forEach(r -> ps.println2("public " + refType(t, r) + " " + refName(r) + " { get; private set; }"));
+            t.constraint.references.forEach(r -> ps.println2("public " + refType(t, r) + " " + refName(r) + " { get; private set; }"));
         });
 
-        tbean.mRefs.forEach(m -> ps.println2("public " + fullName(m.ref) + " " + refName(m) + " { get; private set; }"));
-        tbean.listRefs.forEach(l -> ps.println2("public List<" + fullName(l.ref) + "> " + refName(l) + " { get; private set; }"));
+        tbean.mRefs.forEach(m -> ps.println2("public " + fullName(m.refTable) + " " + refName(m) + " { get; private set; }"));
+        tbean.listRefs.forEach(l -> ps.println2("public List<" + fullName(l.refTable) + "> " + refName(l) + " { get; private set; }"));
         ps.println();
 
         //constructor
@@ -139,14 +140,14 @@ public class GenCs extends Generator {
             ps.println2("}");
             ps.println();
 
-            ps.println2("public " + name.className + "(" + formalParams(tbean.fields) + ") {");
-            tbean.fields.forEach((n, t) -> ps.println3("this." + upper1(n) + " = " + lower1(n) + ";"));
+            ps.println2("public " + name.className + "(" + formalParams(tbean.columns) + ") {");
+            tbean.columns.forEach((n, t) -> ps.println3("this." + upper1(n) + " = " + lower1(n) + ";"));
             ps.println2("}");
             ps.println();
         }
 
         //hash
-        Map<String, Type> keys = cfg != null ? cfg.keys : tbean.fields;
+        Map<String, Type> keys = cfg != null ? cfg.primaryKey : tbean.columns;
         ps.println2("public override int GetHashCode()");
         ps.println2("{");
         ps.println3("return " + hashCodes(keys) + ";");
@@ -166,11 +167,11 @@ public class GenCs extends Generator {
         //toString
         ps.println2("public override string ToString()");
         ps.println2("{");
-        ps.println3("return \"(\" + " + toStrings(tbean.fields) + " + \")\";");
+        ps.println3("return \"(\" + " + toStrings(tbean.columns) + " + \")\";");
         ps.println2("}");
         ps.println();
 
-        String csv = "\"" + tbean.define.name + "\"";
+        String csv = "\"" + tbean.beanDefine.name + "\"";
         if (cfg != null) {
             //static class Key
             if (keys.size() > 1) {
@@ -243,7 +244,7 @@ public class GenCs extends Generator {
             ps.println4("all.Add(" + actualParamsKeySelf(keys) + ", self);");
 
             if (cfgv.isEnum) {
-                String ef = upper1(cfg.define.enumStr);
+                String ef = upper1(cfg.tableDefine.enumStr);
                 ps.println4("if (self." + ef + ".Trim().Length == 0)");
                 ps.println5("continue;");
                 ps.println4("switch(self." + ef + ".Trim())");
@@ -285,7 +286,7 @@ public class GenCs extends Generator {
         ps.println2("internal static " + name.className + " _create(Config.Stream os)");
         ps.println2("{");
         ps.println3("var self = new " + name.className + "();");
-        tbean.fields.forEach((n, t) -> {
+        tbean.columns.forEach((n, t) -> {
             if (t instanceof TList) {
                 ps.println3("self." + upper1(n) + " = new " + type(t) + "();");
                 ps.println3("for (var c = (int)os.ReadSize(); c > 0; c--)");
@@ -306,7 +307,7 @@ public class GenCs extends Generator {
         if (tbean.hasRef()) {
             ps.println2("internal void _resolve(Config.LoadErrors errors)");
             ps.println2("{");
-            tbean.fields.forEach((n, t) -> {
+            tbean.columns.forEach((n, t) -> {
                 if (t.hasRef()) {
                     String field = "\"" + n + "\"";
                     if (t instanceof TList) {
@@ -318,11 +319,11 @@ public class GenCs extends Generator {
                             ps.println3("}");
                         }
 
-                        for (SRef sr : t.constraint.refs) {
+                        for (SRef sr : t.constraint.references) {
                             ps.println3(refName(sr) + " = new " + refType(t, sr) + "();");
                             ps.println3("foreach (var e in " + upper1(n) + ")");
                             ps.println3("{");
-                            ps.println4("var r = " + fullName(sr.ref) + ".Get(e);");
+                            ps.println4("var r = " + fullName(sr.refTable) + ".Get(e);");
                             ps.println4("if (r == null) errors.RefNull(" + csv + ", ToString() , " + field + ", e);");
                             ps.println4(refName(sr) + ".Add(r);");
                             ps.println3("}");
@@ -340,20 +341,20 @@ public class GenCs extends Generator {
                             }
                             ps.println3("}");
                         }
-                        for (SRef sr : t.constraint.refs) {
+                        for (SRef sr : t.constraint.references) {
                             ps.println3(refName(sr) + " = new " + refType(t, sr) + "();");
                             ps.println3("foreach (var kv in " + upper1(n) + ".Map)");
                             ps.println3("{");
 
-                            if (sr.keyRef != null) {
-                                ps.println4("var k = " + fullName(sr.keyRef) + ".Get(kv.Key);");
+                            if (sr.mapKeyRefTable != null) {
+                                ps.println4("var k = " + fullName(sr.mapKeyRefTable) + ".Get(kv.Key);");
                                 ps.println4("if (k == null) errors.RefKeyNull(" + csv + ", ToString(), " + field + ", kv.Key);");
                             } else {
                                 ps.println4("var k = kv.Key;");
                             }
 
-                            if (sr.ref != null) {
-                                ps.println4("var v = " + fullName(sr.ref) + ".Get(kv.Value);");
+                            if (sr.refTable != null) {
+                                ps.println4("var v = " + fullName(sr.refTable) + ".Get(kv.Value);");
                                 ps.println4("if (v == null) errors.RefNull(" + csv + ", ToString(), " + field + ", kv.Value);");
                             } else {
                                 ps.println4("var v = kv.Value;");
@@ -366,9 +367,9 @@ public class GenCs extends Generator {
                             ps.println3(upper1(n) + "._resolve(errors);");
                         }
 
-                        for (SRef sr : t.constraint.refs) {
-                            ps.println3(refName(sr) + " = " + fullName(sr.ref) + ".Get(" + upper1(n) + ");");
-                            if (!sr.nullable)
+                        for (SRef sr : t.constraint.references) {
+                            ps.println3(refName(sr) + " = " + fullName(sr.refTable) + ".Get(" + upper1(n) + ");");
+                            if (!sr.refNullable)
                                 ps.println3("if (" + refName(sr) + " == null) errors.RefNull(" + csv + ", ToString(), " + field + ", " + upper1(n) + ");");
                         }
                     }
@@ -377,19 +378,19 @@ public class GenCs extends Generator {
 
 
             tbean.mRefs.forEach(m -> {
-                ps.println3(refName(m) + " = " + fullName(m.ref) + ".Get(" + actualParams(m.define.keys) + ");");
-                if (!m.define.nullable)
-                    ps.println3("if (" + refName(m) + " == null) errors.RefNull(" + csv + ", ToString(), \"" + m.define.name + "\", 0);");
+                ps.println3(refName(m) + " = " + fullName(m.refTable) + ".Get(" + actualParams(m.foreignKeyDefine.keys) + ");");
+                if (m.foreignKeyDefine.refType != ForeignKey.RefType.NULLABLE)
+                    ps.println3("if (" + refName(m) + " == null) errors.RefNull(" + csv + ", ToString(), \"" + m.name + "\", 0);");
             });
 
             tbean.listRefs.forEach(l -> {
-                ps.println3(refName(l) + " = new List<" + fullName(l.ref) + ">();");
-                ps.println3("foreach (var v in " + fullName(l.ref) + ".All())");
+                ps.println3(refName(l) + " = new List<" + fullName(l.refTable) + ">();");
+                ps.println3("foreach (var v in " + fullName(l.refTable) + ".All())");
                 ps.println3("{");
                 List<String> eqs = new ArrayList<>();
-                for (int i = 0; i < l.keys.length; i++) {
-                    String k = l.keys[i];
-                    String rk = l.refKeys[i];
+                for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {
+                    String k = l.foreignKeyDefine.keys[i];
+                    String rk = l.foreignKeyDefine.ref.cols[i];
                     eqs.add("v." + upper1(rk) + ".Equals(" + upper1(k) + ")");
                 }
                 ps.println3("if (" + String.join(" && ", eqs) + ")");
@@ -445,33 +446,36 @@ public class GenCs extends Generator {
 
     private String refType(Type t, SRef ref) {
         if (t instanceof TList) {
-            return "List<" + fullName(ref.ref) + ">";
+            return "List<" + fullName(ref.refTable) + ">";
         } else if (t instanceof TMap) {
             return "KeyedList<"
-                    + (ref.keyRef != null ? fullName(ref.keyRef) : type(((TMap) t).key)) + ", "
-                    + (ref.ref != null ? fullName(ref.ref) : type(((TMap) t).value)) + ">";
+                    + (ref.mapKeyRefTable != null ? fullName(ref.mapKeyRefTable) : type(((TMap) t).key)) + ", "
+                    + (ref.refTable != null ? fullName(ref.refTable) : type(((TMap) t).value)) + ">";
         } else {
-            return fullName(ref.ref);
+            return fullName(ref.refTable);
         }
     }
 
     private String refName(SRef sr) {
-        return (sr.nullable ? "NullableRef" : "Ref") + upper1(sr.name);
+        return (sr.refNullable ? "NullableRef" : "Ref") + upper1(sr.name);
     }
 
-    private String refName(MRef mr) {
-        return (mr.define.nullable ? "NullableRef" : "Ref") + upper1(mr.define.name);
-    }
-
-    private String refName(ListRef lr) {
-        return "ListRef" + upper1(lr.name);
+    private String refName(TForeignKey fk) {
+        switch (fk.foreignKeyDefine.refType) {
+            case NORMAL:
+                return "Ref" + upper1(fk.name);
+            case NULLABLE:
+                return "NullableRef" + upper1(fk.name);
+            default:
+                return "ListRef" + upper1(fk.name);
+        }
     }
 
     private String fullName(TBean tbean) {
-        return new Name(pkg, prefix, tbean.define.name).fullName;
+        return new Name(pkg, prefix, tbean.beanDefine.name).fullName;
     }
 
-    private String fullName(Cfg cfg) {
+    private String fullName(TTable cfg) {
         return fullName(cfg.tbean);
     }
 
@@ -588,7 +592,7 @@ public class GenCs extends Generator {
             ps.println2("{");
             ps.println3("var configNulls = new List<string>");
             ps.println3("{");
-            for (String name : value.type.cfgs.keySet()) {
+            for (String name : value.dbType.ttables.keySet()) {
                 ps.println4("\"" + name + "\",");
             }
             ps.println3("};");
@@ -601,7 +605,7 @@ public class GenCs extends Generator {
 
             ps.println4("switch(csv)");
             ps.println4("{");
-            value.type.cfgs.forEach((name, cfg) -> {
+            value.dbType.ttables.forEach((name, cfg) -> {
                 ps.println5("case \"" + name + "\":");
                 ps.println6("configNulls.Remove(csv);");
                 ps.println6(fullName(cfg.tbean) + ".Initialize(os, Errors);");
@@ -616,7 +620,7 @@ public class GenCs extends Generator {
             ps.println3("foreach (var csv in configNulls)");
             ps.println4("Errors.ConfigNull(csv);");
 
-            value.type.cfgs.forEach((n, c) -> {
+            value.dbType.ttables.forEach((n, c) -> {
                 if (c.tbean.hasRef()) {
                     ps.println3(fullName(c) + ".Resolve(Errors);");
                 }

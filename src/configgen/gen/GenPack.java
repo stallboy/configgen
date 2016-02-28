@@ -2,7 +2,7 @@ package configgen.gen;
 
 import configgen.Logger;
 import configgen.define.DomUtils;
-import configgen.value.CfgVs;
+import configgen.value.VDb;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -43,15 +43,15 @@ public class GenPack extends Generator {
     }
 
     @Override
-    public void generate(CfgVs _value) throws IOException {
-        File packXmlFile = xml != null ? new File(xml) : _value.data.dataDir.resolve("pack.xml").toFile();
-        CfgVs value = own != null ? extract(_value, own) : _value;
+    public void generate(VDb _value) throws IOException {
+        File packXmlFile = xml != null ? new File(xml) : _value.dbData.dataDir.resolve("pack.xml").toFile();
+        VDb value = own != null ? extract(_value, own) : _value;
         Map<String, Set<String>> packs = new HashMap<>();
         if (packXmlFile.exists()) {
             parsePack(packs, packXmlFile, value);
         } else {
             Logger.log(packXmlFile.getCanonicalPath() + "  not exist, pack to all.zip");
-            packs.put("all", value.cfgvs.keySet());
+            packs.put("all", value.vtables.keySet());
         }
 
         try (ZipOutputStream textOS = createZip(new File(dstDir, "text.zip"))) {
@@ -69,7 +69,7 @@ public class GenPack extends Generator {
                             zos.putNextEntry(ze);
                             try (ValueOutputStream vos = new ValueOutputStream(zos, texter)) {
                                 for (String cfg : packCfgs) {
-                                    vos.addCfgV(value.cfgvs.get(cfg));
+                                    vos.addCfgV(value.vtables.get(cfg));
                                 }
                             }
                         }
@@ -81,18 +81,20 @@ public class GenPack extends Generator {
         CachedFileOutputStream.deleteOtherFiles(dstDir);
     }
 
-    private void parsePack(Map<String, Set<String>> packs, File packXmlFile, CfgVs value) {
-        Set<String> source = new HashSet<>(value.cfgvs.keySet());
+    private void parsePack(Map<String, Set<String>> packs, File packXmlFile, VDb value) {
+        Set<String> source = new HashSet<>(value.vtables.keySet());
         Set<String> picked = new HashSet<>();
 
         Element root = DomUtils.rootElement(packXmlFile);
-        for (Element ep : DomUtils.elementsList(root, "pack").get(0)) {
-            String[] attributes = DomUtils.attributes(ep, "name", "cfgs");
-            String packName = attributes[0].endsWith(".zip") ? attributes[0].substring(0, attributes[0].length() - 4) : attributes[0];
+        DomUtils.permitElements(root, "pack");
+        for (Element ep : DomUtils.elements(root, "pack")) {
+            DomUtils.permitAttributes(ep, "name", "tables");
+            String name = ep.getAttribute("name");
+            String packName = name.endsWith(".zip") ? name.substring(0, name.length() - 4) : name;
             require(!packName.equalsIgnoreCase("text"), "text.zip reserved for i18n");
             Set<String> packCfgs = new HashSet<>();
             packs.put(packName, packCfgs);
-            for (String c : attributes[1].split(",")) {
+            for (String c : ep.getAttribute("tables").split(",")) {
                 if (c.equals(".**")) {
                     packCfgs.addAll(source);
                     picked.addAll(source);

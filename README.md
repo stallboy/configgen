@@ -25,7 +25,7 @@
     - bean必须自己手工在config.xml里定义；field.type包含bean的时候也必须手工指定；这些没法自动猜测。
 
 * config.keys
-    - 默认是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
+    - primary key! 默认是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
 
 * config.enum
     - 如果程序想访问单独一行，配置这个，比如enum="aa"就是field aa作为enum名称
@@ -57,6 +57,7 @@
 * field.ref, nullableref, keyref
     - 引用，对应config.name。keyref只针对map
     - list，map 不能配置nullableref
+    - 如果要ref 到uniqkey上，则table,uniqkey逗号分割
 
 * field.listref
     - 引用，对应config.name,config.field.name。
@@ -65,8 +66,11 @@
 * field.range
     - 对应min,max必须两者同时都有，对数值是取值区间，对字符串是长度区间。
 
+* uniqkey.keys
+    - unique key!
+
 * ref.name, keys, ref, keyref, nullable
-    - 用于生成代码时使用，如果用field.ref配置没法指定默认等于field.name
+    - 用于生成代码时使用，如果用field.ref配置没法指定,默认是field.name
     - 对keys有多个字段config的引用，需要多个keys，配置到这。或者一个field要配置多个ref，都用这个来配置
     - ref, keyref 引用的config.name
     - nullable是否可为空，默认是false
@@ -94,19 +98,18 @@
 
 * 为什么支持enum？
 
-    当你要一个knowledge，客户端，服务器，策划都要了解的时候，放到csv里。程序也不用写魔数了。
+    当有一个knowledge，客户端，服务器，策划都要了解的时候，放到csv里。程序也不用写魔数了。
 
 * 为什么enum支持部分设置，部分空白？
 
     有时候允许部分设置是很方便的，比如掉落表，一般用id索引，但有些行如果能配置enum导出引用，则程序会方便的多。
     所以enum在实现上，java中如果部分enum则用静态成员，如果全部enum则生成enum；c#中生成为一个静态成员。
-    枚举的作用就是要消除代码里的魔数。
 
 * keys, ref是什么？
 
-    keys对应于sql概念多种的primary key，默认不用配置，就是第一列。
-    ref对应于foreign key，因为我们不支持额外的unique key，只要说明ref对应到那个table就行了。
-    ref，不但用于策划数据一致性检测，也会直接生成代码，让程序员直接访问
+    keys对应于sql中的primary key，默认不用配置，就是第一列。
+    ref对应于foreign key，如果是ref对应到那个table的primary key则只配置table就行，如果ref到uniq key，则配置table,uniqkey。
+    ref不但用于策划数据一致性检测，也会直接生成代码，让程序员直接访问
 
 * 为什么要支持nullableref？
 

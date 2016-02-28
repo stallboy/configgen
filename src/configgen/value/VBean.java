@@ -2,41 +2,52 @@ package configgen.value;
 
 import configgen.Node;
 import configgen.data.CSV;
-import configgen.type.MRef;
+import configgen.define.Bean;
+import configgen.define.ForeignKey;
 import configgen.type.TBean;
+import configgen.type.TForeignKey;
 import configgen.type.Type;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class VBean extends Value {
-    public final TBean tbean;
-    public final Map<String, Value> map = new LinkedHashMap<>();
+    public final TBean beanType;
+    public final Map<String, Value> valueMap = new LinkedHashMap<>();
 
-    public VBean(Node parent, String name, TBean type, List<Cell> data) {
-        super(parent, name, type, data);
-        this.tbean = type;
+    public final VBean actionVBean;
 
-        List<Cell> parsed;
-        if (type.define.compress) {
-            require(data.size() == 1);
-            Cell dat = data.get(0);
-            parsed = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+    public VBean(Node parent, String name, TBean tbean, List<Cell> data) {
+        super(parent, name, tbean, data);
+        beanType = tbean;
+        if (beanType.beanDefine.type == Bean.BeanType.BaseAction) {
+            String actionName = data.get(0).data;
+            TBean actionBean = beanType.actionBeans.get(actionName);
+            actionVBean = new VBean(this, actionName, actionBean, data.subList(1, data.size()));
         } else {
-            require(data.size() == type.columnSpan());
-            parsed = data;
-        }
-
-        int s = 0;
-        for (Map.Entry<String, Type> e : type.fields.entrySet()) {
-            String n = e.getKey();
-            Type t = e.getValue();
-            int span = t.columnSpan();
-            map.put(n, Value.create(this, n, t, parsed.subList(s, s + span)));
-            s += span;
+            actionVBean = null;
+            List<Cell> parsed;
+            if (beanType.beanDefine.compress) {
+                require(data.size() == 1);
+                Cell dat = data.get(0);
+                parsed = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+            } else {
+                if (beanType.beanDefine.type == Bean.BeanType.Action){
+                    require(data.size() >= beanType.columnSpan());
+                    parsed = data.subList(0, beanType.columnSpan());
+                }else{
+                    require(data.size() == beanType.columnSpan());
+                    parsed = data;
+                }
+            }
+            int s = 0;
+            for (Map.Entry<String, Type> e : beanType.columns.entrySet()) {
+                String n = e.getKey();
+                Type t = e.getValue();
+                int span = t.columnSpan();
+                valueMap.put(n, Value.create(this, n, t, parsed.subList(s, s + span)));
+                s += span;
+            }
         }
     }
 
@@ -47,33 +58,41 @@ public class VBean extends Value {
 
     @Override
     public void verifyConstraint() {
-        verifyRefs();
-
-        map.values().forEach(Value::verifyConstraint);
-
-        for (MRef mr : tbean.mRefs) {
-            List<Value> vs = new ArrayList<>();
-            for (String k : mr.define.keys) {
-                vs.add(map.get(k));
-            }
-            VList key = new VList(this, "__ref_" + mr.define.name, vs);
-            if (mr.ref != null) {
+        if (beanType.beanDefine.type == Bean.BeanType.BaseAction) {
+            actionVBean.verifyConstraint();
+        } else {
+            verifyRefs();
+            valueMap.values().forEach(Value::verifyConstraint);
+            for (TForeignKey fk : beanType.mRefs) {
+                List<Value> vs = new ArrayList<>();
+                for (String k : fk.foreignKeyDefine.keys) {
+                    vs.add(valueMap.get(k));
+                }
+                VList keyValue = new VList(this, "__ref_" + fk.foreignKeyDefine.name, vs);
                 if (isNull()) {
-                    require(mr.define.nullable, key.toString(), "null not support ref", mr.ref.fullName());
+                    require(fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE, keyValue.toString(), "null not support ref", fk.foreignKeyDefine.fullName());
                 } else {
-                    require(((CfgVs) root).cfgvs.get(mr.ref.name).vkeys.contains(key), key.toString(), "not found in ref", mr.ref.fullName());
+                    VTable vtable = ((VDb) root).vtables.get(fk.refTable.name);
+                    Set<Value> keyValueSet;
+                    if (fk.foreignKeyDefine.ref.refToPrimaryKey()) {
+                        keyValueSet = vtable.primaryKeyValueSet;
+                    } else {
+                        keyValueSet = vtable.uniqueKeyValueSetMap.get(String.join(",", fk.foreignKeyDefine.ref.cols));
+                    }
+                    require(keyValueSet.contains(keyValue), keyValue.toString(), "not found in ref", fk.refTable.fullName());
                 }
             }
         }
+
     }
 
     @Override
     public boolean equals(Object o) {
-        return o != null && o instanceof VBean && type == ((VBean) o).type && map.equals(((VBean) o).map);
+        return o != null && o instanceof VBean && type == ((VBean) o).type && valueMap.equals(((VBean) o).valueMap);
     }
 
     @Override
     public int hashCode() {
-        return map.hashCode();
+        return valueMap.hashCode();
     }
 }

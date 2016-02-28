@@ -16,7 +16,7 @@ public class TString extends TPrimitive {
             case STRING:
                 break;
             case TEXT:
-                require(cons.refs.isEmpty(), "text not support ref");
+                require(cons.references.isEmpty(), "text not support ref");
                 break;
         }
     }

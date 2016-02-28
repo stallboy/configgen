@@ -50,20 +50,20 @@ final class Test {
     }
 
     private static void septest(String a, String f, int n) {
-        Rules.Sep s = Rules.trySep(a);
-        equal(Rules.SepType.IntPostfix, s.type);
-        equal(f, s.field);
+        GuessHelper.Sep s = GuessHelper.trySep(a);
+        equal(GuessHelper.SepType.IntPostfix, s.type);
+        equal(f, s.columnName);
         equal(n, s.num);
     }
 
     private static void septest(String a, String f) {
-        Rules.Sep s = Rules.trySep(a);
-        equal(Rules.SepType.BeanPrefix, s.type);
-        equal(f, s.field);
+        GuessHelper.Sep s = GuessHelper.trySep(a);
+        equal(GuessHelper.SepType.BeanPrefix, s.type);
+        equal(f, s.columnName);
     }
 
     private static void septestf(String a) {
-        Rules.Sep s = Rules.trySep(a);
-        equal(Rules.SepType.None, s.type);
+        GuessHelper.Sep s = GuessHelper.trySep(a);
+        equal(GuessHelper.SepType.None, s.type);
     }
 }

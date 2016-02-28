@@ -22,35 +22,35 @@ public abstract class Type extends Node {
 
     public abstract <T> T accept(TypeVisitorT<T> visitor);
 
-    Type resolveType(String link, Constraint cons, String type, String key, String value, int count) {
-        Type t = resolveType(link, cons, type);
+    Type resolveType(String _name, Constraint cons, String type, String key, String value, int count) {
+        Type t = resolveType(_name, cons, type);
         if (t != null)
             return t;
 
         switch (type) {
             case "list":
-                return new TList(this, link, cons, value, count);
+                return new TList(this, _name, cons, value, count);
             case "map":
-                return new TMap(this, link, cons, key, value, count);
+                return new TMap(this, _name, cons, key, value, count);
         }
         return null;
     }
 
-    Type resolveType(String link, Constraint cons, String type) {
+    Type resolveType(String _name, Constraint cons, String type) {
         switch (type) {
             case "int":
-                return new TInt(this, link, cons);
+                return new TInt(this, _name, cons);
             case "long":
-                return new TLong(this, link, cons);
+                return new TLong(this, _name, cons);
             case "string":
-                return new TString(this, link, cons, TString.Subtype.STRING);
+                return new TString(this, _name, cons, TString.Subtype.STRING);
             case "bool":
-                return new TBool(this, link, cons);
+                return new TBool(this, _name, cons);
             case "float":
-                return new TFloat(this, link, cons);
+                return new TFloat(this, _name, cons);
             case "text":
-                return new TString(this, link, cons, TString.Subtype.TEXT);
+                return new TString(this, _name, cons, TString.Subtype.TEXT);
         }
-        return ((Cfgs) root).tbeans.get(type);
+        return ((TDb) root).tbeans.get(type);
     }
 }

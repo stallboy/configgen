@@ -25,14 +25,14 @@ public class Signin {
     }
 
     /**
-     * ÆÕÍ¨½±Àø,
+     * ÆÕÍ¨½±Àø
      */
     public java.util.Map<Integer, Integer> getItem2countMap() {
         return item2countMap;
     }
 
     /**
-     * vip½±Àø,
+     * vip½±Àø
      */
     public java.util.Map<Integer, Integer> getVipitem2vipcountMap() {
         return vipitem2vipcountMap;

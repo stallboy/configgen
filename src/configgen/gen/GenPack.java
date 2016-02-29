@@ -69,7 +69,7 @@ public class GenPack extends Generator {
                             zos.putNextEntry(ze);
                             try (ValueOutputStream vos = new ValueOutputStream(zos, texter)) {
                                 for (String cfg : packCfgs) {
-                                    vos.addCfgV(value.vtables.get(cfg));
+                                    vos.addVTable(value.vtables.get(cfg));
                                 }
                             }
                         }

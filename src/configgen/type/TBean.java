@@ -16,7 +16,7 @@ public class TBean extends Type {
     public final List<TForeignKey> listRefs = new ArrayList<>();
     private final Set<String> refNames = new HashSet<>(); //make sure generate ok
 
-    public TTable actionEnumRef;
+    public TTable actionEnumRefTable;
     public final Map<String, TBean> actionBeans = new LinkedHashMap<>();
 
     public TBean(TDb parent, Bean bean) {
@@ -57,17 +57,26 @@ public class TBean extends Type {
 
     @Override
     public boolean hasRef() {
-        return mRefs.size() > 0 || listRefs.size() > 0 || columns.values().stream().filter(Type::hasRef).count() > 0;
+        if (beanDefine.type == Bean.BeanType.BaseAction)
+            return actionBeans.values().stream().filter(TBean::hasRef).count() > 0;
+        else
+            return mRefs.size() > 0 || listRefs.size() > 0 || columns.values().stream().filter(Type::hasRef).count() > 0;
     }
 
     @Override
     public boolean hasSubBean() {
-        return columns.values().stream().filter(t -> t.hasSubBean() || t instanceof TBean).count() > 0;
+        if (beanDefine.type == Bean.BeanType.BaseAction)
+            return actionBeans.values().stream().filter(TBean::hasSubBean).count() > 0;
+        else
+            return columns.values().stream().filter(t -> t.hasSubBean() || t instanceof TBean).count() > 0;
     }
 
     @Override
     public boolean hasText() {
-        return columns.values().stream().filter(Type::hasText).count() > 0;
+        if (beanDefine.type == Bean.BeanType.BaseAction)
+            return actionBeans.values().stream().filter(TBean::hasText).count() > 0;
+        else
+            return columns.values().stream().filter(Type::hasText).count() > 0;
     }
 
     @Override
@@ -96,8 +105,8 @@ public class TBean extends Type {
 
     public void resolve() {
         if (beanDefine.type == Bean.BeanType.BaseAction) {
-            actionEnumRef = ((TDb) root).ttables.get(beanDefine.actionEnumRef);
-            require(actionEnumRef != null, "action enum ref table not found", beanDefine.actionEnumRef);
+            actionEnumRefTable = ((TDb) root).ttables.get(beanDefine.actionEnumRef);
+            require(actionEnumRefTable != null, "action enum ref table not found", beanDefine.actionEnumRef);
             actionBeans.values().forEach(TBean::resolve);
         } else {
             foreignKeys.forEach(TForeignKey::resolve);

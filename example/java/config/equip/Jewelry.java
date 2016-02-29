@@ -5,7 +5,7 @@ public class Jewelry {
     private String name = "";
     private String iconFile = "";
     private config.LevelRank lvlRank = new config.LevelRank();
-    private int type;
+    private String type = "";
     private config.equip.Jewelrytype RefType;
     private int suitID;
     private config.equip.Jewelrysuit NullableRefSuitID;
@@ -59,7 +59,7 @@ public class Jewelry {
     /**
      *  ◊ Œ¿‡–Õ
      */
-    public int getType() {
+    public String getType() {
         return type;
     }
 
@@ -133,7 +133,7 @@ public class Jewelry {
         name = data.get(1);
         iconFile = data.get(2);
         lvlRank._parse(data.subList(3, 5));
-        type = config.CSV.parseInt(data.get(5));
+        type = data.get(5);
         suitID = config.CSV.parseInt(data.get(6));
         keyAbility = config.CSV.parseInt(data.get(7));
         keyAbilityValue = config.CSV.parseInt(data.get(8));
@@ -144,7 +144,7 @@ public class Jewelry {
 
     void _resolve() {
         lvlRank._resolve();
-        RefType = config.equip.Jewelrytype.get(type);
+        RefType = config.equip.Jewelrytype.getByTypeName(type);
         java.util.Objects.requireNonNull(RefType);
         NullableRefSuitID = config.equip.Jewelrysuit.get(suitID);
         RefKeyAbility = config.equip.Ability.get(keyAbility);

@@ -17,7 +17,9 @@ public class CSVLoader {
             "loot",
             "lootitem",
             "monster",
-            "signin"));
+            "signin",
+            "task.completeconditiontype",
+            "task.task"));
         configsInCode.removeAll(configsInZip);
         return configsInCode;
     }

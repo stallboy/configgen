@@ -70,15 +70,15 @@ class ValueOutputStream implements ValueVisitor, Closeable {
         value.valueMap.values().forEach(v -> v.accept(this));
     }
 
-    public void addCfgV(VTable cfgv) throws IOException {
+    public void addVTable(VTable vtable) throws IOException {
         index = 0;
-        if (cfgv.tableType.tbean.hasText()) {
-            texter.write(escape("#" + cfgv.tableType.tbean.beanDefine.name));
+        if (vtable.tableType.tbean.hasText()) {
+            texter.write(escape("#" + vtable.tableType.tbean.beanDefine.name));
             texter.write(",\r\n");
         }
-        addString(cfgv.tableType.tbean.beanDefine.name);
-        addSize(cfgv.vbeanList.size());
-        cfgv.vbeanList.forEach(v -> v.accept(this));
+        addString(vtable.tableType.tbean.beanDefine.name);
+        addSize(vtable.vbeanList.size());
+        vtable.vbeanList.forEach(v -> v.accept(this));
     }
 
     private void addText(String text) {

@@ -8,7 +8,7 @@ public class UniqueKey extends Node {
 
     public UniqueKey(Table parent, Element self) {
         super(parent, "uniqueKey");
-        keys = DomUtils.parseStringArray(self, "primaryKey");
+        keys = DomUtils.parseStringArray(self, "keys");
     }
 
     UniqueKey(Table _parent, UniqueKey original) {
@@ -22,6 +22,6 @@ public class UniqueKey extends Node {
     }
 
     void save(Element parent) {
-        DomUtils.newChild(parent, "uniqueKey").setAttribute("primaryKey", this.toString());
+        DomUtils.newChild(parent, "uniqueKey").setAttribute("keys", this.toString());
     }
 }

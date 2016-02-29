@@ -77,11 +77,11 @@ public class Lootitem {
         return this;
     }
 
-    private static class Key {
+    private static class LootidItemidKey {
         private int lootid;
         private int itemid;
 
-        Key(int lootid, int itemid) {
+        LootidItemidKey(int lootid, int itemid) {
             this.lootid = lootid;
             this.itemid = itemid;
         }
@@ -93,17 +93,17 @@ public class Lootitem {
 
         @Override
         public boolean equals(Object other) {
-            if (null == other || !(other instanceof Key))
+            if (null == other || !(other instanceof LootidItemidKey))
                 return false;
-            Key o = (Key) other;
+            LootidItemidKey o = (LootidItemidKey) other;
             return lootid == o.lootid && itemid == o.itemid;
         }
     }
 
-    private static final java.util.Map<Key, Lootitem> All = new java.util.LinkedHashMap<>();
+    private static final java.util.Map<LootidItemidKey, Lootitem> All = new java.util.LinkedHashMap<>();
 
     public static Lootitem get(int lootid, int itemid) {
-        return All.get(new Key(lootid, itemid));
+        return All.get(new LootidItemidKey(lootid, itemid));
     }
 
     public static java.util.Collection<Lootitem> all() {
@@ -115,12 +115,12 @@ public class Lootitem {
         for (java.util.List<String> row : dataList) {
             java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
             Lootitem self = new Lootitem()._parse(data);
-            All.put(new Key(self.lootid, self.itemid), self);
+            All.put(new LootidItemidKey(self.lootid, self.itemid), self);
         }
     }
 
     static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<Key, Lootitem> old = new java.util.LinkedHashMap<>(All);
+        java.util.Map<LootidItemidKey, Lootitem> old = new java.util.LinkedHashMap<>(All);
         All.clear();
         initialize(dataList);
         All.forEach((k, v) -> {

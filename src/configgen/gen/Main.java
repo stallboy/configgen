@@ -110,9 +110,10 @@ public final class Main {
         File xmlFile = xml != null ? new File(xml) : dir.resolve("config.xml").toFile();
         Logger.verbose("parse xml " + xmlFile);
         Db define = new Db(xmlFile);
-        //dbDefine.dump(System.out);
+        //define.dump(System.out);
         TDb type = new TDb(define);
         type.resolve();
+        //type.dump(System.out);
 
         Logger.verbose("read data " + dir + " then auto complete xml");
         DDb data = new DDb(dir, encoding);

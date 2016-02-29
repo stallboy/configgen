@@ -1,9 +1,9 @@
 package config.equip;
 
 public enum Jewelrytype {
-    JADEPENDANT,
+    JADE,
     BRACELET,
-    MAGICSEAL,
+    MAGIC,
     BOTTLE;
 
     private int typeID;
@@ -45,6 +45,12 @@ public enum Jewelrytype {
         return All.get(typeID);
     }
 
+    private static final java.util.Map<String, Jewelrytype> TypeNameMap = new java.util.LinkedHashMap<>();
+
+    public static Jewelrytype getByTypeName(String typeName) {
+        return All.get(typeName);
+    }
+
     public static java.util.Collection<Jewelrytype> all() {
         return All.values();
     }
@@ -55,6 +61,7 @@ public enum Jewelrytype {
             java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
             Jewelrytype self = valueOf(row.get(1).trim().toUpperCase())._parse(data);
             All.put(self.typeID, self);
+            TypeNameMap.put(self.typeName, self);
         }
         if (values().length != all().size()) 
             throw new RuntimeException("Enum Uncompleted: Jewelrytype");

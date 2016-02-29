@@ -35,7 +35,7 @@
         <column desc="首饰名称" name="Name" type="string"/>
         <column desc="图标ID" name="IconFile" type="string"/>
         <column desc="首饰等级" name="LvlRank" ref="equip.jewelryrandom" type="LevelRank"/>
-        <column desc="首饰类型" name="Type" ref="equip.jewelrytype" type="int"/>
+        <column desc="首饰类型" name="Type" ref="equip.jewelrytype,TypeName" type="string"/>
         <column
             desc="套装ID（为0是没有不属于套装，首饰品级为4的首饰该参数为套装id，其余情况为0,引用JewelrySuit.csv）"
             name="SuitID" ref="equip.jewelrysuit" refType="NULLABLE" type="int"/>
@@ -63,6 +63,7 @@
         <column desc="部件1" name="SuitList" type="list,int,4"/>
     </table>
     <table enum="TypeName" name="equip.jewelrytype" primaryKey="TypeID">
+        <uniqueKey keys="TypeName"/>
         <column desc="饰品类型" name="TypeID" type="int"/>
         <column desc="程序用名字" name="TypeName" type="string"/>
     </table>
@@ -96,7 +97,7 @@
         <column desc="领取vip奖励的最低等级" name="viplevel" type="int"/>
         <column desc="礼包图标" name="IconFile" type="string"/>
     </table>
-    <table name="task.completeconditiontype" primaryKey="id">
+    <table enum="name" name="task.completeconditiontype" primaryKey="id">
         <column desc="任务完成条件类型（id的范围为1-100）" name="id" type="int"/>
         <column desc="程序用名字" name="name" type="string"/>
     </table>

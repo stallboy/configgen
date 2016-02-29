@@ -499,7 +499,7 @@ public class GenJava extends Generator {
 
         String getByName = isPrimaryKey ? "get" : uniqueKeyGetByName(keys);
         ps.println1("public static " + name.className + " " + getByName + "(" + formalParams(keys) + ") {");
-        ps.println2("return All.get(" + actualParamsKey(keys, "") + ");");
+        ps.println2("return " + mapName + ".get(" + actualParamsKey(keys, "") + ");");
         ps.println1("}");
         ps.println();
     }

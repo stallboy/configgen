@@ -48,7 +48,7 @@ public enum Jewelrytype {
     private static final java.util.Map<String, Jewelrytype> TypeNameMap = new java.util.LinkedHashMap<>();
 
     public static Jewelrytype getByTypeName(String typeName) {
-        return All.get(typeName);
+        return TypeNameMap.get(typeName);
     }
 
     public static java.util.Collection<Jewelrytype> all() {

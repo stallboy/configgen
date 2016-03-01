@@ -20,27 +20,32 @@
 
 ## 配置描述
 
-* config/bean.name
+* bean.name
     - 文件路径，全小写，路径用.分割。这样和package名称统一，同时避免linux，windows差异
-    - bean必须自己手工在config.xml里定义；field.type包含bean的时候也必须手工指定；这些没法自动猜测。
-
-* config.keys
-    - primary key! 默认是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
-
-* config.enum
-    - 如果程序想访问单独一行，配置这个，比如enum="aa"就是field aa作为enum名称
+    - bean必须自己手工在config.xml里定义；column.type包含bean的时候也必须手工指定；这些没法自动猜测。
 
 * bean.compress
     - 如果要把bean整个放到一个单元格里，配置这个为true
 
-* field.desc, name
+* bean.enumRef
+    - 支持动态bean，这个指向一个enum的table，在这个bean里定义子bean
+
+* table.name
+
+* table.primaryKey
+    - primary key! 默认是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
+
+* table.enum
+    - 如果程序想访问单独一行，配置这个，比如enum="aa"就是field aa作为enum名称
+
+* column.desc, name
     - configgen.jar会从csv文件第1,2行提取
     - list a1,a2: name为aList
     - map a1,b1,a2,b2: name为a2bMap
     - 生成代码时保留csv中配置名称的大小写，成员变量为首字母小写的name
     - 引用的成员变量为Ref+首字母大写的name
 
-* field.type
+* column.type
     - bool,int,long,float,string(text),bean
     - list,xx,count     ArrayList；count不存在的时候，单元格是list；count存在的话从多列fieldname1，fieldname2。。。中读取数据。
     - map,xx,yy,count   LinkedHashMap; ;xx,yy都为基本格式。从多列fieldkey1，fieldvalue1，fieldkey2, fieldvalue2。。。中读取数据。
@@ -52,36 +57,27 @@
         - "a;b";c   则被分为2组a;b 和c
         - "a"";b";c 也是2组a";b和c
     - map, lua不支持map的key为bean。
-    - 如果type里包含bean，且不是一个单元格，则要在csv里第二行名字起名为field.name@xx，同时从这开始后列名字序列不要断，要和config里的定义顺序一致，方便程序检测这个field的结束点。
+    - 如果type里包含bean，且不是一个单元格，则要在csv里第二行名字起名为field.name@xx，同时从这开始后列名字序列不要断，要和config.xml里的定义顺序一致，方便程序检测这个field的结束点。
 
-* field.ref, nullableref, keyref
-    - 引用，对应config.name。keyref只针对map
-    - list，map 不能配置nullableref
-    - 如果要ref 到uniqkey上，则table,uniqkey逗号分割
+* column.ref, keyref
+    - 引用，如果ref到主键只填table.name就行，如果ref到uniqueKey，则填table.name,column.name,逗号分割。keyref只针对map
 
-* field.listref
-    - 引用，对应config.name,config.field.name。
-    - list，map 不能配置listref
+* column.refType
+    - 默认不用填为normal，如果nullable表示可为空，如果list，则不需要ref里的column不需要是unique key
 
-* field.range
+* column.range
     - 对应min,max必须两者同时都有，对数值是取值区间，对字符串是长度区间。
 
-* uniqkey.keys
+* uniqueKey.keys
     - unique key!
 
-* ref.name, keys, ref, keyref, nullable
-    - 用于生成代码时使用，如果用field.ref配置没法指定,默认是field.name
-    - 对keys有多个字段config的引用，需要多个keys，配置到这。或者一个field要配置多个ref，都用这个来配置
-    - ref, keyref 引用的config.name
-    - nullable是否可为空，默认是false
-
-* listref.name, keys, ref, refkeys
-    - 参考ref，生成ListRefXXX 引用。
+* foreignKey.name, keys, ref, keyref, refType
+    - keys 可是多列，逗号分割
 
 * range.key, min, max
-    - field.range 的另一种写法。
+    - column.range 的另一种写法。
 
-* config/bean/field.own
+* table/bean/column.own
     - 里面可填任意字符串，配合启动参数使用，contains语义。
     - 共用一份config.xml，通过启动参数own和这里的own选择生成部分，想省客户端内存用这个
 

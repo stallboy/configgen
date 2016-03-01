@@ -1,5 +1,4 @@
 local jewelrysuit = {}
-jewelrysuit.all = {}
 
 function jewelrysuit:_create(os)
     local o = {}
@@ -34,6 +33,7 @@ function jewelrysuit:_assign(other)
     end
 end
 
+jewelrysuit.all = {}
 function jewelrysuit.get(suitID)
     return jewelrysuit.all[suitID]
 end

@@ -1,5 +1,4 @@
 local lootitem = {}
-lootitem.all = {}
 
 function lootitem:_create(os)
     local o = {}
@@ -21,6 +20,7 @@ function lootitem:_assign(other)
     self.countmax = other.countmax
 end
 
+lootitem.all = {}
 function lootitem.get(lootid, itemid)
     return lootitem.all[lootid ..",".. itemid]
 end

@@ -1,5 +1,4 @@
 local ability = {}
-ability.all = {}
 ability.attack = nil
 ability.defence = nil
 ability.hp = nil
@@ -22,6 +21,7 @@ function ability:_assign(other)
     self.name = other.name
 end
 
+ability.all = {}
 function ability.get(id)
     return ability.all[id]
 end

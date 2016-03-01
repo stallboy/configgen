@@ -1,5 +1,4 @@
 local loot = {}
-loot.all = {}
 loot.combo1 = nil
 loot.combo2 = nil
 loot.combo3 = nil
@@ -15,7 +14,6 @@ function loot:_create(os)
     for _ = 1, os:ReadSize() do
         table.insert(o.chanceList, os:ReadInt32())
     end
-    o.ListRefLootid = {}
     return o
 end
 
@@ -28,6 +26,7 @@ function loot:_assign(other)
     end
 end
 
+loot.all = {}
 function loot.get(lootid)
     return loot.all[lootid]
 end

@@ -1,7 +1,6 @@
 local Beans = require("cfg._beans")
 
 local jewelryrandom = {}
-jewelryrandom.all = {}
 
 function jewelryrandom:_create(os)
     local o = {}
@@ -24,6 +23,7 @@ function jewelryrandom:_assign(other)
     end
 end
 
+jewelryrandom.all = {}
 function jewelryrandom.get(lvlRank)
     return jewelryrandom.all[lvlRank]
 end

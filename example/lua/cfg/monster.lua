@@ -1,7 +1,6 @@
 local Beans = require("cfg._beans")
 
 local monster = {}
-monster.all = {}
 
 function monster:_create(os)
     local o = {}
@@ -17,6 +16,7 @@ function monster:_assign(other)
     self.pos:_assign(other.pos)
 end
 
+monster.all = {}
 function monster.get(id)
     return monster.all[id]
 end

@@ -1,9 +1,8 @@
 local jewelrytype = {}
-jewelrytype.all = {}
-jewelrytype.JADEPENDANT = nil
-jewelrytype.BRACELET = nil
-jewelrytype.MAGICSEAL = nil
-jewelrytype.BOTTLE = nil
+jewelrytype.Jade = nil
+jewelrytype.Bracelet = nil
+jewelrytype.Magic = nil
+jewelrytype.Bottle = nil
 
 function jewelrytype:_create(os)
     local o = {}
@@ -19,8 +18,14 @@ function jewelrytype:_assign(other)
     self.typeName = other.typeName
 end
 
+jewelrytype.all = {}
 function jewelrytype.get(typeID)
     return jewelrytype.all[typeID]
+end
+
+jewelrytype.TypeNameMap = {}
+function jewelrytype.getByTypeName(typeName)
+    return jewelrytype.TypeNameMap[typeName]
 end
 
 function jewelrytype._initialize(os, errors)
@@ -30,18 +35,19 @@ function jewelrytype._initialize(os, errors)
             jewelrytype[v.typeName] = v
         end
         jewelrytype.all[v.typeID] = v
+        jewelrytype.TypeNameMap[v.typeName] = v
     end
-    if jewelrytype.JADEPENDANT == nil then
-        errors.enumNil("equip.jewelrytype", "JADEPENDANT");
+    if jewelrytype.Jade == nil then
+        errors.enumNil("equip.jewelrytype", "Jade");
     end
-    if jewelrytype.BRACELET == nil then
-        errors.enumNil("equip.jewelrytype", "BRACELET");
+    if jewelrytype.Bracelet == nil then
+        errors.enumNil("equip.jewelrytype", "Bracelet");
     end
-    if jewelrytype.MAGICSEAL == nil then
-        errors.enumNil("equip.jewelrytype", "MAGICSEAL");
+    if jewelrytype.Magic == nil then
+        errors.enumNil("equip.jewelrytype", "Magic");
     end
-    if jewelrytype.BOTTLE == nil then
-        errors.enumNil("equip.jewelrytype", "BOTTLE");
+    if jewelrytype.Bottle == nil then
+        errors.enumNil("equip.jewelrytype", "Bottle");
     end
 end
 

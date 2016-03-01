@@ -1,16 +1,15 @@
 local signin = {}
-signin.all = {}
 
 function signin:_create(os)
     local o = {}
     setmetatable(o, self)
     self.__index = self
     o.id = os:ReadInt32() -- 礼包ID
-    o.item2countMap = {} -- 普通奖励,
+    o.item2countMap = {} -- 普通奖励
     for _ = 1, os:ReadSize() do
         o.item2countMap[os:ReadInt32()] = os:ReadInt32()
     end
-    o.vipitem2vipcountMap = {} -- vip奖励,
+    o.vipitem2vipcountMap = {} -- vip奖励
     for _ = 1, os:ReadSize() do
         o.vipitem2vipcountMap[os:ReadInt32()] = os:ReadInt32()
     end
@@ -31,6 +30,7 @@ function signin:_assign(other)
     self.iconFile = other.iconFile
 end
 
+signin.all = {}
 function signin.get(id)
     return signin.all[id]
 end

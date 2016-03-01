@@ -1,5 +1,6 @@
 package configgen.gen;
 
+import configgen.define.Bean;
 import configgen.value.*;
 
 import java.io.Closeable;
@@ -67,6 +68,9 @@ class ValueOutputStream implements ValueVisitor, Closeable {
 
     @Override
     public void visit(VBean value) {
+        if (value.beanType.beanDefine.type == Bean.BeanType.BaseAction) {
+            addString(value.actionVBean.name);
+        }
         value.valueMap.values().forEach(v -> v.accept(this));
     }
 

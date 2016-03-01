@@ -1,7 +1,6 @@
 local Beans = require("cfg._beans")
 
 local jewelry = {}
-jewelry.all = {}
 
 function jewelry:_create(os)
     local o = {}
@@ -11,7 +10,7 @@ function jewelry:_create(os)
     o.name = os:ReadString() -- 首饰名称
     o.iconFile = os:ReadString() -- 图标ID
     o.lvlRank = Beans.levelrank:_create(os) -- 首饰等级
-    o.type = os:ReadInt32() -- 首饰类型
+    o.type = os:ReadString() -- 首饰类型
     o.RefType = nil
     o.suitID = os:ReadInt32() -- 套装ID（为0是没有不属于套装，首饰品级为4的首饰该参数为套装id，其余情况为0,引用JewelrySuit.csv）
     o.NullableRefSuitID = nil
@@ -36,6 +35,7 @@ function jewelry:_assign(other)
     self.description = other.description
 end
 
+jewelry.all = {}
 function jewelry.get(iD)
     return jewelry.all[iD]
 end

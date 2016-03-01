@@ -47,4 +47,72 @@ function Beans.range:_assign(other)
     self.max = other.max
 end
 
+Beans.task = {}
+Beans.task.completecondition = {}
+function Beans.task.completecondition:_create(os)
+    local s = os:ReadString()
+    if s == 'KillMonster' then
+        return Beans.task.completecondition.killmonster:_create(os)
+    elseif s == 'TalkNpc' then
+        return Beans.task.completecondition.talknpc:_create(os)
+    elseif s == 'CollectItem' then
+        return Beans.task.completecondition.collectitem:_create(os)
+    end
+end
+Beans.task.completecondition.killmonster = {}
+function Beans.task.completecondition.killmonster:_create(os)
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+    o.monsterid = os:ReadInt32()
+    o.RefMonsterid = nil
+    o.count = os:ReadInt32()
+    return o
+end
+
+function Beans.task.completecondition.killmonster:_assign(other)
+    self.monsterid = other.monsterid
+    self.count = other.count
+end
+
+function Beans.task.completecondition.killmonster:type()
+    return 'KillMonster'
+end
+
+Beans.task.completecondition.talknpc = {}
+function Beans.task.completecondition.talknpc:_create(os)
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+    o.npcid = os:ReadInt32()
+    return o
+end
+
+function Beans.task.completecondition.talknpc:_assign(other)
+    self.npcid = other.npcid
+end
+
+function Beans.task.completecondition.talknpc:type()
+    return 'TalkNpc'
+end
+
+Beans.task.completecondition.collectitem = {}
+function Beans.task.completecondition.collectitem:_create(os)
+    local o = {}
+    setmetatable(o, self)
+    self.__index = self
+    o.itemid = os:ReadInt32()
+    o.count = os:ReadInt32()
+    return o
+end
+
+function Beans.task.completecondition.collectitem:_assign(other)
+    self.itemid = other.itemid
+    self.count = other.count
+end
+
+function Beans.task.completecondition.collectitem:type()
+    return 'CollectItem'
+end
+
 return Beans

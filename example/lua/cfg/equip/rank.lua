@@ -1,5 +1,4 @@
 local rank = {}
-rank.all = {}
 rank.white = nil
 rank.green = nil
 rank.blue = nil
@@ -22,6 +21,7 @@ function rank:_assign(other)
     self.rankShowName = other.rankShowName
 end
 
+rank.all = {}
 function rank.get(rankID)
     return rank.all[rankID]
 end

@@ -10,11 +10,27 @@ cfg.loot = require("cfg.loot")
 cfg.lootitem = require("cfg.lootitem")
 cfg.monster = require("cfg.monster")
 cfg.signin = require("cfg.signin")
+cfg.task = {}
+cfg.task.completeconditiontype = require("cfg.task.completeconditiontype")
+cfg.task.task = require("cfg.task.task")
 
 local function _resolve_Beans_levelrank(o, errors)
     o.RefRank = cfg.equip.rank.get(o.rank)
     if o.RefRank == nil then
         errors.refNil("LevelRank", "Rank", o.rank)
+    end
+end
+
+local function _resolve_Beans_task_completecondition_killmonster(o, errors)
+    o.RefMonsterid = cfg.monster.get(o.monsterid)
+    if o.RefMonsterid == nil then
+        errors.refNil("KillMonster", "monsterid", o.monsterid)
+    end
+end
+
+local function _resolve_Beans_task_completecondition(o, errors)
+    if o:type() == 'KillMonster' then
+        _resolve_Beans_task_completecondition_killmonster(o, errors)
     end
 end
 
@@ -35,12 +51,8 @@ local function _resolve_cfg_equip_jewelryrandom(o, errors)
     _resolve_Beans_levelrank(o.lvlRank, errors)
 end
 
-local function _resolve_cfg_loot(o, errors)
-    for _, v in pairs(cfg.lootitem.all) do
-        if v.lootid == o.lootid then
-            table.insert(o.ListRefLootid, v)
-        end
-    end
+local function _resolve_cfg_task_task(o, errors)
+    _resolve_Beans_task_completecondition(o.completecondition, errors)
 end
 
 
@@ -51,8 +63,8 @@ local function _resolveAll(errors)
     for _, v in pairs(cfg.equip.jewelryrandom.all) do
         _resolve_cfg_equip_jewelryrandom(v, errors)
     end
-    for _, v in pairs(cfg.loot.all) do
-        _resolve_cfg_loot(v, errors)
+    for _, v in pairs(cfg.task.task.all) do
+        _resolve_cfg_task_task(v, errors)
     end
 end
 
@@ -103,6 +115,8 @@ local function _CSVProcessor(os)
     cfgNils["lootitem"] = 1
     cfgNils["monster"] = 1
     cfgNils["signin"] = 1
+    cfgNils["task.completeconditiontype"] = 1
+    cfgNils["task.task"] = 1
     while true do
         local c = os:ReadCfg()
         if c == nil then

@@ -4,8 +4,8 @@ import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.define.ForeignKey;
 import configgen.type.*;
-import configgen.value.VTable;
 import configgen.value.VDb;
+import configgen.value.VTable;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -48,21 +48,16 @@ public class GenLua extends Generator {
         File dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = own != null ? extract(_value, own) : _value;
         try (TabPrintStream ps = createSource(new File(dstDir, "_beans.lua"), encoding)) {
-            ps.println("local Beans = {}");
-            for (TBean b : value.dbType.tbeans.values()) {
-                ps.println("Beans." + className(b) + " = {}");
-                genCreateAndAssign(b, ps, "Beans.");
-            }
-            ps.println("return Beans");
+            generate_beans(ps);
         }
         for (VTable c : value.vtables.values()) {
             Name name = new Name(pkg, c.name);
             try (TabPrintStream ps = createSource(dstDir.toPath().resolve(name.path).toFile(), encoding)) {
-                genCfg(c.tableType, c, ps);
+                generateTable(c.tableType, c, ps);
             }
         }
         try (TabPrintStream ps = createSource(new File(dstDir, "_cfgs.lua"), encoding)) {
-            genCfgs(ps);
+            generate_cfgs(ps);
         }
         CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
     }
@@ -97,65 +92,86 @@ public class GenLua extends Generator {
         }
     }
 
-    private void genCfg(TTable cfg, VTable cfgv, TabPrintStream ps) {
-        String className = className(cfg.tbean);
-        if (cfg.tbean.hasSubBean()) {
-            ps.println("local Beans = require(\"" + pkg + "._beans\")");
-            ps.println();
+    private void generate_beans(TabPrintStream ps) throws IOException {
+        ps.println("local Beans = {}");
+        Set<String> context = new HashSet<>();
+        context.add("Beans");
+
+        for (TBean tbean : value.dbType.tbeans.values()) {
+            if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
+                define(fullName(tbean), ps, context);
+                generateBaseActionCreate(tbean, ps);
+                for (TBean actionBean : tbean.actionBeans.values()) {
+                    define(fullName(actionBean), ps, context);
+                    generateCreateAndAssign(actionBean, ps, fullName(actionBean));
+                    generateActionType(actionBean, ps, fullName(actionBean));
+                }
+            } else {
+                define(fullName(tbean), ps, context);
+                generateCreateAndAssign(tbean, ps, fullName(tbean));
+            }
         }
-
-        ps.println("local " + className + " = {}");
-        ps.println(className + ".all = {}");
-        cfgv.enumNames.forEach(e -> ps.println(className + "." + e + " = nil"));
-        ps.println();
-        genCreateAndAssign(cfg.tbean, ps, "");
-
-        //static get
-        ps.println("function " + className + ".get(" + formalParams(cfg.primaryKey) + ")");
-        ps.println1("return " + className + ".all[" + actualParams(cfg.primaryKey, "") + "]");
-        ps.println("end");
-        ps.println();
-
-        //static _initialize
-        ps.println("function " + className + "._initialize(os, errors)");
-        ps.println1("for _ = 1, os:ReadSize() do");
-        ps.println2("local v = " + className + ":_create(os)");
-        if (cfgv.isEnum) {
-            ps.println2("if #(v." + lower1(cfg.tableDefine.enumStr) + ") > 0 then");
-            ps.println3(className + "[v." + lower1(cfg.tableDefine.enumStr) + "] = v");
-            ps.println2("end");
-        }
-        ps.println2(className + ".all[" + actualParams(cfg.primaryKey, "v.") + "] = v");
-        ps.println1("end");
-        if (cfgv.isEnum) {
-            cfgv.enumNames.forEach(e -> {
-                ps.println1("if " + className + "." + e + " == nil then");
-                ps.println2("errors.enumNil(\"" + cfg.tbean.beanDefine.name + "\", \"" + e + "\");");
-                ps.println1("end");
-            });
-        }
-        ps.println("end");
-        ps.println();
-
-        //static _reload
-        ps.println("function " + className + "._reload(os, errors)");
-        ps.println1("local old = " + className + ".all");
-        ps.println1(className + ".all = {}");
-        ps.println1(className + "._initialize(os, errors)");
-        ps.println1("for k, v in pairs(" + className + ".all) do");
-        ps.println2("local ov = old[k]");
-        ps.println2("if ov then");
-        ps.println3("ov:_assign(v)");
-        ps.println2("end");
-        ps.println1("end");
-        ps.println("end");
-        ps.println();
-
-        ps.println("return " + className);
+        ps.println("return Beans");
     }
 
-    private void genCreateAndAssign(TBean tbean, TabPrintStream ps, String namespace) {
-        ps.println("function " + namespace + className(tbean) + ":_create(os)");
+
+    private void generate_cfgs(TabPrintStream ps) throws IOException {
+        ps.println("local " + pkg + " = {}");
+        Set<String> context = new HashSet<>();
+        context.add(pkg);
+
+        for (TTable c : value.dbType.ttables.values()) {
+            Name name = new Name(pkg, c.tbean.beanDefine.name);
+            define(name.pkg, ps, context);
+            ps.println(name.fullName + " = require(\"" + name.fullName + "\")");
+        }
+        ps.println();
+
+        value.dbType.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> {
+            if (t.beanDefine.type == Bean.BeanType.BaseAction){
+                for (TBean actionBean : t.actionBeans.values()) {
+                    if (actionBean.hasRef())
+                        generateResolve(actionBean, ps);
+                }
+            }
+            generateResolve(t, ps);
+        });
+        value.dbType.ttables.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> generateResolve(c.tbean, ps));
+        ps.println();
+
+        generateResolveAll(ps);
+        generateInitializeAll(ps);
+        generateLoad(ps);
+
+        ps.println("return " + pkg);
+    }
+
+
+    private void define(String beanName, TabPrintStream ps, Set<String> context) {
+        List<String> seps = Arrays.asList(beanName.split("\\."));
+        for (int i = 0; i < seps.size(); i++) {
+            String pkg = String.join(".", seps.subList(0, i + 1));
+            if (context.add(pkg)) {
+                ps.println(pkg + " = {}");
+            }
+        }
+    }
+
+    private void generateBaseActionCreate(TBean tbean, TabPrintStream ps) {
+        ps.println("function " + fullName(tbean) + ":_create(os)");
+        ps.println1("local s = os:ReadString()");
+        boolean first = true;
+        for (TBean actionBean : tbean.actionBeans.values()) {
+            ps.println1((first ? "if" : "elseif") + " s == '" + actionBean.name + "' then");
+            ps.println2("return " + fullName(actionBean) + ":_create(os)");
+            first = false;
+        }
+        ps.println1("end");
+        ps.println("end");
+    }
+
+    private void generateCreateAndAssign(TBean tbean, TabPrintStream ps, String fullName) {
+        ps.println("function " + fullName + ":_create(os)");
         ps.println1("local o = {}");
         ps.println1("setmetatable(o, self)");
         ps.println1("self.__index = self");
@@ -186,7 +202,7 @@ public class GenLua extends Generator {
         ps.println();
 
         //_assign
-        ps.println("function " + namespace + className(tbean) + ":_assign(other)");
+        ps.println("function " + fullName + ":_assign(other)");
         tbean.columns.forEach((n, t) -> {
             Column f = tbean.beanDefine.columns.get(n);
 
@@ -204,35 +220,116 @@ public class GenLua extends Generator {
         ps.println();
     }
 
-    private void genCfgs(TabPrintStream ps) throws IOException {
-        ps.println("local " + pkg + " = {}");
-        Set<String> created = new HashSet<>();
-        created.add(pkg);
-
-        for (TTable c : value.dbType.ttables.values()) {
-            Name name = new Name(pkg, c.tbean.beanDefine.name);
-            if (created.add(name.pkg)) {
-                ps.println(name.pkg + " = {}");
-            }
-            ps.println(name.fullName + " = require(\"" + name.fullName + "\")");
-        }
+    private void generateActionType(TBean actionBean, TabPrintStream ps, String fullName) {
+        ps.println("function " + fullName + ":type()");
+        ps.println1("return '" + actionBean.name + "'");
+        ps.println("end");
         ps.println();
-
-        value.dbType.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> genResolve(t, ps));
-        value.dbType.ttables.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> genResolve(c.tbean, ps));
-        ps.println();
-
-        genResolveAll(ps);
-        genInitializeAll(ps);
-        genLoad(ps);
-
-        ps.println("return " + pkg);
     }
 
-    private void genResolve(TBean tbean, TabPrintStream ps) {
+    private void generateTable(TTable ttable, VTable vtable, TabPrintStream ps) {
+        String className = new Name(pkg, ttable.name).className;
+        if (ttable.tbean.hasSubBean()) {
+            ps.println("local Beans = require(\"" + pkg + "._beans\")");
+            ps.println();
+        }
+
+        ps.println("local " + className + " = {}");
+        vtable.enumNames.forEach(e -> ps.println(className + "." + e + " = nil"));
+        ps.println();
+        generateCreateAndAssign(ttable.tbean, ps, className);
+
+        //static get
+        generateMapGetBy(ttable.primaryKey, className, ps, true);
+        for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
+            generateMapGetBy(uniqueKey, className, ps, false);
+        }
+
+        //static _initialize
+        ps.println("function " + className + "._initialize(os, errors)");
+        ps.println1("for _ = 1, os:ReadSize() do");
+        ps.println2("local v = " + className + ":_create(os)");
+        if (vtable.isEnum) {
+            ps.println2("if #(v." + lower1(ttable.tableDefine.enumStr) + ") > 0 then");
+            ps.println3(className + "[v." + lower1(ttable.tableDefine.enumStr) + "] = v");
+            ps.println2("end");
+        }
+
+        generateAllMapPut(ttable, className, ps);
+
+        ps.println1("end");
+        if (vtable.isEnum) {
+            vtable.enumNames.forEach(e -> {
+                ps.println1("if " + className + "." + e + " == nil then");
+                ps.println2("errors.enumNil(\"" + ttable.tbean.beanDefine.name + "\", \"" + e + "\");");
+                ps.println1("end");
+            });
+        }
+        ps.println("end");
+        ps.println();
+
+        //static _reload
+        ps.println("function " + className + "._reload(os, errors)");
+        ps.println1("local old = " + className + ".all");
+        ps.println1(className + ".all = {}");
+        ps.println1(className + "._initialize(os, errors)");
+        ps.println1("for k, v in pairs(" + className + ".all) do");
+        ps.println2("local ov = old[k]");
+        ps.println2("if ov then");
+        ps.println3("ov:_assign(v)");
+        ps.println2("end");
+        ps.println1("end");
+        ps.println("end");
+        ps.println();
+
+        ps.println("return " + className);
+    }
+
+    private void generateMapGetBy(Map<String, Type> keys, String className, TabPrintStream ps, boolean isPrimaryKey) {
+        String mapName = isPrimaryKey ? "all" : uniqueKeyMapName(keys);
+        ps.println(className + "." + mapName + " = {}");
+        String getByName = isPrimaryKey ? "get" : uniqueKeyGetByName(keys);
+        ps.println("function " + className + "." + getByName + "(" + formalParams(keys) + ")");
+        ps.println1("return " + className + "." + mapName + "[" + actualParams(keys, "") + "]");
+        ps.println("end");
+        ps.println();
+    }
+
+    private String uniqueKeyGetByName(Map<String, Type> keys) {
+        return "getBy" + keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b);
+    }
+
+    private String uniqueKeyMapName(Map<String, Type> keys) {
+        return keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b) + "Map";
+    }
+
+    private void generateAllMapPut(TTable ttable, String className, TabPrintStream ps) {
+        generateMapPut(ttable.primaryKey, className, ps, true);
+        for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
+            generateMapPut(uniqueKey, className, ps, false);
+        }
+    }
+
+    private void generateMapPut(Map<String, Type> keys, String className, TabPrintStream ps, boolean isPrimaryKey) {
+        String mapName = isPrimaryKey ? "all" : uniqueKeyMapName(keys);
+        ps.println2(className + "." + mapName + "[" + actualParams(keys, "v.") + "] = v");
+    }
+
+    private void generateResolve(TBean tbean, TabPrintStream ps) {
         String csv = "\"" + tbean.beanDefine.name + "\"";
 
         ps.println("local function " + resolveFuncName(tbean) + "(o, errors)");
+        if (tbean.beanDefine.type == Bean.BeanType.BaseAction){
+            boolean first = true;
+            for (TBean actionBean : tbean.actionBeans.values()) {
+                if (actionBean.hasRef()){
+                    ps.println1((first ? "if" : "elseif") + " o:type() == '" + actionBean.name + "' then");
+                    ps.println2(resolveFuncName(actionBean) + "(o, errors)");
+                    first = false;
+                }
+            }
+            ps.println1("end");
+        }
         tbean.columns.forEach((n, t) -> {
                     if (t.hasRef()) {
                         String field = "\"" + n + "\"";
@@ -316,7 +413,7 @@ public class GenLua extends Generator {
         ps.println();
     }
 
-    private void genResolveAll(TabPrintStream ps) {
+    private void generateResolveAll(TabPrintStream ps) {
         ps.println("local function _resolveAll(errors)");
         value.dbType.ttables.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> {
             ps.println1("for _, v in pairs(" + fullName(c) + ".all) do");
@@ -327,7 +424,7 @@ public class GenLua extends Generator {
         ps.println();
     }
 
-    private void genInitializeAll(TabPrintStream ps) throws IOException {
+    private void generateInitializeAll(TabPrintStream ps) throws IOException {
         appendFile("errors.lua", ps.ps);
         ps.println();
 
@@ -364,7 +461,7 @@ public class GenLua extends Generator {
         ps.println();
     }
 
-    private void genLoad(TabPrintStream ps) {
+    private void generateLoad(TabPrintStream ps) {
         ps.println("function " + pkg + ".Load(packDir, reload)");
         ps.println1("_reload = reload");
         ps.println1("Config.CSVLoader.Processor = _CSVProcessor");
@@ -380,7 +477,7 @@ public class GenLua extends Generator {
 
     private String actualParams(Map<String, Type> keys, String prefix) {
         return String.join(" ..\",\".. ", keys.entrySet().stream().map(e ->
-                        e.getValue() instanceof TBool ? "(" + prefix + lower1(e.getKey()) + " and 1 or 0)" : prefix + lower1(e.getKey())
+                e.getValue() instanceof TBool ? "(" + prefix + lower1(e.getKey()) + " and 1 or 0)" : prefix + lower1(e.getKey())
         ).collect(Collectors.toList()));
     }
 
@@ -404,15 +501,16 @@ public class GenLua extends Generator {
     }
 
     private String fullName(TBean tbean) {
-        return tbean.beanDefine.type == Bean.BeanType.NormalBean ? "Beans." + tbean.beanDefine.name.toLowerCase() : new Name(pkg, tbean.beanDefine.name).fullName;
+        if (tbean.beanDefine.type == Bean.BeanType.Table)
+            return new Name(pkg, tbean.name).fullName;
+        else if (tbean.beanDefine.type == Bean.BeanType.Action)
+            return "Beans." + (((TBean) tbean.parent)).name.toLowerCase() + "." + tbean.name.toLowerCase();
+        else
+            return "Beans." + tbean.name.toLowerCase();
     }
 
-    private String fullName(TTable cfg) {
-        return fullName(cfg.tbean);
-    }
-
-    private String className(TBean tbean) {
-        return tbean.beanDefine.type == Bean.BeanType.NormalBean ? tbean.beanDefine.name.toLowerCase() : new Name(pkg, tbean.beanDefine.name).className;
+    private String fullName(TTable ttable) {
+        return fullName(ttable.tbean);
     }
 
     private String resolveFuncName(TBean tbean) {

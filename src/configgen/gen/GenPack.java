@@ -78,7 +78,7 @@ public class GenPack extends Generator {
             }
         }
 
-        CachedFileOutputStream.deleteOtherFiles(dstDir);
+        CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
     }
 
     private void parsePack(Map<String, Set<String>> packs, File packXmlFile, VDb value) {

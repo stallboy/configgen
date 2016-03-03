@@ -49,6 +49,7 @@ public class DTable extends Node {
 
     public DTable(DDb parent, String name, List<List<String>> raw) {
         super(parent, name);
+        require(raw.size() > 1);
         descLine = raw.get(0);
         nameLine = raw.get(1);
         for (int i = 2; i < raw.size(); i++) {

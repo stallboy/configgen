@@ -44,9 +44,11 @@ public abstract class Value extends Node {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(cells.get(0).toString());
-        for (int i = 1; i < cells.size(); i++) {
-            sb.append(",").append(cells.get(i).data);
+        if (!cells.isEmpty()){
+            sb.append(cells.get(0).toString());
+            for (int i = 1; i < cells.size(); i++) {
+                sb.append(",").append(cells.get(i).data);
+            }
         }
         return sb.toString();
     }

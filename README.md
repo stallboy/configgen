@@ -2,9 +2,6 @@
 
 配置生成工具，可认为是个生成只读object的object-relational mapping工具。
 
-# 另一个可变列模式，不再自动猜测补全schema的配置生成工具
-https://github.com/pirunxi/cfggen
-
 ## 项目概况
 
 * 通过配置外键，取值范围，使策划可以随时检测数据一致性

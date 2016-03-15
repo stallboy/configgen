@@ -37,8 +37,10 @@ public class Column extends Node {
         desc = original.desc;
         type = original.type;
         own = original.own;
-        foreignKey = new ForeignKey(this, original.foreignKey);
-        keyRange = new KeyRange(this, original.keyRange);
+        if (original.foreignKey!=null)
+            foreignKey = new ForeignKey(this, original.foreignKey);
+        if (original.keyRange != null)
+            keyRange =  new KeyRange(this, original.keyRange);
     }
 
     Column extract(Bean _parent, String _own) {
@@ -48,7 +50,7 @@ public class Column extends Node {
     }
 
     void resolveExtract() {
-        if (foreignKey.invalid())
+        if (foreignKey != null && foreignKey.invalid())
             foreignKey = null;
     }
 

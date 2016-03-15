@@ -115,6 +115,13 @@ public class TBean extends Type {
             if (beanDefine.compress) {
                 columns.values().forEach(t -> require(t instanceof TPrimitive, "compress field must be primitive"));
             }
+
+            foreignKeys.forEach(fk -> {
+                if (fk.foreignKeyDefine.refType == ForeignKey.RefType.LIST)
+                    listRefs.add(fk);
+                else if (fk.foreignKeyDefine.keys.length > 1)
+                    mRefs.add(fk);
+            });
         }
     }
 

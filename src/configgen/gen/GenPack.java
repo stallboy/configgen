@@ -33,25 +33,33 @@ public class GenPack extends Generator {
     private final File dstDir;
     private final String xml;
     private final String own;
+    private final int packAll;
 
     public GenPack(Parameter parameter) {
         super(parameter);
         dstDir = new File(parameter.getNotEmpty("dir", "cfg"));
         xml = parameter.get("xml", null);
+        packAll = Integer.parseInt(parameter.get("packall", "0"));
         own = parameter.get("own", null);
+
         parameter.end();
     }
 
     @Override
     public void generate(VDb _value) throws IOException {
-        File packXmlFile = xml != null ? new File(xml) : _value.dbData.dataDir.resolve("pack.xml").toFile();
         VDb value = own != null ? extract(_value, own) : _value;
         Map<String, Set<String>> packs = new HashMap<>();
-        if (packXmlFile.exists()) {
-            parsePack(packs, packXmlFile, value);
-        } else {
-            Logger.log(packXmlFile.getCanonicalPath() + "  not exist, pack to all.zip");
+
+        if (packAll != 0){
             packs.put("all", value.vtables.keySet());
+        }else{
+            File packXmlFile = xml != null ? new File(xml) : _value.dbData.dataDir.resolve("pack.xml").toFile();
+            if (packXmlFile.exists()) {
+                parsePack(packs, packXmlFile, value);
+            } else {
+                Logger.log(packXmlFile.getCanonicalPath() + "  not exist, pack to all.zip");
+                packs.put("all", value.vtables.keySet());
+            }
         }
 
         try (ZipOutputStream textOS = createZip(new File(dstDir, "text.zip"))) {

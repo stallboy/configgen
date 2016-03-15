@@ -6,6 +6,7 @@
 
 * 通过配置外键，取值范围，使策划可以随时检测数据一致性
 * 通过生成代码，使程序方便访问类型化数据，外键引用和单独一行，支持java,csharp,lua
+* 另一个可变列模式，不再自动猜测补全schema的配置生成工具 https://github.com/pirunxi/cfggen
 
 ## 快速开始
 * example/config 下是csv，config.xml 是配置文件，演示了ref，enum，nullableref，listref，bean的使用

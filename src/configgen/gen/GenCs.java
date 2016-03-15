@@ -52,10 +52,10 @@ public class GenCs extends Generator {
     public void generate(VDb _value) throws IOException {
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = own != null ? extract(_value, own) : _value;
-        copyFile("CSV.cs");
-        copyFile("CSVLoader.cs");
-        copyFile("LoadErrors.cs");
-        copyFile("KeyedList.cs");
+        //copyFile("CSV.cs");
+        //copyFile("CSVLoader.cs");
+        //copyFile("LoadErrors.cs");
+        //copyFile("KeyedList.cs");
         genCSVProcessor();
         for (TBean b : value.dbType.tbeans.values()) {
             genBean(b, null, null);
@@ -108,6 +108,9 @@ public class GenCs extends Generator {
         ps.println("using System;");
         ps.println("using System.Collections.Generic;");
         ps.println("using System.IO;");
+        if (!pkg.equals("Config")){
+            ps.println("using Config;");
+        }
         ps.println();
 
         ps.println("namespace " + name.pkg);
@@ -580,8 +583,11 @@ public class GenCs extends Generator {
     private void genCSVProcessor() throws IOException {
         try (TabPrintStream ps = createSource(new File(dstDir, "CSVProcessor.cs"), encoding)) {
             ps.println("using System.Collections.Generic;");
+            if (!pkg.equals("Config")){
+                ps.println("using Config;");
+            }
             ps.println();
-            ps.println("namespace Config");
+            ps.println("namespace " + pkg);
             ps.println("{");
 
             ps.println1("public static class CSVProcessor");

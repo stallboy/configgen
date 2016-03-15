@@ -70,8 +70,10 @@ class ValueOutputStream implements ValueVisitor, Closeable {
     public void visit(VBean value) {
         if (value.beanType.beanDefine.type == Bean.BeanType.BaseAction) {
             addString(value.actionVBean.name);
+            value.actionVBean.valueMap.values().forEach(v -> v.accept(this));
+        }else{
+            value.valueMap.values().forEach(v -> v.accept(this));
         }
-        value.valueMap.values().forEach(v -> v.accept(this));
     }
 
     public void addVTable(VTable vtable) throws IOException {

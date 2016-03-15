@@ -102,7 +102,13 @@ public class Bean extends Node {
         Bean part = new Bean(_parent, this);
 
         if (type == BeanType.BaseAction) {
-            actionBeans.forEach((name, actionBean) -> part.actionBeans.put(name, actionBean.extract(part, "_do_not_set_own_on_action_")));
+            if (!own.contains(_own))
+                return null;
+            actionBeans.forEach((name, actionBean) -> {
+                Bean bn = actionBean.extract(part, "_do_not_set_own_on_action_");
+                if (bn != null)
+                    part.actionBeans.put(name, bn);
+            });
         } else {
             columns.forEach((name, c) -> {
                 Column pc = c.extract(part, _own);

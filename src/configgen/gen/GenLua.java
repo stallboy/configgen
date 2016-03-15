@@ -124,6 +124,7 @@ public class GenLua extends Generator {
             Name name = new Name(pkg, c.tbean.beanDefine.name);
             define(name.pkg, ps, context);
             ps.println(name.fullName + " = require(\"" + name.fullName + "\")");
+            context.add(name.fullName);
         }
         ps.println();
 

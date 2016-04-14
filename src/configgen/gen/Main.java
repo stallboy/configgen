@@ -132,6 +132,7 @@ public final class Main {
             generator.generate(value);
         }
 
+        CachedFileOutputStream.finalExit();
         Logger.verbose("end");
     }
 }

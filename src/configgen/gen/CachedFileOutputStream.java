@@ -7,58 +7,63 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class CachedFileOutputStream extends ByteArrayOutputStream {
     private static final Set<String> filename_set = new HashSet<>();
-    private Path file;
+    private Path path;
 
     public CachedFileOutputStream(File file) throws IOException {
-        filename_set.add(file.getAbsolutePath().toLowerCase());
-        this.file = Paths.get(file.getCanonicalPath());
+        filename_set.add(fileKey(file));
+        path = file.toPath().toAbsolutePath().normalize();
     }
 
     private void writeFile() throws IOException {
-        mkdirs(file.getParent().toFile());
-        Files.write(file, toByteArray(), StandardOpenOption.CREATE,
+        mkdirs(path.getParent().toFile());
+        Files.write(path, toByteArray(), StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     @Override
     public void close() throws IOException {
-        if (!file.toFile().exists()) {
-            Logger.log("create file: " + file);
+        if (!path.toFile().exists()) {
+            Logger.log("create file: " + path);
             writeFile();
-        } else if (!Arrays.equals(Files.readAllBytes(file), toByteArray())) {
-            Logger.log("modify file: " + file);
+        } else if (!Arrays.equals(Files.readAllBytes(path), toByteArray())) {
+            Logger.log("modify file: " + path);
             writeFile();
         }
     }
 
-    private static void mkdirs(File path) {
-        if (!path.exists()) {
-            if (!path.mkdirs()) {
-                Logger.log("mkdirs fail: " + path.toPath().toAbsolutePath().normalize());
+    private static void mkdirs(File file) {
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                Logger.log("mkdirs fail: " + normalizePath(file.toPath()));
             }
         }
+    }
+
+    private static String fileKey(File file) {
+        return file.toPath().toAbsolutePath().normalize().toString().toLowerCase();
+    }
+
+    private static String normalizePath(Path path) {
+        return path.toAbsolutePath().normalize().toString();
     }
 
     private static void delete(File file) {
         String dir = file.isDirectory() ? "dir" : "file";
         String ok = file.delete() ? "" : " fail";
-        Logger.log("delete " + dir + ok + ": " + file.toPath().toAbsolutePath().normalize());
+        Logger.log("delete " + dir + ok + ": " + normalizePath(file.toPath()));
     }
 
     private static void doRemoveFile(File file, boolean keepMeta) {
-        String absolutePath = file.getAbsolutePath().toLowerCase();
-        boolean keep = filename_set.contains(absolutePath);
-        if (!keep){
-            if (keepMeta && absolutePath.endsWith(".meta")){
-                keep = filename_set.contains(absolutePath.substring(0, absolutePath.length() - 5));
+        String key = fileKey(file);
+        boolean keep = filename_set.contains(key);
+        if (!keep) {
+            if (keepMeta && key.endsWith(".meta")) {
+                keep = filename_set.contains(key.substring(0, key.length() - 5));
             }
         }
 
@@ -70,8 +75,8 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
                         doRemoveFile(f, keepMeta);
                     }
                 }
-                files = file.listFiles();
-                if (files != null && files.length == 0) {
+                File[] newFiles = file.listFiles();
+                if (newFiles != null && newFiles.length == 0) {
                     delete(file);
                 }
             } else {
@@ -80,13 +85,21 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
         }
     }
 
-    public static void deleteOtherFiles(File... files) {
-        Arrays.asList(files).stream().filter(File::exists)
-                .forEach(f -> doRemoveFile(f, false));
+    private static List<File> deleteFiles = new ArrayList<>();
+    private static List<File> deleteKeepMetaFiles = new ArrayList<>();
+
+    public static void deleteOtherFiles(File file) {
+        deleteFiles.add(file);
     }
 
-    public static void keepMetaAndDeleteOtherFiles(File... files) {
-        Arrays.asList(files).stream().filter(File::exists)
+    public static void keepMetaAndDeleteOtherFiles(File file) {
+        deleteKeepMetaFiles.add(file);
+    }
+
+    public static void finalExit() {
+        deleteFiles.stream().filter(File::exists)
+                .forEach(f -> doRemoveFile(f, false));
+        deleteKeepMetaFiles.stream().filter(File::exists)
                 .forEach(f -> doRemoveFile(f, true));
     }
 }

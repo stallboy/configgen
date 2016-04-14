@@ -63,7 +63,7 @@ public class GenCs extends Generator {
         for (VTable c : value.vtables.values()) {
             genBean(c.tableType.tbean, c.tableType, c);
         }
-        CachedFileOutputStream.deleteOtherFiles(dstDir);
+        CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
     }
 
     private static class Name {

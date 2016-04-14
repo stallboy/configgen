@@ -5,8 +5,10 @@ import configgen.define.DomUtils;
 import configgen.value.VDb;
 import org.w3c.dom.Element;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -84,6 +86,10 @@ public class GenPack extends Generator {
                     }
                 }
             }
+        }
+
+        try( OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(dstDir, "entry.txt")), StandardCharsets.UTF_8)){
+            writer.write( String.join(",", packs.keySet()));
         }
 
         CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);

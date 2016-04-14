@@ -55,12 +55,14 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
 
     private static void doRemoveFile(File file, boolean keepMeta) {
         String absolutePath = file.getAbsolutePath().toLowerCase();
-        boolean remove;
-        if (keepMeta)
-            remove = !filename_set.contains(absolutePath) && !filename_set.contains(absolutePath + ".meta");
-        else
-            remove = !filename_set.contains(absolutePath);
-        if (remove) {
+        boolean keep = filename_set.contains(absolutePath);
+        if (!keep){
+            if (keepMeta && absolutePath.endsWith(".meta")){
+                keep = filename_set.contains(absolutePath.substring(0, absolutePath.length() - 5));
+            }
+        }
+
+        if (!keep) {
             if (file.isDirectory()) {
                 File[] files = file.listFiles();
                 if (files != null) {

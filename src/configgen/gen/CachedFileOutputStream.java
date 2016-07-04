@@ -63,7 +63,16 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
         boolean keep = filename_set.contains(key);
         if (!keep) {
             if (keepMeta && key.endsWith(".meta")) {
-                keep = filename_set.contains(key.substring(0, key.length() - 5));
+                String noMetaKey = key.substring(0, key.length() - 5);
+                keep = filename_set.contains(noMetaKey);
+                if (!keep && new File(noMetaKey).isDirectory()) {
+                    for (String f : filename_set) {
+                        if (f.startsWith(noMetaKey)){
+                            keep = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
 

@@ -430,8 +430,10 @@ public class GenLua extends Generator {
         appendFile("errors.lua", ps.ps);
         ps.println();
 
-        ps.println("local _reload = false");
-        ps.println("local function _CSVProcessor(os)");
+        ps.println(pkg + ".Errors = errors");
+        ps.println(pkg + ".Reload = false");
+
+        ps.println("function " + pkg + ".CSVProcessor(os)");
         ps.println1("local cfgNils = {}");
         for (String name : value.dbType.ttables.keySet()) {
             ps.println1("cfgNils[\"" + name + "\"] = 1");
@@ -446,7 +448,7 @@ public class GenLua extends Generator {
         ps.println2("local cc = _get(" + pkg + ", c)");
         ps.println2("if cc == nil then");
         ps.println3("errors.cfgDataAdd(c)");
-        ps.println2("elseif _reload then");
+        ps.println2("elseif " + pkg + ".Reload then");
         ps.println3("cc._reload(os, errors)");
         ps.println2("else");
         ps.println3("cc._initialize(os, errors)");
@@ -464,11 +466,10 @@ public class GenLua extends Generator {
     }
 
     private void generateLoad(TabPrintStream ps) {
-        ps.println("function " + pkg + ".Load(packDir, reload)");
-        ps.println1("_reload = reload");
-        ps.println1("Config.CSVLoader.Processor = _CSVProcessor");
-        ps.println1("Config.CSVLoader.LoadPack(packDir)");
-        ps.println1("return errors.errors");
+        ps.println("function " + pkg + ".Load(packDir, behaviour, done)");
+        ps.println1("Config.CSVLoader.Processor = " + pkg + ".CSVProcessor");
+        ps.println1("Config.CSVLoader.Done = done");
+        ps.println1("Config.CSVLoader.LoadPack(packDir, behaviour)");
         ps.println("end");
         ps.println();
     }

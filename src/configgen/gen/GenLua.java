@@ -128,6 +128,7 @@ public class GenLua extends Generator {
         }
         ps.println();
 
+        ps.println(initResolve());
         value.dbType.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> {
             if (t.beanDefine.type == Bean.BeanType.BaseAction){
                 for (TBean actionBean : t.actionBeans.values()) {
@@ -319,7 +320,7 @@ public class GenLua extends Generator {
     private void generateResolve(TBean tbean, TabPrintStream ps) {
         String csv = "\"" + tbean.beanDefine.name + "\"";
 
-        ps.println("local function " + resolveFuncName(tbean) + "(o, errors)");
+        ps.println("function " + resolveFuncName(tbean) + "(o, errors)");
         if (tbean.beanDefine.type == Bean.BeanType.BaseAction){
             boolean first = true;
             for (TBean actionBean : tbean.actionBeans.values()) {
@@ -514,8 +515,11 @@ public class GenLua extends Generator {
         return fullName(ttable.tbean);
     }
 
+    private static String initResolve() {
+        return "local _resolve_ = {}";
+    }
     private String resolveFuncName(TBean tbean) {
-        return "_resolve_" + fullName(tbean).replace(".", "_");
+        return "_resolve_." + fullName(tbean).replace(".", "_");
     }
 
     private String _create(Type t) {

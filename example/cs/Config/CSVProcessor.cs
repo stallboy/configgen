@@ -20,6 +20,8 @@ namespace Config
                 "lootitem",
                 "monster",
                 "signin",
+                "task.completeconditiontype",
+                "task.task",
             };
             for(;;)
             {
@@ -68,6 +70,14 @@ namespace Config
                         configNulls.Remove(csv);
                         Config.DataSignin.Initialize(os, Errors);
                         break;
+                    case "task.completeconditiontype":
+                        configNulls.Remove(csv);
+                        Config.Task.DataCompleteconditiontype.Initialize(os, Errors);
+                        break;
+                    case "task.task":
+                        configNulls.Remove(csv);
+                        Config.Task.DataTask.Initialize(os, Errors);
+                        break;
                     default:
                         Errors.ConfigDataAdd(csv);
                         break;
@@ -78,6 +88,7 @@ namespace Config
             Config.Equip.DataJewelry.Resolve(Errors);
             Config.Equip.DataJewelryrandom.Resolve(Errors);
             Config.DataLoot.Resolve(Errors);
+            Config.Task.DataTask.Resolve(Errors);
         }
 
     }

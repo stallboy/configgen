@@ -23,7 +23,7 @@
         </bean>
         <bean name="CollectItem">
             <column name="itemid" type="int"/>
-            <column name="count" type="int"/>
+            <column name="count" stableName="ItemCount" type="int"/>
         </bean>
     </bean>
     <table enum="name" name="equip.ability" primaryKey="id">
@@ -53,7 +53,7 @@
     </table>
     <table name="equip.jewelrysuit" primaryKey="SuitID">
         <column desc="饰品套装ID" name="SuitID" type="int"/>
-        <column desc="策划用名字" name="Name" type="text"/>
+        <column desc="策划用名字" name="Name" stableName="SuitName" type="text"/>
         <column desc="套装属性类型1（装备套装中的两件时增加的属性）" name="Ability1" type="int"/>
         <column desc="套装属性1" name="Ability1Value" type="int"/>
         <column desc="套装属性类型2（装备套装中的三件时增加的属性）" name="Ability2" type="int"/>
@@ -70,7 +70,7 @@
     <table enum="RankName" name="equip.rank" primaryKey="RankID">
         <column desc="稀有度" name="RankID" type="int"/>
         <column desc="程序用名字" name="RankName" type="string"/>
-        <column desc="显示名称" name="RankShowName" type="string"/>
+        <column desc="显示名称" name="RankShowName" stableName="ShowName" type="string"/>
     </table>
     <table enum="ename" name="loot" primaryKey="lootid">
         <column desc="序号" name="lootid" ref="lootitem,lootid"

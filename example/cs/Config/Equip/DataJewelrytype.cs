@@ -6,10 +6,10 @@ namespace Config.Equip
 {
     public partial class DataJewelrytype
     {
-        public static DataJewelrytype JADEPENDANT { get; private set; }
-        public static DataJewelrytype BRACELET { get; private set; }
-        public static DataJewelrytype MAGICSEAL { get; private set; }
-        public static DataJewelrytype BOTTLE { get; private set; }
+        public static DataJewelrytype Jade { get; private set; }
+        public static DataJewelrytype Bracelet { get; private set; }
+        public static DataJewelrytype Magic { get; private set; }
+        public static DataJewelrytype Bottle { get; private set; }
 
         public int TypeID { get; private set; } // 饰品类型
         public string TypeName { get; private set; } // 程序用名字
@@ -66,39 +66,39 @@ namespace Config.Equip
                     continue;
                 switch(self.TypeName.Trim())
                 {
-                    case "JADEPENDANT":
-                        if (JADEPENDANT != null)
+                    case "Jade":
+                        if (Jade != null)
                             errors.EnumDup("equip.jewelrytype", self.ToString());
-                        JADEPENDANT = self;
+                        Jade = self;
                         break;
-                    case "BRACELET":
-                        if (BRACELET != null)
+                    case "Bracelet":
+                        if (Bracelet != null)
                             errors.EnumDup("equip.jewelrytype", self.ToString());
-                        BRACELET = self;
+                        Bracelet = self;
                         break;
-                    case "MAGICSEAL":
-                        if (MAGICSEAL != null)
+                    case "Magic":
+                        if (Magic != null)
                             errors.EnumDup("equip.jewelrytype", self.ToString());
-                        MAGICSEAL = self;
+                        Magic = self;
                         break;
-                    case "BOTTLE":
-                        if (BOTTLE != null)
+                    case "Bottle":
+                        if (Bottle != null)
                             errors.EnumDup("equip.jewelrytype", self.ToString());
-                        BOTTLE = self;
+                        Bottle = self;
                         break;
                     default:
                         errors.EnumDataAdd("equip.jewelrytype", self.ToString());
                         break;
                 }
             }
-            if (JADEPENDANT == null)
-                errors.EnumNull("equip.jewelrytype", "JADEPENDANT");
-            if (BRACELET == null)
-                errors.EnumNull("equip.jewelrytype", "BRACELET");
-            if (MAGICSEAL == null)
-                errors.EnumNull("equip.jewelrytype", "MAGICSEAL");
-            if (BOTTLE == null)
-                errors.EnumNull("equip.jewelrytype", "BOTTLE");
+            if (Jade == null)
+                errors.EnumNull("equip.jewelrytype", "Jade");
+            if (Bracelet == null)
+                errors.EnumNull("equip.jewelrytype", "Bracelet");
+            if (Magic == null)
+                errors.EnumNull("equip.jewelrytype", "Magic");
+            if (Bottle == null)
+                errors.EnumNull("equip.jewelrytype", "Bottle");
         }
 
         internal static DataJewelrytype _create(Config.Stream os)

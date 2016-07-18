@@ -23,7 +23,7 @@ public class GenLua extends Generator {
 
             @Override
             public String usage() {
-                return "dir:.,pkg:cfg,encoding:UTF-8    add ,own:x if need, cooperate with -gen bin, -gen pack";
+                return "dir:.,pkg:cfg,stable:false,encoding:UTF-8    add ,own:x if need, cooperate with -gen bin, -gen pack";
             }
         });
     }
@@ -32,6 +32,7 @@ public class GenLua extends Generator {
     private final String pkg;
     private final String encoding;
     private final String own;
+    private final boolean isStableVersion;
     private VDb value;
 
     public GenLua(Parameter parameter) {
@@ -40,6 +41,8 @@ public class GenLua extends Generator {
         pkg = parameter.getNotEmpty("pkg", "cfg");
         encoding = parameter.get("encoding", "UTF-8");
         own = parameter.get("own", null);
+        String stable = parameter.get("stable", "false");
+        isStableVersion = Boolean.parseBoolean(stable);
         parameter.end();
     }
 
@@ -193,6 +196,13 @@ public class GenLua extends Generator {
                 ps.println1("end");
             } else {
                 ps.println1("o." + lower1(n) + " = " + _create(t) + c);
+            }
+
+            if (isStableVersion){
+                Column col = tbean.beanDefine.columns.get(n);
+                if (col.stableName.length() > 0){
+                    ps.println1("o." + lower1(col.stableName) + " = o." + lower1(n));
+                }
             }
 
             t.constraint.references.forEach(r -> ps.println1("o." + refName(r) + " = nil"));

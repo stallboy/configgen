@@ -13,6 +13,7 @@ public class Loot {
     private String ename = "";
     private String name = "";
     private java.util.List<Integer> chanceList = new java.util.ArrayList<>();
+    private java.util.List<config.Lootitem> ListRefLootid = new java.util.ArrayList<>();
 
     private void assign(Loot other) {
         lootid = other.lootid;
@@ -45,6 +46,10 @@ public class Loot {
      */
     public java.util.List<Integer> getChanceList() {
         return chanceList;
+    }
+
+    public java.util.List<config.Lootitem> listRefLootid() {
+        return ListRefLootid;
     }
 
     @Override
@@ -93,6 +98,13 @@ public class Loot {
         return this;
     }
 
+    void _resolve() {
+        config.Lootitem.all().forEach( v -> {
+            if (v.getLootid() == lootid)
+                ListRefLootid.add(v);
+        });
+    }
+
     private static final java.util.Map<Integer, Loot> All = new java.util.LinkedHashMap<>();
 
     public static Loot get(int lootid) {
@@ -136,6 +148,10 @@ public class Loot {
             if (ov != null)
                 ov.assign(v);
         });
+    }
+
+    static void resolve() {
+        all().forEach(Loot::_resolve);
     }
 
 }

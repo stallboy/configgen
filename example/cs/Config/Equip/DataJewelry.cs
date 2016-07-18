@@ -10,7 +10,7 @@ namespace Config.Equip
         public string Name { get; private set; } // 首饰名称
         public string IconFile { get; private set; } // 图标ID
         public Config.DataLevelrank LvlRank { get; private set; } // 首饰等级
-        public int Type { get; private set; } // 首饰类型
+        public string Type { get; private set; } // 首饰类型
         public Config.Equip.DataJewelrytype RefType { get; private set; }
         public int SuitID { get; private set; } // 套装ID（为0是没有不属于套装，首饰品级为4的首饰该参数为套装id，其余情况为0,引用JewelrySuit.csv）
         public Config.Equip.DataJewelrysuit NullableRefSuitID { get; private set; }
@@ -83,7 +83,7 @@ namespace Config.Equip
             self.Name = os.ReadString();
             self.IconFile = os.ReadString();
             self.LvlRank = Config.DataLevelrank._create(os);
-            self.Type = os.ReadInt32();
+            self.Type = os.ReadString();
             self.SuitID = os.ReadInt32();
             self.KeyAbility = os.ReadInt32();
             self.KeyAbilityValue = os.ReadInt32();

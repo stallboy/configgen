@@ -7,8 +7,8 @@ namespace Config
     public partial class DataSignin
     {
         public int Id { get; private set; } // 礼包ID
-        public KeyedList<int, int> Item2countMap { get; private set; } // 普通奖励,
-        public KeyedList<int, int> Vipitem2vipcountMap { get; private set; } // vip奖励,
+        public KeyedList<int, int> Item2countMap { get; private set; } // 普通奖励
+        public KeyedList<int, int> Vipitem2vipcountMap { get; private set; } // vip奖励
         public int Viplevel { get; private set; } // 领取vip奖励的最低等级
         public string IconFile { get; private set; } // 礼包图标
 

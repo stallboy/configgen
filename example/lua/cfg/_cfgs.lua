@@ -14,28 +14,29 @@ cfg.task = {}
 cfg.task.completeconditiontype = require("cfg.task.completeconditiontype")
 cfg.task.task = require("cfg.task.task")
 
-local function _resolve_Beans_levelrank(o, errors)
+local _resolve_ = {}
+function _resolve_.Beans_levelrank(o, errors)
     o.RefRank = cfg.equip.rank.get(o.rank)
     if o.RefRank == nil then
         errors.refNil("LevelRank", "Rank", o.rank)
     end
 end
 
-local function _resolve_Beans_task_completecondition_killmonster(o, errors)
+function _resolve_.Beans_task_completecondition_killmonster(o, errors)
     o.RefMonsterid = cfg.monster.get(o.monsterid)
     if o.RefMonsterid == nil then
         errors.refNil("KillMonster", "monsterid", o.monsterid)
     end
 end
 
-local function _resolve_Beans_task_completecondition(o, errors)
+function _resolve_.Beans_task_completecondition(o, errors)
     if o:type() == 'KillMonster' then
-        _resolve_Beans_task_completecondition_killmonster(o, errors)
+        _resolve_.Beans_task_completecondition_killmonster(o, errors)
     end
 end
 
-local function _resolve_cfg_equip_jewelry(o, errors)
-    _resolve_Beans_levelrank(o.lvlRank, errors)
+function _resolve_.cfg_equip_jewelry(o, errors)
+    _resolve_.Beans_levelrank(o.lvlRank, errors)
     o.RefType = cfg.equip.jewelrytype.get(o.type)
     if o.RefType == nil then
         errors.refNil("equip.jewelry", "Type", o.type)
@@ -47,24 +48,35 @@ local function _resolve_cfg_equip_jewelry(o, errors)
     end
 end
 
-local function _resolve_cfg_equip_jewelryrandom(o, errors)
-    _resolve_Beans_levelrank(o.lvlRank, errors)
+function _resolve_.cfg_equip_jewelryrandom(o, errors)
+    _resolve_.Beans_levelrank(o.lvlRank, errors)
 end
 
-local function _resolve_cfg_task_task(o, errors)
-    _resolve_Beans_task_completecondition(o.completecondition, errors)
+function _resolve_.cfg_loot(o, errors)
+    for _, v in pairs(cfg.lootitem.all) do
+        if v.lootid == o.lootid then
+            table.insert(o.ListRefLootid, v)
+        end
+    end
+end
+
+function _resolve_.cfg_task_task(o, errors)
+    _resolve_.Beans_task_completecondition(o.completecondition, errors)
 end
 
 
 local function _resolveAll(errors)
     for _, v in pairs(cfg.equip.jewelry.all) do
-        _resolve_cfg_equip_jewelry(v, errors)
+        _resolve_.cfg_equip_jewelry(v, errors)
     end
     for _, v in pairs(cfg.equip.jewelryrandom.all) do
-        _resolve_cfg_equip_jewelryrandom(v, errors)
+        _resolve_.cfg_equip_jewelryrandom(v, errors)
+    end
+    for _, v in pairs(cfg.loot.all) do
+        _resolve_.cfg_loot(v, errors)
     end
     for _, v in pairs(cfg.task.task.all) do
-        _resolve_cfg_task_task(v, errors)
+        _resolve_.cfg_task_task(v, errors)
     end
 end
 
@@ -102,8 +114,9 @@ local function _get(t, namespace)
     end
 end
 
-local _reload = false
-local function _CSVProcessor(os)
+cfg.Errors = errors
+cfg.Reload = false
+function cfg.CSVProcessor(os)
     local cfgNils = {}
     cfgNils["equip.ability"] = 1
     cfgNils["equip.jewelry"] = 1
@@ -126,7 +139,7 @@ local function _CSVProcessor(os)
         local cc = _get(cfg, c)
         if cc == nil then
             errors.cfgDataAdd(c)
-        elseif _reload then
+        elseif cfg.Reload then
             cc._reload(os, errors)
         else
             cc._initialize(os, errors)
@@ -138,11 +151,10 @@ local function _CSVProcessor(os)
     _resolveAll(errors)
 end
 
-function cfg.Load(packDir, reload)
-    _reload = reload
-    Config.CSVLoader.Processor = _CSVProcessor
-    Config.CSVLoader.LoadPack(packDir)
-    return errors.errors
+function cfg.Load(packDir, behaviour, done)
+    Config.CSVLoader.Processor = cfg.CSVProcessor
+    Config.CSVLoader.Done = done
+    Config.CSVLoader.LoadPack(packDir, behaviour)
 end
 
 return cfg

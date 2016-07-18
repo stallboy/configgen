@@ -14,6 +14,7 @@ function loot:_create(os)
     for _ = 1, os:ReadSize() do
         table.insert(o.chanceList, os:ReadInt32())
     end
+    o.ListRefLootid = {}
     return o
 end
 

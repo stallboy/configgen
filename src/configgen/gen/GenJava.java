@@ -27,7 +27,7 @@ public class GenJava extends Generator {
 
             @Override
             public String usage() {
-                return "dir:config,pkg:config,encoding:GBK    cooperate with -gen zip";
+                return "dir:config,pkg:config,stable:false,encoding:GBK    cooperate with -gen zip";
             }
         });
     }
@@ -37,12 +37,15 @@ public class GenJava extends Generator {
     private final String dir;
     private final String pkg;
     private final String encoding;
+    private final boolean isStableVersion;
 
     public GenJava(Parameter parameter) {
         super(parameter);
         dir = parameter.get("dir", "config");
         pkg = parameter.getNotEmpty("pkg", "config");
         encoding = parameter.get("encoding", "GBK");
+        String stable = parameter.get("stable", "false");
+        isStableVersion = Boolean.parseBoolean(stable);
         parameter.end();
     }
 
@@ -220,6 +223,15 @@ public class GenJava extends Generator {
                 ps.println1(" */");
             }
 
+            if (isStableVersion){
+                Column col = tbean.beanDefine.columns.get(n);
+                if (col.stableName.length() > 0){
+                    ps.println1("public " + type(t) + " get" + upper1(col.stableName) + "() {");
+                    ps.println2("return " + lower1(n) + ";");
+                    ps.println1("}");
+                    ps.println();
+                }
+            }
 
             ps.println1("public " + type(t) + " get" + upper1(n) + "() {");
             ps.println2("return " + lower1(n) + ";");

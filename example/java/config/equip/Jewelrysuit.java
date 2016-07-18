@@ -34,6 +34,10 @@ public class Jewelrysuit {
     /**
      * 策划用名字
      */
+    public String getSuitName() {
+        return name;
+    }
+
     public String getName() {
         return name;
     }

@@ -47,6 +47,12 @@ public class Column extends Node {
         stableName = original.stableName;
     }
 
+    void checkInclude(Column stable) {
+        if (stableName.equals(stable.name)){
+            require(stable.foreignKey == null, "stableName " + stableName + " foreignKey should be null in stableconfig.xml");
+        }
+    }
+
     Column extract(Bean _parent, String _own) {
         if (own.contains(_own))
             return new Column(_parent, this);

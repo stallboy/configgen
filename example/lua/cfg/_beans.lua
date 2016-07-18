@@ -103,6 +103,7 @@ function Beans.task.completecondition.collectitem:_create(os)
     self.__index = self
     o.itemid = os:ReadInt32()
     o.count = os:ReadInt32()
+    o.itemCount = o.count
     return o
 end
 

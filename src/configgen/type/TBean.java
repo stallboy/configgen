@@ -42,7 +42,7 @@ public class TBean extends Type {
     }
 
     private void init() {
-        for (ForeignKey fk : beanDefine.foreignKeys) {
+        for (ForeignKey fk : beanDefine.foreignKeys.values()) {
             require(refNames.add(fk.name), "ref name conflict for generate", fk.name);
             foreignKeys.add(new TForeignKey(this, fk));
         }

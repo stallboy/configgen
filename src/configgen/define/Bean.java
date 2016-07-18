@@ -18,7 +18,7 @@ public class Bean extends Node {
     public final boolean compress;
 
     public final Map<String, Column> columns = new LinkedHashMap<>();
-    public final List<ForeignKey> foreignKeys = new ArrayList<>();
+    public final Map<String, ForeignKey> foreignKeys = new LinkedHashMap<>();
     public final Map<String, KeyRange> ranges = new LinkedHashMap<>();
 
     public final String actionEnumRef;
@@ -72,7 +72,8 @@ public class Bean extends Node {
         }
 
         for (Element ele : DomUtils.elements(self, "foreignKey")) {
-            foreignKeys.add(new ForeignKey(this, ele));
+            ForeignKey fk = new ForeignKey(this, ele);
+            require(null == foreignKeys.put(fk.name, fk), "ForeignKey duplicate name=" + fk.name);
         }
 
         for (Element ef : DomUtils.elements(self, "keyRange")) {
@@ -81,6 +82,26 @@ public class Bean extends Node {
         }
     }
 
+    void checkInclude(Bean stable) {
+        Map<String, Column> allcolumns = new LinkedHashMap<>(columns);
+        columns.forEach((n, c) -> {
+            if (!c.stableName.isEmpty()){
+                Column old = allcolumns.put(c.stableName, c);
+                require(old == null,fullName() + "-" + n + " " + c.stableName + " stableName duplicate");
+            }
+        });
+        stable.columns.forEach((sname, scol) -> {
+            Column col = allcolumns.get(sname);
+            require(col != null, fullName() + "-" + sname + " in stable not in develop version");
+            col.checkInclude(scol);
+        });
+
+        stable.foreignKeys.forEach((sname, sfk) -> {
+            ForeignKey fk = foreignKeys.get(sname);
+            require(fk != null, fullName() + "-" + sname + " in stable not in develop version");
+            fk.checkInclude(sfk);
+        });
+    }
 
     Bean(Table table, String name) {
         super(table, name);
@@ -126,9 +147,9 @@ public class Bean extends Node {
                     part.ranges.put(n, new KeyRange(part, r));
             });
 
-            foreignKeys.forEach(fk -> {
+            foreignKeys.forEach((n, fk) -> {
                 if (part.columns.keySet().containsAll(Arrays.asList(fk.keys)))
-                    part.foreignKeys.add(new ForeignKey(part, fk));
+                    part.foreignKeys.put(n, new ForeignKey(part, fk));
             });
         }
         return part;
@@ -136,7 +157,15 @@ public class Bean extends Node {
 
     void resolveExtract() {
         columns.values().forEach(Column::resolveExtract);
-        foreignKeys.removeIf(ForeignKey::invalid);
+        List<String> dels = new ArrayList<>();
+        foreignKeys.forEach((n, fk) -> {
+            if (fk.invalid()) {
+                dels.add(n);
+            }
+        });
+        for (String del : dels) {
+            foreignKeys.remove(del);
+        }
     }
 
     void save(Element parent) {
@@ -153,7 +182,7 @@ public class Bean extends Node {
             self.setAttribute("enumRef", actionEnumRef);
 
         columns.values().forEach(c -> c.save(self));
-        foreignKeys.forEach(c -> c.save(self));
+        foreignKeys.values().forEach(c -> c.save(self));
         ranges.values().forEach(c -> c.save(self));
         actionBeans.values().forEach(c -> c.save(self));
     }

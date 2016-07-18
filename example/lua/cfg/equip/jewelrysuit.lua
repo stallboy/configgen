@@ -6,6 +6,7 @@ function jewelrysuit:_create(os)
     self.__index = self
     o.suitID = os:ReadInt32() -- 饰品套装ID
     o.name = os:ReadText() -- 策划用名字
+    o.suitName = o.name
     o.ability1 = os:ReadInt32() -- 套装属性类型1（装备套装中的两件时增加的属性）
     o.ability1Value = os:ReadInt32() -- 套装属性1
     o.ability2 = os:ReadInt32() -- 套装属性类型2（装备套装中的三件时增加的属性）

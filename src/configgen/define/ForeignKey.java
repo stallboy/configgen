@@ -51,6 +51,13 @@ public class ForeignKey extends Node {
         mapKeyRef = original.mapKeyRef;
     }
 
+    void checkInclude(ForeignKey stable) {
+        require(stable.ref.equal(ref) && refType == stable.refType, "foreignKey check include err");
+        if (stable.mapKeyRef != null){
+            require(stable.mapKeyRef.equal(mapKeyRef), "foreignKey check mapKeyRef include err" );
+        }
+    }
+
     boolean invalid() {
         Db db = (Db) root;
         return !(ref.valid(db) && (mapKeyRef == null || mapKeyRef.valid(db)));

@@ -33,4 +33,8 @@ public class Ref {
         Table t = db.tables.get(table);
         return t != null && t.bean.columns.keySet().containsAll(Arrays.asList(cols));
     }
+
+    boolean equal(Ref ref){
+        return ref != null && table.equals(ref.table) && Arrays.equals(cols, ref.cols);
+    }
 }

@@ -3,6 +3,8 @@ package configgen.define;
 import configgen.Node;
 import org.w3c.dom.Element;
 
+import java.util.Arrays;
+
 public class Column extends Node {
     public String desc;
     public final String type;
@@ -47,7 +49,36 @@ public class Column extends Node {
         stableName = original.stableName;
     }
 
+    static String[] parse(String ctype){
+        String t, k = "", v = "";
+        int c = 0;
+        if (ctype.startsWith("list,")) {
+            t = "list";
+            String[] sp = ctype.split(",");
+            v = sp[1].trim();
+            String[] s = new String[2];
+            s[0] = t;
+            s[1] = v;
+            return s;
+        } else if (ctype.startsWith("map,")) {
+            t = "map";
+            String[] sp = ctype.split(",");
+            k = sp[1].trim();
+            v = sp[2].trim();
+            String[] s = new String[3];
+            s[0] = t;
+            s[1] = k;
+            s[2] = v;
+            return s;
+        } else {
+            String[] s = new String[1];
+            s[0] = ctype;
+            return s;
+        }
+    }
+
     void checkInclude(Column stable) {
+        require(Arrays.equals(parse(stable.type), parse(type)), "type not equal with stableversion");
         if (stableName.equals(stable.name)){
             require(stable.foreignKey == null, "stableName " + stableName + " foreignKey should be null in stableconfig.xml");
         }

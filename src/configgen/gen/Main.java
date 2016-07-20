@@ -8,10 +8,14 @@ import configgen.value.VDb;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -28,6 +32,7 @@ public final class Main {
         Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
         System.out.println("	-pack         zip filename");
         System.out.println("	-packtext     for i18n, pack text.csv to text.zip");
+        System.out.println("	-packxmls     fromDir,toDir separeted by comma");
 
         Runtime.getRuntime().exit(1);
     }
@@ -40,6 +45,7 @@ public final class Main {
         String encoding = "GBK";
         String pack = null;
         String packtext = null;
+        String packxmls = null;
         List<Generator> generators = new ArrayList<>();
 
         for (int i = 0; i < args.length; ++i) {
@@ -70,9 +76,14 @@ public final class Main {
                 case "-packtext":
                     packtext = args[++i];
                     break;
+                case "-packxmls":
+                    packxmls = args[++i];
+                    break;
+
                 case "-pack":
                     pack = args[++i];
                     break;
+
                 default:
                     usage("unknown args " + args[i]);
                     break;
@@ -89,8 +100,39 @@ public final class Main {
             }
         }
 
+        if (packxmls != null){
+            String[] packs = packxmls.split(",");
+            String fromDir = packs[0];
+            String toDir = packs[1];
+            Logger.verbose("generate zipped xml from " + fromDir + " to " + toDir);
+            Path fromPath = Paths.get(fromDir);
+            Set<String> fns = new HashSet<>();
+            Files.walkFileTree(fromPath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    String fn = fromPath.relativize(file).toString();
+                    if (fn.endsWith(".xml")) {
+                        fns.add(fn);
+                        try (final ZipOutputStream zos = Generator.createZip(new File(toDir, fn))) {
+                            ZipEntry ze = new ZipEntry(fn);
+                            ze.setTime(0);
+                            zos.putNextEntry(ze);
+                            Files.copy(file, zos);
+                        }
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            try( OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(toDir, "entry.txt")), StandardCharsets.UTF_8)){
+                writer.write( String.join(",", fns));
+            }
+            CachedFileOutputStream.keepMetaAndDeleteOtherFiles(new File(toDir));
+        }
+
         if (datadir == null) {
-            usage("-configdir miss");
+            if (packtext == null && packxmls == null){
+                usage("-configdir miss");
+            }
             return;
         }
         Path dir = Paths.get(datadir);

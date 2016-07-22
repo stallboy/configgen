@@ -127,6 +127,7 @@ public final class Main {
                 writer.write( String.join(",", fns));
             }
             CachedFileOutputStream.keepMetaAndDeleteOtherFiles(new File(toDir));
+            CachedFileOutputStream.finalExit();
         }
 
         if (datadir == null) {

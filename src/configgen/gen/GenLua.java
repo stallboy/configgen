@@ -133,7 +133,7 @@ public class GenLua extends Generator {
 
         ps.println(initResolve());
         value.dbType.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> {
-            if (t.beanDefine.type == Bean.BeanType.BaseAction){
+            if (t.beanDefine.type == Bean.BeanType.BaseAction) {
                 for (TBean actionBean : t.actionBeans.values()) {
                     if (actionBean.hasRef())
                         generateResolve(actionBean, ps);
@@ -198,9 +198,9 @@ public class GenLua extends Generator {
                 ps.println1("o." + lower1(n) + " = " + _create(t) + c);
             }
 
-            if (isStableVersion){
+            if (isStableVersion) {
                 Column col = tbean.beanDefine.columns.get(n);
-                if (col.stableName.length() > 0){
+                if (col.stableName.length() > 0) {
                     ps.println1("o." + lower1(col.stableName) + " = o." + lower1(n));
                 }
             }
@@ -331,10 +331,10 @@ public class GenLua extends Generator {
         String csv = "\"" + tbean.beanDefine.name + "\"";
 
         ps.println("function " + resolveFuncName(tbean) + "(o, errors)");
-        if (tbean.beanDefine.type == Bean.BeanType.BaseAction){
+        if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
             boolean first = true;
             for (TBean actionBean : tbean.actionBeans.values()) {
-                if (actionBean.hasRef()){
+                if (actionBean.hasRef()) {
                     ps.println1((first ? "if" : "elseif") + " o:type() == '" + actionBean.name + "' then");
                     ps.println2(resolveFuncName(actionBean) + "(o, errors)");
                     first = false;
@@ -407,17 +407,41 @@ public class GenLua extends Generator {
         );
 
         tbean.listRefs.forEach(l -> {
-                    ps.println1("for _, v in pairs(" + fullName(l.refTable) + ".all) do");
-                    List<String> eqs = new ArrayList<>();
-                    for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {
-                        String k = l.foreignKeyDefine.keys[i];
-                        String rk = l.foreignKeyDefine.ref.cols[i];
-                        eqs.add("v." + lower1(rk) + " == o." + lower1(k));
+                    boolean gen = false;
+                    if (l.foreignKeyDefine.keys.length == 1) {
+                        String k = l.foreignKeyDefine.keys[0];
+                        String rk = l.foreignKeyDefine.ref.cols[0];
+                        Type col = tbean.columns.get(k);
+                        if (col instanceof TList) {
+                            ps.println1("for _, lv in ipairs(o." + lower1(k) + ") do");
+                            ps.println2("local lt = {}");
+                            ps.println2("for _, v in pairs(" + fullName(l.refTable) + ".all) do");
+                            ps.println3("if v." + lower1(rk) + " == lv then");
+                            ps.println4("table.insert(lt, v)");
+                            ps.println3("end");
+                            ps.println2("end");
+                            ps.println2("table.insert(o." + refName(l) + ", lt)");
+                            ps.println1("end");
+                            gen = true;
+                        } else if (col instanceof TMap) {
+                            //TODO
+                            gen = true;
+                        }
                     }
-                    ps.println2("if " + String.join(" and ", eqs) + " then");
-                    ps.println3("table.insert(o." + refName(l) + ", v)");
-                    ps.println2("end");
-                    ps.println1("end");
+
+                    if (!gen) {
+                        ps.println1("for _, v in pairs(" + fullName(l.refTable) + ".all) do");
+                        List<String> eqs = new ArrayList<>();
+                        for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {
+                            String k = l.foreignKeyDefine.keys[i];
+                            String rk = l.foreignKeyDefine.ref.cols[i];
+                            eqs.add("v." + lower1(rk) + " == o." + lower1(k));
+                        }
+                        ps.println2("if " + String.join(" and ", eqs) + " then");
+                        ps.println3("table.insert(o." + refName(l) + ", v)");
+                        ps.println2("end");
+                        ps.println1("end");
+                    }
                 }
         );
 
@@ -529,6 +553,7 @@ public class GenLua extends Generator {
     private static String initResolve() {
         return "local _resolve_ = {}";
     }
+
     private String resolveFuncName(TBean tbean) {
         return "_resolve_." + fullName(tbean).replace(".", "_");
     }

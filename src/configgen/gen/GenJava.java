@@ -180,7 +180,7 @@ public class GenJava extends Generator {
         });
 
         tbean.mRefs.forEach(m -> ps.println1("private " + fullName(m.refTable) + " " + refName(m) + ";"));
-        tbean.listRefs.forEach(l -> ps.println1("private java.util.List<" + fullName(l.refTable) + "> " + refName(l) + " = new java.util.ArrayList<>();"));
+        tbean.listRefs.forEach(l -> ps.println1("private " + listRefFullName(tbean, l) + " " + refName(l) + " = new java.util.ArrayList<>();"));
         ps.println();
 
         //constructor
@@ -223,9 +223,9 @@ public class GenJava extends Generator {
                 ps.println1(" */");
             }
 
-            if (isStableVersion){
+            if (isStableVersion) {
                 Column col = tbean.beanDefine.columns.get(n);
-                if (col.stableName.length() > 0){
+                if (col.stableName.length() > 0) {
                     ps.println1("public " + type(t) + " get" + upper1(col.stableName) + "() {");
                     ps.println2("return " + lower1(n) + ";");
                     ps.println1("}");
@@ -254,7 +254,7 @@ public class GenJava extends Generator {
         });
 
         tbean.listRefs.forEach(l -> {
-            ps.println1("public java.util.List<" + fullName(l.refTable) + "> " + lower1(refName(l)) + "() {");
+            ps.println1("public " + listRefFullName(tbean, l) + " " + lower1(refName(l)) + "() {");
             ps.println2("return " + refName(l) + ";");
             ps.println1("}");
             ps.println();
@@ -415,16 +415,40 @@ public class GenJava extends Generator {
             });
 
             tbean.listRefs.forEach(l -> {
-                ps.println2(fullName(l.refTable) + ".all().forEach( v -> {");
-                List<String> eqs = new ArrayList<>();
-                for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {
-                    String k = l.foreignKeyDefine.keys[i];
-                    String rk = l.foreignKeyDefine.ref.cols[i];
-                    eqs.add(equal("v.get" + upper1(rk) + "()", lower1(k), tbean.columns.get(k)));
+                boolean gen = false;
+                if (l.foreignKeyDefine.keys.length == 1) {
+                    String k = l.foreignKeyDefine.keys[0];
+                    String rk = l.foreignKeyDefine.ref.cols[0];
+                    Type col = tbean.columns.get(k);
+                    if (col instanceof TList) {
+                        String equalStr = equal("v.get" + upper1(rk) + "()", "e", ((TList)col).value);
+                        ps.println2(lower1(k) + ".forEach( e -> {");
+                        ps.println3(fullName(tbean, l) + " el = new java.util.ArrayList<>();");
+                        ps.println3(fullName(l.refTable) + ".all().forEach( v -> {");
+                        ps.println4("if (" + equalStr + ")");
+                        ps.println5("el.add(v);");
+                        ps.println3("});");
+                        ps.println3(refName(l) + ".add(el);");
+                        ps.println2("});");
+                        gen = true;
+                    } else if (col instanceof TMap) {
+                        //TODO
+                        gen = true;
+                    }
                 }
-                ps.println3("if (" + String.join(" && ", eqs) + ")");
-                ps.println4(refName(l) + ".add(v);");
-                ps.println2("});");
+
+                if (!gen){
+                    ps.println2(fullName(l.refTable) + ".all().forEach( v -> {");
+                    List<String> eqs = new ArrayList<>();
+                    for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {
+                        String k = l.foreignKeyDefine.keys[i];
+                        String rk = l.foreignKeyDefine.ref.cols[i];
+                        eqs.add(equal("v.get" + upper1(rk) + "()", lower1(k), tbean.columns.get(k)));
+                    }
+                    ps.println3("if (" + String.join(" && ", eqs) + ")");
+                    ps.println4(refName(l) + ".add(v);");
+                    ps.println2("});");
+                }
             });
 
             ps.println1("}");
@@ -671,6 +695,25 @@ public class GenJava extends Generator {
                 return type.beanDefine.type != Bean.BeanType.BaseAction ? " = new " + fullName(type) + "()" : "";
             }
         });
+    }
+
+    private String listRefFullName(TBean tbean, TForeignKey tfk) {
+        return "java.util.List<" + fullName(tbean, tfk) + ">";
+    }
+
+    private String fullName(TBean tbean, TForeignKey tfk) {
+        String name = fullName(tfk.refTable);
+        if (tfk.foreignKeyDefine.keys.length == 1) {
+            String k = tfk.foreignKeyDefine.keys[0];
+            Type tt = tbean.columns.get(k);
+            if (tt instanceof TList) {
+                return "java.util.List<" + name + ">";
+            } else if (tt instanceof TMap) {
+                //TODO
+                return "";
+            }
+        }
+        return name;
     }
 
     private String fullName(TBean tbean) {

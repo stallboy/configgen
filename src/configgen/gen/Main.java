@@ -110,11 +110,12 @@ public final class Main {
             Files.walkFileTree(fromPath, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    String fn = fromPath.relativize(file).toString();
+                    String fn = fromPath.relativize(file).toString().toLowerCase();
                     if (fn.endsWith(".xml")) {
                         fns.add(fn);
+                        String lastfn = file.getFileName().toString().toLowerCase();
                         try (final ZipOutputStream zos = Generator.createZip(new File(toDir, fn))) {
-                            ZipEntry ze = new ZipEntry(fn);
+                            ZipEntry ze = new ZipEntry(lastfn);
                             ze.setTime(0);
                             zos.putNextEntry(ze);
                             Files.copy(file, zos);

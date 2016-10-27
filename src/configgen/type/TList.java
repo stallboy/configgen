@@ -5,8 +5,9 @@ import configgen.Node;
 public class TList extends Type {
     public final Type value;
     public final int count; // >=0; 0 means list store in one column separated by ;
+    public final char compressSeparator;
 
-    public TList(Node parent, String name, Constraint cons, String value, int count) {
+    public TList(Node parent, String name, Constraint cons, String value, int count, char compressSeparator) {
         super(parent, name, cons);
         require(cons.range == null, "list not support range");
         for (SRef sref : cons.references) {
@@ -15,6 +16,7 @@ public class TList extends Type {
         }
         this.value = resolveType("value", cons, value);
         this.count = count;
+        this.compressSeparator = compressSeparator;
     }
 
 

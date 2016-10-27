@@ -7,7 +7,7 @@ namespace Config
     public partial class DataMonster
     {
         public int Id { get; private set; } // id
-        public Config.DataPosition Pos { get; private set; }
+        public List<Config.DataPosition> PosList { get; private set; }
 
         public override int GetHashCode()
         {
@@ -24,7 +24,7 @@ namespace Config
 
         public override string ToString()
         {
-            return "(" + Id + "," + Pos + ")";
+            return "(" + Id + "," + CSV.ToString(PosList) + ")";
         }
 
         static Config.KeyedList<int, DataMonster> all = null;
@@ -64,7 +64,9 @@ namespace Config
         {
             var self = new DataMonster();
             self.Id = os.ReadInt32();
-            self.Pos = Config.DataPosition._create(os);
+            self.PosList = new List<Config.DataPosition>();
+            for (var c = (int)os.ReadSize(); c > 0; c--)
+                self.PosList.Add(Config.DataPosition._create(os));
             return self;
         }
 

@@ -2,11 +2,12 @@ package config;
 
 public class Monster {
     private int id;
-    private config.Position pos = new config.Position();
+    private java.util.List<config.Position> posList = new java.util.ArrayList<>();
 
     private void assign(Monster other) {
         id = other.id;
-        pos.assign(other.pos);
+        posList.clear();
+        posList.addAll(other.posList);
     }
 
     /**
@@ -16,8 +17,8 @@ public class Monster {
         return id;
     }
 
-    public config.Position getPos() {
-        return pos;
+    public java.util.List<config.Position> getPosList() {
+        return posList;
     }
 
     @Override
@@ -35,12 +36,13 @@ public class Monster {
 
     @Override
     public String toString() {
-        return "(" + id + "," + pos + ")";
+        return "(" + id + "," + posList + ")";
     }
 
     Monster _parse(java.util.List<String> data) {
         id = config.CSV.parseInt(data.get(0));
-        pos._parse(data.subList(1, 2));
+        for (String e : config.CSV.parseList(data.get(1), ':'))
+            posList.add(new config.Position()._parse(java.util.Arrays.asList(e)));
         return this;
     }
 

@@ -22,14 +22,14 @@ public abstract class Type extends Node {
 
     public abstract <T> T accept(TypeVisitorT<T> visitor);
 
-    Type resolveType(String _name, Constraint cons, String type, String key, String value, int count) {
+    Type resolveType(String _name, Constraint cons, String type, String key, String value, int count, char compressSeparator) {
         Type t = resolveType(_name, cons, type);
         if (t != null)
             return t;
 
         switch (type) {
             case "list":
-                return new TList(this, _name, cons, value, count);
+                return new TList(this, _name, cons, value, count, compressSeparator);
             case "map":
                 return new TMap(this, _name, cons, key, value, count);
         }

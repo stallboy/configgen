@@ -90,7 +90,7 @@ final class GuessHelper {
         if (t.equals("string")) {
             Collection<String> parsed = new ArrayList<>();
             for (String s : data)
-                parsed.addAll(CSV.parseList(s));
+                parsed.addAll(CSV.parseList(s, ';'));
             if (parsed.size() > data.size() * 1.8) {
                 return "list," + guessPrimitiveType(new HashSet<>(parsed));
             }

@@ -152,13 +152,12 @@ public final class CSV {
         return false;
     }
 
-    private static final char semicolon = ';';
 
     private enum ListState {
         START, NO_QUOTE, QUOTE, QUOTE2
     }
 
-    public static List<String> parseList(String str) {
+    public static List<String> parseList(String str, char separator) {
         ListState state = ListState.START;
         List<String> list = new ArrayList<>();
         StringBuilder field = null;
@@ -166,59 +165,46 @@ public final class CSV {
         for (char c : str.toCharArray()) {
             switch (state) {
                 case START:
-                    switch (c) {
-                        case semicolon:
-                            list.add("");
-                            break;
-                        case quote:
-                            field = new StringBuilder();
-                            state = ListState.QUOTE;
-                            break;
-                        default:
-                            field = new StringBuilder();
-                            field.append(c);
-                            state = ListState.NO_QUOTE;
-                            break;
+                    if (c == separator) {
+                        list.add("");
+                    } else if (c == quote) {
+                        field = new StringBuilder();
+                        state = ListState.QUOTE;
+                    } else {
+                        field = new StringBuilder();
+                        field.append(c);
+                        state = ListState.NO_QUOTE;
                     }
                     break;
 
                 case NO_QUOTE:
-                    switch (c) {
-                        case semicolon:
-                            list.add(field.toString());
-                            state = ListState.START;
-                            break;
-                        default:
-                            field.append(c);
-                            break;
+                    if (c == separator) {
+                        list.add(field.toString());
+                        state = ListState.START;
+                    } else {
+                        field.append(c);
+
                     }
                     break;
 
                 case QUOTE:
-                    switch (c) {
-                        case quote:
-                            state = ListState.QUOTE2;
-                            break;
-                        default:
-                            field.append(c);
-                            break;
+                    if (c == quote) {
+                        state = ListState.QUOTE2;
+                    } else {
+                        field.append(c);
                     }
                     break;
 
                 case QUOTE2:
-                    switch (c) {
-                        case semicolon:
-                            list.add(field.toString());
-                            state = ListState.START;
-                            break;
-                        case quote:
-                            field.append(quote);
-                            state = ListState.QUOTE;
-                            break;
-                        default:
-                            field.append(c);
-                            state = ListState.NO_QUOTE;
-                            break;
+                    if (c == separator) {
+                        list.add(field.toString());
+                        state = ListState.START;
+                    } else if (c == quote) {
+                        field.append(quote);
+                        state = ListState.QUOTE;
+                    } else {
+                        field.append(c);
+                        state = ListState.NO_QUOTE;
                     }
                     break;
             }

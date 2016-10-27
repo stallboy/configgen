@@ -4,7 +4,7 @@
         <column desc="等级" name="Level" type="int"/>
         <column desc="品质" name="Rank" ref="equip.rank" type="int"/>
     </bean>
-    <bean compress="true" name="Position">
+    <bean compress=";" name="Position">
         <column name="x" type="int"/>
         <column name="y" type="int"/>
         <column name="z" type="int"/>
@@ -88,7 +88,7 @@
     </table>
     <table name="monster" primaryKey="id">
         <column desc="id" name="id" type="int"/>
-        <column name="pos" type="Position"/>
+        <column compress=":" name="posList" type="list,Position"/>
     </table>
     <table name="signin" primaryKey="id">
         <column desc="礼包ID" name="id" type="int"/>

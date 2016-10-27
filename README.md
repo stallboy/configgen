@@ -25,7 +25,7 @@
     - 文件路径，全小写，路径用.分割。这样和package名称统一，同时避免linux，windows差异
     - bean必须自己手工在config.xml里定义；column.type包含bean的时候也必须手工指定；这些没法自动猜测。
 * bean.compress
-    - 如果要把bean整个放到一个单元格里，配置这个为true
+    - 如果要把bean整个放到一个单元格里，配置一个分隔符，默认推荐用分号;
 * bean.enumRef
     - 支持动态bean，这个指向一个enum的table，在这个bean里定义子bean
 * table.name
@@ -44,7 +44,7 @@
     - list,xx,count     ArrayList；count不存在的时候，单元格是list；count存在的话从多列fieldname1，fieldname2。。。中读取数据。
     - map,xx,yy,count   LinkedHashMap; ;xx,yy都为基本格式。从多列fieldkey1，fieldvalue1，fieldkey2, fieldvalue2。。。中读取数据。
 
-    - csv一个单元格,可以是基本类型,或者bean,或者list，如果是list那元素必须是基本类型，如果是bean必须定义compress="true"
+    - csv一个单元格,可以是基本类型，也可以是bean或者list，这时要配置compress分隔符
     - text用于客户端实现国际化需求，所有配置为text的字段数据会被单独放入一个文件中，只要修改这个文件就自动起作用了。
     - bean,list通过分号;进行分隔，例如a;b;c，转义规则同csv标准，比如数组里的一个字符串含有;，那么得用"号把它扩起来，如果引号里有引号，则要用双引号
         - "a";b;c   等同与a;b;c
@@ -52,6 +52,9 @@
         - "a"";b";c 也是2组a";b和c
     - map, lua不支持map的key为bean。
     - 如果type里包含bean，且不是一个单元格，则要在csv里第二行名字起名为field.name@xx，同时从这开始后列名字序列不要断，要和config.xml里的定义顺序一致，方便程序检测这个field的结束点。
+
+* column.compress
+    - 对list，count为0的时候，配置这个，用于分隔符
 * column.ref, keyref
     - 引用，如果ref到主键只填table.name就行，如果ref到uniqueKey，则填table.name,column.name,逗号分割。keyref只针对map
 * column.refType

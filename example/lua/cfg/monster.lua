@@ -7,13 +7,18 @@ function monster:_create(os)
     setmetatable(o, self)
     self.__index = self
     o.id = os:ReadInt32() -- id
-    o.pos = Beans.position:_create(os)
+    o.posList = {}
+    for _ = 1, os:ReadSize() do
+        table.insert(o.posList, Beans.position:_create(os))
+    end
     return o
 end
 
 function monster:_assign(other)
     self.id = other.id
-    self.pos:_assign(other.pos)
+    for k, v in pairs(other.posList) do
+        self.posList[k] = v
+    end
 end
 
 monster.all = {}

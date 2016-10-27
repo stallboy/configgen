@@ -34,10 +34,6 @@ public enum Rank {
     /**
      * ÏÔÊ¾Ãû³Æ
      */
-    public String getShowName() {
-        return rankShowName;
-    }
-
     public String getRankShowName() {
         return rankShowName;
     }

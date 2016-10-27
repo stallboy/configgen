@@ -16,6 +16,7 @@ public class Bean extends Node {
     public final BeanType type;
     private final String own;
     public final boolean compress;
+    public final char compressSeparator;
 
     public final Map<String, Column> columns = new LinkedHashMap<>();
     public final Map<String, ForeignKey> foreignKeys = new LinkedHashMap<>();
@@ -27,7 +28,15 @@ public class Bean extends Node {
     public Bean(Db _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
-        compress = DomUtils.parseBool(self, "compress");
+
+        compress = self.hasAttribute("compress");
+        if (compress) {
+            String sep = self.getAttribute("compress");
+            require(sep.length() == 1, "compress separator length not 1, separator=" + sep);
+            compressSeparator = sep.toCharArray()[0];
+        } else {
+            compressSeparator = ';';
+        }
         actionEnumRef = self.getAttribute("enumRef");
         if (self.hasAttribute("enumRef")) {
             type = BeanType.BaseAction;
@@ -50,6 +59,7 @@ public class Bean extends Node {
         own = self.getAttribute("own");
         type = BeanType.Table;
         compress = false;
+        compressSeparator = ';';
         actionEnumRef = "";
         init(self);
     }
@@ -60,6 +70,7 @@ public class Bean extends Node {
         type = BeanType.Action;
         compress = false;
         actionEnumRef = "";
+        compressSeparator = ';';
         DomUtils.permitAttributes(self, "name", "own");
         DomUtils.permitElements(self, "column", "foreignKey", "keyRange");
         init(self);
@@ -85,9 +96,9 @@ public class Bean extends Node {
     void checkInclude(Bean stable) {
         Map<String, Column> allcolumns = new LinkedHashMap<>(columns);
         columns.forEach((n, c) -> {
-            if (!c.stableName.isEmpty()){
+            if (!c.stableName.isEmpty()) {
                 Column old = allcolumns.put(c.stableName, c);
-                require(old == null,fullName() + "-" + n + " " + c.stableName + " stableName duplicate");
+                require(old == null, fullName() + "-" + n + " " + c.stableName + " stableName duplicate");
             }
         });
         stable.columns.forEach((sname, scol) -> {
@@ -109,6 +120,7 @@ public class Bean extends Node {
         actionEnumRef = "";
         own = "";
         compress = false;
+        compressSeparator = ';';
     }
 
     private Bean(Node _parent, Bean original) {
@@ -117,6 +129,7 @@ public class Bean extends Node {
         actionEnumRef = original.actionEnumRef;
         own = original.own;
         compress = original.compress;
+        compressSeparator = original.compressSeparator;
     }
 
     Bean extract(Node _parent, String _own) {
@@ -177,7 +190,7 @@ public class Bean extends Node {
         if (!own.isEmpty())
             self.setAttribute("own", own);
         if (compress)
-            self.setAttribute("compress", "true");
+            self.setAttribute("compress", String.valueOf(compressSeparator));
         if (!actionEnumRef.isEmpty())
             self.setAttribute("enumRef", actionEnumRef);
 

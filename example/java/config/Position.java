@@ -51,7 +51,7 @@ public class Position {
     }
 
     public Position _parse(java.util.List<String> data) {
-        data = config.CSV.parseList(data.get(0));
+        data = config.CSV.parseList(data.get(0), ';');
         x = config.CSV.parseInt(data.get(0));
         y = config.CSV.parseInt(data.get(1));
         z = config.CSV.parseInt(data.get(2));

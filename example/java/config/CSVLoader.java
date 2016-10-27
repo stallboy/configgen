@@ -26,5 +26,6 @@ public class CSVLoader {
 
     public static void main(String[] args) throws Exception {
         System.out.println("missed: " + load(java.nio.file.Paths.get("configdata.zip"), "GBK", false));
+        Monster.all().forEach(e -> System.out.println(e));
     }
 }

@@ -26,10 +26,6 @@ public class CollectItem implements config.task.Completecondition {
         return itemid;
     }
 
-    public int getItemCount() {
-        return count;
-    }
-
     public int getCount() {
         return count;
     }

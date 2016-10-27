@@ -12,7 +12,6 @@ function rank:_create(os)
     o.rankID = os:ReadInt32() -- 稀有度
     o.rankName = os:ReadString() -- 程序用名字
     o.rankShowName = os:ReadString() -- 显示名称
-    o.showName = o.rankShowName
     return o
 end
 

@@ -10,6 +10,8 @@ public class Column extends Node {
     public final String type;
     public final String own;
     public final String stableName;
+    public final boolean compress;
+    public final char compressSeparator;
 
     public ForeignKey foreignKey;
     public KeyRange keyRange;
@@ -17,7 +19,7 @@ public class Column extends Node {
     public Column(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         DomUtils.permitAttributes(self, "desc", "name", "type", "own",
-                "ref", "refType", "keyRef", "range", "stableName");
+                "ref", "refType", "keyRef", "range", "compress", "stableName");
         desc = self.getAttribute("desc");
         type = self.getAttribute("type");
         own = self.getAttribute("own");
@@ -27,6 +29,15 @@ public class Column extends Node {
         if (self.hasAttribute("range"))
             keyRange = new KeyRange(this, self);
         stableName = self.getAttribute("stableName");
+
+        compress = self.hasAttribute("compress");
+        if (compress) {
+            String sep = self.getAttribute("compress");
+            require(sep.length() == 1, "compress separator length not 1, separator=" + sep);
+            compressSeparator = sep.toCharArray()[0];
+        } else {
+            compressSeparator = ';';
+        }
     }
 
     Column(Bean _parent, String _name, String type, String desc) {
@@ -35,6 +46,8 @@ public class Column extends Node {
         this.desc = desc;
         this.own = "";
         this.stableName = "";
+        compress = false;
+        compressSeparator = ';';
     }
 
     Column(Bean _parent, Column original) {
@@ -47,6 +60,8 @@ public class Column extends Node {
         if (original.keyRange != null)
             keyRange =  new KeyRange(this, original.keyRange);
         stableName = original.stableName;
+        compress = original.compress;
+        compressSeparator = original.compressSeparator;
     }
 
     static String[] parse(String ctype){
@@ -99,6 +114,8 @@ public class Column extends Node {
         Element self = DomUtils.newChild(parent, "column");
         self.setAttribute("name", name);
         self.setAttribute("type", type);
+        if (compress)
+            self.setAttribute("compress", String.valueOf(compressSeparator));
         if (!desc.isEmpty())
             self.setAttribute("desc", desc);
         if (!own.isEmpty())
@@ -108,6 +125,7 @@ public class Column extends Node {
             foreignKey.update(self);
         if (keyRange != null)
             keyRange.update(self);
+
 
         if (!stableName.isEmpty())
             self.setAttribute("stableName", stableName);

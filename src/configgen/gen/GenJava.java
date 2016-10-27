@@ -290,7 +290,7 @@ public class GenJava extends Generator {
         //_parse
         ps.println1((ttable == null ? "public " : "") + name.className + " _parse(java.util.List<String> data) {");
         if (tbean.beanDefine.compress) {
-            ps.println2("data = " + pkg + ".CSV.parseList(data.get(0));");
+            ps.println2("data = " + pkg + ".CSV.parseList(data.get(0), '" + tbean.beanDefine.compressSeparator + "');");
         }
         boolean hasA = false;
         int begin = 0;
@@ -310,8 +310,8 @@ public class GenJava extends Generator {
             } else if (t instanceof TList) {
                 TList type = (TList) t;
                 if (type.count == 0) {
-                    ps.println2("for (String e : " + pkg + ".CSV.parseList(data.get(" + begin + ")))");
-                    ps.println3(lower1(n) + ".add(" + parsePrimitive(type.value, "e") + ");");
+                    ps.println2("for (String e : " + pkg + ".CSV.parseList(data.get(" + begin + "), '" + type.compressSeparator + "'))");
+                    ps.println3(lower1(n) + ".add(" + parseType(type.value, "e") + ");");
                 } else {
                     int vs = type.value.columnSpan();
                     for (int i = 0; i < type.count; i++) {
@@ -891,6 +891,16 @@ public class GenJava extends Generator {
             return pkg + ".CSV.parseLong(" + content + ")";
         } else {
             return content;
+        }
+    }
+
+    private String parseType(Type type, String a) {
+        if (type instanceof TPrimitive) {
+            return parsePrimitive(type, a);
+        } else if (type instanceof TBean) {
+            return parseBean((TBean) type, "java.util.Arrays.asList(" + a + ")");
+        } else {
+            throw new IllegalStateException();
         }
     }
 

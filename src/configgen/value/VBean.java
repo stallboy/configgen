@@ -30,7 +30,7 @@ public class VBean extends Value {
             if (beanType.beanDefine.compress) {
                 require(data.size() == 1);
                 Cell dat = data.get(0);
-                parsed = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+                parsed = CSV.parseList(dat.data, beanType.beanDefine.compressSeparator).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
             } else {
                 if (beanType.beanDefine.type == Bean.BeanType.Action){
                     require(data.size() >= beanType.columnSpan());

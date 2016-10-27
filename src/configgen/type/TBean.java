@@ -112,10 +112,6 @@ public class TBean extends Type {
             foreignKeys.forEach(TForeignKey::resolve);
             beanDefine.columns.values().forEach(this::resolveColumn);
             require(columns.size() > 0, "has no columns");
-            if (beanDefine.compress) {
-                columns.values().forEach(t -> require(t instanceof TPrimitive, "compress field must be primitive"));
-            }
-
             foreignKeys.forEach(fk -> {
                 if (fk.foreignKeyDefine.refType == ForeignKey.RefType.LIST)
                     listRefs.add(fk);
@@ -143,6 +139,7 @@ public class TBean extends Type {
 
         String t, k = "", v = "";
         int c = 0;
+        char compressSeparator = ';';
         if (col.type.startsWith("list,")) {
             t = "list";
             String[] sp = col.type.split(",");
@@ -150,6 +147,10 @@ public class TBean extends Type {
             if (sp.length > 2) {
                 c = Integer.parseInt(sp[2].trim());
                 require(c >= 1);
+            }
+            if (c == 0){
+                require(col.compress, "count=0 list must has compress attribute");
+                compressSeparator = col.compressSeparator;
             }
         } else if (col.type.startsWith("map,")) {
             t = "map";
@@ -162,7 +163,7 @@ public class TBean extends Type {
             t = col.type;
         }
 
-        Type type = resolveType(col.name, cons, t, k, v, c);
+        Type type = resolveType(col.name, cons, t, k, v, c, compressSeparator);
         col.require(type != null, "type resolve err", col.type);
         columns.put(col.name, type);
     }

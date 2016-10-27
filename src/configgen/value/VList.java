@@ -31,7 +31,7 @@ public class VList extends Value {
         if (type.count == 0) { //compress
             require(data.size() == 1);
             Cell dat = data.get(0);
-            parsed = CSV.parseList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+            parsed = CSV.parseList(dat.data, type.compressSeparator).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
         } else {
             require(data.size() == type.columnSpan());
             parsed = data;

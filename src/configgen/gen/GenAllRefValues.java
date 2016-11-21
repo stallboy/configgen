@@ -32,7 +32,7 @@ public class GenAllRefValues extends Generator {
 
     public GenAllRefValues(Parameter parameter) {
         super(parameter);
-        ref = parameter.get("dir", "assets");
+        ref = parameter.get("ref", "assets");
         out = parameter.get("out", "refassets.csv");
         parameter.end();
     }

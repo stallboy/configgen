@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class Value extends Node {
-    protected final Type type;
+    public final Type type;
     protected final List<Cell> cells;
 
     public Value(Node parent, String name, Type type, List<Cell> data) {

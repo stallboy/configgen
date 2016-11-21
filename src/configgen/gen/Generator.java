@@ -24,6 +24,7 @@ public abstract class Generator {
         GenJava.register();
         GenCs.register();
         GenLua.register();
+        GenAllRefValues.register();
     }
 
     public static Generator create(String arg) {

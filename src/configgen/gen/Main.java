@@ -133,7 +133,7 @@ public final class Main {
 
         if (datadir == null) {
             if (packtext == null && packxmls == null){
-                usage("-configdir miss");
+                usage("-datadir miss");
             }
             return;
         }

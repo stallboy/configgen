@@ -24,7 +24,7 @@ public class GenAllRefValues extends Generator {
 
             @Override
             public String usage() {
-                return "ref:assets,out:refassets.csv";
+                return "ref:assets,out:refassets.csv default ignores is empty";
             }
         });
     }

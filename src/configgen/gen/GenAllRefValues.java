@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -28,11 +30,16 @@ public class GenAllRefValues extends Generator {
     }
 
     private final String ref;
+    private final Set<String> ignores = new HashSet<>();
     private final String out;
 
     public GenAllRefValues(Parameter parameter) {
         super(parameter);
         ref = parameter.get("ref", "assets");
+        String ignoreStr = parameter.get("ignores", null);
+        if (ignoreStr != null) {
+            Collections.addAll(ignores, ignoreStr.split(","));
+        }
         out = parameter.get("out", "refassets.csv");
         parameter.end();
     }
@@ -104,7 +111,11 @@ public class GenAllRefValues extends Generator {
             }
         };
 
-        value.vtables.forEach((name, vtable) -> vtable.vbeanList.forEach(vbean -> vbean.accept(vs)));
+        value.vtables.forEach((name, vtable) -> {
+            if (!ignores.contains(name)) {
+                vtable.vbeanList.forEach(vbean -> vbean.accept(vs));
+            }
+        });
 
         try (OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(out)), StandardCharsets.UTF_8)) {
             writer.write(String.join("\r\n", allrefs));

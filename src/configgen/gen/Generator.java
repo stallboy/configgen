@@ -62,6 +62,7 @@ public abstract class Generator {
 
         Logger.verbose("extract xml(" + own + ")");
         Db ownDefine = value.dbType.dbDefine.extract(own);
+        //ownDefine.dump(System.out);
         TDb ownType = new TDb(ownDefine);
         ownType.resolve();
 

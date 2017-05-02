@@ -1,5 +1,6 @@
 package configgen.gen;
 
+import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.define.ForeignKey;
 import configgen.type.*;
@@ -57,12 +58,18 @@ public class GenCs extends Generator {
         //copyFile("LoadErrors.cs");
         //copyFile("KeyedList.cs");
         genCSVProcessor();
-        for (TBean b : value.dbType.tbeans.values()) {
-            genBean(b, null, null);
+
+        for (TBean tbean : value.dbType.tbeans.values()) {
+            generateBeanClass(tbean, null);
+
+            for (TBean actionBean : tbean.actionBeans.values()) {
+                generateBeanClass(actionBean, null);
+            }
         }
-        for (VTable c : value.vtables.values()) {
-            genBean(c.tableType.tbean, c.tableType, c);
+        for (VTable vtable : value.vtables.values()) {
+            generateBeanClass(vtable.tableType.tbean, vtable);
         }
+
         CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
     }
 
@@ -72,8 +79,15 @@ public class GenCs extends Generator {
         final String fullName;
         final String path;
 
-        Name(String topPkg, String prefix, String configName) {
-            String[] seps = configName.split("\\.");
+        Name(String topPkg, String prefix, TBean tbean) {
+            String name;
+            if (tbean.beanDefine.type == Bean.BeanType.Action) {
+                TBean baseAction = (TBean) tbean.parent;
+                name = baseAction.name.toLowerCase() + "." + tbean.name;
+            } else {
+                name = tbean.name;
+            }
+            String[] seps = name.split("\\.");
             String[] pks = new String[seps.length - 1];
             for (int i = 0; i < pks.length; i++)
                 pks[i] = upper1Only(seps[i]);
@@ -96,19 +110,59 @@ public class GenCs extends Generator {
         }
     }
 
-    private void genBean(TBean tbean, TTable cfg, VTable cfgv) throws IOException {
-        Name name = new Name(pkg, prefix, tbean.beanDefine.name);
+    private void generateBeanClass(TBean tbean, VTable vtable) throws IOException {
+        Name name = new Name(pkg, prefix, tbean);
         File csFile = dstDir.toPath().resolve(name.path).toFile();
+        System.out.println(csFile);
         try (TabPrintStream ps = createSource(csFile, encoding)) {
-            genBean(tbean, cfg, cfgv, name, ps);
+            if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
+                generateBaseActionClass(tbean, name, ps);
+            } else {
+                generateBeanClass(tbean, vtable, name, ps);
+            }
         }
     }
 
-    private void genBean(TBean tbean, TTable cfg, VTable cfgv, Name name, TabPrintStream ps) {
+    private void generateBaseActionClass(TBean tbean, Name name, TabPrintStream ps) {
         ps.println("using System;");
         ps.println("using System.Collections.Generic;");
         ps.println("using System.IO;");
-        if (!pkg.equals("Config")){
+        if (!pkg.equals("Config")) {
+            ps.println("using Config;");
+        }
+        ps.println("namespace " + name.pkg);
+        ps.println("{");
+        ps.println("public abstract class " + name.className);
+        ps.println("{");
+        ps.println1("public abstract " + fullName(tbean.actionEnumRefTable) + " type();");
+        ps.println();
+
+        if (tbean.hasRef()) {
+            ps.println1("internal virtual void _resolve(Config.LoadErrors errors)");
+            ps.println1("{");
+            ps.println1("}");
+            ps.println();
+        }
+
+        ps.println1("internal static " + name.className + " _create(Config.Stream os) {");
+        ps.println2("switch(os.ReadString()) {");
+        for (TBean actionBean : tbean.actionBeans.values()) {
+            ps.println3("case \"" + actionBean.name + "\":");
+            ps.println4("return " + fullName(actionBean) + "._create(os);");
+        }
+        ps.println2("}");
+        ps.println2("return null;");
+        ps.println1("}");
+        ps.println("}");
+        ps.println("}");
+    }
+
+    private void generateBeanClass(TBean tbean, VTable vtable, Name name, TabPrintStream ps) {
+        TTable ttable = vtable != null ? vtable.tableType : null;
+        ps.println("using System;");
+        ps.println("using System.Collections.Generic;");
+        ps.println("using System.IO;");
+        if (!pkg.equals("Config")) {
             ps.println("using Config;");
         }
         ps.println();
@@ -116,12 +170,24 @@ public class GenCs extends Generator {
         ps.println("namespace " + name.pkg);
         ps.println("{");
 
-        ps.println1("public partial class " + name.className);
-        ps.println1("{");
+        boolean isAction = tbean.beanDefine.type == Bean.BeanType.Action;
+        if (isAction) {
+            TBean baseAction = (TBean) tbean.parent;
+            ps.println1("public partial class " + name.className + " : " + fullName(baseAction));
+            ps.println1("{");
+            ps.println2("public override " + fullName(baseAction.actionEnumRefTable) + " type() {");
+            ps.println3("return " + fullName(baseAction.actionEnumRefTable) + "." + tbean.name + ";");
+            ps.println2("}");
+            ps.println();
+        } else {
+            ps.println1("public partial class " + name.className);
+            ps.println1("{");
+        }
+
 
         //static enum
-        if (cfg != null && cfgv.isEnum) {
-            cfgv.enumNames.forEach(e -> ps.println2("public static " + name.className + " " + upper1(e) + " { get; private set; }"));
+        if (ttable != null && vtable.isEnum) {
+            vtable.enumNames.forEach(e -> ps.println2("public static " + name.className + " " + upper1(e) + " { get; private set; }"));
             ps.println();
         }
 
@@ -138,7 +204,7 @@ public class GenCs extends Generator {
         ps.println();
 
         //constructor
-        if (cfg == null) {
+        if (ttable == null) {
             ps.println2("public " + name.className + "() {");
             ps.println2("}");
             ps.println();
@@ -150,7 +216,7 @@ public class GenCs extends Generator {
         }
 
         //hash
-        Map<String, Type> keys = cfg != null ? cfg.primaryKey : tbean.columns;
+        Map<String, Type> keys = ttable != null ? ttable.primaryKey : tbean.columns;
         ps.println2("public override int GetHashCode()");
         ps.println2("{");
         ps.println3("return " + hashCodes(keys) + ";");
@@ -175,7 +241,7 @@ public class GenCs extends Generator {
         ps.println();
 
         String csv = "\"" + tbean.beanDefine.name + "\"";
-        if (cfg != null) {
+        if (ttable != null) {
             //static class Key
             if (keys.size() > 1) {
                 ps.println2("class Key");
@@ -246,13 +312,13 @@ public class GenCs extends Generator {
             ps.println4("var self = _create(os);");
             ps.println4("all.Add(" + actualParamsKeySelf(keys) + ", self);");
 
-            if (cfgv.isEnum) {
-                String ef = upper1(cfg.tableDefine.enumStr);
+            if (vtable.isEnum) {
+                String ef = upper1(ttable.tableDefine.enumStr);
                 ps.println4("if (self." + ef + ".Trim().Length == 0)");
                 ps.println5("continue;");
                 ps.println4("switch(self." + ef + ".Trim())");
                 ps.println4("{");
-                cfgv.enumNames.forEach(e -> {
+                vtable.enumNames.forEach(e -> {
                     ps.println5("case \"" + e + "\":");
                     ps.println6("if (" + upper1(e) + " != null)");
                     ps.println7("errors.EnumDup(" + csv + ", self.ToString());");
@@ -266,8 +332,8 @@ public class GenCs extends Generator {
             }
             ps.println3("}");
 
-            if (cfgv.isEnum) {
-                cfgv.enumNames.forEach(e -> {
+            if (vtable.isEnum) {
+                vtable.enumNames.forEach(e -> {
                     ps.println3("if (" + upper1(e) + " == null)");
                     ps.println4("errors.EnumNull(" + csv + ", \"" + e + "\");");
                 });
@@ -286,7 +352,8 @@ public class GenCs extends Generator {
         } // end cfg != null
 
         //static create
-        ps.println2("internal static " + name.className + " _create(Config.Stream os)");
+        String pre = isAction ? "internal new static " : "internal static ";
+        ps.println2(pre + name.className + " _create(Config.Stream os)");
         ps.println2("{");
         ps.println3("var self = new " + name.className + "();");
         tbean.columns.forEach((n, t) -> {
@@ -308,7 +375,8 @@ public class GenCs extends Generator {
 
         //resolve
         if (tbean.hasRef()) {
-            ps.println2("internal void _resolve(Config.LoadErrors errors)");
+            pre = isAction ? "internal override " : "internal ";
+            ps.println2(pre + "void _resolve(Config.LoadErrors errors)");
             ps.println2("{");
             tbean.columns.forEach((n, t) -> {
                 if (t.hasRef()) {
@@ -475,7 +543,7 @@ public class GenCs extends Generator {
     }
 
     private String fullName(TBean tbean) {
-        return new Name(pkg, prefix, tbean.beanDefine.name).fullName;
+        return new Name(pkg, prefix, tbean).fullName;
     }
 
     private String fullName(TTable cfg) {
@@ -583,7 +651,7 @@ public class GenCs extends Generator {
     private void genCSVProcessor() throws IOException {
         try (TabPrintStream ps = createSource(new File(dstDir, "CSVProcessor.cs"), encoding)) {
             ps.println("using System.Collections.Generic;");
-            if (!pkg.equals("Config")){
+            if (!pkg.equals("Config")) {
                 ps.println("using Config;");
             }
             ps.println();

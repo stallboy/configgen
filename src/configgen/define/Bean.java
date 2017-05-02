@@ -149,7 +149,7 @@ public class Bean extends Node {
                 if (pc != null)
                     part.columns.put(name, pc);
             });
-            if (part.columns.isEmpty() && own.contains(_own)) {
+            if (part.columns.isEmpty() && (own.contains(_own) || type == BeanType.Action)) {
                 columns.forEach((name, f) -> part.columns.put(name, new Column(part, f)));
             }
             if (part.columns.isEmpty())

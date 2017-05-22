@@ -11,6 +11,7 @@ import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GenLua extends Generator {
 
@@ -355,7 +356,7 @@ public class GenLua extends Generator {
                             for (SRef sr : t.constraint.references) {
                                 ps.println1("o." + refName(sr) + " = {}");
                                 ps.println1("for _, v in ipairs(o." + lower1(n) + ") do");
-                                ps.println2("local r = " + fullName(sr.refTable) + ".get(v)");
+                                ps.println2("local r = " + tableGet(sr.refTable, sr.refCols, "v"));
                                 ps.println2("if r == nil then");
                                 ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
                                 ps.println2("end");
@@ -372,7 +373,7 @@ public class GenLua extends Generator {
                             t.constraint.references.stream().filter(sr -> sr.refTable != null).forEach(sr -> {
                                 ps.println1("o." + refName(sr) + " = {}");
                                 ps.println1("for k, v in pairs(o." + lower1(n) + ") do");
-                                ps.println2("local r = " + fullName(sr.refTable) + ".get(v)");
+                                ps.println2("local r = " + tableGet(sr.refTable, sr.refCols, "v"));
                                 ps.println2("if r == nil then");
                                 ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
                                 ps.println2("end");
@@ -384,7 +385,7 @@ public class GenLua extends Generator {
                                 ps.println1(resolveFuncName((TBean) t) + "(o." + lower1(n) + ", errors)");
                             }
                             for (SRef sr : t.constraint.references) {
-                                ps.println1("o." + refName(sr) + " = " + fullName(sr.refTable) + ".get(o." + lower1(n) + ")");
+                                ps.println1("o." + refName(sr) + " = " + tableGet(sr.refTable, sr.refCols, "o." + lower1(n)));
                                 if (!sr.refNullable) {
                                     ps.println1("if o." + refName(sr) + " == nil then");
                                     ps.println2("errors.refNil(" + csv + ", " + field + ", o." + lower1(n) + ")");
@@ -397,7 +398,7 @@ public class GenLua extends Generator {
         );
 
         tbean.mRefs.forEach(m -> {
-                    ps.println1("o." + refName(m) + " = " + fullName(m.refTable) + ".get(" + actualParams(m.foreignKeyDefine.keys, "o.") + ");");
+                    ps.println1("o." + refName(m) + " = " + tableGet(m.refTable, m.foreignKeyDefine.ref.cols, actualParams(m.foreignKeyDefine.keys, "o.")));
                     if (m.foreignKeyDefine.refType != ForeignKey.RefType.NULLABLE) {
                         ps.println1("if o." + refName(m) + " == nil then");
                         ps.println2("errors.refNil(" + csv + ", \"" + m.foreignKeyDefine.name + "\", 0)");
@@ -548,6 +549,13 @@ public class GenLua extends Generator {
 
     private String fullName(TTable ttable) {
         return fullName(ttable.tbean);
+    }
+
+    private String tableGet(TTable ttable, String[] cols, String actualParam) {
+        if (cols.length == 0) //ref to primary key
+            return fullName(ttable) + ".get(" + actualParam + ")";
+        else
+            return fullName(ttable) + ".getBy" + Stream.of(cols).map(Generator::upper1).reduce("", (a, b) -> a + b) + "(" + actualParam + ")";
     }
 
     private static String initResolve() {

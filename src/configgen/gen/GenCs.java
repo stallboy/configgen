@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GenCs extends Generator {
 
@@ -242,52 +243,15 @@ public class GenCs extends Generator {
 
         String csv = "\"" + tbean.beanDefine.name + "\"";
         if (ttable != null) {
-            //static class Key
-            if (keys.size() > 1) {
-                ps.println2("class Key");
-                ps.println2("{");
-                keys.forEach((n, t) -> ps.println3("readonly " + type(t) + " " + upper1(n) + ";"));
-                ps.println();
-
-                ps.println3("public Key(" + formalParams(keys) + ")");
-                ps.println3("{");
-                keys.forEach((n, t) -> ps.println4("this." + upper1(n) + " = " + lower1(n) + ";"));
-                ps.println3("}");
-                ps.println();
-
-                ps.println3("public override int GetHashCode()");
-                ps.println3("{");
-                ps.println4("return " + hashCodes(keys) + ";");
-                ps.println3("}");
-
-                ps.println3("public override bool Equals(object obj)");
-                ps.println3("{");
-                ps.println4("if (obj == null) return false;");
-                ps.println4("if (obj == this) return true;");
-                ps.println4("var o = obj as Key;");
-                ps.println4("return o != null && " + equals(keys) + ";");
-                ps.println3("}");
-
-                ps.println2("}");
-                ps.println();
+            generateMapGetBy(ttable.primaryKey, name, ps, true);
+            for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
+                generateMapGetBy(uniqueKey, name, ps, false);
             }
 
             //static all
-            String keyType = keys.size() > 1 ? "Key" : type(keys.values().iterator().next());
-            String allType = "Config.KeyedList<" + keyType + ", " + name.className + ">";
-            ps.println2("static " + allType + " all = null;");
-            ps.println();
             ps.println2("public static List<" + name.className + "> All()");
             ps.println2("{");
             ps.println3("return all.OrderedValues;");
-            ps.println2("}");
-            ps.println();
-
-            //static get
-            ps.println2("public static " + name.className + " Get(" + formalParams(keys) + ")");
-            ps.println2("{");
-            ps.println3(name.className + " v;");
-            ps.println3("return all.TryGetValue(" + actualParamsKey(keys) + ", out v) ? v : null;");
             ps.println2("}");
             ps.println();
 
@@ -307,10 +271,14 @@ public class GenCs extends Generator {
             //static initialize
             ps.println2("internal static void Initialize(Config.Stream os, Config.LoadErrors errors)");
             ps.println2("{");
-            ps.println3("all = new " + allType + "();");
+            ps.println3("all = new Config.KeyedList<" + keyClassName(keys) + ", " + name.className + ">();");
+            for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
+                ps.println3(uniqueKeyMapName(uniqueKey) + " = new Config.KeyedList<" + keyClassName(uniqueKey) + ", " + name.className + ">();");
+            }
+
             ps.println3("for (var c = os.ReadSize(); c > 0; c--) {");
             ps.println4("var self = _create(os);");
-            ps.println4("all.Add(" + actualParamsKeySelf(keys) + ", self);");
+            generateAllMapPut(ttable, ps);
 
             if (vtable.isEnum) {
                 String ef = upper1(ttable.tableDefine.enumStr);
@@ -394,7 +362,7 @@ public class GenCs extends Generator {
                             ps.println3(refName(sr) + " = new " + refType(t, sr) + "();");
                             ps.println3("foreach (var e in " + upper1(n) + ")");
                             ps.println3("{");
-                            ps.println4("var r = " + fullName(sr.refTable) + ".Get(e);");
+                            ps.println4("var r = " + tableGet(sr.refTable, sr.refCols, "e"));
                             ps.println4("if (r == null) errors.RefNull(" + csv + ", ToString() , " + field + ", e);");
                             ps.println4(refName(sr) + ".Add(r);");
                             ps.println3("}");
@@ -418,14 +386,14 @@ public class GenCs extends Generator {
                             ps.println3("{");
 
                             if (sr.mapKeyRefTable != null) {
-                                ps.println4("var k = " + fullName(sr.mapKeyRefTable) + ".Get(kv.Key);");
+                                ps.println4("var k = " + tableGet(sr.mapKeyRefTable, sr.mapKeyRefCols, "kv.Key"));
                                 ps.println4("if (k == null) errors.RefKeyNull(" + csv + ", ToString(), " + field + ", kv.Key);");
                             } else {
                                 ps.println4("var k = kv.Key;");
                             }
 
                             if (sr.refTable != null) {
-                                ps.println4("var v = " + fullName(sr.refTable) + ".Get(kv.Value);");
+                                ps.println4("var v = " + tableGet(sr.refTable, sr.refCols, "kv.Value"));
                                 ps.println4("if (v == null) errors.RefNull(" + csv + ", ToString(), " + field + ", kv.Value);");
                             } else {
                                 ps.println4("var v = kv.Value;");
@@ -439,7 +407,7 @@ public class GenCs extends Generator {
                         }
 
                         for (SRef sr : t.constraint.references) {
-                            ps.println3(refName(sr) + " = " + fullName(sr.refTable) + ".Get(" + upper1(n) + ");");
+                            ps.println3(refName(sr) + " = " + tableGet(sr.refTable, sr.refCols, upper1(n)));
                             if (!sr.refNullable)
                                 ps.println3("if (" + refName(sr) + " == null) errors.RefNull(" + csv + ", ToString(), " + field + ", " + upper1(n) + ");");
                         }
@@ -449,7 +417,7 @@ public class GenCs extends Generator {
 
 
             tbean.mRefs.forEach(m -> {
-                ps.println3(refName(m) + " = " + fullName(m.refTable) + ".Get(" + actualParams(m.foreignKeyDefine.keys) + ");");
+                ps.println3(refName(m) + " = " + tableGet(m.refTable, m.foreignKeyDefine.ref.cols, actualParams(m.foreignKeyDefine.keys)));
                 if (m.foreignKeyDefine.refType != ForeignKey.RefType.NULLABLE)
                     ps.println3("if (" + refName(m) + " == null) errors.RefNull(" + csv + ", ToString(), \"" + m.name + "\", 0);");
             });
@@ -478,6 +446,86 @@ public class GenCs extends Generator {
 
     }
 
+    private void generateMapGetBy(Map<String, Type> keys, GenCs.Name name, TabPrintStream ps, boolean isPrimaryKey) {
+        generateKeyClassIf(keys, ps);
+
+        //static all
+        String mapName = isPrimaryKey ? "all" : uniqueKeyMapName(keys);
+        String allType = "Config.KeyedList<" + keyClassName(keys) + ", " + name.className + ">";
+        ps.println2("static " + allType + " " + mapName + " = null;");
+        ps.println();
+
+        //static get
+        String getByName = isPrimaryKey ? "Get" : uniqueKeyGetByName(keys);
+        ps.println2("public static " + name.className + " " + getByName + "(" + formalParams(keys) + ")");
+        ps.println2("{");
+        ps.println3(name.className + " v;");
+        ps.println3("return " + mapName + ".TryGetValue(" + actualParamsKey(keys) + ", out v) ? v : null;");
+        ps.println2("}");
+        ps.println();
+    }
+
+    private void generateAllMapPut(TTable ttable, TabPrintStream ps) {
+        generateMapPut(ttable.primaryKey, ps, true);
+        for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
+            generateMapPut(uniqueKey, ps, false);
+        }
+    }
+
+    private void generateMapPut(Map<String, Type> keys, TabPrintStream ps, boolean isPrimaryKey) {
+        String mapName = isPrimaryKey ? "all" : uniqueKeyMapName(keys);
+        ps.println4(mapName + ".Add(" + actualParamsKeySelf(keys) + ", self);");
+    }
+
+
+    private void generateKeyClassIf(Map<String, Type> keys, TabPrintStream ps) {
+        if (keys.size() > 1) {
+            String keyClassName = keyClassName(keys);
+            //static Key class
+            ps.println2("class " + keyClassName);
+            ps.println2("{");
+            keys.forEach((n, t) -> ps.println3("readonly " + type(t) + " " + upper1(n) + ";"));
+            ps.println();
+
+            ps.println3("public " + keyClassName + "(" + formalParams(keys) + ")");
+            ps.println3("{");
+            keys.forEach((n, t) -> ps.println4("this." + upper1(n) + " = " + lower1(n) + ";"));
+            ps.println3("}");
+            ps.println();
+
+            ps.println3("public override int GetHashCode()");
+            ps.println3("{");
+            ps.println4("return " + hashCodes(keys) + ";");
+            ps.println3("}");
+
+            ps.println3("public override bool Equals(object obj)");
+            ps.println3("{");
+            ps.println4("if (obj == null) return false;");
+            ps.println4("if (obj == this) return true;");
+            ps.println4("var o = obj as " + keyClassName + ";");
+            ps.println4("return o != null && " + equals(keys) + ";");
+            ps.println3("}");
+
+            ps.println2("}");
+            ps.println();
+        }
+    }
+
+    private String uniqueKeyGetByName(Map<String, Type> keys) {
+        return "GetBy" + keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b);
+    }
+
+    private String uniqueKeyMapName(Map<String, Type> keys) {
+        return lower1(keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b) + "Map");
+    }
+
+    private String keyClassName(Map<String, Type> keys) {
+        if (keys.size() > 1)
+            return keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b) + "Key";
+        else
+            return type(keys.values().iterator().next());
+    }
+
     private String formalParams(Map<String, Type> fs) {
         return String.join(", ", fs.entrySet().stream().map(e -> type(e.getValue()) + " " + lower1(e.getKey())).collect(Collectors.toList()));
     }
@@ -488,12 +536,12 @@ public class GenCs extends Generator {
 
     private String actualParamsKey(Map<String, Type> keys) {
         String p = String.join(", ", keys.keySet().stream().map(Generator::lower1).collect(Collectors.toList()));
-        return keys.size() > 1 ? "new Key(" + p + ")" : p;
+        return keys.size() > 1 ? "new " + keyClassName(keys) + "(" + p + ")" : p;
     }
 
     private String actualParamsKeySelf(Map<String, Type> keys) {
         String p = String.join(", ", keys.keySet().stream().map(n -> "self." + upper1(n)).collect(Collectors.toList()));
-        return keys.size() > 1 ? "new Key(" + p + ")" : p;
+        return keys.size() > 1 ? "new " + keyClassName(keys) + "(" + p + ")" : p;
     }
 
     private String equals(Map<String, Type> fs) {
@@ -513,6 +561,13 @@ public class GenCs extends Generator {
             return "CSV.ToString(" + upper1(n) + ")";
         else
             return upper1(n);
+    }
+
+    private String tableGet(TTable ttable, String[] cols, String actualParam) {
+        if (cols.length == 0) //ref to primary key
+            return fullName(ttable) + ".Get(" + actualParam + ");";
+        else
+            return fullName(ttable) + ".GetBy" + Stream.of(cols).map(Generator::upper1).reduce("", (a, b) -> a + b) + "(" + actualParam + ");";
     }
 
     private String refType(Type t, SRef ref) {
@@ -651,7 +706,7 @@ public class GenCs extends Generator {
     private void genCSVProcessor() throws IOException {
         try (TabPrintStream ps = createSource(new File(dstDir, "CSVProcessor.cs"), encoding)) {
             ps.println("using System.Collections.Generic;");
-            if (!pkg.equals("Config")) {
+            if (!pkg.equals("Config")){
                 ps.println("using Config;");
             }
             ps.println();

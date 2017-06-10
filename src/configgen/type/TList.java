@@ -2,6 +2,8 @@ package configgen.type;
 
 import configgen.Node;
 
+import java.util.Objects;
+
 public class TList extends Type {
     public final Type value;
     public final int count; // >=0; 0 means list store in one column separated by ;
@@ -15,6 +17,7 @@ public class TList extends Type {
             require(null == sref.mapKeyRefTable, "list not support keyRef");
         }
         this.value = resolveType("value", cons, value);
+        require(Objects.nonNull(this.value), this.fullName()+" column, type = " + value + " is not exist");
         this.count = count;
         this.compressSeparator = compressSeparator;
     }

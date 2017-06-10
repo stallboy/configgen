@@ -94,7 +94,8 @@ public abstract class Generator {
         return value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
     }
 
-    protected static String lower1(String value) {
+    protected static String
+    lower1(String value) {
         return value.substring(0, 1).toLowerCase() + value.substring(1);
     }
 }

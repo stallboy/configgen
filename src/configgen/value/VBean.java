@@ -23,6 +23,7 @@ public class VBean extends Value {
         if (beanType.beanDefine.type == Bean.BeanType.BaseAction) {
             String actionName = data.get(0).data;
             TBean actionBean = beanType.actionBeans.get(actionName);
+            require(Objects.nonNull(actionBean), actionName + " not exist");
             actionVBean = new VBean(this, actionName, actionBean, data.subList(1, data.size()));
         } else {
             actionVBean = null;
@@ -36,7 +37,7 @@ public class VBean extends Value {
                     require(data.size() >= beanType.columnSpan());
                     parsed = data.subList(0, beanType.columnSpan());
                 }else{
-                    require(data.size() == beanType.columnSpan());
+                    require(data.size() == beanType.columnSpan(), " columns should equals " + beanType.columnSpan());
                     parsed = data;
                 }
             }

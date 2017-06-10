@@ -107,12 +107,13 @@ public class GenPack extends Generator {
             String packName = name.endsWith(".zip") ? name.substring(0, name.length() - 4) : name;
             require(!packName.equalsIgnoreCase("text"), "text.zip reserved for i18n");
             Set<String> packCfgs = new HashSet<>();
-            packs.put(packName, packCfgs);
+
             for (String c : ep.getAttribute("tables").split(",")) {
                 if (c.equals(".**")) {
                     packCfgs.addAll(source);
                     picked.addAll(source);
-                    require(source.size() > 0, c + " not exist");
+                    if(!source.isEmpty())
+                        packs.put(packName, packCfgs);
                 } else if (c.equals(".*")) {
                     int cnt = 0;
                     for (String n : source) {
@@ -122,6 +123,8 @@ public class GenPack extends Generator {
                             cnt++;
                         }
                     }
+                    if(cnt > 0)
+                        packs.put(packName, packCfgs);
                     require(cnt > 0, c + " not exist");
                 } else if (c.endsWith(".**")) {
                     String prefix = c.substring(0, c.length() - 2);
@@ -133,7 +136,8 @@ public class GenPack extends Generator {
                             cnt++;
                         }
                     }
-                    require(cnt > 0, c + " not exist");
+                    if(cnt > 0)
+                        packs.put(packName, packCfgs);
                 } else if (c.endsWith(".*")) {
                     String prefix = c.substring(0, c.length() - 1);
                     int cnt = 0;
@@ -144,11 +148,13 @@ public class GenPack extends Generator {
                             cnt++;
                         }
                     }
-                    require(cnt > 0, c + " not exist");
+                    if(cnt > 0)
+                        packs.put(packName, packCfgs);
                 } else {
                     require(picked.add(c), c + " duplicate");
                     packCfgs.add(c);
                     require(source.contains(c), c + " not exist");
+                    packs.put(packName, packCfgs);
                 }
             }
         }

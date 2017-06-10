@@ -2,6 +2,8 @@ package configgen.type;
 
 import configgen.Node;
 
+import java.util.Objects;
+
 public class TMap extends Type {
     public final Type key;
     public final Type value;
@@ -22,7 +24,9 @@ public class TMap extends Type {
         }
 
         this.key = resolveType("key", kc, key);
+        require(Objects.nonNull(this.key), this.fullName()+" column, key = " + key + " is not exist");
         this.value = resolveType("value", vc, value);
+        require(Objects.nonNull(this.value), this.fullName()+" column, type = " + value + " is not exist");
         this.count = count;
     }
 

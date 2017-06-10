@@ -214,22 +214,7 @@ public class GenLua extends Generator {
         ps.println("end");
         ps.println();
 
-        //_assign
-        ps.println("function " + fullName + ":_assign(other)");
-        tbean.columns.forEach((n, t) -> {
-            Column f = tbean.beanDefine.columns.get(n);
 
-            if (t instanceof TBean) {
-                ps.println1("self." + lower1(n) + ":_assign(other." + lower1(n) + ")");
-            } else if (t instanceof TList || t instanceof TMap) {
-                ps.println1("for k, v in pairs(other." + lower1(n) + ") do");
-                ps.println2("self." + lower1(n) + "[k] = v");
-                ps.println1("end");
-            } else {
-                ps.println1("self." + lower1(n) + " = other." + lower1(n));
-            }
-        });
-        ps.println("end");
         ps.println();
     }
 
@@ -281,19 +266,6 @@ public class GenLua extends Generator {
         ps.println("end");
         ps.println();
 
-        //static _reload
-        ps.println("function " + className + "._reload(os, errors)");
-        ps.println1("local old = " + className + ".all");
-        ps.println1(className + ".all = {}");
-        ps.println1(className + "._initialize(os, errors)");
-        ps.println1("for k, v in pairs(" + className + ".all) do");
-        ps.println2("local ov = old[k]");
-        ps.println2("if ov then");
-        ps.println3("ov:_assign(v)");
-        ps.println2("end");
-        ps.println1("end");
-        ps.println("end");
-        ps.println();
 
         ps.println("return " + className);
     }

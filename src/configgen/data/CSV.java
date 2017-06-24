@@ -252,10 +252,9 @@ public final class CSV {
         return seps;
     }
 
-    static Set<String> load(Path zipPath, String encoding, boolean reload) throws Exception {
+    static Set<String> load(Path zipPath, String encoding) throws Exception {
         Set<String> loaded = new HashSet<>();
         String packageName = CSV.class.getPackage().getName();
-        String method = reload ? "reload" : "initialize";
         try (ZipInputStream zis = new ZipInputStream(new CheckedInputStream(new FileInputStream(zipPath.toFile()), new CRC32()))) {
             Collection<Class<?>> classList = new ArrayList<>();
             for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
@@ -265,7 +264,7 @@ public final class CSV {
                         Class<?> clz = Class.forName(packageName + "." + String.join(".", configName2ClassFullName(configName)));
                         if (clz != null) {
                             classList.add(clz);
-                            Method initialize = clz.getDeclaredMethod(method, List.class);
+                            Method initialize = clz.getDeclaredMethod("initialize", List.class);
                             initialize.setAccessible(true);
                             List<List<String>> res = parse(new BufferedReader(new InputStreamReader(zis, encoding)), true);
                             initialize.invoke(null, res.subList(2, res.size()));

@@ -502,19 +502,6 @@ public class GenJava extends Generator {
             ps.println1("}");
             ps.println();
 
-            //static reload
-            ps.println1("static void reload(java.util.List<java.util.List<String>> dataList) {");
-            ps.println2("java.util.Map<" + keyClassName(ttable.primaryKey) + ", " + name.className + "> old = new java.util.LinkedHashMap<>(All);");
-            ps.println2("All.clear();");
-            ps.println2("initialize(dataList);");
-            ps.println2("All.forEach((k, v) -> {");
-            ps.println3(name.className + " ov = old.get(k);");
-            ps.println3("if (ov != null)");
-            ps.println4("ov.assign(v);");
-            ps.println2("});");
-            ps.println1("}");
-            ps.println();
-
             //static resolve
             if (tbean.hasRef()) {
                 ps.println1("static void resolve() {");
@@ -948,8 +935,8 @@ public class GenJava extends Generator {
             ps.println("public class CSVLoader {");
             ps.println();
 
-            ps.println1("public static Set<String> load(Path zipPath, String encoding, boolean reload) throws Exception {");
-            ps.println2("Set<String> configsInZip = CSV.load(zipPath, encoding, reload);");
+            ps.println1("public static Set<String> load(Path zipPath, String encoding) throws Exception {");
+            ps.println2("Set<String> configsInZip = CSV.load(zipPath, encoding);");
             String configsInCode = String.join("," + System.lineSeparator() + "            ", value.vtables.keySet().stream().map(k -> "\"" + k + "\"").collect(Collectors.toList()));
             ps.println2("Set<String> configsInCode = new LinkedHashSet<>(java.util.Arrays.asList(" + configsInCode + "));");
             ps.println2("configsInCode.removeAll(configsInZip);");

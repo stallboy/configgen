@@ -9,8 +9,8 @@ public class SchemaMap implements Schema {
         if (other == null || !(other instanceof SchemaMap)) {
             return false;
         }
-        SchemaMap ms = (SchemaMap) other;
-        return key.compatible(ms.key) && value.compatible(ms.value);
+        SchemaMap sm = (SchemaMap) other;
+        return key.compatible(sm.key) && value.compatible(sm.value);
     }
 
     @Override
@@ -20,15 +20,14 @@ public class SchemaMap implements Schema {
 
     @Override
     public void write(ConfigOutput output) {
-        output.writeInt(8);
+        output.writeInt(MAP);
         key.write(output);
         value.write(output);
     }
 
-    @Override
-    public void readExtra(ConfigInput input) {
-        key = Schema.read(input);
-        value = Schema.read(input);
+    public void read(ConfigInput input) {
+        key = Schema.create(input);
+        value = Schema.create(input);
     }
 
 }

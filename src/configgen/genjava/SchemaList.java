@@ -5,11 +5,7 @@ public class SchemaList implements Schema {
 
     @Override
     public boolean compatible(Schema other) {
-        if (other == null || !(other instanceof SchemaList)) {
-            return false;
-        }
-        SchemaList ls = (SchemaList) other;
-        return ele.compatible(ls.ele);
+        return other != null && other instanceof SchemaList && ele.compatible(((SchemaList) other).ele);
     }
 
     @Override
@@ -19,13 +15,12 @@ public class SchemaList implements Schema {
 
     @Override
     public void write(ConfigOutput output) {
-        output.writeInt(7);
+        output.writeInt(LIST);
         ele.write(output);
     }
 
-    @Override
-    public void readExtra(ConfigInput input) {
-        ele = Schema.read(input);
+    public void read(ConfigInput input) {
+        ele = Schema.create(input);
     }
 
 }

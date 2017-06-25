@@ -7,33 +7,59 @@ public interface Schema {
 
     void write(ConfigOutput output);
 
-    void readExtra(ConfigInput input);
+    int BOOL = 1;
+    int INT = 2;
+    int LONG = 3;
+    int FLOAT = 4;
+    int STR = 5;
+    int REF = 6;
+    int LIST = 7;
+    int MAP = 8;
+    int BEAN = 9;
+    int INTERFACE = 10;
+    int ENUM = 11;
 
-    static Schema read(ConfigInput input) {
+    static Schema create(ConfigInput input) {
         int tag = input.readInt();
         switch (tag) {
-            case 1:
+            case BOOL:
                 return SchemaPrimitive.SBool;
-            case 2:
+            case INT:
                 return SchemaPrimitive.SInt;
-            case 3:
+            case LONG:
                 return SchemaPrimitive.SLong;
-            case 4:
+            case FLOAT:
                 return SchemaPrimitive.SFloat;
-            case 5:
+            case STR:
                 return SchemaPrimitive.SStr;
-            case 6:
-                Schema bs = new SchemaBean();
-                bs.readExtra(input);
-                return bs;
-            case 7:
-                Schema ls = new SchemaList();
-                ls.readExtra(input);
-                return ls;
-            case 8:
-                Schema ms = new SchemaMap();
-                ms.readExtra(input);
-                return ms;
+            case REF:
+                SchemaRef sr = new SchemaRef();
+                sr.read(input);
+                return sr;
+
+            case LIST:
+                SchemaList sl = new SchemaList();
+                sl.read(input);
+                return sl;
+            case MAP:
+                SchemaMap sm = new SchemaMap();
+                sm.read(input);
+                return sm;
+
+            case BEAN:
+                SchemaBean sb = new SchemaBean();
+                sb.read(input);
+                return sb;
+            case INTERFACE:
+                SchemaInterface si = new SchemaInterface();
+                si.read(input);
+                return si;
+
+            case ENUM:
+                SchemaEnum se = new SchemaEnum();
+                se.read(input);
+                return se;
+
             default:
                 throw new ConfigErr("schema tag " + tag + " not supported");
         }

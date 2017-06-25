@@ -8,7 +8,22 @@ public class GenJavaSchemaCode implements Visitor{
     }
 
     @Override
+    public void visit(SchemaRef schemaRef) {
+
+    }
+
+    @Override
     public void visit(SchemaBean s) {
+
+    }
+
+    @Override
+    public void visit(SchemaInterface schemaInterface) {
+
+    }
+
+    @Override
+    public void visit(SchemaEnum schemaEnum) {
 
     }
 

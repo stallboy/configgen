@@ -3,6 +3,7 @@ package configgen.gen;
 import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.define.ForeignKey;
+import configgen.define.Table;
 import configgen.type.*;
 import configgen.value.VDb;
 import configgen.value.VTable;
@@ -142,8 +143,8 @@ public class GenJava extends Generator {
         ps.println("package " + name.pkg + ";");
         ps.println();
 
-        boolean isEnumFull = (ttable != null && vtable.isEnum && !vtable.isEnumPart);
-        boolean isEnumPart = (ttable != null && vtable.isEnum && vtable.isEnumPart);
+        boolean isEnumFull = (ttable != null && ttable.tableDefine.enumType == Table.EnumType.EnumFull);
+        boolean isEnumPart = (ttable != null && ttable.tableDefine.enumType == Table.EnumType.EnumPart);
 
         if (tbean.beanDefine.type == Bean.BeanType.Action) {
             TBean baseAction = (TBean) tbean.parent;
@@ -421,7 +422,7 @@ public class GenJava extends Generator {
                     String rk = l.foreignKeyDefine.ref.cols[0];
                     Type col = tbean.columns.get(k);
                     if (col instanceof TList) {
-                        String equalStr = equal("v.get" + upper1(rk) + "()", "e", ((TList)col).value);
+                        String equalStr = equal("v.get" + upper1(rk) + "()", "e", ((TList) col).value);
                         ps.println2(lower1(k) + ".forEach( e -> {");
                         ps.println3(fullName(tbean, l) + " el = new java.util.ArrayList<>();");
                         ps.println3(fullName(l.refTable) + ".all().forEach( v -> {");
@@ -437,7 +438,7 @@ public class GenJava extends Generator {
                     }
                 }
 
-                if (!gen){
+                if (!gen) {
                     ps.println2(fullName(l.refTable) + ".all().forEach( v -> {");
                     List<String> eqs = new ArrayList<>();
                     for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {

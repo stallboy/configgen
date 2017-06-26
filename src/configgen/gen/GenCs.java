@@ -3,6 +3,7 @@ package configgen.gen;
 import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.define.ForeignKey;
+import configgen.define.Table;
 import configgen.type.*;
 import configgen.value.VDb;
 import configgen.value.VTable;
@@ -187,7 +188,7 @@ public class GenCs extends Generator {
 
 
         //static enum
-        if (ttable != null && vtable.isEnum) {
+        if (ttable != null && ttable.tableDefine.isEnum()) {
             vtable.enumNames.forEach(e -> ps.println2("public static " + name.className + " " + upper1(e) + " { get; private set; }"));
             ps.println();
         }
@@ -280,7 +281,7 @@ public class GenCs extends Generator {
             ps.println4("var self = _create(os);");
             generateAllMapPut(ttable, ps);
 
-            if (vtable.isEnum) {
+            if (ttable.tableDefine.isEnum()) {
                 String ef = upper1(ttable.tableDefine.enumStr);
                 ps.println4("if (self." + ef + ".Trim().Length == 0)");
                 ps.println5("continue;");
@@ -300,7 +301,7 @@ public class GenCs extends Generator {
             }
             ps.println3("}");
 
-            if (vtable.isEnum) {
+            if (ttable.tableDefine.isEnum()) {
                 vtable.enumNames.forEach(e -> {
                     ps.println3("if (" + upper1(e) + " == null)");
                     ps.println4("errors.EnumNull(" + csv + ", \"" + e + "\");");

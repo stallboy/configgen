@@ -34,13 +34,6 @@ public final class DColumn extends Node {
         return descs.get(0);
     }
 
-    public List<String> dataList() {
-        List<String> r = new ArrayList<>();
-        for (List<String> row : ((DTable) parent).line2data.values())
-            r.addAll(indexes.stream().map(row::get).collect(Collectors.toList()));
-        return r;
-    }
-
     private Set<String> dataSet() {
         Set<String> r = new HashSet<>();
         for (List<String> row : ((DTable) parent).line2data.values())

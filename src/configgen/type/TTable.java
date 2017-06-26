@@ -23,12 +23,22 @@ public class TTable extends Node {
 
     public void resolve() {
         tbean.resolve();
-        if (!tableDefine.enumStr.isEmpty()) {
+        if (tableDefine.enumType != Table.EnumType.None) {
             Type type = tbean.columns.get(tableDefine.enumStr);
             require(type != null, "enum not found", tableDefine.enumStr);
             require(type instanceof TString, "enum type not string", type.toString());
         }
         resolveKey(tableDefine.primaryKey, primaryKey);
+
+        if (tableDefine.enumType != Table.EnumType.None) {
+            require(primaryKey.size() == 1, "enum primary key must be one column");
+            Type t = primaryKey.values().iterator().next();
+
+            if (!tableDefine.isEnumAsPrimaryKey()) {
+                require(t instanceof TInt, "enum table's primary key must be Int if not self");
+            }
+        }
+
         for (UniqueKey uk : tableDefine.uniqueKeys.values()) {
             Map<String, Type> res = new LinkedHashMap<>();
             resolveKey(uk.keys, res);

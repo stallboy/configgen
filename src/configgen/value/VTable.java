@@ -3,6 +3,7 @@ package configgen.value;
 import configgen.Node;
 import configgen.data.DColumn;
 import configgen.data.DTable;
+import configgen.define.Table;
 import configgen.define.UniqueKey;
 import configgen.type.TTable;
 
@@ -16,10 +17,14 @@ public class VTable extends Node {
     public final Map<String, Set<Value>> uniqueKeyValueSetMap = new LinkedHashMap<>();
 
     public final List<Integer> columnIndexes = new ArrayList<>();
-    public final boolean isEnum;
-    public final boolean isEnumPart;
+
     public final Set<String> enumNames = new LinkedHashSet<>();
+    public final Map<String, Integer> enumName2IntegerValueMap = new LinkedHashMap<>();
     public final int enumColumnIndex;
+
+    public configgen.define.Table getTableDefine() {
+        return tableType.tableDefine;
+    }
 
     public VTable(VDb parent, TTable ttable, DTable dtable) {
         super(parent, ttable.name);
@@ -41,24 +46,32 @@ public class VTable extends Node {
             uniqueKeyValueSetMap.put(uk.toString(), res);
         }
 
-        isEnum = !tableType.tableDefine.enumStr.isEmpty();
-        if (isEnum) {
+        if (tableType.tableDefine.isEnum()) {
+
             Set<String> names = new HashSet<>();
             DColumn col = dtable.dcolumns.get(tableType.tableDefine.enumStr);
             enumColumnIndex = col.indexes.get(0);
-            boolean part = false;
-            for (String e : col.dataList()) {
-                e = e.trim();
+
+            for (VBean vbean : vbeanList) {
+                Value v = vbean.valueMap.get(tableType.tableDefine.enumStr);
+                require(v instanceof VString, "enum value must be TString");
+                String e = ((VString) v).value;
+                require(!e.contains(" "), "枚举值字符串不应该包含空格");
+
                 if (e.isEmpty()) {
-                    part = true;
+                    require(tableType.tableDefine.enumType == Table.EnumType.EnumPart, "enum && !enumPart value must not empty");
                 } else {
                     require(names.add(e.toUpperCase()), "enum data duplicate", e);
                     enumNames.add(e);
+
+                    if (!tableType.tableDefine.isEnumAsPrimaryKey()){
+                        Value primaryV = vbean.valueMap.get(tableType.tableDefine.primaryKey[0]);
+                        Integer iv = ((VInt)primaryV).value;
+                        enumName2IntegerValueMap.put(e, iv);
+                    }
                 }
             }
-            isEnumPart = part;
         } else {
-            isEnumPart = false;
             enumColumnIndex = 0;
         }
     }

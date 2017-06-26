@@ -5,11 +5,7 @@ public class SchemaRef implements Schema {
 
     @Override
     public boolean compatible(Schema other) {
-        if (other == null || !(other instanceof SchemaRef)) {
-            return false;
-        }
-        SchemaRef sr = (SchemaRef) other;
-        return type.equals(sr.type);
+        return other != null && other instanceof SchemaRef && type.equals(((SchemaRef) other).type);
     }
 
     @Override

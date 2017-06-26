@@ -1,9 +1,9 @@
 package configgen.genjava;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
+// 这个既是总入口，又是多态bean
 public class SchemaInterface implements Schema {
 
     public Map<String, Schema> implementations = new HashMap<>(); //包含SchemaBean和SchemaEnum
@@ -50,7 +50,10 @@ public class SchemaInterface implements Schema {
         for (int i = 0; i < size; i++) {
             String name = input.readStr();
             Schema imp = Schema.create(input);
-            implementations.put(name, imp);
+            Schema old = implementations.put(name, imp);
+            if (old != null) {
+                throw new IllegalStateException("implementation duplicate " + name);
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ package configgen.gen;
 import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.define.ForeignKey;
+import configgen.define.Table;
 import configgen.type.*;
 import configgen.value.VDb;
 import configgen.value.VTable;
@@ -247,7 +248,7 @@ public class GenLua extends Generator {
         ps.println("function " + className + "._initialize(os, errors)");
         ps.println1("for _ = 1, os:ReadSize() do");
         ps.println2("local v = " + className + ":_create(os)");
-        if (vtable.isEnum) {
+        if (ttable.tableDefine.isEnum()) {
             ps.println2("if #(v." + lower1(ttable.tableDefine.enumStr) + ") > 0 then");
             ps.println3(className + "[v." + lower1(ttable.tableDefine.enumStr) + "] = v");
             ps.println2("end");
@@ -256,7 +257,7 @@ public class GenLua extends Generator {
         generateAllMapPut(ttable, className, ps);
 
         ps.println1("end");
-        if (vtable.isEnum) {
+        if (ttable.tableDefine.isEnum()) {
             vtable.enumNames.forEach(e -> {
                 ps.println1("if " + className + "." + e + " == nil then");
                 ps.println2("errors.enumNil(\"" + ttable.tbean.beanDefine.name + "\", \"" + e + "\");");

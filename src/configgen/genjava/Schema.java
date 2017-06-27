@@ -5,6 +5,8 @@ public interface Schema {
 
     void accept(Visitor visitor);
 
+    <T> T accept(VisitorT<T> visitor);
+
     void write(ConfigOutput output);
 
     int BOOL = 1;
@@ -33,32 +35,19 @@ public interface Schema {
             case STR:
                 return SchemaPrimitive.SStr;
             case REF:
-                SchemaRef sr = new SchemaRef();
-                sr.read(input);
-                return sr;
+                return new SchemaRef(input);
 
             case LIST:
-                SchemaList sl = new SchemaList();
-                sl.read(input);
-                return sl;
+                return new SchemaList(input);
             case MAP:
-                SchemaMap sm = new SchemaMap();
-                sm.read(input);
-                return sm;
+                return new SchemaMap(input);
 
             case BEAN:
-                SchemaBean sb = new SchemaBean();
-                sb.read(input);
-                return sb;
+                return new SchemaBean(input);
             case INTERFACE:
-                SchemaInterface si = new SchemaInterface();
-                si.read(input);
-                return si;
-
+                return new SchemaInterface(input);
             case ENUM:
-                SchemaEnum se = new SchemaEnum();
-                se.read(input);
-                return se;
+                return new SchemaEnum(input);
 
             default:
                 throw new ConfigErr("schema tag " + tag + " not supported");

@@ -1,12 +1,14 @@
 package configgen.genjava;
 
+import java.io.Closeable;
 import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.IOException;
 
-public class ConfigInput {
-    private final DataInput input;
+public class ConfigInput implements Closeable {
+    private final DataInputStream input;
 
-    public ConfigInput(DataInput input) {
+    public ConfigInput(DataInputStream input) {
         this.input = input;
     }
 
@@ -48,5 +50,10 @@ public class ConfigInput {
         } catch (IOException e) {
             throw new ConfigErr(e);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        input.close();
     }
 }

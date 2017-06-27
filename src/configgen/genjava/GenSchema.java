@@ -1,46 +1,50 @@
 package configgen.genjava;
 
 import configgen.define.Bean;
+import configgen.define.Table;
 import configgen.type.*;
 import configgen.value.VDb;
 import configgen.value.VTable;
 
 import java.util.Map;
 
-public class GenSchema {
+public final class GenSchema {
 
-    public static SchemaInterface gen(VDb vdb) {
+    public static SchemaInterface parse(VDb vdb) {
         SchemaInterface root = new SchemaInterface();
         for (TBean tBean : vdb.dbType.tbeans.values()) {
-            root.implementations.put(tBean.name, parseBean(tBean));
+            root.addImp(tBean.name, parseBean(tBean));
         }
         for (VTable vTable : vdb.vtables.values()) {
             TTable tTable = vTable.tableType;
 
             if (tTable.tableDefine.isEnum()) {
                 if (tTable.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
-                    root.implementations.put(tTable.name, parseEnum(vTable));
+                    root.addImp(tTable.name, parseEnum(vTable));
                 } else {
-                    root.implementations.put(tTable.name + "Enum", parseEnum(vTable));
-                    root.implementations.put(tTable.name, parseBean(tTable.tbean));
+                    //只有在枚举有其他数据信息时才加Enum后缀
+                    root.addImp(tTable.name + "Enum", parseEnum(vTable));
+                    root.addImp(tTable.name, parseBean(tTable.tbean));
                 }
             } else {
-                root.implementations.put(tTable.name, parseBean(tTable.tbean));
+                root.addImp(tTable.name, parseBean(tTable.tbean));
             }
         }
         return root;
     }
 
     private static Schema parseEnum(VTable vTable) {
-        SchemaEnum se = new SchemaEnum();
-        se.hasIntValue = !vTable.tableType.tableDefine.isEnumAsPrimaryKey();
-        if (se.hasIntValue){
+        boolean isEnumPart = vTable.tableType.tableDefine.enumType == Table.EnumType.EnumPart;
+        boolean hasIntValue = !vTable.tableType.tableDefine.isEnumAsPrimaryKey();
+        SchemaEnum se = new SchemaEnum(isEnumPart, hasIntValue);
 
-        }else{
+        if (hasIntValue) {
+            for (Map.Entry<String, Integer> stringIntegerEntry : vTable.enumName2IntegerValueMap.entrySet()) {
+                se.addValue(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
+            }
+        } else {
             for (String enumName : vTable.enumNames) {
-                SchemaEnum.EnumValue ev = new SchemaEnum.EnumValue();
-                ev.name = enumName;
-                se.values.add(ev);
+                se.addValue(enumName);
             }
         }
         return se;
@@ -50,17 +54,13 @@ public class GenSchema {
         if (tBean.beanDefine.type == Bean.BeanType.BaseAction) {
             SchemaInterface si = new SchemaInterface();
             for (TBean subBean : tBean.actionBeans.values()) {
-                si.implementations.put(subBean.name, parseBean(subBean));
+                si.addImp(subBean.name, parseBean(subBean));
             }
             return si;
         } else {
-            SchemaBean sb = new SchemaBean();
-            sb.isTable = tBean.beanDefine.type == Bean.BeanType.Table;
+            SchemaBean sb = new SchemaBean(tBean.beanDefine.type == Bean.BeanType.Table);
             for (Map.Entry<String, Type> stringTypeEntry : tBean.columns.entrySet()) {
-                SchemaBean.Column col = new SchemaBean.Column();
-                col.name = stringTypeEntry.getKey();
-                col.schema = parseType(stringTypeEntry.getValue());
-                sb.columns.add(col);
+                sb.addColumn(stringTypeEntry.getKey(), parseType(stringTypeEntry.getValue()));
             }
             return sb;
         }
@@ -95,24 +95,17 @@ public class GenSchema {
 
             @Override
             public Schema visit(TList type) {
-                SchemaList sl = new SchemaList();
-                sl.ele = parseType(type.value);
-                return sl;
+                return new SchemaList(parseType(type.value));
             }
 
             @Override
             public Schema visit(TMap type) {
-                SchemaMap sm = new SchemaMap();
-                sm.key = parseType(type.key);
-                sm.value = parseType(type.value);
-                return sm;
+                return new SchemaMap(parseType(type.key), parseType(type.value));
             }
 
             @Override
             public Schema visit(TBean type) {
-                SchemaRef sr = new SchemaRef();
-                sr.type = type.name;
-                return sr;
+                return new SchemaRef(type.name);
             }
         });
     }

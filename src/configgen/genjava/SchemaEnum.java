@@ -1,49 +1,78 @@
 package configgen.genjava;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-//为了服务器热更新配置，也是拼了，会把枚举的key值生成到代码里，然后根据key动态去另一个表中取其他具体的值
-//还要考虑全枚举，在java中switch 自动生成case
-// 所以这里要保证枚举的具体的key值完全一样
+//为了服务器热更新配置，也是拼了，
+//这里会把枚举的key值生成到代码里，然后根据key动态去另一个表中取其他具体的值
+//考虑全枚举，在java中switch 自动生成case，这里要保证全枚举的具体的key值完全一样
+//针对半枚举，要保证代码里的枚举，在数据里都在，并且值一样。
+
 public class SchemaEnum implements Schema {
-    public static class EnumValue {
-        public String name;
-        public int intValue;
+    public final boolean isEnumPart;
+    public final boolean hasIntValue;
+    public final Map<String, Integer> values = new LinkedHashMap<>();
 
-        public boolean compatible(EnumValue other, boolean hasIntValue) {
-            if (!name.equals(other.name)) {
-                return false;
-            }
+    public SchemaEnum(ConfigInput input) {
+        isEnumPart = input.readBool();
+        hasIntValue = input.readBool();
+        int size = input.readInt();
+        for (int i = 0; i < size; i++) {
             if (hasIntValue) {
-                return intValue == other.intValue;
-            }else{
-                return true;
+                values.put(input.readStr(), input.readInt());
+            } else {
+                values.put(input.readStr(), 0);
             }
         }
     }
 
-    public boolean hasIntValue;
-    public List<EnumValue> values = new ArrayList<>();
+    public SchemaEnum(boolean isEnumPart, boolean hasIntValue) {
+        this.isEnumPart = isEnumPart;
+        this.hasIntValue = hasIntValue;
+    }
+
+
+    public void addValue(String name, int intValue) {
+        values.put(name, intValue);
+    }
+
+    public void addValue(String name) {
+        values.put(name, 0);
+    }
 
     @Override
     public boolean compatible(Schema other) {
         if (other == null || !(other instanceof SchemaEnum)) {
             return false;
         }
-        SchemaEnum se = (SchemaEnum) other;
-        if (hasIntValue != se.hasIntValue) {
+        SchemaEnum newData = (SchemaEnum) other;
+        if (isEnumPart != newData.isEnumPart) {
             return false;
         }
-        if (values.size() != se.values.size()) {
+        if (hasIntValue != newData.hasIntValue) {
             return false;
         }
 
-        for (int i = 0; i < values.size(); i++) {
-            EnumValue v1 = values.get(i);
-            EnumValue v2 = se.values.get(i);
-            if (!v1.compatible(v2, hasIntValue)) {
+        if (!isEnumPart) {
+            if (values.size() != newData.values.size()) {
                 return false;
+            }
+        }
+
+        for (Map.Entry<String, Integer> entry : values.entrySet()) {
+            String codeName = entry.getKey();
+            int codeV = entry.getValue();
+            Integer newDataValue = newData.values.get(codeName);
+            if (newDataValue == null) {
+                return false;
+            }
+
+            if (hasIntValue) {
+                if (codeV != newDataValue) {
+                    return false;
+                }
             }
         }
         return true;
@@ -55,30 +84,21 @@ public class SchemaEnum implements Schema {
     }
 
     @Override
-    public void write(ConfigOutput output) {
-        output.writeInt(ENUM);
-        output.writeBool(hasIntValue);
-        output.writeInt(values.size());
-        for (EnumValue value : values) {
-            output.writeStr(value.name);
-
-            if (hasIntValue){
-                output.writeInt(value.intValue);
-            }
-        }
+    public <T> T accept(VisitorT<T> visitor) {
+        return visitor.visit(this);
     }
 
-    public void read(ConfigInput input) {
-        hasIntValue = input.readBool();
-        values = new ArrayList<>();
-        int size = input.readInt();
-        for (int i = 0; i < size; i++) {
-            EnumValue ev = new EnumValue();
-            ev.name = input.readStr();
+    @Override
+    public void write(ConfigOutput output) {
+        output.writeInt(ENUM);
+        output.writeBool(isEnumPart);
+        output.writeBool(hasIntValue);
+        output.writeInt(values.size());
+        for (Map.Entry<String, Integer> entry : values.entrySet()) {
+            output.writeStr(entry.getKey());
             if (hasIntValue) {
-                ev.intValue = input.readInt();
+                output.writeInt(entry.getValue());
             }
-            values.add(ev);
         }
     }
 

@@ -37,6 +37,10 @@ public enum SchemaPrimitive implements Schema {
         visitor.visit(this);
     }
 
+    @Override
+    public <T> T accept(VisitorT<T> visitor) {
+        return visitor.visit(this);
+    }
 
     @Override
     public boolean compatible(Schema other) {

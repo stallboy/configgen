@@ -6,7 +6,26 @@ import java.util.Map;
 // 这个既是总入口，又是多态bean
 public class SchemaInterface implements Schema {
 
-    public Map<String, Schema> implementations = new HashMap<>(); //包含SchemaBean和SchemaEnum
+    public final Map<String, Schema> implementations = new HashMap<>(); //包含SchemaBean和SchemaEnum
+
+    public SchemaInterface(ConfigInput input) {
+        int size = input.readInt();
+        for (int i = 0; i < size; i++) {
+            String name = input.readStr();
+            Schema imp = Schema.create(input);
+            Schema old = implementations.put(name, imp);
+            if (old != null) {
+                throw new IllegalStateException("implementation duplicate " + name);
+            }
+        }
+    }
+
+    public SchemaInterface() {
+    }
+
+    public void addImp(String name, Schema schema){
+        implementations.put(name, schema);
+    }
 
     @Override
     public boolean compatible(Schema other) {
@@ -34,6 +53,11 @@ public class SchemaInterface implements Schema {
     }
 
     @Override
+    public <T> T accept(VisitorT<T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
     public void write(ConfigOutput output) {
         output.writeInt(INTERFACE);
         output.writeInt(implementations.size());
@@ -44,16 +68,4 @@ public class SchemaInterface implements Schema {
     }
 
 
-    public void read(ConfigInput input) {
-        implementations = new HashMap<>();
-        int size = input.readInt();
-        for (int i = 0; i < size; i++) {
-            String name = input.readStr();
-            Schema imp = Schema.create(input);
-            Schema old = implementations.put(name, imp);
-            if (old != null) {
-                throw new IllegalStateException("implementation duplicate " + name);
-            }
-        }
-    }
 }

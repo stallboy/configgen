@@ -1,7 +1,15 @@
 package configgen.genjava;
 
 public class SchemaList implements Schema {
-    public Schema ele;
+    public final Schema ele;
+
+    public SchemaList(ConfigInput input) {
+        ele = Schema.create(input);
+    }
+
+    public SchemaList(Schema ele) {
+        this.ele = ele;
+    }
 
     @Override
     public boolean compatible(Schema other) {
@@ -14,13 +22,15 @@ public class SchemaList implements Schema {
     }
 
     @Override
+    public <T> T accept(VisitorT<T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
     public void write(ConfigOutput output) {
         output.writeInt(LIST);
         ele.write(output);
     }
 
-    public void read(ConfigInput input) {
-        ele = Schema.create(input);
-    }
 
 }

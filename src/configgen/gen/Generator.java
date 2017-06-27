@@ -2,6 +2,8 @@ package configgen.gen;
 
 import configgen.Logger;
 import configgen.define.Db;
+import configgen.genjava.GenJavaData;
+import configgen.genjava.GenJavaCode;
 import configgen.type.TDb;
 import configgen.value.VDb;
 
@@ -21,10 +23,12 @@ public abstract class Generator {
 
     static {
         GenPack.register();
-        GenJava.register();
+        GenJavaCode.register();
         GenCs.register();
         GenLua.register();
         GenAllRefValues.register();
+
+        GenJavaData.register();
     }
 
     public static Generator create(String arg) {

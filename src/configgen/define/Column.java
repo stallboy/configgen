@@ -9,7 +9,6 @@ public class Column extends Node {
     public String desc;
     public final String type;
     public final String own;
-    public final String stableName;
     public final boolean compress;
     public final char compressSeparator;
 
@@ -19,7 +18,7 @@ public class Column extends Node {
     public Column(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         DomUtils.permitAttributes(self, "desc", "name", "type", "own",
-                "ref", "refType", "keyRef", "range", "compress", "stableName");
+                "ref", "refType", "keyRef", "range", "compress");
         desc = self.getAttribute("desc");
         type = self.getAttribute("type");
         own = self.getAttribute("own");
@@ -28,7 +27,6 @@ public class Column extends Node {
             foreignKey = new ForeignKey(this, self);
         if (self.hasAttribute("range"))
             keyRange = new KeyRange(this, self);
-        stableName = self.getAttribute("stableName");
 
         compress = self.hasAttribute("compress");
         if (compress) {
@@ -45,7 +43,6 @@ public class Column extends Node {
         this.type = type;
         this.desc = desc;
         this.own = "";
-        this.stableName = "";
         compress = false;
         compressSeparator = ';';
     }
@@ -55,16 +52,16 @@ public class Column extends Node {
         desc = original.desc;
         type = original.type;
         own = original.own;
-        if (original.foreignKey!=null)
+        if (original.foreignKey != null)
             foreignKey = new ForeignKey(this, original.foreignKey);
         if (original.keyRange != null)
-            keyRange =  new KeyRange(this, original.keyRange);
-        stableName = original.stableName;
+            keyRange = new KeyRange(this, original.keyRange);
+
         compress = original.compress;
         compressSeparator = original.compressSeparator;
     }
 
-    static String[] parse(String ctype){
+    static String[] parse(String ctype) {
         String t, k = "", v = "";
         int c = 0;
         if (ctype.startsWith("list,")) {
@@ -94,9 +91,6 @@ public class Column extends Node {
 
     void checkInclude(Column stable) {
         require(Arrays.equals(parse(stable.type), parse(type)), "type not equal with stableversion");
-        if (stableName.equals(stable.name)){
-            require(stable.foreignKey == null, "stableName " + stableName + " foreignKey should be null in stableconfig.xml");
-        }
     }
 
     Column extract(Bean _parent, String _own) {
@@ -125,9 +119,5 @@ public class Column extends Node {
             foreignKey.update(self);
         if (keyRange != null)
             keyRange.update(self);
-
-
-        if (!stableName.isEmpty())
-            self.setAttribute("stableName", stableName);
     }
 }

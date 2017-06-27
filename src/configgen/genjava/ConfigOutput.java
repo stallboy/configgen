@@ -1,12 +1,14 @@
 package configgen.genjava;
 
+import java.io.Closeable;
 import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class ConfigOutput {
-    private final DataOutput output;
+public class ConfigOutput implements Closeable {
+    private final DataOutputStream output;
 
-    public ConfigOutput(DataOutput output) {
+    public ConfigOutput(DataOutputStream output) {
         this.output = output;
     }
 
@@ -48,5 +50,10 @@ public class ConfigOutput {
         } catch (IOException e) {
             throw new ConfigErr(e);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        output.close();
     }
 }

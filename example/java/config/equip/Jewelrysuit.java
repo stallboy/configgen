@@ -11,93 +11,86 @@ public class Jewelrysuit {
     private int ability3Value;
     private java.util.List<Integer> suitList = new java.util.ArrayList<>();
 
-    private void assign(Jewelrysuit other) {
-        suitID = other.suitID;
-        name = other.name;
-        ability1 = other.ability1;
-        ability1Value = other.ability1Value;
-        ability2 = other.ability2;
-        ability2Value = other.ability2Value;
-        ability3 = other.ability3;
-        ability3Value = other.ability3Value;
-        suitList.clear();
-        suitList.addAll(other.suitList);
+    private Jewelrysuit() {
+    }
+
+    public static Jewelrysuit _create(ConfigInput input) {
+        Jewelrysuit self = new Jewelrysuit();
+        self.suitID = input.readInt();
+        self.name = input.readStr();
+        self.ability1 = input.readInt();
+        self.ability1Value = input.readInt();
+        self.ability2 = input.readInt();
+        self.ability2Value = input.readInt();
+        self.ability3 = input.readInt();
+        self.ability3Value = input.readInt();
+        for (int c = input.readInt(); c > 0; c--) {
+            self.suitList.add(input.readInt());
+        }
+        return self;
     }
 
     /**
-     * ÊÎÆ·Ì××°ID
+     * é¥°å“å¥—è£…ID
      */
     public int getSuitID() {
         return suitID;
     }
 
     /**
-     * ²ß»®ÓÃÃû×Ö
+     * ç­–åˆ’ç”¨åå­—
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Ì××°ÊôĞÔÀàĞÍ1£¨×°±¸Ì××°ÖĞµÄÁ½¼şÊ±Ôö¼ÓµÄÊôĞÔ£©
+     * å¥—è£…å±æ€§ç±»å‹1ï¼ˆè£…å¤‡å¥—è£…ä¸­çš„ä¸¤ä»¶æ—¶å¢åŠ çš„å±æ€§ï¼‰
      */
     public int getAbility1() {
         return ability1;
     }
 
     /**
-     * Ì××°ÊôĞÔ1
+     * å¥—è£…å±æ€§1
      */
     public int getAbility1Value() {
         return ability1Value;
     }
 
     /**
-     * Ì××°ÊôĞÔÀàĞÍ2£¨×°±¸Ì××°ÖĞµÄÈı¼şÊ±Ôö¼ÓµÄÊôĞÔ£©
+     * å¥—è£…å±æ€§ç±»å‹2ï¼ˆè£…å¤‡å¥—è£…ä¸­çš„ä¸‰ä»¶æ—¶å¢åŠ çš„å±æ€§ï¼‰
      */
     public int getAbility2() {
         return ability2;
     }
 
     /**
-     * Ì××°ÊôĞÔ2
+     * å¥—è£…å±æ€§2
      */
     public int getAbility2Value() {
         return ability2Value;
     }
 
     /**
-     * Ì××°ÊôĞÔÀàĞÍ3£¨×°±¸Ì××°ÖĞµÄËÄ¼şÊ±Ôö¼ÓµÄÊôĞÔ£©
+     * å¥—è£…å±æ€§ç±»å‹3ï¼ˆè£…å¤‡å¥—è£…ä¸­çš„å››ä»¶æ—¶å¢åŠ çš„å±æ€§ï¼‰
      */
     public int getAbility3() {
         return ability3;
     }
 
     /**
-     * Ì××°ÊôĞÔ3
+     * å¥—è£…å±æ€§3
      */
     public int getAbility3Value() {
         return ability3Value;
     }
 
     /**
-     * ²¿¼ş1
+     * éƒ¨ä»¶1
      */
     public java.util.List<Integer> getSuitList() {
         return suitList;
-    }
-
-    @Override
-    public int hashCode() {
-        return suitID;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (null == other || !(other instanceof Jewelrysuit))
-            return false;
-        Jewelrysuit o = (Jewelrysuit) other;
-        return suitID == o.suitID;
     }
 
     @Override
@@ -105,38 +98,14 @@ public class Jewelrysuit {
         return "(" + suitID + "," + name + "," + ability1 + "," + ability1Value + "," + ability2 + "," + ability2Value + "," + ability3 + "," + ability3Value + "," + suitList + ")";
     }
 
-    Jewelrysuit _parse(java.util.List<String> data) {
-        suitID = config.CSV.parseInt(data.get(0));
-        name = data.get(1);
-        ability1 = config.CSV.parseInt(data.get(2));
-        ability1Value = config.CSV.parseInt(data.get(3));
-        ability2 = config.CSV.parseInt(data.get(4));
-        ability2Value = config.CSV.parseInt(data.get(5));
-        ability3 = config.CSV.parseInt(data.get(6));
-        ability3Value = config.CSV.parseInt(data.get(7));
-        String a = data.get(8);
-        if (!a.isEmpty())
-            suitList.add(config.CSV.parseInt(a));
-        a = data.get(9);
-        if (!a.isEmpty())
-            suitList.add(config.CSV.parseInt(a));
-        a = data.get(10);
-        if (!a.isEmpty())
-            suitList.add(config.CSV.parseInt(a));
-        a = data.get(11);
-        if (!a.isEmpty())
-            suitList.add(config.CSV.parseInt(a));
-        return this;
-    }
-
-    private static final java.util.Map<Integer, Jewelrysuit> All = new java.util.LinkedHashMap<>();
-
     public static Jewelrysuit get(int suitID) {
-        return All.get(suitID);
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.equip_jewelrysuit_All.get(suitID);
     }
 
     public static java.util.Collection<Jewelrysuit> all() {
-        return All.values();
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.equip_jewelrysuit_All.values();
     }
 
     static void initialize(java.util.List<java.util.List<String>> dataList) {
@@ -146,17 +115,6 @@ public class Jewelrysuit {
             Jewelrysuit self = new Jewelrysuit()._parse(data);
             All.put(self.suitID, self);
         }
-    }
-
-    static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<Integer, Jewelrysuit> old = new java.util.LinkedHashMap<>(All);
-        All.clear();
-        initialize(dataList);
-        All.forEach((k, v) -> {
-            Jewelrysuit ov = old.get(k);
-            if (ov != null)
-                ov.assign(v);
-        });
     }
 
 }

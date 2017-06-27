@@ -8,31 +8,36 @@ public class Task {
     private config.task.Completecondition completecondition;
     private int exp;
 
-    private void assign(Task other) {
-        taskid = other.taskid;
-        name = other.name;
-        desc = other.desc;
-        nexttask = other.nexttask;
-        completecondition = other.completecondition;
-        exp = other.exp;
+    private Task() {
+    }
+
+    public static Task _create(ConfigInput input) {
+        Task self = new Task();
+        self.taskid = input.readInt();
+        self.name = input.readStr();
+        self.desc = input.readStr();
+        self.nexttask = input.readInt();
+        self.completecondition = config.task.Completecondition._create(input);
+        self.exp = input.readInt();
+        return self;
     }
 
     /**
-     * ÈÎÎñÍê³ÉÌõ¼şÀàĞÍ£¨idµÄ·¶Î§Îª1-100£©
+     * ä»»åŠ¡å®Œæˆæ¡ä»¶ç±»å‹ï¼ˆidçš„èŒƒå›´ä¸º1-100ï¼‰
      */
     public int getTaskid() {
         return taskid;
     }
 
     /**
-     * ³ÌĞòÓÃÃû×Ö
+     * ç¨‹åºç”¨åå­—
      */
     public String getName() {
         return name;
     }
 
     /**
-     * ×¢ÊÍ
+     * æ³¨é‡Š
      */
     public String getDesc() {
         return desc;
@@ -51,45 +56,22 @@ public class Task {
     }
 
     @Override
-    public int hashCode() {
-        return taskid;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (null == other || !(other instanceof Task))
-            return false;
-        Task o = (Task) other;
-        return taskid == o.taskid;
-    }
-
-    @Override
     public String toString() {
         return "(" + taskid + "," + name + "," + desc + "," + nexttask + "," + completecondition + "," + exp + ")";
     }
 
-    Task _parse(java.util.List<String> data) {
-        taskid = config.CSV.parseInt(data.get(0));
-        name = data.get(1);
-        desc = data.get(2);
-        nexttask = config.CSV.parseInt(data.get(3));
-        completecondition = config.task.Completecondition._parse(data.subList(4, 7));
-        exp = config.CSV.parseInt(data.get(7));
-        return this;
-    }
-
-    void _resolve() {
+    public void _resolve() {
         completecondition._resolve();
     }
 
-    private static final java.util.Map<Integer, Task> All = new java.util.LinkedHashMap<>();
-
     public static Task get(int taskid) {
-        return All.get(taskid);
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.task_task_All.get(taskid);
     }
 
     public static java.util.Collection<Task> all() {
-        return All.values();
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.task_task_All.values();
     }
 
     static void initialize(java.util.List<java.util.List<String>> dataList) {
@@ -99,17 +81,6 @@ public class Task {
             Task self = new Task()._parse(data);
             All.put(self.taskid, self);
         }
-    }
-
-    static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<Integer, Task> old = new java.util.LinkedHashMap<>(All);
-        All.clear();
-        initialize(dataList);
-        All.forEach((k, v) -> {
-            Task ov = old.get(k);
-            if (ov != null)
-                ov.assign(v);
-        });
     }
 
     static void resolve() {

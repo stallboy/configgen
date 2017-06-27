@@ -8,20 +8,25 @@ public enum Completeconditiontype {
     private int id;
     private String name = "";
 
-    private void assign(Completeconditiontype other) {
-        id = other.id;
-        name = other.name;
+    private Completeconditiontype() {
+    }
+
+    public static Completeconditiontype _create(ConfigInput input) {
+        Completeconditiontype self = new Completeconditiontype();
+        self.id = input.readInt();
+        self.name = input.readStr();
+        return self;
     }
 
     /**
-     * ÈÎÎñÍê³ÉÌõ¼şÀàĞÍ£¨idµÄ·¶Î§Îª1-100£©
+     * ä»»åŠ¡å®Œæˆæ¡ä»¶ç±»å‹ï¼ˆidçš„èŒƒå›´ä¸º1-100ï¼‰
      */
     public int getId() {
         return id;
     }
 
     /**
-     * ³ÌĞòÓÃÃû×Ö
+     * ç¨‹åºç”¨åå­—
      */
     public String getName() {
         return name;
@@ -32,20 +37,14 @@ public enum Completeconditiontype {
         return "(" + id + "," + name + ")";
     }
 
-    Completeconditiontype _parse(java.util.List<String> data) {
-        id = config.CSV.parseInt(data.get(0));
-        name = data.get(1);
-        return this;
-    }
-
-    private static final java.util.Map<Integer, Completeconditiontype> All = new java.util.LinkedHashMap<>();
-
     public static Completeconditiontype get(int id) {
-        return All.get(id);
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.task_completeconditiontype_All.get(id);
     }
 
     public static java.util.Collection<Completeconditiontype> all() {
-        return All.values();
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.task_completeconditiontype_All.values();
     }
 
     static void initialize(java.util.List<java.util.List<String>> dataList) {
@@ -57,17 +56,6 @@ public enum Completeconditiontype {
         }
         if (values().length != all().size()) 
             throw new RuntimeException("Enum Uncompleted: Completeconditiontype");
-    }
-
-    static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<Integer, Completeconditiontype> old = new java.util.LinkedHashMap<>(All);
-        All.clear();
-        initialize(dataList);
-        All.forEach((k, v) -> {
-            Completeconditiontype ov = old.get(k);
-            if (ov != null)
-                ov.assign(v);
-        });
     }
 
 }

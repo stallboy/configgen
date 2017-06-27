@@ -10,7 +10,7 @@ public class KillMonster implements config.task.Completecondition {
     private config.Monster RefMonsterid;
     private int count;
 
-    public KillMonster() {
+    private KillMonster() {
     }
 
     public KillMonster(int monsterid, int count) {
@@ -18,9 +18,11 @@ public class KillMonster implements config.task.Completecondition {
         this.count = count;
     }
 
-    public void assign(KillMonster other) {
-        monsterid = other.monsterid;
-        count = other.count;
+    public static KillMonster _create(ConfigInput input) {
+        KillMonster self = new KillMonster();
+        self.monsterid = input.readInt();
+        self.count = input.readInt();
+        return self;
     }
 
     public int getMonsterid() {
@@ -51,12 +53,6 @@ public class KillMonster implements config.task.Completecondition {
     @Override
     public String toString() {
         return "(" + monsterid + "," + count + ")";
-    }
-
-    public KillMonster _parse(java.util.List<String> data) {
-        monsterid = config.CSV.parseInt(data.get(0));
-        count = config.CSV.parseInt(data.get(1));
-        return this;
     }
 
     @Override

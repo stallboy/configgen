@@ -5,7 +5,7 @@ public class Position {
     private int y;
     private int z;
 
-    public Position() {
+    private Position() {
     }
 
     public Position(int x, int y, int z) {
@@ -14,10 +14,12 @@ public class Position {
         this.z = z;
     }
 
-    public void assign(Position other) {
-        x = other.x;
-        y = other.y;
-        z = other.z;
+    public static Position _create(ConfigInput input) {
+        Position self = new Position();
+        self.x = input.readInt();
+        self.y = input.readInt();
+        self.z = input.readInt();
+        return self;
     }
 
     public int getX() {
@@ -48,14 +50,6 @@ public class Position {
     @Override
     public String toString() {
         return "(" + x + "," + y + "," + z + ")";
-    }
-
-    public Position _parse(java.util.List<String> data) {
-        data = config.CSV.parseList(data.get(0), ';');
-        x = config.CSV.parseInt(data.get(0));
-        y = config.CSV.parseInt(data.get(1));
-        z = config.CSV.parseInt(data.get(2));
-        return this;
     }
 
 }

@@ -4,10 +4,16 @@ public class Monster {
     private int id;
     private java.util.List<config.Position> posList = new java.util.ArrayList<>();
 
-    private void assign(Monster other) {
-        id = other.id;
-        posList.clear();
-        posList.addAll(other.posList);
+    private Monster() {
+    }
+
+    public static Monster _create(ConfigInput input) {
+        Monster self = new Monster();
+        self.id = input.readInt();
+        for (int c = input.readInt(); c > 0; c--) {
+            self.posList.add(config.Position._create(input));
+        }
+        return self;
     }
 
     /**
@@ -22,38 +28,18 @@ public class Monster {
     }
 
     @Override
-    public int hashCode() {
-        return id;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (null == other || !(other instanceof Monster))
-            return false;
-        Monster o = (Monster) other;
-        return id == o.id;
-    }
-
-    @Override
     public String toString() {
         return "(" + id + "," + posList + ")";
     }
 
-    Monster _parse(java.util.List<String> data) {
-        id = config.CSV.parseInt(data.get(0));
-        for (String e : config.CSV.parseList(data.get(1), ':'))
-            posList.add(new config.Position()._parse(java.util.Arrays.asList(e)));
-        return this;
-    }
-
-    private static final java.util.Map<Integer, Monster> All = new java.util.LinkedHashMap<>();
-
     public static Monster get(int id) {
-        return All.get(id);
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.monster_All.get(id);
     }
 
     public static java.util.Collection<Monster> all() {
-        return All.values();
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.monster_All.values();
     }
 
     static void initialize(java.util.List<java.util.List<String>> dataList) {
@@ -63,17 +49,6 @@ public class Monster {
             Monster self = new Monster()._parse(data);
             All.put(self.id, self);
         }
-    }
-
-    static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<Integer, Monster> old = new java.util.LinkedHashMap<>(All);
-        All.clear();
-        initialize(dataList);
-        All.forEach((k, v) -> {
-            Monster ov = old.get(k);
-            if (ov != null)
-                ov.assign(v);
-        });
     }
 
 }

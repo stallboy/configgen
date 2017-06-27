@@ -127,8 +127,10 @@ public class Table extends Node {
             case None:
                 break;
             case EnumFull:
-            case EnumPart:
                 self.setAttribute("enum", enumStr);
+                break;
+            case EnumPart:
+                self.setAttribute("enumPart", enumStr);
                 break;
         }
         if (primaryKey.length > 0) {

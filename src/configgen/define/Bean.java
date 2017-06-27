@@ -95,12 +95,6 @@ public class Bean extends Node {
 
     void checkInclude(Bean stable) {
         Map<String, Column> allcolumns = new LinkedHashMap<>(columns);
-        columns.forEach((n, c) -> {
-            if (!c.stableName.isEmpty()) {
-                Column old = allcolumns.put(c.stableName, c);
-                require(old == null, fullName() + "-" + n + " " + c.stableName + " stableName duplicate");
-            }
-        });
         stable.columns.forEach((sname, scol) -> {
             Column col = allcolumns.get(sname);
             require(col != null, fullName() + "-" + sname + " in stable not in develop version");

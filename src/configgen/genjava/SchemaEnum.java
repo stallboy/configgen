@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-//为了服务器热更新配置，也是拼了，
+//为了服务器热更新配置
 //这里会把枚举的key值生成到代码里，然后根据key动态去另一个表中取其他具体的值
 //考虑全枚举，在java中switch 自动生成case，这里要保证全枚举的具体的key值完全一样
 //针对半枚举，要保证代码里的枚举，在数据里都在，并且值一样。

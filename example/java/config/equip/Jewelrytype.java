@@ -9,20 +9,25 @@ public enum Jewelrytype {
     private int typeID;
     private String typeName = "";
 
-    private void assign(Jewelrytype other) {
-        typeID = other.typeID;
-        typeName = other.typeName;
+    private Jewelrytype() {
+    }
+
+    public static Jewelrytype _create(ConfigInput input) {
+        Jewelrytype self = new Jewelrytype();
+        self.typeID = input.readInt();
+        self.typeName = input.readStr();
+        return self;
     }
 
     /**
-     *  Œ∆∑¿‡–Õ
+     * È•∞ÂìÅÁ±ªÂûã
      */
     public int getTypeID() {
         return typeID;
     }
 
     /**
-     * ≥Ã–Ú”√√˚◊÷
+     * Á®ãÂ∫èÁî®ÂêçÂ≠ó
      */
     public String getTypeName() {
         return typeName;
@@ -33,26 +38,19 @@ public enum Jewelrytype {
         return "(" + typeID + "," + typeName + ")";
     }
 
-    Jewelrytype _parse(java.util.List<String> data) {
-        typeID = config.CSV.parseInt(data.get(0));
-        typeName = data.get(1);
-        return this;
-    }
-
-    private static final java.util.Map<Integer, Jewelrytype> All = new java.util.LinkedHashMap<>();
-
     public static Jewelrytype get(int typeID) {
-        return All.get(typeID);
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.equip_jewelrytype_All.get(typeID);
     }
-
-    private static final java.util.Map<String, Jewelrytype> TypeNameMap = new java.util.LinkedHashMap<>();
 
     public static Jewelrytype getByTypeName(String typeName) {
-        return TypeNameMap.get(typeName);
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.equip_jewelrytype_TypeNameMap.get(typeName);
     }
 
     public static java.util.Collection<Jewelrytype> all() {
-        return All.values();
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.equip_jewelrytype_All.values();
     }
 
     static void initialize(java.util.List<java.util.List<String>> dataList) {
@@ -65,17 +63,6 @@ public enum Jewelrytype {
         }
         if (values().length != all().size()) 
             throw new RuntimeException("Enum Uncompleted: Jewelrytype");
-    }
-
-    static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<Integer, Jewelrytype> old = new java.util.LinkedHashMap<>(All);
-        All.clear();
-        initialize(dataList);
-        All.forEach((k, v) -> {
-            Jewelrytype ov = old.get(k);
-            if (ov != null)
-                ov.assign(v);
-        });
     }
 
 }

@@ -15,16 +15,22 @@ public class Loot {
     private java.util.List<Integer> chanceList = new java.util.ArrayList<>();
     private java.util.List<config.Lootitem> ListRefLootid = new java.util.ArrayList<>();
 
-    private void assign(Loot other) {
-        lootid = other.lootid;
-        ename = other.ename;
-        name = other.name;
-        chanceList.clear();
-        chanceList.addAll(other.chanceList);
+    private Loot() {
+    }
+
+    public static Loot _create(ConfigInput input) {
+        Loot self = new Loot();
+        self.lootid = input.readInt();
+        self.ename = input.readStr();
+        self.name = input.readStr();
+        for (int c = input.readInt(); c > 0; c--) {
+            self.chanceList.add(input.readInt());
+        }
+        return self;
     }
 
     /**
-     * 序号
+     * 搴忓彿
      */
     public int getLootid() {
         return lootid;
@@ -35,14 +41,14 @@ public class Loot {
     }
 
     /**
-     * 名字
+     * 鍚嶅瓧
      */
     public String getName() {
         return name;
     }
 
     /**
-     * 掉落0件物品的概率
+     * 鎺夎惤0浠剁墿鍝佺殑姒傜巼
      */
     public java.util.List<Integer> getChanceList() {
         return chanceList;
@@ -53,66 +59,25 @@ public class Loot {
     }
 
     @Override
-    public int hashCode() {
-        return lootid;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (null == other || !(other instanceof Loot))
-            return false;
-        Loot o = (Loot) other;
-        return lootid == o.lootid;
-    }
-
-    @Override
     public String toString() {
         return "(" + lootid + "," + ename + "," + name + "," + chanceList + ")";
     }
 
-    Loot _parse(java.util.List<String> data) {
-        lootid = config.CSV.parseInt(data.get(0));
-        ename = data.get(1);
-        name = data.get(2);
-        String a = data.get(3);
-        if (!a.isEmpty())
-            chanceList.add(config.CSV.parseInt(a));
-        a = data.get(4);
-        if (!a.isEmpty())
-            chanceList.add(config.CSV.parseInt(a));
-        a = data.get(5);
-        if (!a.isEmpty())
-            chanceList.add(config.CSV.parseInt(a));
-        a = data.get(6);
-        if (!a.isEmpty())
-            chanceList.add(config.CSV.parseInt(a));
-        a = data.get(7);
-        if (!a.isEmpty())
-            chanceList.add(config.CSV.parseInt(a));
-        a = data.get(8);
-        if (!a.isEmpty())
-            chanceList.add(config.CSV.parseInt(a));
-        a = data.get(9);
-        if (!a.isEmpty())
-            chanceList.add(config.CSV.parseInt(a));
-        return this;
-    }
-
-    void _resolve() {
+    public void _resolve() {
         config.Lootitem.all().forEach( v -> {
             if (v.getLootid() == lootid)
                 ListRefLootid.add(v);
         });
     }
 
-    private static final java.util.Map<Integer, Loot> All = new java.util.LinkedHashMap<>();
-
     public static Loot get(int lootid) {
-        return All.get(lootid);
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.loot_All.get(lootid);
     }
 
     public static java.util.Collection<Loot> all() {
-        return All.values();
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.loot_All.values();
     }
 
     static void initialize(java.util.List<java.util.List<String>> dataList) {
@@ -137,17 +102,6 @@ public class Loot {
         java.util.Objects.requireNonNull(COMBO1_);
         java.util.Objects.requireNonNull(COMBO2_);
         java.util.Objects.requireNonNull(COMBO3_);
-    }
-
-    static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<Integer, Loot> old = new java.util.LinkedHashMap<>(All);
-        All.clear();
-        initialize(dataList);
-        All.forEach((k, v) -> {
-            Loot ov = old.get(k);
-            if (ov != null)
-                ov.assign(v);
-        });
     }
 
     static void resolve() {

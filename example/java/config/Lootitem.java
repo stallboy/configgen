@@ -7,60 +7,52 @@ public class Lootitem {
     private int countmin;
     private int countmax;
 
-    private void assign(Lootitem other) {
-        lootid = other.lootid;
-        itemid = other.itemid;
-        chance = other.chance;
-        countmin = other.countmin;
-        countmax = other.countmax;
+    private Lootitem() {
+    }
+
+    public static Lootitem _create(ConfigInput input) {
+        Lootitem self = new Lootitem();
+        self.lootid = input.readInt();
+        self.itemid = input.readInt();
+        self.chance = input.readInt();
+        self.countmin = input.readInt();
+        self.countmax = input.readInt();
+        return self;
     }
 
     /**
-     * 掉落id
+     * 鎺夎惤id
      */
     public int getLootid() {
         return lootid;
     }
 
     /**
-     * 掉落物品
+     * 鎺夎惤鐗╁搧
      */
     public int getItemid() {
         return itemid;
     }
 
     /**
-     * 掉落概率
+     * 鎺夎惤姒傜巼
      */
     public int getChance() {
         return chance;
     }
 
     /**
-     * 数量下限
+     * 鏁伴噺涓嬮檺
      */
     public int getCountmin() {
         return countmin;
     }
 
     /**
-     * 数量上限
+     * 鏁伴噺涓婇檺
      */
     public int getCountmax() {
         return countmax;
-    }
-
-    @Override
-    public int hashCode() {
-        return lootid + itemid;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (null == other || !(other instanceof Lootitem))
-            return false;
-        Lootitem o = (Lootitem) other;
-        return lootid == o.lootid && itemid == o.itemid;
     }
 
     @Override
@@ -68,16 +60,7 @@ public class Lootitem {
         return "(" + lootid + "," + itemid + "," + chance + "," + countmin + "," + countmax + ")";
     }
 
-    Lootitem _parse(java.util.List<String> data) {
-        lootid = config.CSV.parseInt(data.get(0));
-        itemid = config.CSV.parseInt(data.get(1));
-        chance = config.CSV.parseInt(data.get(2));
-        countmin = config.CSV.parseInt(data.get(3));
-        countmax = config.CSV.parseInt(data.get(4));
-        return this;
-    }
-
-    private static class LootidItemidKey {
+    public static class LootidItemidKey {
         private int lootid;
         private int itemid;
 
@@ -100,14 +83,14 @@ public class Lootitem {
         }
     }
 
-    private static final java.util.Map<LootidItemidKey, Lootitem> All = new java.util.LinkedHashMap<>();
-
     public static Lootitem get(int lootid, int itemid) {
-        return All.get(new LootidItemidKey(lootid, itemid));
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.lootitem_All.get(new LootidItemidKey(lootid, itemid));
     }
 
     public static java.util.Collection<Lootitem> all() {
-        return All.values();
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.lootitem_All.values();
     }
 
     static void initialize(java.util.List<java.util.List<String>> dataList) {
@@ -117,17 +100,6 @@ public class Lootitem {
             Lootitem self = new Lootitem()._parse(data);
             All.put(new LootidItemidKey(self.lootid, self.itemid), self);
         }
-    }
-
-    static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<LootidItemidKey, Lootitem> old = new java.util.LinkedHashMap<>(All);
-        All.clear();
-        initialize(dataList);
-        All.forEach((k, v) -> {
-            Lootitem ov = old.get(k);
-            if (ov != null)
-                ov.assign(v);
-        });
     }
 
 }

@@ -5,7 +5,7 @@ public class LevelRank {
     private int rank;
     private config.equip.Rank RefRank;
 
-    public LevelRank() {
+    private LevelRank() {
     }
 
     public LevelRank(int level, int rank) {
@@ -13,20 +13,22 @@ public class LevelRank {
         this.rank = rank;
     }
 
-    public void assign(LevelRank other) {
-        level = other.level;
-        rank = other.rank;
+    public static LevelRank _create(ConfigInput input) {
+        LevelRank self = new LevelRank();
+        self.level = input.readInt();
+        self.rank = input.readInt();
+        return self;
     }
 
     /**
-     * 等级
+     * 绛夌骇
      */
     public int getLevel() {
         return level;
     }
 
     /**
-     * 品质
+     * 鍝佽川
      */
     public int getRank() {
         return rank;
@@ -52,12 +54,6 @@ public class LevelRank {
     @Override
     public String toString() {
         return "(" + level + "," + rank + ")";
-    }
-
-    public LevelRank _parse(java.util.List<String> data) {
-        level = config.CSV.parseInt(data.get(0));
-        rank = config.CSV.parseInt(data.get(1));
-        return this;
     }
 
     public void _resolve() {

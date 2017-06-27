@@ -9,7 +9,7 @@ public class CollectItem implements config.task.Completecondition {
     private int itemid;
     private int count;
 
-    public CollectItem() {
+    private CollectItem() {
     }
 
     public CollectItem(int itemid, int count) {
@@ -17,9 +17,11 @@ public class CollectItem implements config.task.Completecondition {
         this.count = count;
     }
 
-    public void assign(CollectItem other) {
-        itemid = other.itemid;
-        count = other.count;
+    public static CollectItem _create(ConfigInput input) {
+        CollectItem self = new CollectItem();
+        self.itemid = input.readInt();
+        self.count = input.readInt();
+        return self;
     }
 
     public int getItemid() {
@@ -46,12 +48,6 @@ public class CollectItem implements config.task.Completecondition {
     @Override
     public String toString() {
         return "(" + itemid + "," + count + ")";
-    }
-
-    public CollectItem _parse(java.util.List<String> data) {
-        itemid = config.CSV.parseInt(data.get(0));
-        count = config.CSV.parseInt(data.get(1));
-        return this;
     }
 
 }

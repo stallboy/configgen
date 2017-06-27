@@ -32,9 +32,47 @@ public class IndentPrint implements Closeable {
         }
     }
 
-    public void println(String str, Object... args) {
-        ps.printf(prefix() + str, args);
+    public void println() {
         ps.println();
+    }
+
+    public void println(String fmt, Object... args) {
+        printlnn(0, fmt, args);
+    }
+
+    public void println1(String fmt, Object... args) {
+        printlnn(1, fmt, args);
+    }
+
+    public void println2(String fmt, Object... args) {
+        printlnn(2, fmt, args);
+    }
+
+    public void println3(String fmt, Object... args) {
+        printlnn(3, fmt, args);
+    }
+
+    public void println4(String fmt, Object... args) {
+        printlnn(4, fmt, args);
+    }
+
+    public void println5(String fmt, Object... args) {
+        printlnn(5, fmt, args);
+    }
+
+    public void println6(String fmt, Object... args) {
+        printlnn(6, fmt, args);
+    }
+
+    public void println7(String fmt, Object... args) {
+        printlnn(7, fmt, args);
+    }
+
+    private void printlnn(int n, String fmt, Object... args) {
+        indent += n;
+        ps.printf(prefix() + fmt, args);
+        ps.println();
+        indent -= n;
     }
 
     private String prefix() {

@@ -8,15 +8,17 @@ public class TalkNpc implements config.task.Completecondition {
 
     private int npcid;
 
-    public TalkNpc() {
+    private TalkNpc() {
     }
 
     public TalkNpc(int npcid) {
         this.npcid = npcid;
     }
 
-    public void assign(TalkNpc other) {
-        npcid = other.npcid;
+    public static TalkNpc _create(ConfigInput input) {
+        TalkNpc self = new TalkNpc();
+        self.npcid = input.readInt();
+        return self;
     }
 
     public int getNpcid() {
@@ -39,11 +41,6 @@ public class TalkNpc implements config.task.Completecondition {
     @Override
     public String toString() {
         return "(" + npcid + ")";
-    }
-
-    public TalkNpc _parse(java.util.List<String> data) {
-        npcid = config.CSV.parseInt(data.get(0));
-        return this;
     }
 
 }

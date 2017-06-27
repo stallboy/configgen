@@ -20,8 +20,8 @@ import java.util.stream.Stream;
 
 public class GenJavaCode extends Generator {
 
-    static void register() {
-        providers.put("javacode", new Provider() {
+    public static void register() {
+        providers.put("java", new Provider() {
             @Override
             public Generator create(Parameter parameter) {
                 return new GenJavaCode(parameter);
@@ -29,7 +29,7 @@ public class GenJavaCode extends Generator {
 
             @Override
             public String usage() {
-                return "dir:config,pkg:config,encoding:GBK    cooperate with -gen zip";
+                return "dir:config,pkg:config,encoding:UTF-8    cooperate with -gen zip";
             }
         });
     }
@@ -40,11 +40,11 @@ public class GenJavaCode extends Generator {
     private final String pkg;
     private final String encoding;
 
-    public GenJavaCode(Parameter parameter) {
+    GenJavaCode(Parameter parameter) {
         super(parameter);
         dir = parameter.get("dir", "config");
         pkg = parameter.getNotEmpty("pkg", "config");
-        encoding = parameter.get("encoding", "GBK");
+        encoding = parameter.get("encoding", "UTF-8");
 
         parameter.end();
     }
@@ -53,16 +53,44 @@ public class GenJavaCode extends Generator {
     public void generate(VDb _value) throws IOException {
         value = _value;
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
-        for (TBean tbean : value.dbType.tbeans.values()) {
-            generateBeanClass(tbean, null);
 
-            for (TBean actionBean : tbean.actionBeans.values()) {
-                generateBeanClass(actionBean, null);
+        File mgrFile = dstDir.toPath().resolve("ConfigMgr.java").toFile();
+        try (IndentPrint mgrPrint = createCode(mgrFile, encoding)) {
+
+            mgrPrint.println("package %s;", pkg);
+            mgrPrint.println();
+
+            mgrPrint.println("public class ConfigMgr {");
+
+            mgrPrint.println1("private static volatile ConfigMgr mgr;");
+            mgrPrint.println();
+            mgrPrint.println1("public static ConfigMgr getMgr(){");
+            mgrPrint.println2("return mgr;");
+            mgrPrint.println1("}");
+            mgrPrint.println();
+
+            mgrPrint.println1("public static void setMgr(ConfigMgr newMgr){");
+            mgrPrint.println2("mgr = newMgr;");
+            mgrPrint.println1("}");
+            mgrPrint.println();
+
+
+            for (TBean tbean : value.dbType.tbeans.values()) {
+                generateBeanClass(tbean, null, mgrPrint);
+
+                for (TBean actionBean : tbean.actionBeans.values()) {
+                    generateBeanClass(actionBean, null, mgrPrint);
+                }
             }
+            for (VTable vtable : value.vtables.values()) {
+                generateBeanClass(vtable.tableType.tbean, vtable, mgrPrint);
+                mgrPrint.println();
+            }
+
+            mgrPrint.println("}");
         }
-        for (VTable vtable : value.vtables.values()) {
-            generateBeanClass(vtable.tableType.tbean, vtable);
-        }
+
+
         genCSV();
         genCSVLoader();
         CachedFileOutputStream.deleteOtherFiles(dstDir);
@@ -73,6 +101,7 @@ public class GenJavaCode extends Generator {
         final String className;
         final String fullName;
         final String path;
+        final String containerPrefix;
 
         Name(String topPkg, TBean tbean) {
             String name;
@@ -82,6 +111,8 @@ public class GenJavaCode extends Generator {
             } else {
                 name = tbean.name;
             }
+
+            containerPrefix = tbean.name.replace('.', '_') + "_";
             String[] seps = name.split("\\.");
             String c = seps[seps.length - 1];
             className = c.substring(0, 1).toUpperCase() + c.substring(1);
@@ -97,48 +128,56 @@ public class GenJavaCode extends Generator {
                 path = className + ".java";
             else
                 path = String.join("/", pks) + "/" + className + ".java";
+
         }
     }
 
-    private void generateBeanClass(TBean tbean, VTable vtable) throws IOException {
+    private void generateBeanClass(TBean tbean, VTable vtable, IndentPrint mgrPrint) throws IOException {
         Name name = new Name(pkg, tbean);
         File javaFile = dstDir.toPath().resolve(name.path).toFile();
-        try (TabPrintStream ps = createSource(javaFile, encoding)) {
+
+        try (IndentPrint ps = createCode(javaFile, encoding)) {
             if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
                 generateBaseActionClass(tbean, name, ps);
             } else {
-                generateBeanClass(tbean, vtable, name, ps);
+                generateBeanClass(tbean, vtable, name, ps, mgrPrint);
             }
         }
     }
 
-    private void generateBaseActionClass(TBean tbean, Name name, TabPrintStream ps) {
-        ps.println("package " + name.pkg + ";");
+    private void generateBaseActionClass(TBean tbean, Name name, IndentPrint ps) {
+        ps.println("package %s;", name.pkg);
         ps.println();
-        ps.println("public interface " + name.className + " {");
-        ps.println1(fullName(tbean.actionEnumRefTable) + " type();");
+        ps.println("public interface %s {", name.className);
+        ps.inc();
+        ps.println("%s type();", fullName(tbean.actionEnumRefTable));
         ps.println();
 
         if (tbean.hasRef()) {
-            ps.println1("default void _resolve() {");
-            ps.println1("}");
+            ps.println("default void _resolve() {");
+            ps.println("}");
             ps.println();
         }
 
-        ps.println1("static " + name.className + " _parse(ConfigInput input) {");
-        ps.println2("switch(data.get(0)) {");
+        ps.println("static %s _create(ConfigInput input) {", name.className);
+        ps.inc();
+        ps.println("switch(input.readStr()) {");
         for (TBean actionBean : tbean.actionBeans.values()) {
-            ps.println3("case \"" + actionBean.name + "\":");
-            ps.println4("return new " + fullName(actionBean) + "(input);");
+            ps.println1("case \"%s\":", actionBean.name);
+            ps.println2("return new %s(input);", fullName(actionBean));
         }
-        ps.println2("}");
-        ps.println2("return null;");
-        ps.println1("}");
+
+        ps.println("}");
+        ps.println("throw new IllegalArgumentException();");
+        ps.dec();
+        ps.println("}");
+        ps.dec();
         ps.println("}");
     }
 
-    private void generateBeanClass(TBean tbean, VTable vtable, Name name, TabPrintStream ps) {
-        boolean isTable = vtable != null;
+    private void generateBeanClass(TBean tbean, VTable vtable, Name name, IndentPrint ps, IndentPrint mgrPrint) {
+        boolean isBean = vtable == null;
+        boolean isTable = !isBean;
         TTable ttable = isTable ? vtable.tableType : null;
 
         ps.println("package " + name.pkg + ";");
@@ -186,16 +225,40 @@ public class GenJavaCode extends Generator {
         ps.println();
 
         //constructor
-        if (ttable == null) {
-            ps.println1("public " + name.className + "() {");
-            ps.println1("}");
-            ps.println();
+        ps.println1("private %s() {", name.className);
+        ps.println1("}");
+        ps.println();
 
-            ps.println1("public " + name.className + "(" + formalParams(tbean.columns) + ") {");
-            tbean.columns.forEach((n, t) -> ps.println2("this." + lower1(n) + " = " + lower1(n) + ";"));
+        if (isBean) {
+            ps.println1("public %s(%s) {", name.className, formalParams(tbean.columns));
+            tbean.columns.forEach((n, t) -> ps.println2("this.%s = %s;", lower1(n), lower1(n)));
             ps.println1("}");
             ps.println();
         }
+
+        //static create from ConfigInput
+        ps.println1("public static %s _create(ConfigInput input) {", name.className);
+        ps.println2("%s self = new %s();", name.className, name.className);
+
+        for (Map.Entry<String, Type> f : tbean.columns.entrySet()) {
+            String n = f.getKey();
+            Type t = f.getValue();
+            String selfN = "self." + lower1(n);
+            if (t instanceof TList) {
+                ps.println2("for (int c = input.readInt(); c > 0; c--) {");
+                ps.println3("%s.add(%s);", selfN, _create(((TList) t).value));
+                ps.println2("}");
+            } else if (t instanceof TMap) {
+                ps.println2("for (var c = input.readInt()); c > 0; c--) {");
+                ps.println3("%s.put(%s, %s);", selfN, _create(((TMap) t).key), _create(((TMap) t).value));
+                ps.println2("}");
+            } else {
+                ps.println2("%s = %s;", selfN, _create(t));
+            }
+        }
+        ps.println2("return self;");
+        ps.println1("}");
+        ps.println();
 
 
         //getter
@@ -235,9 +298,8 @@ public class GenJavaCode extends Generator {
         });
 
         //hashCode, equals
-
-        if (!isEnumFull) {
-            Map<String, Type> keys = ttable != null ? ttable.primaryKey : tbean.columns;
+        if (isBean) {
+            Map<String, Type> keys = tbean.columns;
             ps.println1("@Override");
             ps.println1("public int hashCode() {");
             ps.println2("return " + hashCodes(keys) + ";");
@@ -261,72 +323,13 @@ public class GenJavaCode extends Generator {
         ps.println1("}");
         ps.println();
 
-        //_parse
-        ps.println1((ttable == null ? "public " : "") + name.className + " _parse(java.util.List<String> data) {");
-        if (tbean.beanDefine.compress) {
-            ps.println2("data = " + pkg + ".CSV.parseList(data.get(0), '" + tbean.beanDefine.compressSeparator + "');");
-        }
-        boolean hasA = false;
-        int begin = 0;
-        for (Map.Entry<String, Type> f : tbean.columns.entrySet()) {
-            String n = f.getKey();
-            Type t = f.getValue();
-            int end = begin + t.columnSpan();
-            if (t instanceof TPrimitive) {
-                ps.println2(lower1(n) + " = " + parsePrimitive(t, "data.get(" + begin + ")") + ";");
-            } else if (t instanceof TBean) {
-                TBean tb = (TBean) t;
-                if (tb.beanDefine.type == Bean.BeanType.BaseAction) {
-                    ps.println2(lower1(n) + " = " + fullName(tb) + "._parse(data.subList(" + begin + ", " + end + "));");
-                } else {
-                    ps.println2(lower1(n) + "._parse(data.subList(" + begin + ", " + end + "));");
-                }
-            } else if (t instanceof TList) {
-                TList type = (TList) t;
-                if (type.count == 0) {
-                    ps.println2("for (String e : " + pkg + ".CSV.parseList(data.get(" + begin + "), '" + type.compressSeparator + "'))");
-                    ps.println3(lower1(n) + ".add(" + parseType(type.value, "e") + ");");
-                } else {
-                    int vs = type.value.columnSpan();
-                    for (int i = 0; i < type.count; i++) {
-                        int b = begin + i * vs;
-                        String value = parseType(type.value, "a", b, vs);
-                        String prefix = hasA ? "" : "String ";
-                        hasA = true;
-                        ps.println2(prefix + "a = data.get(" + b + ");");
-                        ps.println2("if (!a.isEmpty())");
-                        ps.println3(lower1(n) + ".add(" + value + ");");
-                    }
-                }
-            } else if (t instanceof TMap) {
-                TMap type = (TMap) t;
-                int ks = type.key.columnSpan();
-                int vs = type.value.columnSpan();
-                for (int i = 0; i < type.count; i++) {
-                    int b = begin + i * (ks + vs);
-                    String key = parseType(type.key, "a", b, ks);
-                    String value = parseType(type.value, "data.get(" + (b + ks) + ")", b + ks, vs);
-
-                    String prefix = hasA ? "" : "String ";
-                    hasA = true;
-                    ps.println2(prefix + "a = data.get(" + b + ");");
-                    ps.println2("if (!a.isEmpty())");
-                    ps.println3(lower1(n) + ".put(" + key + ", " + value + ");");
-                }
-            }
-            begin = end;
-        }
-        ps.println2("return this;");
-        ps.println1("}");
-        ps.println();
-        //end _parse
-
 
         //_resolve
         if (tbean.hasRef()) {
-            if (tbean.beanDefine.type == Bean.BeanType.Action)
+            if (tbean.beanDefine.type == Bean.BeanType.Action) {
                 ps.println1("@Override");
-            ps.println1((ttable == null ? "public " : "") + "void _resolve() {");
+            }
+            ps.println1("public void _resolve() {");
 
             for (Map.Entry<String, Type> f : tbean.columns.entrySet()) {
                 String n = f.getKey();
@@ -431,14 +434,15 @@ public class GenJavaCode extends Generator {
 
 
         if (ttable != null) {
-            generateMapGetBy(ttable.primaryKey, name, ps, true);
+            generateMapGetBy(ttable.primaryKey, name, ps, true, mgrPrint);
             for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
-                generateMapGetBy(uniqueKey, name, ps, false);
+                generateMapGetBy(uniqueKey, name, ps, false, mgrPrint);
             }
 
             //static all
             ps.println1("public static java.util.Collection<" + name.className + "> all() {");
-            ps.println2("return All.values();");
+            ps.println2("ConfigMgr mgr = ConfigMgr.getMgr();");
+            ps.println2("return mgr.%sAll.values();", name.containerPrefix);
             ps.println1("}");
             ps.println();
 
@@ -487,37 +491,83 @@ public class GenJavaCode extends Generator {
         ps.println("}");
     }
 
-    private void generateMapGetBy(Map<String, Type> keys, Name name, TabPrintStream ps, boolean isPrimaryKey) {
+    private String _create(Type t) {
+        return t.accept(new TypeVisitorT<String>() {
+            @Override
+            public String visit(TBool type) {
+                return "input.readBool()";
+            }
+
+            @Override
+            public String visit(TInt type) {
+                return "input.readInt()";
+            }
+
+            @Override
+            public String visit(TLong type) {
+                return "input.readLong()";
+            }
+
+            @Override
+            public String visit(TFloat type) {
+                return "input.readFloat()";
+            }
+
+            @Override
+            public String visit(TString type) {
+                return "input.readStr()";
+            }
+
+            @Override
+            public String visit(TList type) {
+                return null;
+            }
+
+            @Override
+            public String visit(TMap type) {
+                return null;
+            }
+
+            @Override
+            public String visit(TBean type) {
+                return fullName(type) + "._create(input)";
+            }
+        });
+
+    }
+
+    private void generateMapGetBy(Map<String, Type> keys, Name name, IndentPrint ps, boolean isPrimaryKey, IndentPrint mgrPrint) {
         generateKeyClassIf(keys, ps);
 
-        String mapName = isPrimaryKey ? "All" : uniqueKeyMapName(keys);
-        ps.println1("private static final java.util.Map<" + keyClassName(keys) + ", " + name.className + "> " + mapName + " = new java.util.LinkedHashMap<>();");
-        ps.println();
+        String mapName = name.containerPrefix + (isPrimaryKey ? "All" : uniqueKeyMapName(keys));
+        mgrPrint.println1("public final java.util.Map<" + keyClassName(keys) + ", " + name.className + "> " + mapName + " = new java.util.LinkedHashMap<>();");
 
         String getByName = isPrimaryKey ? "get" : uniqueKeyGetByName(keys);
         ps.println1("public static " + name.className + " " + getByName + "(" + formalParams(keys) + ") {");
-        ps.println2("return " + mapName + ".get(" + actualParamsKey(keys, "") + ");");
+        ps.println2("ConfigMgr mgr = ConfigMgr.getMgr();");
+
+        ps.println2("return mgr." + mapName + ".get(" + actualParamsKey(keys, "") + ");");
         ps.println1("}");
         ps.println();
     }
 
-    private void generateAllMapPut(TTable ttable, TabPrintStream ps) {
+    private void generateAllMapPut(TTable ttable, IndentPrint ps) {
         generateMapPut(ttable.primaryKey, ps, true);
         for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
             generateMapPut(uniqueKey, ps, false);
         }
     }
 
-    private void generateMapPut(Map<String, Type> keys, TabPrintStream ps, boolean isPrimaryKey) {
+    private void generateMapPut(Map<String, Type> keys, IndentPrint ps, boolean isPrimaryKey) {
         String mapName = isPrimaryKey ? "All" : uniqueKeyMapName(keys);
         ps.println3(mapName + ".put(" + actualParamsKey(keys, "self.") + ", self);");
     }
 
-    private void generateKeyClassIf(Map<String, Type> keys, TabPrintStream ps) {
+    private void generateKeyClassIf(Map<String, Type> keys, IndentPrint ps) {
         if (keys.size() > 1) {
             String keyClassName = keyClassName(keys);
             //static Key class
-            ps.println1("private static class " + keyClassName + " {");
+            ps.println1("public static class " + keyClassName + " {");
             keys.forEach((n, t) -> ps.println2("private " + type(t) + " " + lower1(n) + ";"));
             ps.println();
 

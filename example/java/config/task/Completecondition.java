@@ -6,15 +6,15 @@ public interface Completecondition {
     default void _resolve() {
     }
 
-    static Completecondition _parse(java.util.List<String> data) {
-        switch(data.get(0)) {
+    static Completecondition _create(ConfigInput input) {
+        switch(input.readStr()) {
             case "KillMonster":
-                return new config.task.completecondition.KillMonster()._parse(data.subList(1, data.size()));
+                return new config.task.completecondition.KillMonster(input);
             case "TalkNpc":
-                return new config.task.completecondition.TalkNpc()._parse(data.subList(1, data.size()));
+                return new config.task.completecondition.TalkNpc(input);
             case "CollectItem":
-                return new config.task.completecondition.CollectItem()._parse(data.subList(1, data.size()));
+                return new config.task.completecondition.CollectItem(input);
         }
-        return null;
+        throw new IllegalArgumentException();
     }
 }

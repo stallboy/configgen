@@ -15,49 +15,54 @@ public class Jewelry {
     private int salePrice;
     private String description = "";
 
-    private void assign(Jewelry other) {
-        iD = other.iD;
-        name = other.name;
-        iconFile = other.iconFile;
-        lvlRank.assign(other.lvlRank);
-        type = other.type;
-        suitID = other.suitID;
-        keyAbility = other.keyAbility;
-        keyAbilityValue = other.keyAbilityValue;
-        salePrice = other.salePrice;
-        description = other.description;
+    private Jewelry() {
+    }
+
+    public static Jewelry _create(ConfigInput input) {
+        Jewelry self = new Jewelry();
+        self.iD = input.readInt();
+        self.name = input.readStr();
+        self.iconFile = input.readStr();
+        self.lvlRank = config.LevelRank._create(input);
+        self.type = input.readStr();
+        self.suitID = input.readInt();
+        self.keyAbility = input.readInt();
+        self.keyAbilityValue = input.readInt();
+        self.salePrice = input.readInt();
+        self.description = input.readStr();
+        return self;
     }
 
     /**
-     * Ê×ÊÎID
+     * é¦–é¥°ID
      */
     public int getID() {
         return iD;
     }
 
     /**
-     * Ê×ÊÎÃû³Æ
+     * é¦–é¥°åç§°
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Í¼±êID
+     * å›¾æ ‡ID
      */
     public String getIconFile() {
         return iconFile;
     }
 
     /**
-     * Ê×ÊÎµÈ¼¶
+     * é¦–é¥°ç­‰çº§
      */
     public config.LevelRank getLvlRank() {
         return lvlRank;
     }
 
     /**
-     * Ê×ÊÎÀàĞÍ
+     * é¦–é¥°ç±»å‹
      */
     public String getType() {
         return type;
@@ -68,7 +73,7 @@ public class Jewelry {
     }
 
     /**
-     * Ì××°ID£¨Îª0ÊÇÃ»ÓĞ²»ÊôÓÚÌ××°£¬Ê×ÊÎÆ·¼¶Îª4µÄÊ×ÊÎ¸Ã²ÎÊıÎªÌ××°id£¬ÆäÓàÇé¿öÎª0,ÒıÓÃJewelrySuit.csv£©
+     * å¥—è£…IDï¼ˆä¸º0æ˜¯æ²¡æœ‰ä¸å±äºå¥—è£…ï¼Œé¦–é¥°å“çº§ä¸º4çš„é¦–é¥°è¯¥å‚æ•°ä¸ºå¥—è£…idï¼Œå…¶ä½™æƒ…å†µä¸º0,å¼•ç”¨JewelrySuit.csvï¼‰
      */
     public int getSuitID() {
         return suitID;
@@ -79,7 +84,7 @@ public class Jewelry {
     }
 
     /**
-     * ¹Ø¼üÊôĞÔÀàĞÍ
+     * å…³é”®å±æ€§ç±»å‹
      */
     public int getKeyAbility() {
         return keyAbility;
@@ -90,37 +95,24 @@ public class Jewelry {
     }
 
     /**
-     * ¹Ø¼üÊôĞÔÊıÖµ
+     * å…³é”®å±æ€§æ•°å€¼
      */
     public int getKeyAbilityValue() {
         return keyAbilityValue;
     }
 
     /**
-     * ÊÛÂô¼Û¸ñ
+     * å”®å–ä»·æ ¼
      */
     public int getSalePrice() {
         return salePrice;
     }
 
     /**
-     * ÃèÊö,¸ù¾İLvlºÍRankÀ´Ëæ»ú3¸öÊôĞÔ£¬µÚÒ»¸öÊôĞÔÓÉLvl,RankĞĞËæ»ú£¬Ê£ÏÂ2¸öÓÉLvlºÍĞ¡ÓÚRankµÄĞĞÀïËæ»ú¡£Rank×îĞ¡µÄÊ±ºò¶¼´ÓLvl£¬RankÀïËæ»ú¡£
+     * æè¿°,æ ¹æ®Lvlå’ŒRankæ¥éšæœº3ä¸ªå±æ€§ï¼Œç¬¬ä¸€ä¸ªå±æ€§ç”±Lvl,Rankè¡Œéšæœºï¼Œå‰©ä¸‹2ä¸ªç”±Lvlå’Œå°äºRankçš„è¡Œé‡Œéšæœºã€‚Rankæœ€å°çš„æ—¶å€™éƒ½ä»Lvlï¼ŒRanké‡Œéšæœºã€‚
      */
     public String getDescription() {
         return description;
-    }
-
-    @Override
-    public int hashCode() {
-        return iD;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (null == other || !(other instanceof Jewelry))
-            return false;
-        Jewelry o = (Jewelry) other;
-        return iD == o.iD;
     }
 
     @Override
@@ -128,21 +120,7 @@ public class Jewelry {
         return "(" + iD + "," + name + "," + iconFile + "," + lvlRank + "," + type + "," + suitID + "," + keyAbility + "," + keyAbilityValue + "," + salePrice + "," + description + ")";
     }
 
-    Jewelry _parse(java.util.List<String> data) {
-        iD = config.CSV.parseInt(data.get(0));
-        name = data.get(1);
-        iconFile = data.get(2);
-        lvlRank._parse(data.subList(3, 5));
-        type = data.get(5);
-        suitID = config.CSV.parseInt(data.get(6));
-        keyAbility = config.CSV.parseInt(data.get(7));
-        keyAbilityValue = config.CSV.parseInt(data.get(8));
-        salePrice = config.CSV.parseInt(data.get(9));
-        description = data.get(10);
-        return this;
-    }
-
-    void _resolve() {
+    public void _resolve() {
         lvlRank._resolve();
         RefType = config.equip.Jewelrytype.getByTypeName(type);
         java.util.Objects.requireNonNull(RefType);
@@ -151,14 +129,14 @@ public class Jewelry {
         java.util.Objects.requireNonNull(RefKeyAbility);
     }
 
-    private static final java.util.Map<Integer, Jewelry> All = new java.util.LinkedHashMap<>();
-
     public static Jewelry get(int iD) {
-        return All.get(iD);
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.equip_jewelry_All.get(iD);
     }
 
     public static java.util.Collection<Jewelry> all() {
-        return All.values();
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.equip_jewelry_All.values();
     }
 
     static void initialize(java.util.List<java.util.List<String>> dataList) {
@@ -168,17 +146,6 @@ public class Jewelry {
             Jewelry self = new Jewelry()._parse(data);
             All.put(self.iD, self);
         }
-    }
-
-    static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<Integer, Jewelry> old = new java.util.LinkedHashMap<>(All);
-        All.clear();
-        initialize(dataList);
-        All.forEach((k, v) -> {
-            Jewelry ov = old.get(k);
-            if (ov != null)
-                ov.assign(v);
-        });
     }
 
     static void resolve() {

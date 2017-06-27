@@ -4,6 +4,7 @@ import configgen.Logger;
 import configgen.define.Db;
 import configgen.genjava.GenJavaData;
 import configgen.genjava.GenJavaCode;
+import configgen.genjava.IndentPrint;
 import configgen.type.TDb;
 import configgen.value.VDb;
 
@@ -84,6 +85,10 @@ public abstract class Generator {
 
     protected static TabPrintStream createSource(File file, String encoding) throws IOException {
         return new TabPrintStream(new PrintStream(new CachedFileOutputStream(file), false, encoding));
+    }
+
+    protected static IndentPrint createCode(File file, String encoding) throws IOException {
+        return new IndentPrint(new PrintStream(new CachedFileOutputStream(file), false, encoding), 0);
     }
 
     protected static ZipOutputStream createZip(File file) throws IOException {

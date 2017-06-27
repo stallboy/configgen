@@ -11,28 +11,33 @@ public enum Rank {
     private String rankName = "";
     private String rankShowName = "";
 
-    private void assign(Rank other) {
-        rankID = other.rankID;
-        rankName = other.rankName;
-        rankShowName = other.rankShowName;
+    private Rank() {
+    }
+
+    public static Rank _create(ConfigInput input) {
+        Rank self = new Rank();
+        self.rankID = input.readInt();
+        self.rankName = input.readStr();
+        self.rankShowName = input.readStr();
+        return self;
     }
 
     /**
-     * Ï¡ÓĞ¶È
+     * ç¨€æœ‰åº¦
      */
     public int getRankID() {
         return rankID;
     }
 
     /**
-     * ³ÌĞòÓÃÃû×Ö
+     * ç¨‹åºç”¨åå­—
      */
     public String getRankName() {
         return rankName;
     }
 
     /**
-     * ÏÔÊ¾Ãû³Æ
+     * æ˜¾ç¤ºåç§°
      */
     public String getRankShowName() {
         return rankShowName;
@@ -43,21 +48,14 @@ public enum Rank {
         return "(" + rankID + "," + rankName + "," + rankShowName + ")";
     }
 
-    Rank _parse(java.util.List<String> data) {
-        rankID = config.CSV.parseInt(data.get(0));
-        rankName = data.get(1);
-        rankShowName = data.get(2);
-        return this;
-    }
-
-    private static final java.util.Map<Integer, Rank> All = new java.util.LinkedHashMap<>();
-
     public static Rank get(int rankID) {
-        return All.get(rankID);
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.equip_rank_All.get(rankID);
     }
 
     public static java.util.Collection<Rank> all() {
-        return All.values();
+        ConfigMgr mgr = ConfigMgr.getMgr();
+        return mgr.equip_rank_All.values();
     }
 
     static void initialize(java.util.List<java.util.List<String>> dataList) {
@@ -69,17 +67,6 @@ public enum Rank {
         }
         if (values().length != all().size()) 
             throw new RuntimeException("Enum Uncompleted: Rank");
-    }
-
-    static void reload(java.util.List<java.util.List<String>> dataList) {
-        java.util.Map<Integer, Rank> old = new java.util.LinkedHashMap<>(All);
-        All.clear();
-        initialize(dataList);
-        All.forEach((k, v) -> {
-            Rank ov = old.get(k);
-            if (ov != null)
-                ov.assign(v);
-        });
     }
 
 }

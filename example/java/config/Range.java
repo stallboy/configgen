@@ -4,7 +4,7 @@ public class Range {
     private int min;
     private int max;
 
-    public Range() {
+    private Range() {
     }
 
     public Range(int min, int max) {
@@ -12,20 +12,22 @@ public class Range {
         this.max = max;
     }
 
-    public void assign(Range other) {
-        min = other.min;
-        max = other.max;
+    public static Range _create(ConfigInput input) {
+        Range self = new Range();
+        self.min = input.readInt();
+        self.max = input.readInt();
+        return self;
     }
 
     /**
-     * ×îĞ¡
+     * æœ€å°
      */
     public int getMin() {
         return min;
     }
 
     /**
-     * ×î´ó
+     * æœ€å¤§
      */
     public int getMax() {
         return max;
@@ -47,12 +49,6 @@ public class Range {
     @Override
     public String toString() {
         return "(" + min + "," + max + ")";
-    }
-
-    public Range _parse(java.util.List<String> data) {
-        min = config.CSV.parseInt(data.get(0));
-        max = config.CSV.parseInt(data.get(1));
-        return this;
     }
 
 }

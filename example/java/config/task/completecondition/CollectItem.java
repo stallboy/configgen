@@ -17,7 +17,7 @@ public class CollectItem implements config.task.Completecondition {
         this.count = count;
     }
 
-    public static CollectItem _create(ConfigInput input) {
+    public static CollectItem _create(configgen.genjava.ConfigInput input) {
         CollectItem self = new CollectItem();
         self.itemid = input.readInt();
         self.count = input.readInt();

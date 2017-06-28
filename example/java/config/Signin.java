@@ -5,18 +5,18 @@ public class Signin {
     private java.util.Map<Integer, Integer> item2countMap = new java.util.LinkedHashMap<>();
     private java.util.Map<Integer, Integer> vipitem2vipcountMap = new java.util.LinkedHashMap<>();
     private int viplevel;
-    private String iconFile = "";
+    private String iconFile;
 
     private Signin() {
     }
 
-    public static Signin _create(ConfigInput input) {
+    public static Signin _create(configgen.genjava.ConfigInput input) {
         Signin self = new Signin();
         self.id = input.readInt();
-        for (var c = input.readInt()); c > 0; c--) {
+        for (int c = input.readInt(); c > 0; c--) {
             self.item2countMap.put(input.readInt(), input.readInt());
         }
-        for (var c = input.readInt()); c > 0; c--) {
+        for (int c = input.readInt(); c > 0; c--) {
             self.vipitem2vipcountMap.put(input.readInt(), input.readInt());
         }
         self.viplevel = input.readInt();
@@ -65,21 +65,19 @@ public class Signin {
     }
 
     public static Signin get(int id) {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.signin_All.get(id);
     }
 
     public static java.util.Collection<Signin> all() {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.signin_All.values();
     }
 
-    static void initialize(java.util.List<java.util.List<String>> dataList) {
-        java.util.List<Integer> indexes = java.util.Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-        for (java.util.List<String> row : dataList) {
-            java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
-            Signin self = new Signin()._parse(data);
-            All.put(self.id, self);
+    public static void _createAll(config.ConfigMgr mgr, configgen.genjava.ConfigInput input) {
+        for (int c = input.readInt(); c > 0; c--) {
+            Signin self = Signin._create(input);
+            mgr.signin_All.put(self.id, self);
         }
     }
 

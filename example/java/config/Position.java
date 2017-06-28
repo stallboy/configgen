@@ -14,7 +14,7 @@ public class Position {
         this.z = z;
     }
 
-    public static Position _create(ConfigInput input) {
+    public static Position _create(configgen.genjava.ConfigInput input) {
         Position self = new Position();
         self.x = input.readInt();
         self.y = input.readInt();

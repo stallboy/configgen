@@ -3,17 +3,17 @@ package config.task;
 public interface Completecondition {
     config.task.Completeconditiontype type();
 
-    default void _resolve() {
+    default void _resolve(config.ConfigMgr mgr) {
     }
 
-    static Completecondition _create(ConfigInput input) {
+    static Completecondition _create(configgen.genjava.ConfigInput input) {
         switch(input.readStr()) {
             case "KillMonster":
-                return new config.task.completecondition.KillMonster(input);
+                return config.task.completecondition.KillMonster._create(input);
             case "TalkNpc":
-                return new config.task.completecondition.TalkNpc(input);
+                return config.task.completecondition.TalkNpc._create(input);
             case "CollectItem":
-                return new config.task.completecondition.CollectItem(input);
+                return config.task.completecondition.CollectItem._create(input);
         }
         throw new IllegalArgumentException();
     }

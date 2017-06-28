@@ -2,7 +2,7 @@ package config.equip;
 
 public class Jewelrysuit {
     private int suitID;
-    private String name = "";
+    private String name;
     private int ability1;
     private int ability1Value;
     private int ability2;
@@ -14,7 +14,7 @@ public class Jewelrysuit {
     private Jewelrysuit() {
     }
 
-    public static Jewelrysuit _create(ConfigInput input) {
+    public static Jewelrysuit _create(configgen.genjava.ConfigInput input) {
         Jewelrysuit self = new Jewelrysuit();
         self.suitID = input.readInt();
         self.name = input.readStr();
@@ -99,21 +99,19 @@ public class Jewelrysuit {
     }
 
     public static Jewelrysuit get(int suitID) {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.equip_jewelrysuit_All.get(suitID);
     }
 
     public static java.util.Collection<Jewelrysuit> all() {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.equip_jewelrysuit_All.values();
     }
 
-    static void initialize(java.util.List<java.util.List<String>> dataList) {
-        java.util.List<Integer> indexes = java.util.Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-        for (java.util.List<String> row : dataList) {
-            java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
-            Jewelrysuit self = new Jewelrysuit()._parse(data);
-            All.put(self.suitID, self);
+    public static void _createAll(config.ConfigMgr mgr, configgen.genjava.ConfigInput input) {
+        for (int c = input.readInt(); c > 0; c--) {
+            Jewelrysuit self = Jewelrysuit._create(input);
+            mgr.equip_jewelrysuit_All.put(self.suitID, self);
         }
     }
 

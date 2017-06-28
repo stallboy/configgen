@@ -1,7 +1,6 @@
 package configgen.genjava;
 
 import java.io.Closeable;
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 

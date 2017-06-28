@@ -1,65 +1,40 @@
 package config.equip;
 
 public enum Ability {
-    ATTACK,
-    DEFENCE,
-    HP,
-    CRITICAL,
-    CRITICAL_RESIST,
-    BLOCK,
-    BREAK_ARMOR;
+    ATTACK("attack", 1),
+    DEFENCE("defence", 2),
+    HP("hp", 3),
+    CRITICAL("critical", 4),
+    CRITICAL_RESIST("critical_resist", 5),
+    BLOCK("block", 6),
+    BREAK_ARMOR("break_armor", 7);
 
-    private int id;
-    private String name = "";
+    private String name;
+    private int value;
 
-    private Ability() {
+    Ability(String name, int value) {
+        this.name = name;
+        this.value = value;
     }
 
-    public static Ability _create(ConfigInput input) {
-        Ability self = new Ability();
-        self.id = input.readInt();
-        self.name = input.readStr();
-        return self;
-    }
-
-    /**
-     * 属性类型
-     */
-    public int getId() {
-        return id;
-    }
-
-    /**
-     * 程序用名字
-     */
     public String getName() {
         return name;
     }
 
-    @Override
-    public String toString() {
-        return "(" + id + "," + name + ")";
+    public int getValue() {
+        return value;
     }
 
-    public static Ability get(int id) {
-        ConfigMgr mgr = ConfigMgr.getMgr();
-        return mgr.equip_ability_All.get(id);
-    }
+    private static java.util.Map<Integer, Ability> map = new java.util.HashMap<>();
 
-    public static java.util.Collection<Ability> all() {
-        ConfigMgr mgr = ConfigMgr.getMgr();
-        return mgr.equip_ability_All.values();
-    }
-
-    static void initialize(java.util.List<java.util.List<String>> dataList) {
-        java.util.List<Integer> indexes = java.util.Arrays.asList(0, 1);
-        for (java.util.List<String> row : dataList) {
-            java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
-            Ability self = valueOf(row.get(1).trim().toUpperCase())._parse(data);
-            All.put(self.id, self);
+    static {
+        for(Ability e : Ability.values()) {
+            map.put(e.getValue(), e);
         }
-        if (values().length != all().size()) 
-            throw new RuntimeException("Enum Uncompleted: Ability");
+    }
+
+    public static Ability get(int value) {
+        return map.get(value);
     }
 
 }

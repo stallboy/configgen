@@ -53,7 +53,7 @@ public final class GenJavaCodeSchema {
             @Override
             public void visit(SchemaEnum schemaEnum) {
                 String name = "s" + ip.indent();
-                ip.println("SchemaEnum %s = new SchemaEnum(%s);", name, schemaEnum.hasIntValue ? "true" : "false");
+                ip.println("SchemaEnum %s = new SchemaEnum(%s, %s);", name, schemaEnum.isEnumPart ? "true" : "false", schemaEnum.hasIntValue ? "true" : "false");
                 for (Map.Entry<String, Integer> entry : schemaEnum.values.entrySet()) {
                     if (schemaEnum.hasIntValue) {
                         ip.println("%s.addValue(\"%s\", %d);", name, entry.getKey(), entry.getValue());

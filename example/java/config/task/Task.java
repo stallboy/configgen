@@ -2,8 +2,8 @@ package config.task;
 
 public class Task {
     private int taskid;
-    private String name = "";
-    private String desc = "";
+    private String name;
+    private String desc;
     private int nexttask;
     private config.task.Completecondition completecondition;
     private int exp;
@@ -11,7 +11,7 @@ public class Task {
     private Task() {
     }
 
-    public static Task _create(ConfigInput input) {
+    public static Task _create(configgen.genjava.ConfigInput input) {
         Task self = new Task();
         self.taskid = input.readInt();
         self.name = input.readStr();
@@ -60,31 +60,31 @@ public class Task {
         return "(" + taskid + "," + name + "," + desc + "," + nexttask + "," + completecondition + "," + exp + ")";
     }
 
-    public void _resolve() {
-        completecondition._resolve();
+    public void _resolve(config.ConfigMgr mgr) {
+        completecondition._resolve(mgr);
     }
 
     public static Task get(int taskid) {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.task_task_All.get(taskid);
     }
 
     public static java.util.Collection<Task> all() {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.task_task_All.values();
     }
 
-    static void initialize(java.util.List<java.util.List<String>> dataList) {
-        java.util.List<Integer> indexes = java.util.Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7);
-        for (java.util.List<String> row : dataList) {
-            java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
-            Task self = new Task()._parse(data);
-            All.put(self.taskid, self);
+    public static void _createAll(config.ConfigMgr mgr, configgen.genjava.ConfigInput input) {
+        for (int c = input.readInt(); c > 0; c--) {
+            Task self = Task._create(input);
+            mgr.task_task_All.put(self.taskid, self);
         }
     }
 
-    static void resolve() {
-        all().forEach(Task::_resolve);
+    public static void _resolveAll(config.ConfigMgr mgr) {
+        for (Task e : mgr.task_task_All.values()) {
+            e._resolve(mgr);
+        }
     }
 
 }

@@ -1,6 +1,6 @@
-饰品类型,程序用名字,策划注释
-TypeID,TypeName,
-1,Jade,玉佩
-2,Bracelet,手镯
-3,Magic,法印
-4,Bottle,宝瓶
+程序用名字,策划注释
+TypeName,
+Jade,玉佩
+Bracelet,手镯
+Magic,法印
+Bottle,宝瓶

@@ -57,6 +57,10 @@ public class Table extends Node {
         return enumType != EnumType.None;
     }
 
+    public boolean isEnumFull() {
+        return enumType == EnumType.EnumFull;
+    }
+
     public boolean isEnumAsPrimaryKey() {
         return primaryKey.length == 1 && primaryKey[0].equals(enumStr);
     }

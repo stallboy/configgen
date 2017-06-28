@@ -3,7 +3,7 @@ package config;
 public class LevelRank {
     private int level;
     private int rank;
-    private config.equip.Rank RefRank;
+    private config.equip.RankEnum RefRank;
 
     private LevelRank() {
     }
@@ -13,7 +13,7 @@ public class LevelRank {
         this.rank = rank;
     }
 
-    public static LevelRank _create(ConfigInput input) {
+    public static LevelRank _create(configgen.genjava.ConfigInput input) {
         LevelRank self = new LevelRank();
         self.level = input.readInt();
         self.rank = input.readInt();
@@ -34,7 +34,7 @@ public class LevelRank {
         return rank;
     }
 
-    public config.equip.Rank refRank() {
+    public config.equip.RankEnum refRank() {
         return RefRank;
     }
 
@@ -56,8 +56,8 @@ public class LevelRank {
         return "(" + level + "," + rank + ")";
     }
 
-    public void _resolve() {
-        RefRank = config.equip.Rank.get(rank);
+    public void _resolve(config.ConfigMgr mgr) {
+        RefRank = config.equip.RankEnum.get(rank);
         java.util.Objects.requireNonNull(RefRank);
     }
 

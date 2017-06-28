@@ -18,7 +18,7 @@ public class KillMonster implements config.task.Completecondition {
         this.count = count;
     }
 
-    public static KillMonster _create(ConfigInput input) {
+    public static KillMonster _create(configgen.genjava.ConfigInput input) {
         KillMonster self = new KillMonster();
         self.monsterid = input.readInt();
         self.count = input.readInt();
@@ -56,8 +56,8 @@ public class KillMonster implements config.task.Completecondition {
     }
 
     @Override
-    public void _resolve() {
-        RefMonsterid = config.Monster.get(monsterid);
+    public void _resolve(config.ConfigMgr mgr) {
+        RefMonsterid = mgr.monster_All.get(monsterid);
         java.util.Objects.requireNonNull(RefMonsterid);
     }
 

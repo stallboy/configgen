@@ -2,10 +2,10 @@ package config.equip;
 
 public class Jewelry {
     private int iD;
-    private String name = "";
-    private String iconFile = "";
-    private config.LevelRank lvlRank = new config.LevelRank();
-    private String type = "";
+    private String name;
+    private String iconFile;
+    private config.LevelRank lvlRank;
+    private String type;
     private config.equip.Jewelrytype RefType;
     private int suitID;
     private config.equip.Jewelrysuit NullableRefSuitID;
@@ -13,12 +13,12 @@ public class Jewelry {
     private config.equip.Ability RefKeyAbility;
     private int keyAbilityValue;
     private int salePrice;
-    private String description = "";
+    private String description;
 
     private Jewelry() {
     }
 
-    public static Jewelry _create(ConfigInput input) {
+    public static Jewelry _create(configgen.genjava.ConfigInput input) {
         Jewelry self = new Jewelry();
         self.iD = input.readInt();
         self.name = input.readStr();
@@ -120,36 +120,36 @@ public class Jewelry {
         return "(" + iD + "," + name + "," + iconFile + "," + lvlRank + "," + type + "," + suitID + "," + keyAbility + "," + keyAbilityValue + "," + salePrice + "," + description + ")";
     }
 
-    public void _resolve() {
-        lvlRank._resolve();
-        RefType = config.equip.Jewelrytype.getByTypeName(type);
+    public void _resolve(config.ConfigMgr mgr) {
+        lvlRank._resolve(mgr);
+        RefType = config.equip.Jewelrytype.get(type);
         java.util.Objects.requireNonNull(RefType);
-        NullableRefSuitID = config.equip.Jewelrysuit.get(suitID);
+        NullableRefSuitID = mgr.equip_jewelrysuit_All.get(suitID);
         RefKeyAbility = config.equip.Ability.get(keyAbility);
         java.util.Objects.requireNonNull(RefKeyAbility);
     }
 
     public static Jewelry get(int iD) {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.equip_jewelry_All.get(iD);
     }
 
     public static java.util.Collection<Jewelry> all() {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.equip_jewelry_All.values();
     }
 
-    static void initialize(java.util.List<java.util.List<String>> dataList) {
-        java.util.List<Integer> indexes = java.util.Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-        for (java.util.List<String> row : dataList) {
-            java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
-            Jewelry self = new Jewelry()._parse(data);
-            All.put(self.iD, self);
+    public static void _createAll(config.ConfigMgr mgr, configgen.genjava.ConfigInput input) {
+        for (int c = input.readInt(); c > 0; c--) {
+            Jewelry self = Jewelry._create(input);
+            mgr.equip_jewelry_All.put(self.iD, self);
         }
     }
 
-    static void resolve() {
-        all().forEach(Jewelry::_resolve);
+    public static void _resolveAll(config.ConfigMgr mgr) {
+        for (Jewelry e : mgr.equip_jewelry_All.values()) {
+            e._resolve(mgr);
+        }
     }
 
 }

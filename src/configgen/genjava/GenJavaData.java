@@ -1,5 +1,6 @@
 package configgen.genjava;
 
+import configgen.Logger;
 import configgen.define.Bean;
 import configgen.gen.Generator;
 import configgen.gen.Parameter;
@@ -95,10 +96,23 @@ public final class GenJavaData extends Generator {
             }
         };
 
-        output.writeInt(vDb.vtables.size());
+        int cnt = 0;
+        for (Map.Entry<String, VTable> entry : vDb.vtables.entrySet()) {
+            VTable vTable = entry.getValue();
+            if (vTable.tableType.tableDefine.isEnumFull() && vTable.tableType.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
+                Logger.verbose("ignore write data" + vTable.name);
+            } else {
+                cnt++;
+            }
+        }
+        output.writeInt(cnt);
         for (Map.Entry<String, VTable> entry : vDb.vtables.entrySet()) {
             String name = entry.getKey();
             VTable vTable = entry.getValue();
+
+            if (vTable.tableType.tableDefine.isEnumFull() && vTable.tableType.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
+                continue;
+            }
             output.writeStr(name);
             output.writeInt(vTable.vbeanList.size());
             vTable.vbeanList.forEach(v -> v.accept(vs));

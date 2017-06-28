@@ -1,20 +1,14 @@
 package config.equip;
 
-public enum Rank {
-    WHITE,
-    GREEN,
-    BLUE,
-    PURPLE,
-    YELLOW;
-
+public class Rank {
     private int rankID;
-    private String rankName = "";
-    private String rankShowName = "";
+    private String rankName;
+    private String rankShowName;
 
     private Rank() {
     }
 
-    public static Rank _create(ConfigInput input) {
+    public static Rank _create(configgen.genjava.ConfigInput input) {
         Rank self = new Rank();
         self.rankID = input.readInt();
         self.rankName = input.readStr();
@@ -49,24 +43,20 @@ public enum Rank {
     }
 
     public static Rank get(int rankID) {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.equip_rank_All.get(rankID);
     }
 
     public static java.util.Collection<Rank> all() {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.equip_rank_All.values();
     }
 
-    static void initialize(java.util.List<java.util.List<String>> dataList) {
-        java.util.List<Integer> indexes = java.util.Arrays.asList(0, 1, 3);
-        for (java.util.List<String> row : dataList) {
-            java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
-            Rank self = valueOf(row.get(1).trim().toUpperCase())._parse(data);
-            All.put(self.rankID, self);
+    public static void _createAll(config.ConfigMgr mgr, configgen.genjava.ConfigInput input) {
+        for (int c = input.readInt(); c > 0; c--) {
+            Rank self = Rank._create(input);
+            mgr.equip_rank_All.put(self.rankID, self);
         }
-        if (values().length != all().size()) 
-            throw new RuntimeException("Enum Uncompleted: Rank");
     }
 
 }

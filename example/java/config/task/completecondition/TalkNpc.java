@@ -15,7 +15,7 @@ public class TalkNpc implements config.task.Completecondition {
         this.npcid = npcid;
     }
 
-    public static TalkNpc _create(ConfigInput input) {
+    public static TalkNpc _create(configgen.genjava.ConfigInput input) {
         TalkNpc self = new TalkNpc();
         self.npcid = input.readInt();
         return self;

@@ -12,7 +12,7 @@ public class Range {
         this.max = max;
     }
 
-    public static Range _create(ConfigInput input) {
+    public static Range _create(configgen.genjava.ConfigInput input) {
         Range self = new Range();
         self.min = input.readInt();
         self.max = input.readInt();

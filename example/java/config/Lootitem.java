@@ -10,7 +10,7 @@ public class Lootitem {
     private Lootitem() {
     }
 
-    public static Lootitem _create(ConfigInput input) {
+    public static Lootitem _create(configgen.genjava.ConfigInput input) {
         Lootitem self = new Lootitem();
         self.lootid = input.readInt();
         self.itemid = input.readInt();
@@ -84,21 +84,19 @@ public class Lootitem {
     }
 
     public static Lootitem get(int lootid, int itemid) {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.lootitem_All.get(new LootidItemidKey(lootid, itemid));
     }
 
     public static java.util.Collection<Lootitem> all() {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.lootitem_All.values();
     }
 
-    static void initialize(java.util.List<java.util.List<String>> dataList) {
-        java.util.List<Integer> indexes = java.util.Arrays.asList(0, 1, 2, 3, 4);
-        for (java.util.List<String> row : dataList) {
-            java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
-            Lootitem self = new Lootitem()._parse(data);
-            All.put(new LootidItemidKey(self.lootid, self.itemid), self);
+    public static void _createAll(config.ConfigMgr mgr, configgen.genjava.ConfigInput input) {
+        for (int c = input.readInt(); c > 0; c--) {
+            Lootitem self = Lootitem._create(input);
+            mgr.lootitem_All.put(new LootidItemidKey(self.lootid, self.itemid), self);
         }
     }
 

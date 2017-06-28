@@ -7,7 +7,7 @@ public class Monster {
     private Monster() {
     }
 
-    public static Monster _create(ConfigInput input) {
+    public static Monster _create(configgen.genjava.ConfigInput input) {
         Monster self = new Monster();
         self.id = input.readInt();
         for (int c = input.readInt(); c > 0; c--) {
@@ -33,21 +33,19 @@ public class Monster {
     }
 
     public static Monster get(int id) {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.monster_All.get(id);
     }
 
     public static java.util.Collection<Monster> all() {
-        ConfigMgr mgr = ConfigMgr.getMgr();
+        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
         return mgr.monster_All.values();
     }
 
-    static void initialize(java.util.List<java.util.List<String>> dataList) {
-        java.util.List<Integer> indexes = java.util.Arrays.asList(0, 1);
-        for (java.util.List<String> row : dataList) {
-            java.util.List<String> data = indexes.stream().map(row::get).collect(java.util.stream.Collectors.toList());
-            Monster self = new Monster()._parse(data);
-            All.put(self.id, self);
+    public static void _createAll(config.ConfigMgr mgr, configgen.genjava.ConfigInput input) {
+        for (int c = input.readInt(); c > 0; c--) {
+            Monster self = Monster._create(input);
+            mgr.monster_All.put(self.id, self);
         }
     }
 

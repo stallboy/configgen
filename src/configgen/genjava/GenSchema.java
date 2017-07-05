@@ -18,16 +18,16 @@ public final class GenSchema {
         for (VTable vTable : vdb.vtables.values()) {
             TTable tTable = vTable.tableType;
 
-            if (tTable.tableDefine.isEnum()) {
-                if (tTable.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
-                    root.addImp(tTable.name, parseEnum(vTable));
-                } else {
-                    //只有在枚举有其他数据信息时才加Enum后缀
-                    root.addImp(tTable.name + "Enum", parseEnum(vTable));
-                    root.addImp(tTable.name, parseBean(tTable.tbean));
+            if (tTable.tableDefine.isEnumFull()) {
+                root.addImp(tTable.name, parseEnum(vTable));
+                if (!tTable.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
+                    root.addImp(tTable.name + "_Detail", parseBean(tTable.tbean));
                 }
             } else {
                 root.addImp(tTable.name, parseBean(tTable.tbean));
+                if (tTable.tableDefine.isEnumPart()) {
+                    root.addImp(tTable.name + "_Entry", parseEnum(vTable));
+                }
             }
         }
         return root;

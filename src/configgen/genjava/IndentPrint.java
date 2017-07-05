@@ -70,8 +70,12 @@ public class IndentPrint implements Closeable {
 
     private void printlnn(int n, String fmt, Object... args) {
         indent += n;
-        ps.printf(prefix() + fmt, args);
-        ps.println();
+        if (args.length > 0){
+            ps.printf(prefix() + fmt, args);
+            ps.println();
+        }else{
+            ps.println(prefix() + fmt);
+        }
         indent -= n;
     }
 

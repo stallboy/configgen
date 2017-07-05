@@ -34,13 +34,13 @@ public class SchemaInterface implements Schema {
         }
         SchemaInterface si = (SchemaInterface) other;
         if (implementations.size() != si.implementations.size()) {
-            return false;
+            throw new SchemaCompatibleException( "size not compatible with data err, code=" + implementations.size() + ", data=" + si.implementations.size());
         }
         for (Map.Entry<String, Schema> entry : implementations.entrySet()) {
             Schema t1 = entry.getValue();
             Schema t2 = si.implementations.get(entry.getKey());
             if (!t1.compatible(t2)) {
-                return false;
+                throw new SchemaCompatibleException( entry.getKey() + " bean/table not compatible with data err");
             }
         }
         return true;

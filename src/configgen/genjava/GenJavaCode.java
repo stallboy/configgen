@@ -154,22 +154,30 @@ public class GenJavaCode extends Generator {
 
     private void generateTableClass(VTable vtable, IndentPrint mgrPrint) throws IOException {
         boolean isNeedReadData = true;
+        String dataPostfix = "";
         Table define = vtable.tableType.tableDefine;
         if (define.isEnum()) {
-            String postfix = "Enum";
-            if (define.isEnumFull() && define.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
-                postfix = "";
-                isNeedReadData = false;
+            String entryPostfix = "";
+            if (define.isEnumFull()){
+                if (define.isEnumHasOnlyPrimaryKeyAndEnumStr()){
+                    isNeedReadData = false;
+                }else{
+                    dataPostfix = "_Detail";
+                }
+            }else{
+                entryPostfix = "_Entry";
             }
-            Name name = new Name(vtable.tableType.tbean, postfix);
+
+            Name name = new Name(vtable.tableType.tbean, entryPostfix);
+            Name dataName = new Name(vtable.tableType.tbean, dataPostfix);
             File javaFile = dstDir.toPath().resolve(name.path).toFile();
             try (IndentPrint ps = createCode(javaFile, encoding)) {
-                generateEnumClass(vtable, name, ps, define.isEnumFull(), isNeedReadData);
+                generateEnumClass(vtable, name, ps, define.isEnumFull(), isNeedReadData, dataName);
             }
         }
 
         if (isNeedReadData) {
-            Name name = new Name(vtable.tableType.tbean);
+            Name name = new Name(vtable.tableType.tbean, dataPostfix);
             File javaFile = dstDir.toPath().resolve(name.path).toFile();
 
             try (IndentPrint ps = createCode(javaFile, encoding)) {
@@ -208,7 +216,7 @@ public class GenJavaCode extends Generator {
         ps.println("}");
     }
 
-    private void generateEnumClass(VTable vtable, Name name, IndentPrint ps, boolean isFull, boolean isNeedReadData) throws IOException {
+    private void generateEnumClass(VTable vtable, Name name, IndentPrint ps, boolean isFull, boolean isNeedReadData, Name dataName) throws IOException {
         ps.println("package " + name.pkg + ";");
         ps.println();
 
@@ -239,10 +247,10 @@ public class GenJavaCode extends Generator {
             ps.println1("}");
             ps.println();
 
-            ps.println1("public String getValue() {");
-            ps.println2("return value;");
-            ps.println1("}");
-            ps.println();
+//            ps.println1("public String getValue() {");
+//            ps.println2("return value;");
+//            ps.println1("}");
+//            ps.println();
 
         } else {
             int len = vtable.enumName2IntegerValueMap.size();
@@ -272,15 +280,15 @@ public class GenJavaCode extends Generator {
             ps.println1("}");
             ps.println();
 
-            ps.println1("public String getName() {");
-            ps.println2("return name;");
-            ps.println1("}");
-            ps.println();
-
-            ps.println1("public int getValue() {");
-            ps.println2("return value;");
-            ps.println1("}");
-            ps.println();
+//            ps.println1("public String getName() {");
+//            ps.println2("return name;");
+//            ps.println1("}");
+//            ps.println();
+//
+//            ps.println1("public int getValue() {");
+//            ps.println2("return value;");
+//            ps.println1("}");
+//            ps.println();
         }
 
 
@@ -290,7 +298,7 @@ public class GenJavaCode extends Generator {
 
             ps.println1("static {");
             ps.println2("for(%s e : %s.values()) {", name.className, name.className);
-            ps.println3("map.put(e.getValue(), e);");
+            ps.println3("map.put(e.value, e);");
             ps.println2("}");
             ps.println1("}");
             ps.println();
@@ -299,12 +307,52 @@ public class GenJavaCode extends Generator {
             ps.println2("return map.get(value);");
             ps.println1("}");
             ps.println();
+
+            TBean tbean = vtable.tableType.tbean;
+            tbean.columns.forEach((n, t) -> {
+                Column f = tbean.beanDefine.columns.get(n);
+                if (!f.desc.isEmpty()) {
+                    ps.println1("/**");
+                    ps.println1(" * " + f.desc);
+                    ps.println1(" */");
+                }
+                ps.println1("public " + type(t) + " get" + upper1(n) + "() {");
+                if (f.name.equals(vtable.tableType.tableDefine.primaryKey[0]) ) {
+                    ps.println2("return value;");
+                }else if(f.name.equals(vtable.tableType.tableDefine.enumStr)){
+                    ps.println2("return name;");
+                }else{
+                    ps.println2("return ref().get" + upper1(n) + "();");
+                }
+                ps.println1("}");
+                ps.println();
+
+                t.constraint.references.forEach(r -> {
+                    ps.println1("public " + refType(t, r) + " " + lower1(refName(r)) + "() {");
+                    ps.println2("return ref()." + lower1(refName(r)) + "();");
+                    ps.println1("}");
+                    ps.println();
+                });
+            });
+
+            tbean.mRefs.forEach(m -> {
+                ps.println1("public " + fullName(m.refTable) + " " + lower1(refName(m)) + "() {");
+                ps.println2("return ref()." + lower1(refName(m)) + "();");
+                ps.println1("}");
+                ps.println();
+            });
+
+            tbean.listRefs.forEach(l -> {
+                ps.println1("public " + listRefFullName(tbean, l) + " " + lower1(refName(l)) + "() {");
+                ps.println2("return ref()." + lower1(refName(l)) + "();");
+                ps.println1("}");
+                ps.println();
+            });
         }
 
         if (isNeedReadData) {
-            String fullName = name.fullName.substring(0, name.fullName.length() - 4);
-            ps.println1("public %s ref() {", fullName);
-            ps.println2("return %s.get(value);", fullName);
+            ps.println1("public %s ref() {", dataName.fullName);
+            ps.println2("return %s.get(value);", dataName.fullName);
             ps.println1("}");
             ps.println();
         }
@@ -651,17 +699,16 @@ public class GenJavaCode extends Generator {
         Name name = new Name(ttable.tbean);
 
         if (ttable.tableDefine.isEnumFull()) {
-            String pre = name.fullName;
-            if (!ttable.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
-                pre += "Enum";
-            }
-            return pre + ".get(" + actualParam + ");";
-
+            return name.fullName + ".get(" + actualParam + ");";
         } else {
-            String pre = "mgr." + name.containerPrefix;
+                String pre = "mgr." + name.containerPrefix;
 
             if (isPrimaryKey) {//ref to primary key
-                return pre + "All.get(" + actualParam + ");";
+                if (ttable.primaryKey.size() == 1) {
+                    return pre + "All.get(" + actualParam + ");";
+                }else{
+                    return pre + "All.get(new " + name.fullName + "." + multiKeyClassName(ttable.tableDefine.primaryKey) + "(" + actualParam + ") );";
+                }
             } else {
                 if (cols.length == 1) {
                     return pre + uniqueKeyMapName(cols) + ".get(" + actualParam + ");";
@@ -860,9 +907,13 @@ public class GenJavaCode extends Generator {
     }
 
     private String fullName(TTable ttable) {
+        return fullName(ttable.tbean);
+    }
+
+    private String tableDataFullName(TTable ttable) {
         String fn = fullName(ttable.tbean);
-        if (ttable.tableDefine.isEnumFull() && !ttable.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
-            fn += "Enum";
+        if (ttable.tableDefine.isEnumFull() && !ttable.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()){
+            fn = fn + "_Detail";
         }
         return fn;
     }
@@ -909,7 +960,7 @@ public class GenJavaCode extends Generator {
         return String.join(", ", fs.entrySet().stream().map(e -> type(e.getValue()) + " " + lower1(e.getKey())).collect(Collectors.toList()));
     }
 
-    private String actualParams(String[] keys) {
+    private String actualParams(String[] keys){
         return String.join(", ", Arrays.asList(keys).stream().map(Generator::lower1).collect(Collectors.toList()));
     }
 
@@ -1052,7 +1103,7 @@ public class GenJavaCode extends Generator {
                 Name name = new Name(vTable.tableType.tbean);
 
                 ps.println4("case \"%s\":", vTable.name);
-                ps.println5("%s._createAll(mgr, input);", name.fullName);
+                ps.println5("%s._createAll(mgr, input);", tableDataFullName(vTable.tableType));
                 ps.println5("break;");
             }
 
@@ -1068,8 +1119,7 @@ public class GenJavaCode extends Generator {
                 }
 
                 if (vTable.tableType.tbean.hasRef()) {
-                    Name name = new Name(vTable.tableType.tbean);
-                    ps.println2("%s._resolveAll(mgr);", name.fullName);
+                    ps.println2("%s._resolveAll(mgr);", tableDataFullName(vTable.tableType));
                 }
             }
 
@@ -1079,6 +1129,7 @@ public class GenJavaCode extends Generator {
             ps.println("}");
         }
     }
+
 
     private void genConfigSchema(VDb vdb) throws IOException {
         try (IndentPrint ps = createCode(new File(dstDir, "ConfigCodeSchema.java"), encoding)) {

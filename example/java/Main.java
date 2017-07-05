@@ -18,12 +18,16 @@ public class Main {
             Schema dataSchema = Schema.create(input);
             boolean compatible = codeSchema.compatible(dataSchema);
             System.out.println("compatible " + compatible);
-            ConfigMgr mgr = ConfigMgrLoader.load(input);
-            ConfigMgr.setMgr(mgr);
 
-            for (Loot loot : Loot.all()) {
-                System.out.println(loot);
+            if (compatible){
+                ConfigMgr mgr = ConfigMgrLoader.load(input);
+                ConfigMgr.setMgr(mgr);
+
+                for (Loot loot : Loot.all()) {
+                    System.out.println(loot);
+                }
             }
+
         }
     }
 

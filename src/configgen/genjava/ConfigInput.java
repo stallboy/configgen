@@ -51,6 +51,14 @@ public class ConfigInput implements Closeable {
         }
     }
 
+    public int skipBytes(int n) {
+        try {
+            return input.skipBytes(n);
+        } catch (IOException e) {
+            throw new ConfigErr(e);
+        }
+    }
+
     @Override
     public void close() throws IOException {
         input.close();

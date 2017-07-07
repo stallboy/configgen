@@ -19,6 +19,14 @@ public class ConfigOutput implements Closeable {
         }
     }
 
+    public void write(byte b[], int off, int len) {
+        try {
+            output.write(b, off, len);
+        } catch (IOException e) {
+            throw new ConfigErr(e);
+        }
+    }
+
     public void writeInt(int v) {
         try {
             output.writeInt(v);

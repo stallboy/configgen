@@ -33,7 +33,7 @@ public class SchemaInterface implements Schema {
             return false;
         }
         SchemaInterface si = (SchemaInterface) other;
-        if (implementations.size() != si.implementations.size()) {
+        if (implementations.size() > si.implementations.size()) {
             throw new SchemaCompatibleException( "size not compatible with data err, code=" + implementations.size() + ", data=" + si.implementations.size());
         }
         for (Map.Entry<String, Schema> entry : implementations.entrySet()) {

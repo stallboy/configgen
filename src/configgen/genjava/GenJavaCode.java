@@ -1090,11 +1090,13 @@ public class GenJavaCode extends Generator {
 
 
             ps.println2("int c = input.readInt();");
-            ps.println2("if (c != %d) {", cnt);
+            ps.println2("if (c < %d) {", cnt);
             ps.println3("throw new IllegalArgumentException();");
             ps.println2("}");
             ps.println2("for (int i = 0; i < c; i++) {");
-            ps.println3("switch (input.readStr()) {");
+            ps.println3("String tableName = input.readStr();");
+            ps.println3("int tableSize = input.readInt();");
+            ps.println3("switch (tableName) {");
             for (VTable vTable : vdb.vtables.values()) {
                 if (vTable.tableType.tableDefine.isEnumFull() && vTable.tableType.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                     continue;
@@ -1108,7 +1110,8 @@ public class GenJavaCode extends Generator {
             }
 
             ps.println4("default:");
-            ps.println5("throw new IllegalArgumentException();");
+            ps.println5("input.skipBytes(tableSize);");
+            ps.println5("break;");
             ps.println3("}");
             ps.println2("}");
             ps.println();

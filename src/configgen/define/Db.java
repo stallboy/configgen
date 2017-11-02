@@ -40,18 +40,7 @@ public class Db extends Node {
         super(null, "db(" + own + ")");
     }
 
-    public void checkInclude(Db stable) {
-        stable.beans.forEach((sname, sbean) -> {
-            Bean bean = beans.get(sname);
-            require(bean != null, sname + " in stable not in develop version");
-            bean.checkInclude(sbean);
-        });
-        stable.tables.forEach((sname, stab) -> {
-            Table table = tables.get(sname);
-            require(table != null, sname + " in stable not in develop version");
-            table.checkInclude(stab);
-        });
-    }
+
 
     public Table newTable(String tableName) {
         Table t = new Table(this, tableName);

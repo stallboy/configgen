@@ -93,21 +93,6 @@ public class Bean extends Node {
         }
     }
 
-    void checkInclude(Bean stable) {
-        Map<String, Column> allcolumns = new LinkedHashMap<>(columns);
-        stable.columns.forEach((sname, scol) -> {
-            Column col = allcolumns.get(sname);
-            require(col != null, fullName() + "-" + sname + " in stable not in develop version");
-            col.checkInclude(scol);
-        });
-
-        stable.foreignKeys.forEach((sname, sfk) -> {
-            ForeignKey fk = foreignKeys.get(sname);
-            require(fk != null, fullName() + "-" + sname + " in stable not in develop version");
-            fk.checkInclude(sfk);
-        });
-    }
-
     Bean(Table table, String name) {
         super(table, name);
         type = BeanType.Table;

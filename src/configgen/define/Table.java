@@ -95,13 +95,6 @@ public class Table extends Node {
         primaryKey = original.primaryKey;
     }
 
-    void checkInclude(Table stable) {
-        bean.checkInclude(stable.bean);
-        require(Arrays.equals(primaryKey, stable.primaryKey), "primaryKey check include err");
-        stable.uniqueKeys.forEach((n, uk) -> {
-            require(uniqueKeys.containsKey(n), "uniqueKey check include err");
-        });
-    }
 
     Table extract(Db _parent, String own) {
         Table part = new Table(_parent, this);

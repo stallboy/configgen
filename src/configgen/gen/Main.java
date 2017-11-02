@@ -27,7 +27,6 @@ public final class Main {
         System.out.println("	-datadir      data directory.");
         System.out.println("	-xml          default config.xml in datadir.");
         System.out.println("	-encoding     csv and xml encoding. default GBK");
-        System.out.println("   -checkstable  default stableconfig.xml in datadir");
         System.out.println("	-v            verbose, default no");
         Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
         System.out.println("	-pack         zip filename");
@@ -40,8 +39,7 @@ public final class Main {
     public static void main(String[] args) throws Exception {
         String datadir = null;
         String xml = null;
-        boolean checkstable = false;
-        String stablexml = null;
+
         String encoding = "GBK";
         String pack = null;
         String packtext = null;
@@ -67,11 +65,6 @@ public final class Main {
                     break;
                 case "-v":
                     Logger.enableVerbose();
-                    break;
-                case "-checkstable":
-                    checkstable = true;
-                    if (!args[i+1].startsWith("-"))
-                        stablexml = args[++i];
                     break;
                 case "-packtext":
                     packtext = args[++i];
@@ -159,19 +152,12 @@ public final class Main {
         }
 
         File xmlFile = xml != null ? new File(xml) : dir.resolve("config.xml").toFile();
-        File stableXmlFile = null;
-        if (checkstable){
-            Logger.verbose("start check");
-            stableXmlFile = stablexml != null ? new File(stablexml) : dir.resolve("stableconfig.xml").toFile();
-        }
+
 
         Logger.verbose("parse xml " + xmlFile);
         Db define = new Db(xmlFile);
 
-        if (checkstable) {
-            Db stableDefine = new Db(stableXmlFile);
-            define.checkInclude(stableDefine);
-        }
+
 
         //define.dump(System.out);
         TDb type = new TDb(define);

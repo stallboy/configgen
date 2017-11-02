@@ -89,10 +89,6 @@ public class Column extends Node {
         }
     }
 
-    void checkInclude(Column stable) {
-        require(Arrays.equals(parse(stable.type), parse(type)), "type not equal with stableversion");
-    }
-
     Column extract(Bean _parent, String _own) {
         if (own.contains(_own))
             return new Column(_parent, this);

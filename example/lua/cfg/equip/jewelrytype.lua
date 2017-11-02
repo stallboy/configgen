@@ -8,24 +8,14 @@ function jewelrytype:_create(os)
     local o = {}
     setmetatable(o, self)
     self.__index = self
-    o.typeID = os:ReadInt32() -- 饰品类型
     o.typeName = os:ReadString() -- 程序用名字
     return o
 end
 
-function jewelrytype:_assign(other)
-    self.typeID = other.typeID
-    self.typeName = other.typeName
-end
 
 jewelrytype.all = {}
-function jewelrytype.get(typeID)
-    return jewelrytype.all[typeID]
-end
-
-jewelrytype.TypeNameMap = {}
-function jewelrytype.getByTypeName(typeName)
-    return jewelrytype.TypeNameMap[typeName]
+function jewelrytype.get(typeName)
+    return jewelrytype.all[typeName]
 end
 
 function jewelrytype._initialize(os, errors)
@@ -34,8 +24,7 @@ function jewelrytype._initialize(os, errors)
         if #(v.typeName) > 0 then
             jewelrytype[v.typeName] = v
         end
-        jewelrytype.all[v.typeID] = v
-        jewelrytype.TypeNameMap[v.typeName] = v
+        jewelrytype.all[v.typeName] = v
     end
     if jewelrytype.Jade == nil then
         errors.enumNil("equip.jewelrytype", "Jade");
@@ -48,18 +37,6 @@ function jewelrytype._initialize(os, errors)
     end
     if jewelrytype.Bottle == nil then
         errors.enumNil("equip.jewelrytype", "Bottle");
-    end
-end
-
-function jewelrytype._reload(os, errors)
-    local old = jewelrytype.all
-    jewelrytype.all = {}
-    jewelrytype._initialize(os, errors)
-    for k, v in pairs(jewelrytype.all) do
-        local ov = old[k]
-        if ov then
-            ov:_assign(v)
-        end
     end
 end
 

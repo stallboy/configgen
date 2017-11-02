@@ -1,62 +1,55 @@
 package config.equip;
 
-public class Rank {
-    private int rankID;
-    private String rankName;
-    private String rankShowName;
+public enum Rank {
+    WHITE("white", 1),
+    GREEN("green", 2),
+    BLUE("blue", 3),
+    PURPLE("purple", 4),
+    YELLOW("yellow", 5);
 
-    private Rank() {
+    private String name;
+    private int value;
+
+    Rank(String name, int value) {
+        this.name = name;
+        this.value = value;
     }
 
-    public static Rank _create(configgen.genjava.ConfigInput input) {
-        Rank self = new Rank();
-        self.rankID = input.readInt();
-        self.rankName = input.readStr();
-        self.rankShowName = input.readStr();
-        return self;
+    private static java.util.Map<Integer, Rank> map = new java.util.HashMap<>();
+
+    static {
+        for(Rank e : Rank.values()) {
+            map.put(e.value, e);
+        }
+    }
+
+    public static Rank get(int value) {
+        return map.get(value);
     }
 
     /**
      * 稀有度
      */
     public int getRankID() {
-        return rankID;
+        return value;
     }
 
     /**
      * 程序用名字
      */
     public String getRankName() {
-        return rankName;
+        return name;
     }
 
     /**
      * 显示名称
      */
     public String getRankShowName() {
-        return rankShowName;
+        return ref().getRankShowName();
     }
 
-    @Override
-    public String toString() {
-        return "(" + rankID + "," + rankName + "," + rankShowName + ")";
-    }
-
-    public static Rank get(int rankID) {
-        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
-        return mgr.equip_rank_All.get(rankID);
-    }
-
-    public static java.util.Collection<Rank> all() {
-        config.ConfigMgr mgr = config.ConfigMgr.getMgr();
-        return mgr.equip_rank_All.values();
-    }
-
-    public static void _createAll(config.ConfigMgr mgr, configgen.genjava.ConfigInput input) {
-        for (int c = input.readInt(); c > 0; c--) {
-            Rank self = Rank._create(input);
-            mgr.equip_rank_All.put(self.rankID, self);
-        }
+    public config.equip.Rank_Detail ref() {
+        return config.equip.Rank_Detail.get(value);
     }
 
 }

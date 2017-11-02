@@ -6,10 +6,6 @@ namespace Config
 {
     public partial class DataLoot
     {
-        public static DataLoot Combo1 { get; private set; }
-        public static DataLoot Combo2 { get; private set; }
-        public static DataLoot Combo3 { get; private set; }
-
         public int Lootid { get; private set; } // ÐòºÅ
         public string Ename { get; private set; }
         public string Name { get; private set; } // Ãû×Ö
@@ -36,15 +32,15 @@ namespace Config
 
         static Config.KeyedList<int, DataLoot> all = null;
 
-        public static List<DataLoot> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataLoot Get(int lootid)
         {
             DataLoot v;
             return all.TryGetValue(lootid, out v) ? v : null;
+        }
+
+        public static List<DataLoot> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataLoot> Filter(Predicate<DataLoot> predicate)
@@ -64,36 +60,7 @@ namespace Config
             for (var c = os.ReadSize(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(self.Lootid, self);
-                if (self.Ename.Trim().Length == 0)
-                    continue;
-                switch(self.Ename.Trim())
-                {
-                    case "combo1":
-                        if (Combo1 != null)
-                            errors.EnumDup("loot", self.ToString());
-                        Combo1 = self;
-                        break;
-                    case "combo2":
-                        if (Combo2 != null)
-                            errors.EnumDup("loot", self.ToString());
-                        Combo2 = self;
-                        break;
-                    case "combo3":
-                        if (Combo3 != null)
-                            errors.EnumDup("loot", self.ToString());
-                        Combo3 = self;
-                        break;
-                    default:
-                        errors.EnumDataAdd("loot", self.ToString());
-                        break;
-                }
             }
-            if (Combo1 == null)
-                errors.EnumNull("loot", "combo1");
-            if (Combo2 == null)
-                errors.EnumNull("loot", "combo2");
-            if (Combo3 == null)
-                errors.EnumNull("loot", "combo3");
         }
 
         internal static void Resolve(Config.LoadErrors errors) {

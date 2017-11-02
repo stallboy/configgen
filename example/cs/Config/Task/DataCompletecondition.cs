@@ -1,45 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-
 namespace Config.Task
 {
-    public partial class DataCompletecondition
+public abstract class DataCompletecondition
+{
+    public abstract Config.Task.DataCompleteconditiontype type();
+
+    internal virtual void _resolve(Config.LoadErrors errors)
     {
-
-        public DataCompletecondition() {
-        }
-
-        public DataCompletecondition() {
-        }
-
-        public override int GetHashCode()
-        {
-            return ;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null) return false;
-            if (obj == this) return true;
-            var o = obj as DataCompletecondition;
-            return o != null && ;
-        }
-
-        public override string ToString()
-        {
-            return "(" +  + ")";
-        }
-
-        internal static DataCompletecondition _create(Config.Stream os)
-        {
-            var self = new DataCompletecondition();
-            return self;
-        }
-
-        internal void _resolve(Config.LoadErrors errors)
-        {
-	    }
-
     }
+
+    internal static DataCompletecondition _create(Config.Stream os) {
+        switch(os.ReadString()) {
+            case "KillMonster":
+                return Config.Task.Completecondition.DataKillmonster._create(os);
+            case "TalkNpc":
+                return Config.Task.Completecondition.DataTalknpc._create(os);
+            case "CollectItem":
+                return Config.Task.Completecondition.DataCollectitem._create(os);
+        }
+        return null;
+    }
+}
 }

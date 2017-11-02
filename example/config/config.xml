@@ -70,7 +70,7 @@
         <column desc="程序用名字" name="RankName" type="string"/>
         <column desc="显示名称" name="RankShowName" type="string"/>
     </table>
-    <table enumPart="ename" name="loot" primaryKey="lootid">
+    <table name="loot" primaryKey="lootid">
         <column desc="序号" name="lootid" ref="lootitem,lootid"
             refType="LIST" type="int"/>
         <column name="ename" type="string"/>

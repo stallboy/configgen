@@ -19,7 +19,7 @@ public class ConfigMgr {
     public final java.util.Map<Integer, config.equip.Jewelrysuit> equip_jewelrysuit_All = new java.util.LinkedHashMap<>();
 
 
-    public final java.util.Map<Integer, config.equip.Rank> equip_rank_All = new java.util.LinkedHashMap<>();
+    public final java.util.Map<Integer, config.equip.Rank_Detail> equip_rank_All = new java.util.LinkedHashMap<>();
 
     public final java.util.Map<Integer, config.Loot> loot_All = new java.util.LinkedHashMap<>();
 

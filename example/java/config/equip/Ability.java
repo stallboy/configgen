@@ -17,24 +17,30 @@ public enum Ability {
         this.value = value;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
     private static java.util.Map<Integer, Ability> map = new java.util.HashMap<>();
 
     static {
         for(Ability e : Ability.values()) {
-            map.put(e.getValue(), e);
+            map.put(e.value, e);
         }
     }
 
     public static Ability get(int value) {
         return map.get(value);
+    }
+
+    /**
+     * 属性类型
+     */
+    public int getId() {
+        return value;
+    }
+
+    /**
+     * 程序用名字
+     */
+    public String getName() {
+        return name;
     }
 
 }

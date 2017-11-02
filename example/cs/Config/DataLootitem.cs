@@ -30,12 +30,12 @@ namespace Config
             return "(" + Lootid + "," + Itemid + "," + Chance + "," + Countmin + "," + Countmax + ")";
         }
 
-        class Key
+        class LootidItemidKey
         {
             readonly int Lootid;
             readonly int Itemid;
 
-            public Key(int lootid, int itemid)
+            public LootidItemidKey(int lootid, int itemid)
             {
                 this.Lootid = lootid;
                 this.Itemid = itemid;
@@ -49,22 +49,22 @@ namespace Config
             {
                 if (obj == null) return false;
                 if (obj == this) return true;
-                var o = obj as Key;
+                var o = obj as LootidItemidKey;
                 return o != null && Lootid.Equals(o.Lootid) && Itemid.Equals(o.Itemid);
             }
         }
 
-        static Config.KeyedList<Key, DataLootitem> all = null;
-
-        public static List<DataLootitem> All()
-        {
-            return all.OrderedValues;
-        }
+        static Config.KeyedList<LootidItemidKey, DataLootitem> all = null;
 
         public static DataLootitem Get(int lootid, int itemid)
         {
             DataLootitem v;
-            return all.TryGetValue(new Key(lootid, itemid), out v) ? v : null;
+            return all.TryGetValue(new LootidItemidKey(lootid, itemid), out v) ? v : null;
+        }
+
+        public static List<DataLootitem> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataLootitem> Filter(Predicate<DataLootitem> predicate)
@@ -80,10 +80,10 @@ namespace Config
 
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
-            all = new Config.KeyedList<Key, DataLootitem>();
+            all = new Config.KeyedList<LootidItemidKey, DataLootitem>();
             for (var c = os.ReadSize(); c > 0; c--) {
                 var self = _create(os);
-                all.Add(new Key(self.Lootid, self.Itemid), self);
+                all.Add(new LootidItemidKey(self.Lootid, self.Itemid), self);
             }
         }
 

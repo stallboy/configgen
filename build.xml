@@ -8,9 +8,8 @@
     </target>
 
     <target name="compile" depends="init">
-        <javac encoding="GBK" srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true"
+        <javac encoding="UTF-8" srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true"
                debuglevel="lines,source">
-            <compilerarg line="-Xlint:unchecked"/>
         </javac>
     </target>
 

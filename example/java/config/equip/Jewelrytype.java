@@ -12,20 +12,23 @@ public enum Jewelrytype {
         this.value = value;
     }
 
-    public String getValue() {
-        return value;
-    }
-
     private static java.util.Map<String, Jewelrytype> map = new java.util.HashMap<>();
 
     static {
         for(Jewelrytype e : Jewelrytype.values()) {
-            map.put(e.getValue(), e);
+            map.put(e.value, e);
         }
     }
 
     public static Jewelrytype get(String value) {
         return map.get(value);
+    }
+
+    /**
+     * 程序用名字
+     */
+    public String getTypeName() {
+        return value;
     }
 
 }

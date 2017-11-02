@@ -12,10 +12,6 @@ function completeconditiontype:_create(os)
     return o
 end
 
-function completeconditiontype:_assign(other)
-    self.id = other.id
-    self.name = other.name
-end
 
 completeconditiontype.all = {}
 function completeconditiontype.get(id)
@@ -38,18 +34,6 @@ function completeconditiontype._initialize(os, errors)
     end
     if completeconditiontype.CollectItem == nil then
         errors.enumNil("task.completeconditiontype", "CollectItem");
-    end
-end
-
-function completeconditiontype._reload(os, errors)
-    local old = completeconditiontype.all
-    completeconditiontype.all = {}
-    completeconditiontype._initialize(os, errors)
-    for k, v in pairs(completeconditiontype.all) do
-        local ov = old[k]
-        if ov then
-            ov:_assign(v)
-        end
     end
 end
 

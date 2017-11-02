@@ -5,11 +5,13 @@ public class ConfigMgrLoader {
     public static ConfigMgr load(configgen.genjava.ConfigInput input) {
         ConfigMgr mgr = new ConfigMgr();
         int c = input.readInt();
-        if (c != 9) {
+        if (c < 9) {
             throw new IllegalArgumentException();
         }
         for (int i = 0; i < c; i++) {
-            switch (input.readStr()) {
+            String tableName = input.readStr();
+            int tableSize = input.readInt();
+            switch (tableName) {
                 case "equip.jewelry":
                     config.equip.Jewelry._createAll(mgr, input);
                     break;
@@ -20,7 +22,7 @@ public class ConfigMgrLoader {
                     config.equip.Jewelrysuit._createAll(mgr, input);
                     break;
                 case "equip.rank":
-                    config.equip.Rank._createAll(mgr, input);
+                    config.equip.Rank_Detail._createAll(mgr, input);
                     break;
                 case "loot":
                     config.Loot._createAll(mgr, input);
@@ -38,7 +40,8 @@ public class ConfigMgrLoader {
                     config.task.Task._createAll(mgr, input);
                     break;
                 default:
-                    throw new IllegalArgumentException();
+                    input.skipBytes(tableSize);
+                    break;
             }
         }
 

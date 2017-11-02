@@ -16,10 +16,6 @@ function ability:_create(os)
     return o
 end
 
-function ability:_assign(other)
-    self.id = other.id
-    self.name = other.name
-end
 
 ability.all = {}
 function ability.get(id)
@@ -54,18 +50,6 @@ function ability._initialize(os, errors)
     end
     if ability.break_armor == nil then
         errors.enumNil("equip.ability", "break_armor");
-    end
-end
-
-function ability._reload(os, errors)
-    local old = ability.all
-    ability.all = {}
-    ability._initialize(os, errors)
-    for k, v in pairs(ability.all) do
-        local ov = old[k]
-        if ov then
-            ov:_assign(v)
-        end
     end
 end
 

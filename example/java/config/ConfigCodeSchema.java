@@ -35,10 +35,12 @@ public class ConfigCodeSchema {
             s2.addImp("equip.jewelrytype", s3);
         }
         {
-            SchemaBean s3 = new SchemaBean(true);
-            s3.addColumn("RankID", SchemaPrimitive.SInt);
-            s3.addColumn("RankName", SchemaPrimitive.SStr);
-            s3.addColumn("RankShowName", SchemaPrimitive.SStr);
+            SchemaEnum s3 = new SchemaEnum(false, true);
+            s3.addValue("white", 1);
+            s3.addValue("green", 2);
+            s3.addValue("blue", 3);
+            s3.addValue("purple", 4);
+            s3.addValue("yellow", 5);
             s2.addImp("equip.rank", s3);
         }
         {
@@ -46,13 +48,6 @@ public class ConfigCodeSchema {
             s3.addColumn("Level", SchemaPrimitive.SInt);
             s3.addColumn("Rank", SchemaPrimitive.SInt);
             s2.addImp("LevelRank", s3);
-        }
-        {
-            SchemaEnum s3 = new SchemaEnum(true, true);
-            s3.addValue("combo1", 2);
-            s3.addValue("combo2", 3);
-            s3.addValue("combo3", 4);
-            s2.addImp("lootEnum", s3);
         }
         {
             SchemaInterface s3 = new SchemaInterface();
@@ -97,6 +92,13 @@ public class ConfigCodeSchema {
             s2.addImp("monster", s3);
         }
         {
+            SchemaBean s3 = new SchemaBean(true);
+            s3.addColumn("RankID", SchemaPrimitive.SInt);
+            s3.addColumn("RankName", SchemaPrimitive.SStr);
+            s3.addColumn("RankShowName", SchemaPrimitive.SStr);
+            s2.addImp("equip.rank_Detail", s3);
+        }
+        {
             SchemaEnum s3 = new SchemaEnum(false, true);
             s3.addValue("attack", 1);
             s3.addValue("defence", 2);
@@ -106,15 +108,6 @@ public class ConfigCodeSchema {
             s3.addValue("block", 6);
             s3.addValue("break_armor", 7);
             s2.addImp("equip.ability", s3);
-        }
-        {
-            SchemaEnum s3 = new SchemaEnum(false, true);
-            s3.addValue("white", 1);
-            s3.addValue("green", 2);
-            s3.addValue("blue", 3);
-            s3.addValue("purple", 4);
-            s3.addValue("yellow", 5);
-            s2.addImp("equip.rankEnum", s3);
         }
         {
             SchemaBean s3 = new SchemaBean(true);

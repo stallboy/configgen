@@ -37,15 +37,15 @@ namespace Config.Equip
 
         static Config.KeyedList<int, DataAbility> all = null;
 
-        public static List<DataAbility> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataAbility Get(int id)
         {
             DataAbility v;
             return all.TryGetValue(id, out v) ? v : null;
+        }
+
+        public static List<DataAbility> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataAbility> Filter(Predicate<DataAbility> predicate)

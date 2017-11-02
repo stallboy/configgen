@@ -22,18 +22,6 @@ function jewelry:_create(os)
     return o
 end
 
-function jewelry:_assign(other)
-    self.iD = other.iD
-    self.name = other.name
-    self.iconFile = other.iconFile
-    self.lvlRank:_assign(other.lvlRank)
-    self.type = other.type
-    self.suitID = other.suitID
-    self.keyAbility = other.keyAbility
-    self.keyAbilityValue = other.keyAbilityValue
-    self.salePrice = other.salePrice
-    self.description = other.description
-end
 
 jewelry.all = {}
 function jewelry.get(iD)
@@ -44,18 +32,6 @@ function jewelry._initialize(os, errors)
     for _ = 1, os:ReadSize() do
         local v = jewelry:_create(os)
         jewelry.all[v.iD] = v
-    end
-end
-
-function jewelry._reload(os, errors)
-    local old = jewelry.all
-    jewelry.all = {}
-    jewelry._initialize(os, errors)
-    for k, v in pairs(jewelry.all) do
-        local ov = old[k]
-        if ov then
-            ov:_assign(v)
-        end
     end
 end
 

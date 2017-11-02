@@ -29,15 +29,15 @@ namespace Config
 
         static Config.KeyedList<int, DataMonster> all = null;
 
-        public static List<DataMonster> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataMonster Get(int id)
         {
             DataMonster v;
             return all.TryGetValue(id, out v) ? v : null;
+        }
+
+        public static List<DataMonster> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataMonster> Filter(Predicate<DataMonster> predicate)

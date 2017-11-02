@@ -32,15 +32,15 @@ namespace Config
 
         static Config.KeyedList<int, DataSignin> all = null;
 
-        public static List<DataSignin> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataSignin Get(int id)
         {
             DataSignin v;
             return all.TryGetValue(id, out v) ? v : null;
+        }
+
+        public static List<DataSignin> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataSignin> Filter(Predicate<DataSignin> predicate)

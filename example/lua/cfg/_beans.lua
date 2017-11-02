@@ -10,10 +10,6 @@ function Beans.levelrank:_create(os)
     return o
 end
 
-function Beans.levelrank:_assign(other)
-    self.level = other.level
-    self.rank = other.rank
-end
 
 Beans.position = {}
 function Beans.position:_create(os)
@@ -26,11 +22,6 @@ function Beans.position:_create(os)
     return o
 end
 
-function Beans.position:_assign(other)
-    self.x = other.x
-    self.y = other.y
-    self.z = other.z
-end
 
 Beans.range = {}
 function Beans.range:_create(os)
@@ -42,10 +33,6 @@ function Beans.range:_create(os)
     return o
 end
 
-function Beans.range:_assign(other)
-    self.min = other.min
-    self.max = other.max
-end
 
 Beans.task = {}
 Beans.task.completecondition = {}
@@ -70,10 +57,6 @@ function Beans.task.completecondition.killmonster:_create(os)
     return o
 end
 
-function Beans.task.completecondition.killmonster:_assign(other)
-    self.monsterid = other.monsterid
-    self.count = other.count
-end
 
 function Beans.task.completecondition.killmonster:type()
     return 'KillMonster'
@@ -88,9 +71,6 @@ function Beans.task.completecondition.talknpc:_create(os)
     return o
 end
 
-function Beans.task.completecondition.talknpc:_assign(other)
-    self.npcid = other.npcid
-end
 
 function Beans.task.completecondition.talknpc:type()
     return 'TalkNpc'
@@ -106,10 +86,6 @@ function Beans.task.completecondition.collectitem:_create(os)
     return o
 end
 
-function Beans.task.completecondition.collectitem:_assign(other)
-    self.itemid = other.itemid
-    self.count = other.count
-end
 
 function Beans.task.completecondition.collectitem:type()
     return 'CollectItem'

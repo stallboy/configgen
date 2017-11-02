@@ -11,12 +11,11 @@ namespace Config.Equip
         public static DataJewelrytype Magic { get; private set; }
         public static DataJewelrytype Bottle { get; private set; }
 
-        public int TypeID { get; private set; } // 饰品类型
         public string TypeName { get; private set; } // 程序用名字
 
         public override int GetHashCode()
         {
-            return TypeID.GetHashCode();
+            return TypeName.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -24,25 +23,25 @@ namespace Config.Equip
             if (obj == null) return false;
             if (obj == this) return true;
             var o = obj as DataJewelrytype;
-            return o != null && TypeID.Equals(o.TypeID);
+            return o != null && TypeName.Equals(o.TypeName);
         }
 
         public override string ToString()
         {
-            return "(" + TypeID + "," + TypeName + ")";
+            return "(" + TypeName + ")";
         }
 
-        static Config.KeyedList<int, DataJewelrytype> all = null;
+        static Config.KeyedList<string, DataJewelrytype> all = null;
+
+        public static DataJewelrytype Get(string typeName)
+        {
+            DataJewelrytype v;
+            return all.TryGetValue(typeName, out v) ? v : null;
+        }
 
         public static List<DataJewelrytype> All()
         {
             return all.OrderedValues;
-        }
-
-        public static DataJewelrytype Get(int typeID)
-        {
-            DataJewelrytype v;
-            return all.TryGetValue(typeID, out v) ? v : null;
         }
 
         public static List<DataJewelrytype> Filter(Predicate<DataJewelrytype> predicate)
@@ -58,10 +57,10 @@ namespace Config.Equip
 
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
-            all = new Config.KeyedList<int, DataJewelrytype>();
+            all = new Config.KeyedList<string, DataJewelrytype>();
             for (var c = os.ReadSize(); c > 0; c--) {
                 var self = _create(os);
-                all.Add(self.TypeID, self);
+                all.Add(self.TypeName, self);
                 if (self.TypeName.Trim().Length == 0)
                     continue;
                 switch(self.TypeName.Trim())
@@ -104,7 +103,6 @@ namespace Config.Equip
         internal static DataJewelrytype _create(Config.Stream os)
         {
             var self = new DataJewelrytype();
-            self.TypeID = os.ReadInt32();
             self.TypeName = os.ReadString();
             return self;
         }

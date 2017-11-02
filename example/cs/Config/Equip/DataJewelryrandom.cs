@@ -30,15 +30,15 @@ namespace Config.Equip
 
         static Config.KeyedList<Config.DataLevelrank, DataJewelryrandom> all = null;
 
-        public static List<DataJewelryrandom> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataJewelryrandom Get(Config.DataLevelrank lvlRank)
         {
             DataJewelryrandom v;
             return all.TryGetValue(lvlRank, out v) ? v : null;
+        }
+
+        public static List<DataJewelryrandom> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataJewelryrandom> Filter(Predicate<DataJewelryrandom> predicate)

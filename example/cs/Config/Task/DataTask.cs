@@ -33,15 +33,15 @@ namespace Config.Task
 
         static Config.KeyedList<int, DataTask> all = null;
 
-        public static List<DataTask> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataTask Get(int taskid)
         {
             DataTask v;
             return all.TryGetValue(taskid, out v) ? v : null;
+        }
+
+        public static List<DataTask> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataTask> Filter(Predicate<DataTask> predicate)

@@ -40,15 +40,15 @@ namespace Config.Equip
 
         static Config.KeyedList<int, DataJewelry> all = null;
 
-        public static List<DataJewelry> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataJewelry Get(int iD)
         {
             DataJewelry v;
             return all.TryGetValue(iD, out v) ? v : null;
+        }
+
+        public static List<DataJewelry> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataJewelry> Filter(Predicate<DataJewelry> predicate)

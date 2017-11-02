@@ -19,19 +19,6 @@ function jewelrysuit:_create(os)
     return o
 end
 
-function jewelrysuit:_assign(other)
-    self.suitID = other.suitID
-    self.name = other.name
-    self.ability1 = other.ability1
-    self.ability1Value = other.ability1Value
-    self.ability2 = other.ability2
-    self.ability2Value = other.ability2Value
-    self.ability3 = other.ability3
-    self.ability3Value = other.ability3Value
-    for k, v in pairs(other.suitList) do
-        self.suitList[k] = v
-    end
-end
 
 jewelrysuit.all = {}
 function jewelrysuit.get(suitID)
@@ -42,18 +29,6 @@ function jewelrysuit._initialize(os, errors)
     for _ = 1, os:ReadSize() do
         local v = jewelrysuit:_create(os)
         jewelrysuit.all[v.suitID] = v
-    end
-end
-
-function jewelrysuit._reload(os, errors)
-    local old = jewelrysuit.all
-    jewelrysuit.all = {}
-    jewelrysuit._initialize(os, errors)
-    for k, v in pairs(jewelrysuit.all) do
-        local ov = old[k]
-        if ov then
-            ov:_assign(v)
-        end
     end
 end
 

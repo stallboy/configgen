@@ -33,15 +33,15 @@ namespace Config.Task
 
         static Config.KeyedList<int, DataCompleteconditiontype> all = null;
 
-        public static List<DataCompleteconditiontype> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataCompleteconditiontype Get(int id)
         {
             DataCompleteconditiontype v;
             return all.TryGetValue(id, out v) ? v : null;
+        }
+
+        public static List<DataCompleteconditiontype> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataCompleteconditiontype> Filter(Predicate<DataCompleteconditiontype> predicate)

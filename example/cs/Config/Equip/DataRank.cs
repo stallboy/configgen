@@ -36,15 +36,15 @@ namespace Config.Equip
 
         static Config.KeyedList<int, DataRank> all = null;
 
-        public static List<DataRank> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataRank Get(int rankID)
         {
             DataRank v;
             return all.TryGetValue(rankID, out v) ? v : null;
+        }
+
+        public static List<DataRank> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataRank> Filter(Predicate<DataRank> predicate)

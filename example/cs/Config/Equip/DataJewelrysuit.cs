@@ -36,15 +36,15 @@ namespace Config.Equip
 
         static Config.KeyedList<int, DataJewelrysuit> all = null;
 
-        public static List<DataJewelrysuit> All()
-        {
-            return all.OrderedValues;
-        }
-
         public static DataJewelrysuit Get(int suitID)
         {
             DataJewelrysuit v;
             return all.TryGetValue(suitID, out v) ? v : null;
+        }
+
+        public static List<DataJewelrysuit> All()
+        {
+            return all.OrderedValues;
         }
 
         public static List<DataJewelrysuit> Filter(Predicate<DataJewelrysuit> predicate)

@@ -13,24 +13,30 @@ public enum Completeconditiontype {
         this.value = value;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
     private static java.util.Map<Integer, Completeconditiontype> map = new java.util.HashMap<>();
 
     static {
         for(Completeconditiontype e : Completeconditiontype.values()) {
-            map.put(e.getValue(), e);
+            map.put(e.value, e);
         }
     }
 
     public static Completeconditiontype get(int value) {
         return map.get(value);
+    }
+
+    /**
+     * 任务完成条件类型（id的范围为1-100）
+     */
+    public int getId() {
+        return value;
+    }
+
+    /**
+     * 程序用名字
+     */
+    public String getName() {
+        return name;
     }
 
 }

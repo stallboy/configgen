@@ -3,7 +3,7 @@ package configgen.gen;
 import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.define.ForeignKey;
-import configgen.define.Table;
+import configgen.genjava.IndentPrint;
 import configgen.type.*;
 import configgen.value.VDb;
 import configgen.value.VTable;
@@ -49,18 +49,23 @@ public class GenLua extends Generator {
     public void generate(VDb _value) throws IOException {
         File dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = own != null ? extract(_value, own) : _value;
-        try (TabPrintStream ps = createSource(new File(dstDir, "_beans.lua"), encoding)) {
+        try (IndentPrint ps = createCode(new File(dstDir, "_beans.lua"), encoding)) {
             generate_beans(ps);
         }
-        for (VTable c : value.vtables.values()) {
-            Name name = new Name(pkg, c.name);
-            try (TabPrintStream ps = createSource(dstDir.toPath().resolve(name.path).toFile(), encoding)) {
-                generateTable(c.tableType, c, ps);
-            }
-        }
-        try (TabPrintStream ps = createSource(new File(dstDir, "_cfgs.lua"), encoding)) {
+        try (IndentPrint ps = createCode(new File(dstDir, "_cfgs.lua"), encoding)) {
             generate_cfgs(ps);
         }
+        try (IndentPrint ps = createCode(new File(dstDir, "_loads.lua"), encoding)) {
+            generate_loads(ps);
+        }
+
+        for (VTable c : value.vtables.values()) {
+            Name name = new Name(pkg, c.name);
+            //try (IndentPrint ps = createCode(dstDir.toPath().resolve(name.path).toFile(), encoding)) {
+                //generateTable(c.tableType, c, ps);
+            //}
+        }
+
         CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
     }
 
@@ -94,64 +99,58 @@ public class GenLua extends Generator {
         }
     }
 
-    private void generate_beans(TabPrintStream ps) throws IOException {
+    private void generate_beans(IndentPrint ps) {
+        ps.println("local %s = require \"%s._cfgs\"", pkg, pkg);
+        ps.println();
+
         ps.println("local Beans = {}");
-        Set<String> context = new HashSet<>();
-        context.add("Beans");
+        ps.println("%s._beans = Beans", pkg);
+        ps.println();
+        ps.println("local bean = %s._mk.bean", pkg);
+        ps.println("local tbean = %s._mk.tbean", pkg);
+        ps.println();
 
         for (TBean tbean : value.dbType.tbeans.values()) {
             if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
-                define(fullName(tbean), ps, context);
-                generateBaseActionCreate(tbean, ps);
+                ps.println("%s = {}", fullName(tbean));
                 for (TBean actionBean : tbean.actionBeans.values()) {
-                    define(fullName(actionBean), ps, context);
-                    generateCreateAndAssign(actionBean, ps, fullName(actionBean));
-                    generateActionType(actionBean, ps, fullName(actionBean));
+                    ps.println("%s = tbean(\"%s\", %s, %s\n    )", fullName(actionBean), actionBean.name, getLuaRefsString(actionBean), getLuaFieldsString(actionBean));
                 }
             } else {
-                define(fullName(tbean), ps, context);
-                generateCreateAndAssign(tbean, ps, fullName(tbean));
+                ps.println("%s = bean(%s, %s\n    )", fullName(tbean), getLuaRefsString(tbean), getLuaFieldsString(tbean));
             }
         }
+        ps.println();
         ps.println("return Beans");
     }
 
 
-    private void generate_cfgs(TabPrintStream ps) throws IOException {
-        ps.println("local " + pkg + " = {}");
+    private void generate_cfgs(IndentPrint ps) {
+        ps.println("local %s = {}", pkg);
+        ps.println("%s._mk = require \"common.mkcfg\"", pkg);
+
         Set<String> context = new HashSet<>();
         context.add(pkg);
-
         for (TTable c : value.dbType.ttables.values()) {
-            Name name = new Name(pkg, c.tbean.beanDefine.name);
-            define(name.pkg, ps, context);
-            ps.println(name.fullName + " = require(\"" + name.fullName + "\")");
-            context.add(name.fullName);
+            String name = fullName(c);
+            define(name, ps, context);
+            context.add(name);
         }
         ps.println();
-
-        ps.println(initResolve());
-        value.dbType.tbeans.values().stream().filter(TBean::hasRef).forEach(t -> {
-            if (t.beanDefine.type == Bean.BeanType.BaseAction) {
-                for (TBean actionBean : t.actionBeans.values()) {
-                    if (actionBean.hasRef())
-                        generateResolve(actionBean, ps);
-                }
-            }
-            generateResolve(t, ps);
-        });
-        value.dbType.ttables.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> generateResolve(c.tbean, ps));
-        ps.println();
-
-        generateResolveAll(ps);
-        generateInitializeAll(ps);
-        generateLoad(ps);
-
-        ps.println("return " + pkg);
+        ps.println("return %s", pkg);
     }
 
 
-    private void define(String beanName, TabPrintStream ps, Set<String> context) {
+    private void generate_loads(IndentPrint ps) {
+        ps.println("local require = require");
+        ps.println();
+        for (TTable c : value.dbType.ttables.values()) {
+            ps.println("require \"%s\"", fullName(c));
+        }
+        ps.println();
+    }
+
+    private void define(String beanName, IndentPrint ps, Set<String> context) {
         List<String> seps = Arrays.asList(beanName.split("\\."));
         for (int i = 0; i < seps.size(); i++) {
             String pkg = String.join(".", seps.subList(0, i + 1));
@@ -161,20 +160,152 @@ public class GenLua extends Generator {
         }
     }
 
-    private void generateBaseActionCreate(TBean tbean, TabPrintStream ps) {
-        ps.println("function " + fullName(tbean) + ":_create(os)");
-        ps.println1("local s = os:ReadString()");
-        boolean first = true;
-        for (TBean actionBean : tbean.actionBeans.values()) {
-            ps.println1((first ? "if" : "elseif") + " s == '" + actionBean.name + "' then");
-            ps.println2("return " + fullName(actionBean) + ":_create(os)");
-            first = false;
+
+    // uniqkeys : {{allname=, getname=, keyidx1=, keyidx2=}, }
+    private String getLuaUniqKeysString(TTable ttable) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{ ");
+        sb.append(getOneUniqKeyString(ttable, ttable.primaryKey, true));
+        for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
+            sb.append(getOneUniqKeyString(ttable, uniqueKey, false));
         }
-        ps.println1("end");
-        ps.println("end");
+        sb.append("}");
+        return sb.toString();
     }
 
-    private void generateCreateAndAssign(TBean tbean, TabPrintStream ps, String fullName) {
+    private String getOneUniqKeyString(TTable ttable, Map<String, Type> keys, boolean isPrimaryKey) {
+        String allname = isPrimaryKey ? "all" : uniqueKeyMapName(keys);
+        String getname = isPrimaryKey ? "get" : uniqueKeyGetByName(keys);
+
+        Iterator<String> it = keys.keySet().iterator();
+        String key1 = it.next();
+        int keyidx1 = getKeyIdx(ttable.tbean, key1);
+
+        boolean hasKeyIdx2 = false;
+        int keyidx2 = 0;
+        if (keys.size() > 1) {
+            if (keys.size() != 2) {
+                throw new RuntimeException("uniqkeys size != 2 " + ttable.name);
+            }
+            String key2 = it.next();
+            hasKeyIdx2 = true;
+            keyidx2 = getKeyIdx(ttable.tbean, key2);
+        }
+
+        if (hasKeyIdx2) {
+            return String.format("{ allname = \"%s\", getname = \"%s\", keyidx1 = %d, keyidx2 = %d }, ", allname, getname, keyidx1, keyidx2);
+        } else {
+            return String.format("{ allname = \"%s\", getname = \"%s\", keyidx1 = %d }, ", allname, getname, keyidx1);
+        }
+    }
+
+    private String uniqueKeyGetByName(Map<String, Type> keys) {
+        return "getBy" + keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b);
+    }
+
+    private String uniqueKeyMapName(Map<String, Type> keys) {
+        return keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b) + "Map";
+    }
+
+    private String uniqueKeyGetByName(String[] cols) {
+        if (cols.length == 0) //ref to primary key
+            return "get";
+        else
+            return "getBy" + Stream.of(cols).map(Generator::upper1).reduce("", (a, b) -> a + b);
+    }
+
+    // refs { {refname=, dsttable=, dstgetname=, keyidx1=, keyidx2=}, }
+    private String getLuaRefsString(TBean tbean) {
+        StringBuilder sb = new StringBuilder();
+        boolean hasRef = false;
+        sb.append("{ ");
+        int i = 0;
+        for (Type t : tbean.columns.values()) {
+            i++;
+            for (SRef r : t.constraint.references) {
+                String refname = refName(r);
+                String dsttable = fullName(r.refTable);
+                String dstgetname = uniqueKeyGetByName(r.refCols);
+                sb.append(String.format("{ refname = \"%s\", dsttable = %s, dstgetname = \"%s\", keyidx1 = %d }, ", refname, dsttable, dstgetname, i));
+                hasRef = true;
+            }
+        }
+
+        for (TForeignKey mRef : tbean.mRefs) {
+            String refname = refName(mRef);
+            String dsttable = fullName(mRef.refTable);
+            String dstgetname = uniqueKeyGetByName(mRef.foreignKeyDefine.ref.cols);
+            int keyidx1 = getKeyIdx(tbean, mRef.foreignKeyDefine.keys[0]);
+
+            boolean hasKeyIdx2 = false;
+            int keyidx2 = 0;
+            if (mRef.foreignKeyDefine.keys.length > 1) {
+                if (mRef.foreignKeyDefine.keys.length != 2) {
+                    throw new RuntimeException("keys length != 2 " + tbean.name);
+                }
+                hasKeyIdx2 = true;
+                keyidx2 = getKeyIdx(tbean, mRef.foreignKeyDefine.keys[1]);
+            }
+            if (hasKeyIdx2) {
+                sb.append(String.format("{ refname = \"%s\", dsttable = %s, dstgetname = \"%s\", keyidx1 = %d, keyidx2 = %d }, ", refname, dsttable, dstgetname, keyidx1, keyidx2));
+            } else {
+                sb.append(String.format("{ refname = \"%s\", dsttable = %s, dstgetname = \"%s\", keyidx1 = %d }, ", refname, dsttable, dstgetname, keyidx1));
+            }
+            hasRef = true;
+        }
+        sb.append("}");
+        //忽略ListRef
+
+        if (hasRef) {
+            return sb.toString();
+        } else {
+            return "nil";
+        }
+    }
+
+    private int getKeyIdx(TBean tbean, String fieldName) {
+        int i = 0;
+        for (String s : tbean.columns.keySet()) {
+            i++;
+            if (s.equals(fieldName)) {
+                return i;
+            }
+        }
+        throw new RuntimeException("key idx not found " + tbean.name + ", " + fieldName);
+    }
+
+    private String getLuaFieldsString(TBean tbean) {
+        StringBuilder sb = new StringBuilder();
+
+        int cnt = tbean.columns.size();
+        int i = 0;
+        for (String n : tbean.columns.keySet()) {
+            i++;
+            Column f = tbean.beanDefine.columns.get(n);
+            String c = f.desc.isEmpty() ? "" : ", " + f.desc;
+            if (i < cnt) {
+                sb.append("\n    \"").append(lower1(n)).append("\", -- ").append(f.type).append(c);
+            }else{
+                sb.append("\n    \"").append(lower1(n)).append("\"  -- ").append(f.type).append(c);
+            }
+        }
+
+        return sb.toString();
+    }
+
+
+    private void generateMapGetBy(Map<String, Type> keys, String className, IndentPrint ps, boolean isPrimaryKey) {
+        String mapName = isPrimaryKey ? "all" : uniqueKeyMapName(keys);
+        ps.println(className + "." + mapName + " = {}");
+        String getByName = isPrimaryKey ? "get" : uniqueKeyGetByName(keys);
+        ps.println("function " + className + "." + getByName + "(" + formalParams(keys) + ")");
+        ps.println1("return " + className + "." + mapName + "[" + actualParams(keys, "") + "]");
+        ps.println("end");
+        ps.println();
+    }
+
+
+    private void generateCreateAndAssign(TBean tbean, IndentPrint ps, String fullName) {
         ps.println("function " + fullName + ":_create(os)");
         ps.println1("local o = {}");
         ps.println1("setmetatable(o, self)");
@@ -209,14 +340,7 @@ public class GenLua extends Generator {
         ps.println();
     }
 
-    private void generateActionType(TBean actionBean, TabPrintStream ps, String fullName) {
-        ps.println("function " + fullName + ":type()");
-        ps.println1("return '" + actionBean.name + "'");
-        ps.println("end");
-        ps.println();
-    }
-
-    private void generateTable(TTable ttable, VTable vtable, TabPrintStream ps) {
+    private void generateTable(TTable ttable, VTable vtable, IndentPrint ps) {
         String className = new Name(pkg, ttable.name).className;
         if (ttable.tbean.hasSubBean()) {
             ps.println("local Beans = require(\"" + pkg + "._beans\")");
@@ -261,216 +385,18 @@ public class GenLua extends Generator {
         ps.println("return " + className);
     }
 
-    private void generateMapGetBy(Map<String, Type> keys, String className, TabPrintStream ps, boolean isPrimaryKey) {
-        String mapName = isPrimaryKey ? "all" : uniqueKeyMapName(keys);
-        ps.println(className + "." + mapName + " = {}");
-        String getByName = isPrimaryKey ? "get" : uniqueKeyGetByName(keys);
-        ps.println("function " + className + "." + getByName + "(" + formalParams(keys) + ")");
-        ps.println1("return " + className + "." + mapName + "[" + actualParams(keys, "") + "]");
-        ps.println("end");
-        ps.println();
-    }
-
-    private String uniqueKeyGetByName(Map<String, Type> keys) {
-        return "getBy" + keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b);
-    }
-
-    private String uniqueKeyMapName(Map<String, Type> keys) {
-        return keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b) + "Map";
-    }
-
-    private void generateAllMapPut(TTable ttable, String className, TabPrintStream ps) {
+    private void generateAllMapPut(TTable ttable, String className, IndentPrint ps) {
         generateMapPut(ttable.primaryKey, className, ps, true);
         for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
             generateMapPut(uniqueKey, className, ps, false);
         }
     }
 
-    private void generateMapPut(Map<String, Type> keys, String className, TabPrintStream ps, boolean isPrimaryKey) {
+    private void generateMapPut(Map<String, Type> keys, String className, IndentPrint ps, boolean isPrimaryKey) {
         String mapName = isPrimaryKey ? "all" : uniqueKeyMapName(keys);
         ps.println2(className + "." + mapName + "[" + actualParams(keys, "v.") + "] = v");
     }
 
-    private void generateResolve(TBean tbean, TabPrintStream ps) {
-        String csv = "\"" + tbean.beanDefine.name + "\"";
-
-        ps.println("function " + resolveFuncName(tbean) + "(o, errors)");
-        if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
-            boolean first = true;
-            for (TBean actionBean : tbean.actionBeans.values()) {
-                if (actionBean.hasRef()) {
-                    ps.println1((first ? "if" : "elseif") + " o:type() == '" + actionBean.name + "' then");
-                    ps.println2(resolveFuncName(actionBean) + "(o, errors)");
-                    first = false;
-                }
-            }
-            ps.println1("end");
-        }
-        tbean.columns.forEach((n, t) -> {
-                    if (t.hasRef()) {
-                        String field = "\"" + n + "\"";
-                        if (t instanceof TList) {
-                            TList tt = (TList) t;
-                            if (tt.value instanceof TBean && tt.value.hasRef()) {
-                                ps.println1("for _, v in ipairs(o." + lower1(n) + ") do");
-                                ps.println2(resolveFuncName((TBean) tt.value) + "(v, errors)");
-                                ps.println1("end");
-                            }
-                            for (SRef sr : t.constraint.references) {
-                                ps.println1("o." + refName(sr) + " = {}");
-                                ps.println1("for _, v in ipairs(o." + lower1(n) + ") do");
-                                ps.println2("local r = " + tableGet(sr.refTable, sr.refCols, "v"));
-                                ps.println2("if r == nil then");
-                                ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
-                                ps.println2("end");
-                                ps.println2("table.insert(o." + refName(sr) + ", r)");
-                                ps.println1("end");
-                            }
-                        } else if (t instanceof TMap) {
-                            TMap tt = (TMap) t;
-                            if (tt.value instanceof TBean && tt.value.hasRef()) {
-                                ps.println1("for _, v in pairs(o." + lower1(n) + ") do");
-                                ps.println2(resolveFuncName((TBean) tt.value) + "(v, errors)");
-                                ps.println1("end");
-                            }
-                            t.constraint.references.stream().filter(sr -> sr.refTable != null).forEach(sr -> {
-                                ps.println1("o." + refName(sr) + " = {}");
-                                ps.println1("for k, v in pairs(o." + lower1(n) + ") do");
-                                ps.println2("local r = " + tableGet(sr.refTable, sr.refCols, "v"));
-                                ps.println2("if r == nil then");
-                                ps.println3("errors.refNil(" + csv + ", " + field + ", v)");
-                                ps.println2("end");
-                                ps.println2("o." + refName(sr) + "[k] = r");
-                                ps.println1("end");
-                            });
-                        } else {
-                            if (t instanceof TBean && t.hasRef()) {
-                                ps.println1(resolveFuncName((TBean) t) + "(o." + lower1(n) + ", errors)");
-                            }
-                            for (SRef sr : t.constraint.references) {
-                                ps.println1("o." + refName(sr) + " = " + tableGet(sr.refTable, sr.refCols, "o." + lower1(n)));
-                                if (!sr.refNullable) {
-                                    ps.println1("if o." + refName(sr) + " == nil then");
-                                    ps.println2("errors.refNil(" + csv + ", " + field + ", o." + lower1(n) + ")");
-                                    ps.println1("end");
-                                }
-                            }
-                        }
-                    }
-                }
-        );
-
-        tbean.mRefs.forEach(m -> {
-                    ps.println1("o." + refName(m) + " = " + tableGet(m.refTable, m.foreignKeyDefine.ref.cols, actualParams(m.foreignKeyDefine.keys, "o.")));
-                    if (m.foreignKeyDefine.refType != ForeignKey.RefType.NULLABLE) {
-                        ps.println1("if o." + refName(m) + " == nil then");
-                        ps.println2("errors.refNil(" + csv + ", \"" + m.foreignKeyDefine.name + "\", 0)");
-                        ps.println1("end");
-                    }
-                }
-        );
-
-        tbean.listRefs.forEach(l -> {
-                    boolean gen = false;
-                    if (l.foreignKeyDefine.keys.length == 1) {
-                        String k = l.foreignKeyDefine.keys[0];
-                        String rk = l.foreignKeyDefine.ref.cols[0];
-                        Type col = tbean.columns.get(k);
-                        if (col instanceof TList) {
-                            ps.println1("for _, lv in ipairs(o." + lower1(k) + ") do");
-                            ps.println2("local lt = {}");
-                            ps.println2("for _, v in pairs(" + fullName(l.refTable) + ".all) do");
-                            ps.println3("if v." + lower1(rk) + " == lv then");
-                            ps.println4("table.insert(lt, v)");
-                            ps.println3("end");
-                            ps.println2("end");
-                            ps.println2("table.insert(o." + refName(l) + ", lt)");
-                            ps.println1("end");
-                            gen = true;
-                        } else if (col instanceof TMap) {
-                            //TODO
-                            gen = true;
-                        }
-                    }
-
-                    if (!gen) {
-                        ps.println1("for _, v in pairs(" + fullName(l.refTable) + ".all) do");
-                        List<String> eqs = new ArrayList<>();
-                        for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {
-                            String k = l.foreignKeyDefine.keys[i];
-                            String rk = l.foreignKeyDefine.ref.cols[i];
-                            eqs.add("v." + lower1(rk) + " == o." + lower1(k));
-                        }
-                        ps.println2("if " + String.join(" and ", eqs) + " then");
-                        ps.println3("table.insert(o." + refName(l) + ", v)");
-                        ps.println2("end");
-                        ps.println1("end");
-                    }
-                }
-        );
-
-        ps.println("end");
-        ps.println();
-    }
-
-    private void generateResolveAll(TabPrintStream ps) {
-        ps.println("local function _resolveAll(errors)");
-        value.dbType.ttables.values().stream().filter(c -> c.tbean.hasRef()).forEach(c -> {
-            ps.println1("for _, v in pairs(" + fullName(c) + ".all) do");
-            ps.println2(resolveFuncName(c.tbean) + "(v, errors)");
-            ps.println1("end");
-        });
-        ps.println("end");
-        ps.println();
-    }
-
-    private void generateInitializeAll(TabPrintStream ps) throws IOException {
-        appendFile("errors.lua", ps.ps);
-        ps.println();
-
-        ps.println(pkg + ".Errors = errors");
-        ps.println(pkg + ".Reload = false");
-
-        ps.println("function " + pkg + ".CSVProcessor(os)");
-        ps.println1("local cfgNils = {}");
-        for (String name : value.dbType.ttables.keySet()) {
-            ps.println1("cfgNils[\"" + name + "\"] = 1");
-        }
-
-        ps.println1("while true do");
-        ps.println2("local c = os:ReadCfg()");
-        ps.println2("if c == nil then");
-        ps.println3("break");
-        ps.println2("end");
-        ps.println2("cfgNils[c] = nil");
-        ps.println2("local cc = _get(" + pkg + ", c)");
-        ps.println2("if cc == nil then");
-        ps.println3("errors.cfgDataAdd(c)");
-        ps.println2("elseif " + pkg + ".Reload then");
-        ps.println3("cc._reload(os, errors)");
-        ps.println2("else");
-        ps.println3("cc._initialize(os, errors)");
-        ps.println2("end");
-        ps.println1("end");
-
-        ps.println1("for c, _ in pairs(cfgNils) do");
-        ps.println2("errors.cfgNil(c)");
-        ps.println1("end");
-
-        ps.println1("_resolveAll(errors)");
-
-        ps.println("end");
-        ps.println();
-    }
-
-    private void generateLoad(TabPrintStream ps) {
-        ps.println("function " + pkg + ".Load(packDir, behaviour, done)");
-        ps.println1("Config.CSVLoader.Processor = " + pkg + ".CSVProcessor");
-        ps.println1("Config.CSVLoader.Done = done");
-        ps.println1("Config.CSVLoader.LoadPack(packDir, behaviour)");
-        ps.println("end");
-        ps.println();
-    }
 
     private String formalParams(Map<String, Type> fs) {
         return String.join(", ", fs.keySet().stream().map(Generator::lower1).collect(Collectors.toList()));
@@ -512,21 +438,6 @@ public class GenLua extends Generator {
 
     private String fullName(TTable ttable) {
         return fullName(ttable.tbean);
-    }
-
-    private String tableGet(TTable ttable, String[] cols, String actualParam) {
-        if (cols.length == 0) //ref to primary key
-            return fullName(ttable) + ".get(" + actualParam + ")";
-        else
-            return fullName(ttable) + ".getBy" + Stream.of(cols).map(Generator::upper1).reduce("", (a, b) -> a + b) + "(" + actualParam + ")";
-    }
-
-    private static String initResolve() {
-        return "local _resolve_ = {}";
-    }
-
-    private String resolveFuncName(TBean tbean) {
-        return "_resolve_." + fullName(tbean).replace(".", "_");
     }
 
     private String _create(Type t) {
@@ -571,14 +482,5 @@ public class GenLua extends Generator {
                 return fullName(type) + ":_create(os)";
             }
         });
-    }
-
-    private void appendFile(String file, PrintStream ps) throws IOException {
-        try (InputStream is = getClass().getResourceAsStream("/support/" + file);
-             BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/support/" + file), "GBK"))) {
-            for (String line = br.readLine(); line != null; line = br.readLine()) {
-                ps.println(line);
-            }
-        }
     }
 }

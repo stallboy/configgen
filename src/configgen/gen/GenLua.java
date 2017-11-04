@@ -109,17 +109,18 @@ public class GenLua extends Generator {
         Set<String> context = new HashSet<>();
         context.add(pkg);
         for (TTable c : value.dbType.ttables.values()) {
-            String name = fullName(c);
-            define(name, ps, context);
-            context.add(name);
+            String full = fullName(c);
+            definePkg(full, ps, context);
+            ps.println("%s = {}", full);
+            context.add(full);
         }
         ps.println();
         ps.println("return %s", pkg);
     }
 
-    private void define(String beanName, IndentPrint ps, Set<String> context) {
+    private void definePkg(String beanName, IndentPrint ps, Set<String> context) {
         List<String> seps = Arrays.asList(beanName.split("\\."));
-        for (int i = 0; i < seps.size(); i++) {
+        for (int i = 0; i < seps.size() - 1; i++) {
             String pkg = String.join(".", seps.subList(0, i + 1));
             if (context.add(pkg)) {
                 ps.println(pkg + " = {}");
@@ -148,16 +149,25 @@ public class GenLua extends Generator {
         ps.println("local action = %s._mk.action", pkg);
         ps.println();
 
+        Set<String> context = new HashSet<>();
+        context.add("Beans");
         for (TBean tbean : value.dbType.tbeans.values()) {
+            String full = fullName(tbean);
+            definePkg(full, ps, context);
+            context.add(full);
+
             if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
-                ps.println("%s = {}", fullName(tbean));
+                ps.println("%s = {}", full);
                 for (TBean actionBean : tbean.actionBeans.values()) {
                     //function mkcfg.action(typeName, refs, ...)
-                    ps.println("%s = action(\"%s\", %s, %s\n    )", fullName(actionBean), actionBean.name, getLuaRefsString(actionBean), getLuaFieldsString(actionBean));
+                    String fulln = fullName(actionBean);
+                    definePkg(fulln, ps, context);
+                    context.add(fulln);
+                    ps.println("%s = action(\"%s\", %s, %s\n    )", fulln, actionBean.name, getLuaRefsString(actionBean), getLuaFieldsString(actionBean));
                 }
             } else {
                 //function mkcfg.bean(refs, ...)
-                ps.println("%s = bean(%s, %s\n    )", fullName(tbean), getLuaRefsString(tbean), getLuaFieldsString(tbean));
+                ps.println("%s = bean(%s, %s\n    )", full, getLuaRefsString(tbean), getLuaFieldsString(tbean));
             }
         }
         ps.println();
@@ -194,30 +204,52 @@ public class GenLua extends Generator {
         thisValue.accept(new ValueVisitor() {
             @Override
             public void visit(VBool value) {
-                v[0] = String.valueOf(value.value);
+                String val = value.value ? "true" : "false";
+                if (asKey) {
+                    v[0] = String.format("[%s]", val);
+                } else {
+                    v[0] = val;
+                }
             }
 
             @Override
             public void visit(VInt value) {
-                v[0] = String.valueOf(value.value);
+                if (asKey) {
+                    v[0] = String.format("[%s]", String.valueOf(value.value));
+                } else {
+                    v[0] = String.valueOf(value.value);
+                }
             }
 
             @Override
             public void visit(VLong value) {
-                v[0] = String.valueOf(value.value);
+                if (asKey) {
+                    v[0] = String.format("[%s]", String.valueOf(value.value));
+                } else {
+                    v[0] = String.valueOf(value.value);
+                }
             }
 
             @Override
             public void visit(VFloat value) {
-                v[0] = String.valueOf(value.value);
+                if (asKey) {
+                    v[0] = String.format("[%s]", String.valueOf(value.value));
+                } else {
+                    v[0] = String.valueOf(value.value);
+                }
             }
 
             @Override
             public void visit(VString value) {
                 String val = value.value.replace("\r\n", "\\n");
-                String val2 = val.replace("\n", "\\n");
+                val = val.replace("\n", "\\n");
+                String val2 = val.replace("\"", "\\\"");
                 if (asKey) {
-                    v[0] = val2;
+                    if (keywords.contains(val2)) {
+                        v[0] = String.format("[\"%s\"]", val2);
+                    } else {
+                        v[0] = val2;
+                    }
                 } else {
                     v[0] = String.format("\"%s\"", val2);
                 }
@@ -268,6 +300,7 @@ public class GenLua extends Generator {
         return v[0];
     }
 
+    private static Set<String> keywords = new HashSet<>(Arrays.asList("break", "goto", "do", "end", "for", "in", "repeat", "util", "while", "if", "then", "elseif", "function", "local", "nil", "true", "false"));
 
     // uniqkeys : {{allname=, getname=, keyidx1=, keyidx2=}, }
     private String getLuaUniqKeysString(TTable ttable) {
@@ -316,7 +349,7 @@ public class GenLua extends Generator {
         }
     }
 
-    // refs { {refname, dsttable, dstgetname, keyidx1, keyidx2}, }
+    // refs { {refname, islist, dsttable, dstgetname, keyidx1, keyidx2}, }
     private String getLuaRefsString(TBean tbean) {
         StringBuilder sb = new StringBuilder();
         boolean hasRef = false;
@@ -325,10 +358,18 @@ public class GenLua extends Generator {
         for (Type t : tbean.columns.values()) {
             i++;
             for (SRef r : t.constraint.references) {
+                if (t instanceof TMap) {
+                    System.out.println("map sref not suppport, bean=" + tbean.name);
+                    break;
+                }
                 String refname = refName(r);
                 String dsttable = fullName(r.refTable);
                 String dstgetname = uniqueKeyGetByName(r.refCols);
-                sb.append(String.format("\n    { \"%s\", %s, \"%s\", %d }, ", refname, dsttable, dstgetname, i));
+                String islist = "false";
+                if (t instanceof TList) {
+                    islist = "true";
+                }
+                sb.append(String.format("\n    { \"%s\", %s, %s, \"%s\", %d }, ", refname, islist, dsttable, dstgetname, i));
                 hasRef = true;
             }
         }
@@ -349,9 +390,9 @@ public class GenLua extends Generator {
                 keyidx2 = findFieldIdx(tbean, mRef.foreignKeyDefine.keys[1]);
             }
             if (hasKeyIdx2) {
-                sb.append(String.format("\n    { \"%s\", %s, \"%s\", %d, %d }, ", refname, dsttable, dstgetname, keyidx1, keyidx2));
+                sb.append(String.format("\n    { \"%s\", false, %s, \"%s\", %d, %d }, ", refname, dsttable, dstgetname, keyidx1, keyidx2));
             } else {
-                sb.append(String.format("\n    { \"%s\", %s, \"%s\", %d }, ", refname, dsttable, dstgetname, keyidx1));
+                sb.append(String.format("\n    { \"%s\", false, %s, \"%s\", %d }, ", refname, dsttable, dstgetname, keyidx1));
             }
             hasRef = true;
         }

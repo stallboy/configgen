@@ -179,20 +179,25 @@ public class GenLua extends Generator {
         TBean tbean = ttable.tbean;
 
         ps.println("local %s = require \"%s._cfgs\"", pkg, pkg);
-        ps.println();
-
         if (ttable.tbean.hasSubBean()) {
             ps.println("local Beans = %s._beans", pkg);
-            ps.println();
         }
+        ps.println();
+
+
+        ps.println("local this = %s", name.fullName);
+        ps.println();
 
         //function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
-        ps.println("local mk = %s._mk.table(%s, %s, %s, %s, %s\n    )", pkg, name.fullName, getLuaUniqKeysString(ttable), getLuaEnumIdxString(ttable), getLuaRefsString(tbean), getLuaFieldsString(tbean));
+        ps.println("local mk = %s._mk.table(this, %s, %s, %s, %s\n    )", pkg, getLuaUniqKeysString(ttable), getLuaEnumIdxString(ttable), getLuaRefsString(tbean), getLuaFieldsString(tbean));
         ps.println();
 
         for (VBean vBean : vtable.vbeanList) {
             ps.println(getLuaValueString(vBean, "mk", false));
         }
+
+        ps.println();
+        ps.println("return this");
     }
 
     private String getLuaValueString(Value thisValue) {
@@ -289,7 +294,7 @@ public class GenLua extends Generator {
                 }
 
                 List<String> list = new ArrayList<>();
-                for (Value fieldValue : value.valueMap.values()) {
+                for (Value fieldValue : val.valueMap.values()) {
                     list.add(getLuaValueString(fieldValue));
                 }
                 String params = String.join(", ", list);

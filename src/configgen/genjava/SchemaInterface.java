@@ -1,12 +1,13 @@
 package configgen.genjava;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 // 这个既是总入口，又是多态bean
 public class SchemaInterface implements Schema {
 
-    public final Map<String, Schema> implementations = new HashMap<>(); //包含SchemaBean和SchemaEnum
+    public final Map<String, Schema> implementations = new LinkedHashMap<>(); //包含SchemaBean和SchemaEnum
 
     public SchemaInterface(ConfigInput input) {
         int size = input.readInt();

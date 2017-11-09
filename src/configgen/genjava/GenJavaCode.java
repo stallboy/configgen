@@ -158,13 +158,13 @@ public class GenJavaCode extends Generator {
         Table define = vtable.tableType.tableDefine;
         if (define.isEnum()) {
             String entryPostfix = "";
-            if (define.isEnumFull()){
-                if (define.isEnumHasOnlyPrimaryKeyAndEnumStr()){
+            if (define.isEnumFull()) {
+                if (define.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                     isNeedReadData = false;
-                }else{
+                } else {
                     dataPostfix = "_Detail";
                 }
-            }else{
+            } else {
                 entryPostfix = "_Entry";
             }
 
@@ -317,11 +317,11 @@ public class GenJavaCode extends Generator {
                     ps.println1(" */");
                 }
                 ps.println1("public " + type(t) + " get" + upper1(n) + "() {");
-                if (f.name.equals(vtable.tableType.tableDefine.primaryKey[0]) ) {
+                if (f.name.equals(vtable.tableType.tableDefine.primaryKey[0])) {
                     ps.println2("return value;");
-                }else if(f.name.equals(vtable.tableType.tableDefine.enumStr)){
+                } else if (f.name.equals(vtable.tableType.tableDefine.enumStr)) {
                     ps.println2("return name;");
-                }else{
+                } else {
                     ps.println2("return ref().get" + upper1(n) + "();");
                 }
                 ps.println1("}");
@@ -701,12 +701,12 @@ public class GenJavaCode extends Generator {
         if (ttable.tableDefine.isEnumFull()) {
             return name.fullName + ".get(" + actualParam + ");";
         } else {
-                String pre = "mgr." + name.containerPrefix;
+            String pre = "mgr." + name.containerPrefix;
 
             if (isPrimaryKey) {//ref to primary key
                 if (ttable.primaryKey.size() == 1) {
                     return pre + "All.get(" + actualParam + ");";
-                }else{
+                } else {
                     return pre + "All.get(new " + name.fullName + "." + multiKeyClassName(ttable.tableDefine.primaryKey) + "(" + actualParam + ") );";
                 }
             } else {
@@ -912,7 +912,7 @@ public class GenJavaCode extends Generator {
 
     private String tableDataFullName(TTable ttable) {
         String fn = fullName(ttable.tbean);
-        if (ttable.tableDefine.isEnumFull() && !ttable.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()){
+        if (ttable.tableDefine.isEnumFull() && !ttable.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
             fn = fn + "_Detail";
         }
         return fn;
@@ -960,7 +960,7 @@ public class GenJavaCode extends Generator {
         return String.join(", ", fs.entrySet().stream().map(e -> type(e.getValue()) + " " + lower1(e.getKey())).collect(Collectors.toList()));
     }
 
-    private String actualParams(String[] keys){
+    private String actualParams(String[] keys) {
         return String.join(", ", Arrays.asList(keys).stream().map(Generator::lower1).collect(Collectors.toList()));
     }
 
@@ -1145,16 +1145,7 @@ public class GenJavaCode extends Generator {
             ps.println("public class ConfigCodeSchema {");
             ps.println();
 
-            ps.println1("public static Schema getCodeSchema() {");
-            ps.inc();
-            ps.inc();
-            String v = "s" + ps.indent();
             GenJavaCodeSchema.print(GenSchema.parse(vdb), ps);
-            ps.dec();
-            ps.dec();
-            ps.println2("return %s;", v);
-
-            ps.println1("}");
             ps.println("}");
 
         }

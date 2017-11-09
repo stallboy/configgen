@@ -4,8 +4,34 @@ import java.util.Map;
 
 public final class GenJavaCodeSchema {
 
-    public static void print(SchemaInterface si, IndentPrint ip) {
-        si.accept(new Visitor() {
+
+    public static void print(SchemaInterface schemaInterface, IndentPrint ip) {
+        {
+            ip.println1("public static Schema getCodeSchema() {");
+            ip.inc();
+            ip.inc();
+
+            String name = "schema";
+            ip.println("SchemaInterface %s = new SchemaInterface();", name);
+            for (Map.Entry<String, Schema> stringSchemaEntry : schemaInterface.implementations.entrySet()) {
+                ip.println("{");
+                ip.inc();
+                String key = stringSchemaEntry.getKey();
+                String func = key.replace('.', '_');
+                ip.println("%s.addImp(\"%s\", %s());", name, key, func);
+                ip.dec();
+                ip.println("}");
+            }
+
+            ip.dec();
+            ip.dec();
+            ip.println2("return %s;", name);
+            ip.println1("}");
+            ip.println();
+        }
+
+
+        Visitor visitor = new Visitor() {
             @Override
             public void visit(SchemaPrimitive schemaPrimitive) {
                 throw new IllegalStateException();
@@ -62,7 +88,24 @@ public final class GenJavaCodeSchema {
                     }
                 }
             }
-        });
+        };
+
+        for (Map.Entry<String, Schema> stringSchemaEntry : schemaInterface.implementations.entrySet()) {
+            String key = stringSchemaEntry.getKey();
+            String func = key.replace('.', '_');
+            String name = "s" + ip.indent();
+            ip.println1("private static Schema %s() {", func);
+            ip.inc();
+            ip.inc();
+
+            stringSchemaEntry.getValue().accept(visitor);
+
+            ip.dec();
+            ip.dec();
+            ip.println2("return %s;", name);
+            ip.println1("}");
+            ip.println();
+        }
     }
 
 

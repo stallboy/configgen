@@ -14,13 +14,9 @@ public final class GenJavaCodeSchema {
             String name = "schema";
             ip.println("SchemaInterface %s = new SchemaInterface();", name);
             for (Map.Entry<String, Schema> stringSchemaEntry : schemaInterface.implementations.entrySet()) {
-                ip.println("{");
-                ip.inc();
                 String key = stringSchemaEntry.getKey();
                 String func = key.replace('.', '_');
                 ip.println("%s.addImp(\"%s\", %s());", name, key, func);
-                ip.dec();
-                ip.println("}");
             }
 
             ip.dec();
@@ -93,11 +89,12 @@ public final class GenJavaCodeSchema {
         for (Map.Entry<String, Schema> stringSchemaEntry : schemaInterface.implementations.entrySet()) {
             String key = stringSchemaEntry.getKey();
             String func = key.replace('.', '_');
-            String name = "s" + ip.indent();
+
             ip.println1("private static Schema %s() {", func);
             ip.inc();
             ip.inc();
 
+            String name = "s" + ip.indent();
             stringSchemaEntry.getValue().accept(visitor);
 
             ip.dec();

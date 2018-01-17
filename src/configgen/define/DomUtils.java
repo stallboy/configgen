@@ -52,16 +52,20 @@ public final class DomUtils {
         DOMImplementation impl = document.getImplementation();
         Object f = impl.getFeature("LS", "3.0");
         if (f != null) {
-            DOMImplementationLS ls = (DOMImplementationLS) f;
-            LSSerializer s = ls.createLSSerializer();
-            s.setNewLine("\r\n");
-            DOMConfiguration cfg = s.getDomConfig();
-            cfg.setParameter("format-pretty-print", Boolean.TRUE);
-            LSOutput dst = ls.createLSOutput();
-            dst.setEncoding(encoding);
-            dst.setByteStream(destination);
-            s.write(document, dst);
-            return;
+            try {
+                DOMImplementationLS ls = (DOMImplementationLS) f;
+                LSSerializer s = ls.createLSSerializer();
+                s.setNewLine("\r\n");
+                DOMConfiguration cfg = s.getDomConfig();
+                cfg.setParameter("format-pretty-print", Boolean.TRUE);
+                LSOutput dst = ls.createLSOutput();
+                dst.setEncoding(encoding);
+                dst.setByteStream(destination);
+                s.write(document, dst);
+                return;
+            }catch (Exception e){
+                // java9 s.write会报不支持encoding的异常
+            }
         }
 
         try {

@@ -250,7 +250,7 @@ public class GenLua extends Generator {
                 val = val.replace("\n", "\\n");
                 String val2 = val.replace("\"", "\\\"");
                 if (asKey) {
-                    if (keywords.contains(val2)) {
+                    if (keywords.contains(val2) || val2.contains("-") || val2.contains("=") || val2.contains(",")) {
                         v[0] = String.format("[\"%s\"]", val2);
                     } else {
                         v[0] = val2;

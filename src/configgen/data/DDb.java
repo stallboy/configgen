@@ -45,20 +45,24 @@ public class DDb extends Node {
         Db db = tdb.dbDefine;
         Map<String, TTable> old = new HashMap<>(tdb.ttables);
         db.tables.clear();
-        dtables.forEach((k, data) -> {
-            TTable ttable = old.remove(k);
+        for (DTable dTable : dtables.values()) {
+            TTable ttable = old.remove(dTable.name);
             Table tableDefine;
             if (ttable != null) {
                 tableDefine = ttable.tableDefine;
-                db.tables.put(k, tableDefine);
+                db.tables.put(dTable.name, tableDefine);
             } else {
-                tableDefine = db.newTable(k);
+                tableDefine = db.newTable(dTable.name);
                 Logger.verbose("new table " + tableDefine.fullName());
             }
 
-            data.parse(ttable);
-            data.autoCompleteDefine(tableDefine);
-        });
+            try {
+                dTable.parse(ttable);
+                dTable.autoCompleteDefine(tableDefine);
+            }catch (Throwable e){
+                throw  new AssertionError(dTable.name + ", 根据这个表里的数据来猜测表结构和类型出错，看是不是手动在xml里声明一下", e);
+            }
+        }
 
         old.forEach((k, cfg) -> Logger.verbose("delete table " + cfg.fullName()));
     }

@@ -3,6 +3,7 @@ package configgen.value;
 import configgen.Node;
 import configgen.data.DDb;
 import configgen.type.TDb;
+import configgen.type.TTable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,10 +17,23 @@ public class VDb extends Node {
         super(null, "value");
         this.dbType = tdb;
         this.dbData = ddb;
-        tdb.ttables.forEach((name, ttable) -> vtables.put(name, new VTable(this, ttable, ddb.dtables.get(name))));
+        for (TTable tTable : tdb.ttables.values()) {
+            try {
+                VTable vt = new VTable(this, tTable, ddb.dtables.get(tTable.name));
+                vtables.put(tTable.name, vt);
+            } catch (Throwable e) {
+                throw new AssertionError(tTable.name + ",这个表数据构造出错", e);
+            }
+        }
     }
 
     public void verifyConstraint() {
-        vtables.values().forEach(VTable::verifyConstraint);
+        for (VTable vTable : vtables.values()) {
+            try {
+                vTable.verifyConstraint();
+            }catch (Throwable e){
+                throw new AssertionError(vTable.name + ",这个表数据约束检验出错", e);
+            }
+        }
     }
 }

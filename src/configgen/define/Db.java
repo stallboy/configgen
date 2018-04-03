@@ -56,25 +56,46 @@ public class Db extends Node {
 
     public Db extract(String own) {
         Db part = new Db(own);
-        beans.forEach((k, v) -> {
-            Bean pb = v.extract(part, own);
-            if (pb != null)
-                part.beans.put(k, pb);
-        });
+        for (Bean bean : beans.values()) {
+            try {
+                Bean pb = bean.extract(part, own);
+                if (pb != null)
+                    part.beans.put(bean.name, pb);
+            }catch (Throwable e){
+                throw new AssertionError(bean.name + ",从这个结构体抽取[" + own + "]出错", e);
+            }
+        }
 
-        tables.forEach((k, v) -> {
-            Table pc = v.extract(part, own);
-            if (pc != null)
-                part.tables.put(k, pc);
-        });
+        for (Table table : tables.values()) {
+            try {
+                Table pc = table.extract(part, own);
+                if (pc != null)
+                    part.tables.put(table.name, pc);
+            }catch (Throwable e){
+                throw new AssertionError(table.name + ",从这个表结构抽取[" + own + "]出错", e);
+            }
+        }
+
 
         part.resolveExtract();
         return part;
     }
 
-    void resolveExtract() {
-        beans.values().forEach(Bean::resolveExtract);
-        tables.values().forEach(Table::resolveExtract);
+    private void resolveExtract() {
+        for (Bean bean : beans.values()) {
+            try {
+                bean.resolveExtract();
+            }catch (Throwable e){
+                throw new AssertionError(bean.name + ",解析这个结构体抽取部分出错", e);
+            }
+        }
+        for (Table table : tables.values()) {
+            try {
+                table.resolveExtract();
+            }catch (Throwable e){
+                throw new AssertionError(table.name + ",解析这个表结构抽取部分出错", e);
+            }
+        }
     }
 
     public void save(File file, String encoding) throws IOException {
@@ -83,7 +104,7 @@ public class Db extends Node {
         DomUtils.prettySaveDocument(doc, file, encoding);
     }
 
-    void save(Document doc) {
+    private void save(Document doc) {
         Element self = doc.createElement("db");
         doc.appendChild(self);
         beans.values().forEach(b -> b.save(self));

@@ -2,6 +2,7 @@ package configgen.genjava;
 
 import configgen.Logger;
 import configgen.define.Bean;
+import configgen.gen.Context;
 import configgen.gen.Generator;
 import configgen.gen.Parameter;
 import configgen.gen.Provider;
@@ -35,7 +36,8 @@ public final class GenJavaData extends Generator {
     }
 
     @Override
-    public void generate(VDb value) throws IOException {
+    public void generate(Context ctx) throws IOException {
+        VDb value = ctx.makeValue();
         try (ConfigOutput output = new ConfigOutput(new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file))))) {
             Schema schema = GenSchema.parse(value);
             schema.write(output);

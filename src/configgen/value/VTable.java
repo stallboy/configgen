@@ -12,15 +12,13 @@ import java.util.stream.Collectors;
 
 public class VTable extends Node {
     public final TTable tableType;
-    public final List<VBean> vbeanList = new ArrayList<>();
+    public final ArrayList<VBean> vbeanList = new ArrayList<>();
     public final Set<Value> primaryKeyValueSet = new HashSet<>();
     public final Map<String, Set<Value>> uniqueKeyValueSetMap = new LinkedHashMap<>();
 
-    public final List<Integer> columnIndexes = new ArrayList<>();
-
     public final Set<String> enumNames = new LinkedHashSet<>();
     public final Map<String, Integer> enumName2IntegerValueMap = new LinkedHashMap<>();
-    public final int enumColumnIndex;
+
 
     public configgen.define.Table getTableDefine() {
         return tableType.tableDefine;
@@ -29,14 +27,20 @@ public class VTable extends Node {
     public VTable(VDb parent, TTable ttable, DTable dtable) {
         super(parent, ttable.name);
         tableType = ttable;
+        List<Integer> columnIndexes = new ArrayList<>();
         ttable.tbean.columns.forEach((fn, type) -> columnIndexes.addAll(dtable.dcolumns.get(fn).indexes));
         require(columnIndexes.size() > 0);
 
-        dtable.line2data.forEach((row, rowData) -> {
+        for (Map.Entry<Integer, List<String>> line : dtable.line2data.entrySet()) {
+            int row = line.getKey();
+            List<String> rowData = line.getValue();
             List<Cell> order = columnIndexes.stream().map(col -> new Cell(row, col, rowData.get(col))).collect(Collectors.toList());
             VBean vbean = new VBean(this, "" + row, ttable.tbean, order);
             vbeanList.add(vbean);
-        });
+        }
+        vbeanList.trimToSize();
+
+
 
         extractKeyValues(tableType.tableDefine.primaryKey, primaryKeyValueSet);
 
@@ -50,7 +54,7 @@ public class VTable extends Node {
 
             Set<String> names = new HashSet<>();
             DColumn col = dtable.dcolumns.get(tableType.tableDefine.enumStr);
-            enumColumnIndex = col.indexes.get(0);
+
 
             for (VBean vbean : vbeanList) {
                 Value v = vbean.valueMap.get(tableType.tableDefine.enumStr);
@@ -71,8 +75,6 @@ public class VTable extends Node {
                     }
                 }
             }
-        } else {
-            enumColumnIndex = 0;
         }
     }
 

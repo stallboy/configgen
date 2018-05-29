@@ -9,11 +9,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class VList extends Value {
-    public final List<Value> list = new ArrayList<>();
+    public final ArrayList<Value> list = new ArrayList<>();
 
     public VList(Node parent, String name, List<Value> vs) { // for primaryKey and keysRef
         super(parent, name, null, toRaw(vs));
         list.addAll(vs);
+        list.trimToSize();
     }
 
     private static List<Cell> toRaw(List<Value> vs) {
@@ -48,6 +49,8 @@ public class VList extends Value {
                 }
             }
         }
+
+        list.trimToSize();
     }
 
     @Override

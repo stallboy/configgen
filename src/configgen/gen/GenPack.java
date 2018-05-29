@@ -5,9 +5,9 @@ import configgen.define.DomUtils;
 import configgen.value.VDb;
 import org.w3c.dom.Element;
 
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,7 +37,7 @@ public class GenPack extends Generator {
     private final String own;
     private final int packAll;
 
-    public GenPack(Parameter parameter) {
+    private GenPack(Parameter parameter) {
         super(parameter);
         dstDir = new File(parameter.getNotEmpty("dir", "cfg"));
         xml = parameter.get("xml", null);
@@ -48,14 +48,14 @@ public class GenPack extends Generator {
     }
 
     @Override
-    public void generate(VDb _value) throws IOException {
-        VDb value = own != null ? extract(_value, own) : _value;
+    public void generate(Context ctx) throws IOException {
+        VDb value = ctx.makeValue(own);
         Map<String, Set<String>> packs = new HashMap<>();
 
         if (packAll != 0){
             packs.put("all", value.vtables.keySet());
         }else{
-            File packXmlFile = xml != null ? new File(xml) : _value.dbData.dataDir.resolve("pack.xml").toFile();
+            File packXmlFile = xml != null ? new File(xml) : ctx.data.dataDir.resolve("pack.xml").toFile();
             if (packXmlFile.exists()) {
                 parsePack(packs, packXmlFile, value);
             } else {

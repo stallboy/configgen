@@ -3,7 +3,6 @@ package configgen.gen;
 import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.define.ForeignKey;
-import configgen.define.Table;
 import configgen.type.*;
 import configgen.value.VDb;
 import configgen.value.VTable;
@@ -41,7 +40,7 @@ public class GenCs extends Generator {
     private File dstDir;
     private VDb value;
 
-    public GenCs(Parameter parameter) {
+    private GenCs(Parameter parameter) {
         super(parameter);
         dir = parameter.get("dir", "Config");
         pkg = parameter.getNotEmpty("pkg", "Config");
@@ -52,9 +51,9 @@ public class GenCs extends Generator {
     }
 
     @Override
-    public void generate(VDb _value) throws IOException {
+    public void generate(Context ctx) throws IOException {
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
-        value = own != null ? extract(_value, own) : _value;
+        value = ctx.makeValue(own);
         //copyFile("CSV.cs");
         //copyFile("CSVLoader.cs");
         //copyFile("LoadErrors.cs");

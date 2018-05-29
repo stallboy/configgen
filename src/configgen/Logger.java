@@ -16,9 +16,15 @@ public class Logger {
         }
     }
 
+    public static void printf(String fmt, Object... args) {
+        if (verboseEnabled) {
+            System.out.printf(fmt, args);
+        }
+    }
+
     private final static SimpleDateFormat df = new SimpleDateFormat("HH.mm.ss.SSS");
 
-    public static void log(String s) {
+    public static void log(String s, Object... args) {
         System.out.println(df.format(Calendar.getInstance().getTime()) + ": " + s);
     }
 }

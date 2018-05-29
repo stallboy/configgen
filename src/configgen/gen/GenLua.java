@@ -44,9 +44,9 @@ public class GenLua extends Generator {
     }
 
     @Override
-    public void generate(VDb _value) throws IOException {
+    public void generate(Context ctx) throws IOException {
         File dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
-        value = own != null ? extract(_value, own) : _value;
+        value = ctx.makeValue(own);
 
         try (IndentPrint ps = createCode(new File(dstDir, "_cfgs.lua"), encoding)) {
             generate_cfgs(ps);

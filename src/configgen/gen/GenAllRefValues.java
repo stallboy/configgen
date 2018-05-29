@@ -33,7 +33,7 @@ public class GenAllRefValues extends Generator {
     private final Set<String> ignores = new HashSet<>();
     private final String out;
 
-    public GenAllRefValues(Parameter parameter) {
+    private GenAllRefValues(Parameter parameter) {
         super(parameter);
         ref = parameter.get("ref", "assets");
         String ignoreStr = parameter.get("ignores", null);
@@ -45,8 +45,9 @@ public class GenAllRefValues extends Generator {
     }
 
     @Override
-    public void generate(VDb value) throws IOException {
+    public void generate(Context ctx) throws IOException {
         Set<String> allrefs = new TreeSet<>();
+        VDb value = ctx.makeValue();
         TTable refTable = value.dbType.ttables.get(ref);
         if (refTable == null) {
             System.out.println("ref " + ref + " not a table");

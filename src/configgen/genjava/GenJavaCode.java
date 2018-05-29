@@ -50,8 +50,8 @@ public class GenJavaCode extends Generator {
     }
 
     @Override
-    public void generate(VDb _value) throws IOException {
-        value = _value;
+    public void generate(Context ctx) throws IOException {
+        value = ctx.makeValue();
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
 
 

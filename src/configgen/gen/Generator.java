@@ -48,40 +48,13 @@ public abstract class Generator {
         this.parameter = parameter;
     }
 
-    public abstract void generate(VDb value) throws IOException;
+    public abstract void generate(Context ctx) throws IOException;
 
     protected void require(boolean cond, String... str) {
         if (!cond)
             throw new AssertionError(getClass().getSimpleName() + ": " + String.join(",", str));
     }
 
-    private static final Map<VDb, Map<String, VDb>> extracted = new HashMap<>();
-
-    protected static VDb extract(VDb value, String own) {
-        Map<String, VDb> ownMap = extracted.get(value);
-        if (ownMap != null) {
-            VDb v = ownMap.get(own);
-            if (v != null)
-                return v;
-        }
-
-        Logger.verbose("extract xml(" + own + ")");
-        Db ownDefine = value.dbType.dbDefine.extract(own);
-        //ownDefine.dump(System.out);
-        TDb ownType = new TDb(ownDefine);
-        ownType.resolve();
-
-        Logger.verbose("extract data(" + own + ")");
-        VDb v = new VDb(ownType, value.dbData);
-        v.verifyConstraint();
-
-        if (ownMap == null) {
-            ownMap = new HashMap<>();
-            extracted.put(value, ownMap);
-        }
-        ownMap.put(own, v);
-        return v;
-    }
 
     protected static TabPrintStream createSource(File file, String encoding) throws IOException {
         return new TabPrintStream(new PrintStream(new CachedFileOutputStream(file), false, encoding));

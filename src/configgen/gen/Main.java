@@ -4,7 +4,6 @@ import configgen.Logger;
 import configgen.data.DDb;
 import configgen.define.Db;
 import configgen.type.TDb;
-import configgen.value.VDb;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,7 +92,7 @@ public final class Main {
             }
         }
 
-        if (packxmls != null){
+        if (packxmls != null) {
             String[] packs = packxmls.split(",");
             String fromDir = packs[0];
             String toDir = packs[1];
@@ -117,15 +116,15 @@ public final class Main {
                     return FileVisitResult.CONTINUE;
                 }
             });
-            try( OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(toDir, "entry.txt")), StandardCharsets.UTF_8)){
-                writer.write( String.join(",", fns));
+            try (OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(toDir, "entry.txt")), StandardCharsets.UTF_8)) {
+                writer.write(String.join(",", fns));
             }
             CachedFileOutputStream.keepMetaAndDeleteOtherFiles(new File(toDir));
             CachedFileOutputStream.finalExit();
         }
 
         if (datadir == null) {
-            if (packtext == null && packxmls == null){
+            if (packtext == null && packxmls == null) {
                 usage("-datadir miss");
             }
             return;
@@ -153,35 +152,45 @@ public final class Main {
 
         File xmlFile = xml != null ? new File(xml) : dir.resolve("config.xml").toFile();
 
+        mm("start");
+        Context ctx;
 
-        Logger.verbose("parse xml " + xmlFile);
-        Db define = new Db(xmlFile);
+        {
+            Db define = new Db(xmlFile);
+            mm("define");
+
+            //define.dump(System.out);
+            TDb type = new TDb(define);
+            type.resolve();
+            mm("type");
+            //type.dump(System.out);
 
 
+            DDb data = new DDb(dir, encoding);
+            data.autoCompleteDefine(type);
+            define.save(xmlFile, encoding);
 
-        //define.dump(System.out);
-        TDb type = new TDb(define);
-        type.resolve();
-        //type.dump(System.out);
+            mm("data");
 
-        Logger.verbose("read data " + dir + " then auto complete xml");
-        DDb data = new DDb(dir, encoding);
-        data.autoCompleteDefine(type);
-        define.save(xmlFile, encoding);
-        TDb newType = new TDb(define);
-        newType.resolve();
-
-        Logger.verbose("verify constraint");
-        VDb value = new VDb(newType, data);
-        value.verifyConstraint();
-        //value.dump(System.out);
+            TDb newType = new TDb(define);
+            newType.resolve();
+            mm("fixtype");
+            ctx = new Context(define, newType, data);
+        }
 
         for (Generator generator : generators) {
             Logger.verbose("generate " + generator.parameter);
-            generator.generate(value);
+            generator.generate(ctx);
+
+            mm("gen " + generator.parameter);
         }
 
         CachedFileOutputStream.finalExit();
         Logger.verbose("end");
+    }
+
+    private static void mm(String step) {
+        //Runtime.getRuntime().gc();
+        Logger.printf("%s\t use %dm, total %dm\n", step, Runtime.getRuntime().totalMemory() / 1024 / 1024, Runtime.getRuntime().maxMemory() / 1024 / 1024);
     }
 }

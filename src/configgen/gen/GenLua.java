@@ -51,9 +51,9 @@ public class GenLua extends Generator {
         try (IndentPrint ps = createCode(new File(dstDir, "_cfgs.lua"), encoding)) {
             generate_cfgs(ps);
         }
-        try (IndentPrint ps = createCode(new File(dstDir, "_loads.lua"), encoding)) {
-            generate_loads(ps);
-        }
+//        try (IndentPrint ps = createCode(new File(dstDir, "_loads.lua"), encoding)) {
+//            generate_loads(ps);
+//        }
         try (IndentPrint ps = createCode(new File(dstDir, "_beans.lua"), encoding)) {
             generate_beans(ps);
         }
@@ -104,6 +104,7 @@ public class GenLua extends Generator {
         ps.println();
 
         ps.println("%s._mk = require \"common.mkcfg\"", pkg);
+        ps.println("local pre = %s._mk.pretable", pkg);
         ps.println();
 
         Set<String> context = new HashSet<>();
@@ -111,7 +112,7 @@ public class GenLua extends Generator {
         for (TTable c : value.dbType.ttables.values()) {
             String full = fullName(c);
             definePkg(full, ps, context);
-            ps.println("%s = {}", full);
+            ps.println("%s = pre(\"%s\")", full, full);
             context.add(full);
         }
         ps.println();

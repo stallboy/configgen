@@ -674,7 +674,7 @@ public class GenCs extends Generator {
 
             @Override
             public String visit(TString type) {
-                return type.subtype == TString.Subtype.STRING ? "os.ReadString()" : "os.ReadText()";
+                return "os.ReadString()";
             }
 
             @Override

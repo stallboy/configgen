@@ -1,23 +1,18 @@
 package configgen.gencs;
 
 import configgen.define.Bean;
-import configgen.gen.UTF8Writer;
 import configgen.value.*;
 
-import java.io.Closeable;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class ValueOutputStream implements ValueVisitor, Closeable {
+class PackValueVisitor implements ValueVisitor {
     private final DataOutputStream byter;
-    private final UTF8Writer texter;
-    private int index;
     private final byte[] writeBuffer = new byte[8];
 
-    public ValueOutputStream(OutputStream _byter, UTF8Writer _texter) {
+    PackValueVisitor(OutputStream _byter) {
         this.byter = new DataOutputStream(_byter);
-        this.texter = _texter;
     }
 
     @Override
@@ -42,14 +37,7 @@ class ValueOutputStream implements ValueVisitor, Closeable {
 
     @Override
     public void visit(VString value) {
-        switch (value.tstring.subtype) {
-            case STRING:
-                addString(value.value);
-                break;
-            case TEXT:
-                addText(value.value);
-                break;
-        }
+        addString(value.value);
     }
 
     @Override
@@ -78,28 +66,12 @@ class ValueOutputStream implements ValueVisitor, Closeable {
     }
 
     public void addVTable(VTable vtable) throws IOException {
-        index = 0;
-        if (vtable.tableType.tbean.hasText()) {
-            texter.write(escape("#" + vtable.tableType.tbean.beanDefine.name));
-            texter.write(",\r\n");
-        }
         addString(vtable.tableType.tbean.beanDefine.name);
         addSize(vtable.vbeanList.size());
         vtable.vbeanList.forEach(v -> v.accept(this));
     }
 
-    private void addText(String text) {
-        index++;
-        try {
-            texter.write(String.valueOf(index));
-            texter.write(",");
-            texter.write(escape(text));
-            texter.write("\r\n");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        addSize(index);
-    }
+
 
     private void addBool(boolean v) {
         try {
@@ -159,17 +131,5 @@ class ValueOutputStream implements ValueVisitor, Closeable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static String escape(String s) {
-        if (s.contains(","))
-            return "\"" + s.replace("\"", "\"\"") + "\"";
-        else
-            return s;
-    }
-
-    @Override
-    public void close() throws IOException {
-        byter.close();
     }
 }

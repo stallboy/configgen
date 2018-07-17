@@ -133,13 +133,15 @@
 
 *   客户端更新策略？
 
-      分包处理，使用 -gen pack 配合pack.xml来生成分包文件。pack.xml里声明哪些文件打成一个包，使用CSVLoader.LoadPack来加载。
+      c#分包处理，使用 -gen pack 配合pack.xml来生成分包文件。pack.xml里声明哪些文件打成一个包，使用CSVLoader.LoadPack来加载。
       如果pack.xml不存在，就全打包到all.zip。
+      lua的话直接生成数据在lua文件里了，所以这里就不单独支持了
 
 *   国际化策略？
 
-      对于需要国际化的字段，配置为text类型，生成时会单独放到text.csv里，只要翻译这个文件就ok了。
-      翻译完毕使用 -packtext text.csv 来打包text.zip。
+      对于需要国际化的字段，把类型从原来的string修改为text
+      使用-gen i18n 会提取标记为text类型的所有数据到../i18n/i18n-config.csv
+      然后使用国际化的时候加入 -i18nfile ../i18n/i18n-config.csv 这样生成的lua文件，javadata，cs数据文件都会直接包含国际化文本
 
 *   为什么java生成没有用public final？
 

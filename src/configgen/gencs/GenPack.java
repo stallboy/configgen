@@ -53,9 +53,9 @@ public class GenPack extends Generator {
         VDb value = ctx.makeValue(own);
         Map<String, Set<String>> packs = new HashMap<>();
 
-        if (packAll != 0){
+        if (packAll != 0) {
             packs.put("all", value.vtables.keySet());
-        }else{
+        } else {
             File packXmlFile = xml != null ? new File(xml) : ctx.data.dataDir.resolve("pack.xml").toFile();
             if (packXmlFile.exists()) {
                 parsePack(packs, packXmlFile, value);
@@ -65,32 +65,26 @@ public class GenPack extends Generator {
             }
         }
 
-        try (ZipOutputStream textOS = createZip(new File(dstDir, "text.zip"))) {
-            ZipEntry tze = new ZipEntry("text.csv");
-            tze.setTime(0);
-            textOS.putNextEntry(tze);
-            try (UTF8Writer texter = new UTF8Writer(textOS)) {
-                for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
-                    String packName = entry.getKey();
-                    Set<String> packCfgs = entry.getValue();
-                    if (!packCfgs.isEmpty()) {
-                        try (ZipOutputStream zos = createZip(new File(dstDir, packName + ".zip"))) {
-                            ZipEntry ze = new ZipEntry(packName);
-                            ze.setTime(0);
-                            zos.putNextEntry(ze);
-                            try (ValueOutputStream vos = new ValueOutputStream(zos, texter)) {
-                                for (String cfg : packCfgs) {
-                                    vos.addVTable(value.vtables.get(cfg));
-                                }
-                            }
-                        }
+
+        for (Map.Entry<String, Set<String>> entry : packs.entrySet()) {
+            String packName = entry.getKey();
+            Set<String> packCfgs = entry.getValue();
+            if (!packCfgs.isEmpty()) {
+                try (ZipOutputStream zos = createZip(new File(dstDir, packName + ".zip"))) {
+                    ZipEntry ze = new ZipEntry(packName);
+                    ze.setTime(0);
+                    zos.putNextEntry(ze);
+                    PackValueVisitor pack = new PackValueVisitor(zos);
+                    for (String cfg : packCfgs) {
+                        pack.addVTable(value.vtables.get(cfg));
                     }
                 }
             }
         }
 
-        try( OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(dstDir, "entry.txt")), StandardCharsets.UTF_8)){
-            writer.write( String.join(",", packs.keySet()));
+
+        try (OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(dstDir, "entry.txt")), StandardCharsets.UTF_8)) {
+            writer.write(String.join(",", packs.keySet()));
         }
 
         CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
@@ -113,7 +107,7 @@ public class GenPack extends Generator {
                 if (c.equals(".**")) {
                     packCfgs.addAll(source);
                     picked.addAll(source);
-                    if(!source.isEmpty())
+                    if (!source.isEmpty())
                         packs.put(packName, packCfgs);
                 } else if (c.equals(".*")) {
                     int cnt = 0;
@@ -124,7 +118,7 @@ public class GenPack extends Generator {
                             cnt++;
                         }
                     }
-                    if(cnt > 0)
+                    if (cnt > 0)
                         packs.put(packName, packCfgs);
                     require(cnt > 0, c + " not exist");
                 } else if (c.endsWith(".**")) {
@@ -137,7 +131,7 @@ public class GenPack extends Generator {
                             cnt++;
                         }
                     }
-                    if(cnt > 0)
+                    if (cnt > 0)
                         packs.put(packName, packCfgs);
                 } else if (c.endsWith(".*")) {
                     String prefix = c.substring(0, c.length() - 1);
@@ -149,7 +143,7 @@ public class GenPack extends Generator {
                             cnt++;
                         }
                     }
-                    if(cnt > 0)
+                    if (cnt > 0)
                         packs.put(packName, packCfgs);
                 } else {
                     require(picked.add(c), c + " duplicate");

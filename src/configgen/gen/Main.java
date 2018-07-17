@@ -23,10 +23,11 @@ public final class Main {
         System.err.println(reason);
 
         System.out.println("Usage: java -jar configgen.jar [options]");
-        System.out.println("	-datadir      data directory.");
-        System.out.println("	-xml          default config.xml in datadir.");
-        System.out.println("	-encoding     csv and xml encoding. default GBK");
-        System.out.println("	-v            verbose, default no");
+        System.out.println("	-datadir      配表所在目录");
+        System.out.println("	-xml          配表结构文件，默认是config.xml");
+        System.out.println("	-encoding     配表和配表结构文件的编码，默认是GBK");
+        System.out.println("	-i18nfile     国际化需要的文件，如果不用国际化，就不要配置");
+        System.out.println("	-v            输出一些额外信息");
         Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
 
         Runtime.getRuntime().exit(1);

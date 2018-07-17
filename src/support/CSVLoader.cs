@@ -7,17 +7,14 @@ namespace Config
 {
     public class Stream
     {
-        private readonly Dictionary<string, Dictionary<ushort, string>> _allTextMap;
         private readonly List<BinaryReader> _byterList;
 
         private int _currentIndex;
         private BinaryReader _byter;
-        private Dictionary<ushort, string> _textMap;
 
-        public Stream(List<BinaryReader> byterList, Dictionary<string, Dictionary<ushort, string>> allTextMap)
+        public Stream(List<BinaryReader> byterList)
         {
             _byterList = byterList;
-            _allTextMap = allTextMap;
             _currentIndex = 0;
             _byter = byterList[0];
         }
@@ -27,7 +24,6 @@ namespace Config
             try
             {
                 var cfg = ReadString();
-                _allTextMap.TryGetValue(cfg, out _textMap);
                 return cfg;
             }
             catch (EndOfStreamException)
@@ -37,7 +33,6 @@ namespace Config
                 {
                     _byter = _byterList[_currentIndex];
                     var cfg = ReadString();
-                    _allTextMap.TryGetValue(cfg, out _textMap);
                     return cfg;
                 }
             }
@@ -74,11 +69,6 @@ namespace Config
         {
             return _byter.ReadSingle();
         }
-
-        public string ReadText()
-        {
-            return _textMap[_byter.ReadUInt16()];
-        }
     }
 
 
@@ -90,21 +80,12 @@ namespace Config
 
         public static void LoadPack(string packDir)
         {
-            Dictionary<string, Dictionary<ushort, string>> allTextMap;
-            using (var z = new ZipFile(Path.Combine(packDir, "text.zip")))
-            {
-                using (var texter = new StreamReader(z.GetInputStream(z.GetEntry("text.csv")), Encoding.UTF8))
-                {
-                    allTextMap = CSV.ParseCSVText(texter);
-                }
-            }
-
             var byterList = new List<BinaryReader>();
             var zipFiles = new List<ZipFile>();
             foreach (var f in Directory.GetFiles(packDir, "*.zip"))
             {
                 var name = Path.GetFileNameWithoutExtension(f);
-                if (name != null && !name.Equals("text"))
+                if (name != null )
                 {
                     var z = new ZipFile(f);
                     zipFiles.Add(z);
@@ -113,7 +94,7 @@ namespace Config
                 }
             }
 
-            Processor(new Stream(byterList, allTextMap));
+            Processor(new Stream(byterList));
             foreach (var z in zipFiles)
             {
                 z.Close();

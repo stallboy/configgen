@@ -1,5 +1,6 @@
 package configgen.type;
 
+import configgen.Logger;
 import configgen.Node;
 import configgen.define.Table;
 import configgen.define.UniqueKey;
@@ -28,7 +29,7 @@ public class TTable extends Node {
             require(type != null, "enum not found", tableDefine.enumStr);
             require(type instanceof TString, "enum type not string", type.toString());
         }
-        resolveKey(tableDefine.primaryKey, primaryKey);
+        resolveKey(tableDefine.primaryKey, primaryKey, true);
 
         if (tableDefine.enumType != Table.EnumType.None) {
             require(primaryKey.size() == 1, "enum primary key must be one column");
@@ -41,15 +42,19 @@ public class TTable extends Node {
 
         for (UniqueKey uk : tableDefine.uniqueKeys.values()) {
             Map<String, Type> res = new LinkedHashMap<>();
-            resolveKey(uk.keys, res);
+            resolveKey(uk.keys, res, false);
             uniqueKeys.add(res);
         }
     }
 
-    private void resolveKey(String[] keys, Map<String, Type> res) {
+    private void resolveKey(String[] keys, Map<String, Type> res, boolean isPrimary) {
         for (String k : keys) {
             Type t = tbean.columns.get(k);
             require(t != null, "primary/unique key not found", k);
+            if (t.hasText()) {
+                Logger.verbose(fullName() + "的" + k + "有国际化字符串");
+            }
+
             require(null == res.put(k, t), "primary/unique key duplicate", k);
             require(keys.length == 1 || t instanceof TPrimitive, "multi primary/unique key not support bean and container", k);
         }

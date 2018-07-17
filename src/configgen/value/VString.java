@@ -13,7 +13,13 @@ public class VString extends VPrimitive {
     public VString(Node parent, String name, TString type, List<Cell> data) {
         super(parent, name, type, data);
         tstring = type;
-        value = raw.data;
+
+        if (tstring.subtype == TString.Subtype.STRING){
+            value = raw.data;
+        }else{
+            I18n i18n = ((VDb)root).i18n;
+            value = i18n.get(raw.data);
+        }
     }
 
     @Override

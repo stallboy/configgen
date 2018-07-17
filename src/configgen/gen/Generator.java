@@ -1,17 +1,15 @@
 package configgen.gen;
 
-import configgen.Logger;
-import configgen.define.Db;
+import configgen.gencs.GenCs;
+import configgen.gencs.GenPack;
 import configgen.genjava.GenJavaData;
 import configgen.genjava.GenJavaCode;
 import configgen.genjava.IndentPrint;
-import configgen.type.TDb;
-import configgen.value.VDb;
+import configgen.genlua.GenLua;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.zip.CRC32;
@@ -21,16 +19,6 @@ import java.util.zip.ZipOutputStream;
 public abstract class Generator {
 
     public static final Map<String, Provider> providers = new LinkedHashMap<>();
-
-    static {
-        GenPack.register();
-        GenJavaCode.register();
-        GenCs.register();
-        GenLua.register();
-        GenAllRefValues.register();
-
-        GenJavaData.register();
-    }
 
     public static Generator create(String arg) {
         Parameter parameter = new Parameter(arg);

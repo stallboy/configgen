@@ -2,6 +2,7 @@ package configgen.data;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,6 +22,17 @@ public final class CSV {
         START, NO_QUOTE, QUOTE, QUOTE2, CR,
     }
 
+    public static List<List<String>> readFromFile(File file, Charset charset) {
+        try {
+            try(Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))){
+                return parse(reader, true);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //https://tools.ietf.org/html/rfc4180
     public static List<List<String>> parse(Reader reader, boolean removeEmptyLine) throws IOException {
         List<List<String>> result = new ArrayList<>();
         List<String> record = new ArrayList<>();

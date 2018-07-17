@@ -27,6 +27,7 @@ public class VTable extends Node {
     public VTable(VDb parent, TTable ttable, DTable dtable) {
         super(parent, ttable.name);
         tableType = ttable;
+        parent.i18n.enter(name);
         List<Integer> columnIndexes = new ArrayList<>();
         ttable.tbean.columns.forEach((fn, type) -> columnIndexes.addAll(dtable.dcolumns.get(fn).indexes));
         require(columnIndexes.size() > 0);

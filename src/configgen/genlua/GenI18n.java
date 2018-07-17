@@ -40,22 +40,28 @@ public final class GenI18n extends Generator {
     public void generate(Context ctx) {
         VDb value = ctx.makeValue();
 
-        Set<String> textSet = new HashSet<>();
-        ValueVisitor visitor = new TextValueVisitor(textSet);
 
+        Map<String, Set<String>> table2TextSet = new TreeMap<>();
         for (VTable vTable : value.vtables.values()) {
             if (vTable.tableType.tbean.hasText()) {
+                Set<String> textSet = new TreeSet<>();
+                ValueVisitor visitor = new TextValueVisitor(textSet);
                 vTable.vbeanList.forEach(v -> v.accept(visitor));
+                table2TextSet.put(vTable.name, textSet);
             }
         }
 
 
-        List<List<String>> rows = new ArrayList<>(textSet.size());
-        for (String s : new TreeSet<>(textSet)) {
-            List<String> r = new ArrayList<>(2);
-            r.add(s);
-            r.add("");
-            rows.add(r);
+        List<List<String>> rows = new ArrayList<>();
+        for (Map.Entry<String, Set<String>> stringSetEntry : table2TextSet.entrySet()) {
+            String table = stringSetEntry.getKey();
+            for (String s : stringSetEntry.getValue()) {
+                List<String> r = new ArrayList<>(2);
+                r.add(table);
+                r.add(s);
+                r.add("");
+                rows.add(r);
+            }
         }
 
         CSVWriter.writeToFile(file, encoding, rows);

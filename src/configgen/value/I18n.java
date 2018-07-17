@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 public final class I18n {
-    private Map<String, String> map = null;
+    private Map<String, Map<String, String>> map = null;
+    private Map<String, String> curTable = null;
 
     public I18n(String file, String encoding) {
         if (file == null) {
@@ -20,29 +21,31 @@ public final class I18n {
         if (row0 == null) {
             throw new IllegalArgumentException("国际化i18n文件为空");
         }
-        if (row0.size() != 2) {
-            throw new IllegalArgumentException("国际化i18n文件列数不为2");
+        if (row0.size() != 3) {
+            throw new IllegalArgumentException("国际化i18n文件列数不为3");
         }
 
         for (List<String> row : rows) {
-            String raw = row.get(0);
-            String i18 = row.get(1);
-            map.put(raw, i18);
+            String table = row.get(0);
+            String raw = row.get(1);
+            String i18 = row.get(2);
+            Map<String, String> m = map.computeIfAbsent(table, k -> new HashMap<>());
+            m.put(raw, i18);
         }
     }
 
-    public Map<String, String> getAll() {
-        return map;
+    public void enter(String table) {
+        curTable = map.get(table);
     }
 
     public String get(String raw) {
-        if (map == null) {
+        if (curTable == null) {
             return raw;
         }
 
-        String text = map.get(raw);
+        String text = curTable.get(raw);
         if (text == null || text.isEmpty()) {
-            if (!raw.isEmpty()){
+            if (!raw.isEmpty()) {
                 System.out.println(raw + " 未翻译");
             }
             return raw;

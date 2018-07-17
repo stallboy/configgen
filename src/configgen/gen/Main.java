@@ -27,6 +27,7 @@ public final class Main {
         System.out.println("	-xml          配表结构文件，默认是config.xml");
         System.out.println("	-encoding     配表和配表结构文件的编码，默认是GBK");
         System.out.println("	-i18nfile     国际化需要的文件，如果不用国际化，就不要配置");
+        System.out.println("	-i18nencoding 国际化需要的文件的编码，默认是GBK");
         System.out.println("	-v            输出一些额外信息");
         Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
 
@@ -46,6 +47,7 @@ public final class Main {
         String xml = null;
         String encoding = "GBK";
         String i18nfile = null;
+        String i18nencoding = "GBK";
         List<Generator> generators = new ArrayList<>();
 
 
@@ -62,6 +64,9 @@ public final class Main {
                     break;
                 case "-i18nfile":
                     i18nfile = args[++i];
+                    break;
+                case "-i18nencoding":
+                    i18nencoding = args[++i];
                     break;
 
                 case "-gen":
@@ -109,7 +114,7 @@ public final class Main {
             TDb newType = new TDb(define);
             newType.resolve();
             mm("fixtype");
-            ctx = new Context(define, newType, data, new I18n(i18nfile));
+            ctx = new Context(define, newType, data, new I18n(i18nfile,i18nencoding));
         }
 
         for (Generator generator : generators) {

@@ -3,7 +3,6 @@ package configgen.value;
 import configgen.data.CSV;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,12 +10,12 @@ import java.util.Map;
 public final class I18n {
     private Map<String, String> map = null;
 
-    public I18n(String file) {
+    public I18n(String file, String encoding) {
         if (file == null) {
             return;
         }
         map = new HashMap<>();
-        List<List<String>> rows = CSV.readFromFile(new File(file), StandardCharsets.UTF_8);
+        List<List<String>> rows = CSV.readFromFile(new File(file), encoding);
         List<String> row0 = rows.get(0);
         if (row0 == null) {
             throw new IllegalArgumentException("国际化i18n文件为空");

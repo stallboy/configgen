@@ -22,9 +22,9 @@ public final class CSV {
         START, NO_QUOTE, QUOTE, QUOTE2, CR,
     }
 
-    public static List<List<String>> readFromFile(File file, Charset charset) {
+    public static List<List<String>> readFromFile(File file, String encoding) {
         try {
-            try(Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))){
+            try(Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))){
                 return parse(reader, true);
             }
         } catch (Exception e) {

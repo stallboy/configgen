@@ -21,16 +21,18 @@ public final class GenI18n extends Generator {
 
             @Override
             public String usage() {
-                return "file:../i18n/i18n-config.csv";
+                return "file:../i18n/i18n-config.csv,encoding:GBK";
             }
         });
     }
 
     private File file;
+    private String encoding;
 
     private GenI18n(Parameter parameter) {
         super(parameter);
         file = new File(parameter.get("file", "../i18n/i18n-config.csv"));
+        encoding = parameter.get("encoding", "GBK");
         parameter.end();
     }
 
@@ -56,7 +58,7 @@ public final class GenI18n extends Generator {
             rows.add(r);
         }
 
-        CSVWriter.writeToFile(file, rows);
+        CSVWriter.writeToFile(file, encoding, rows);
     }
 
     private static class TextValueVisitor implements ValueVisitor {

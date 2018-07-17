@@ -60,9 +60,9 @@ public class CSVWriter {
     }
 
 
-    public static void writeToFile(File file, List<List<String>> rows) {
+    public static void writeToFile(File file, String encoding, List<List<String>> rows) {
         try {
-            try(Writer w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))){
+            try(Writer w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), encoding))){
                 write(w, rows);
             }
         } catch (IOException e) {

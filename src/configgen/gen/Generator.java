@@ -1,8 +1,7 @@
 package configgen.gen;
 
-import configgen.genjava.IndentPrint;
 import configgen.util.CachedFileOutputStream;
-import configgen.util.TabPrintStream;
+import configgen.util.IndentPrint;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,11 +23,6 @@ public abstract class Generator {
     protected void require(boolean cond, String... str) {
         if (!cond)
             throw new AssertionError(getClass().getSimpleName() + ": " + String.join(",", str));
-    }
-
-
-    protected static TabPrintStream createSource(File file, String encoding) throws IOException {
-        return new TabPrintStream(new PrintStream(new CachedFileOutputStream(file), false, encoding));
     }
 
     protected static IndentPrint createCode(File file, String encoding) throws IOException {

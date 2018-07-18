@@ -3,7 +3,7 @@ package configgen.genlua;
 import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.gen.*;
-import configgen.genjava.IndentPrint;
+import configgen.util.IndentPrint;
 import configgen.type.*;
 import configgen.util.CachedFileOutputStream;
 import configgen.value.*;

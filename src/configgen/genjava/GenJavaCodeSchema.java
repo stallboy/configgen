@@ -1,5 +1,7 @@
 package configgen.genjava;
 
+import configgen.util.IndentPrint;
+
 import java.util.Map;
 
 public final class GenJavaCodeSchema {

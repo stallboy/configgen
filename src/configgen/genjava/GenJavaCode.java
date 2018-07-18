@@ -7,6 +7,7 @@ import configgen.define.Table;
 import configgen.gen.*;
 import configgen.type.*;
 import configgen.util.CachedFileOutputStream;
+import configgen.util.IndentPrint;
 import configgen.value.VDb;
 import configgen.value.VTable;
 

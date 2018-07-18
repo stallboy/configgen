@@ -1,4 +1,4 @@
-package configgen.genjava;
+package configgen.util;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,7 +33,7 @@ public class IndentPrint implements Closeable {
     }
 
     public void println() {
-        ps.println();
+        ps.printf("\n");
     }
 
     public void println(String fmt, Object... args) {
@@ -71,10 +71,10 @@ public class IndentPrint implements Closeable {
     private void printlnn(int n, String fmt, Object... args) {
         indent += n;
         if (args.length > 0){
-            ps.printf(prefix() + fmt, args);
-            ps.println();
+            ps.printf(prefix() + fmt + "\n", args);
+
         }else{
-            ps.println(prefix() + fmt);
+            ps.print(prefix() + fmt + "\n");
         }
         indent -= n;
     }

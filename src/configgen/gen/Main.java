@@ -1,16 +1,12 @@
 package configgen.gen;
 
 import configgen.Logger;
-import configgen.data.DDb;
-import configgen.define.Db;
 import configgen.gencs.GenCs;
 import configgen.gencs.GenPack;
 import configgen.genjava.GenJavaCode;
 import configgen.genjava.GenJavaData;
 import configgen.genlua.GenI18n;
 import configgen.genlua.GenLua;
-import configgen.type.TDb;
-import configgen.value.I18n;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -51,7 +47,6 @@ public final class Main {
         String i18nencoding = "GBK";
         boolean verify = false;
         List<Generator> generators = new ArrayList<>();
-
 
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {
@@ -97,48 +92,20 @@ public final class Main {
         Path dataDir = Paths.get(datadir);
         File xmlFile = xml != null ? new File(xml) : dataDir.resolve("config.xml").toFile();
 
-
-        mm("start");
-        Context ctx;
-        {
-            Db define = new Db(xmlFile);
-            mm("define");
-
-            //define.dump(System.out);
-            TDb type = new TDb(define);
-            type.resolve();
-            mm("type");
-            //type.dump(System.out);
-
-
-            DDb data = new DDb(dataDir, encoding);
-            data.autoCompleteDefine(type);
-            define.save(xmlFile, encoding);
-            mm("data");
-
-            TDb newType = new TDb(define);
-            newType.resolve();
-            mm("fixtype");
-            ctx = new Context(define, newType, data, new I18n(i18nfile,i18nencoding));
-        }
-
-        if (verify){
+        Context ctx = new Context(dataDir, xmlFile, encoding, i18nfile, i18nencoding);
+        if (verify) {
+            Logger.verbose("verify");
             ctx.verify();
         }
 
         for (Generator generator : generators) {
             Logger.verbose("generate " + generator.parameter);
             generator.generate(ctx);
-
-            mm("gen " + generator.parameter);
         }
 
         CachedFileOutputStream.finalExit();
         Logger.verbose("end");
     }
 
-    private static void mm(String step) {
-        //Runtime.getRuntime().gc();
-        Logger.printf("%s\t use %dm, total %dm\n", step, Runtime.getRuntime().totalMemory() / 1024 / 1024, Runtime.getRuntime().maxMemory() / 1024 / 1024);
-    }
+
 }

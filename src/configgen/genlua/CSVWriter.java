@@ -1,7 +1,6 @@
 package configgen.genlua;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class CSVWriter {

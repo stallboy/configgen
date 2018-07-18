@@ -14,10 +14,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -42,9 +39,11 @@ public final class DomUtils {
         }
     }
 
-    public static void prettySaveDocument(Document document, File file, String encoding) throws IOException {
+    public static void prettySaveDocument(Document document, File file, String encoding)  {
         try (OutputStream dst = new FileOutputStream(file)) {
             prettySaveDocument(document, dst, encoding);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

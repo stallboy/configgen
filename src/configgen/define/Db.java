@@ -5,7 +5,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -98,7 +97,7 @@ public class Db extends Node {
         }
     }
 
-    public void save(File file, String encoding) throws IOException {
+    public void save(File file, String encoding) {
         Document doc = DomUtils.newDocument();
         save(doc);
         DomUtils.prettySaveDocument(doc, file, encoding);

@@ -23,22 +23,26 @@ public class DDb extends Node {
     public final Path dataDir;
     public final Map<String, DTable> dtables = new HashMap<>();
 
-    public DDb(Path _dataDir, String encoding) throws IOException {
+    public DDb(Path _dataDir, String encoding) {
         super(null, "ddb");
         dataDir = _dataDir;
-        Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes a) throws IOException {
-                String path = dataDir.relativize(file).toString();
-                if (path.endsWith(".csv")) {
-                    String name = CSV.path2ConfigName(path.substring(0, path.length() - 4));
-                    try (Reader reader = encoding.startsWith("UTF") ? new InputStreamReader(new FileInputStream(file.toFile()), encoding) : new UnicodeReader(new FileInputStream(file.toFile()), encoding)) {
-                        dtables.put(name, new DTable(DDb.this, name, CSV.parse(reader, false)));
+        try {
+            Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes a) throws IOException {
+                    String path = dataDir.relativize(file).toString();
+                    if (path.endsWith(".csv")) {
+                        String name = CSV.path2ConfigName(path.substring(0, path.length() - 4));
+                        try (Reader reader = encoding.startsWith("UTF") ? new InputStreamReader(new FileInputStream(file.toFile()), encoding) : new UnicodeReader(new FileInputStream(file.toFile()), encoding)) {
+                            dtables.put(name, new DTable(DDb.this, name, CSV.parse(reader, false)));
+                        }
                     }
+                    return FileVisitResult.CONTINUE;
                 }
-                return FileVisitResult.CONTINUE;
-            }
-        });
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void autoCompleteDefine(TDb tdb) {
@@ -59,8 +63,8 @@ public class DDb extends Node {
             try {
                 dTable.parse(ttable);
                 dTable.autoCompleteDefine(tableDefine);
-            }catch (Throwable e){
-                throw  new AssertionError(dTable.name + ", 根据这个表里的数据来猜测表结构和类型出错，看是不是手动在xml里声明一下", e);
+            } catch (Throwable e) {
+                throw new AssertionError(dTable.name + ", 根据这个表里的数据来猜测表结构和类型出错，看是不是手动在xml里声明一下", e);
             }
         }
 

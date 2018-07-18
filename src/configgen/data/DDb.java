@@ -6,6 +6,8 @@ import configgen.define.Table;
 import configgen.define.Db;
 import configgen.type.TTable;
 import configgen.type.TDb;
+import configgen.util.CSV;
+import configgen.util.UnicodeReader;
 
 import java.io.FileInputStream;
 import java.io.IOException;

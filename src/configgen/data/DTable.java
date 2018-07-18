@@ -7,6 +7,7 @@ import configgen.define.Db;
 import configgen.define.Table;
 import configgen.define.Column;
 import configgen.type.*;
+import configgen.util.CSV;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

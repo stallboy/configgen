@@ -1,5 +1,7 @@
 package configgen.data;
 
+import configgen.util.CSV;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;

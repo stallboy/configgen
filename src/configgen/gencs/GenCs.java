@@ -5,6 +5,8 @@ import configgen.define.Column;
 import configgen.define.ForeignKey;
 import configgen.gen.*;
 import configgen.type.*;
+import configgen.util.CachedFileOutputStream;
+import configgen.util.TabPrintStream;
 import configgen.value.VDb;
 import configgen.value.VTable;
 
@@ -20,7 +22,7 @@ import java.util.stream.Stream;
 public class GenCs extends Generator {
 
     public static void register() {
-        providers.put("cs", new Provider() {
+        Generators.addProvider("cs", new GeneratorProvider() {
             @Override
             public Generator create(Parameter parameter) {
                 return new GenCs(parameter);

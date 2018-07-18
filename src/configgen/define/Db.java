@@ -1,6 +1,7 @@
 package configgen.define;
 
 import configgen.Node;
+import configgen.util.DomUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

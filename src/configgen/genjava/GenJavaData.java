@@ -2,10 +2,7 @@ package configgen.genjava;
 
 import configgen.Logger;
 import configgen.define.Bean;
-import configgen.gen.Context;
-import configgen.gen.Generator;
-import configgen.gen.Parameter;
-import configgen.gen.Provider;
+import configgen.gen.*;
 import configgen.value.*;
 
 import java.io.*;
@@ -14,7 +11,7 @@ import java.util.Map;
 public final class GenJavaData extends Generator {
 
     public static void register() {
-        providers.put("javadata", new Provider() {
+        Generators.addProvider("javadata", new GeneratorProvider() {
             @Override
             public Generator create(Parameter parameter) {
                 return new GenJavaData(parameter);

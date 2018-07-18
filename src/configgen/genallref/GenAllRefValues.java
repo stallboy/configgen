@@ -1,7 +1,9 @@
-package configgen.gen;
+package configgen.genallref;
 
+import configgen.gen.*;
 import configgen.type.SRef;
 import configgen.type.TTable;
+import configgen.util.CachedFileOutputStream;
 import configgen.value.*;
 
 import java.io.File;
@@ -15,8 +17,8 @@ import java.util.TreeSet;
 
 public class GenAllRefValues extends Generator {
 
-    static void register() {
-        providers.put("allrefvalues", new Provider() {
+    public static void register() {
+        Generators.addProvider("allrefvalues", new GeneratorProvider() {
             @Override
             public Generator create(Parameter parameter) {
                 return new GenAllRefValues(parameter);

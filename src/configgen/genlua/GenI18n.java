@@ -1,10 +1,8 @@
 package configgen.genlua;
 
 import configgen.define.Bean;
-import configgen.gen.Context;
-import configgen.gen.Generator;
-import configgen.gen.Parameter;
-import configgen.gen.Provider;
+import configgen.gen.*;
+import configgen.util.CSVWriter;
 import configgen.value.*;
 
 import java.io.File;
@@ -13,7 +11,7 @@ import java.util.*;
 public final class GenI18n extends Generator {
 
     public static void register() {
-        providers.put("i18n", new Provider() {
+        Generators.addProvider("i18n", new GeneratorProvider() {
             @Override
             public Generator create(Parameter parameter) {
                 return new GenI18n(parameter);

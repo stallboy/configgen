@@ -1,12 +1,14 @@
 package configgen.gen;
 
 import configgen.Logger;
+import configgen.genallref.GenAllRefValues;
 import configgen.gencs.GenCs;
 import configgen.gencs.GenPack;
 import configgen.genjava.GenJavaCode;
 import configgen.genjava.GenJavaData;
 import configgen.genlua.GenI18n;
 import configgen.genlua.GenLua;
+import configgen.util.CachedFileOutputStream;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -26,7 +28,7 @@ public final class Main {
         System.out.println("	-i18nencoding 国际化需要的文件的编码，默认是GBK");
         System.out.println("	-verify       检查配表约束");
         System.out.println("	-v            输出一些额外信息");
-        Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
+        Generators.getAllProviders().forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
 
         Runtime.getRuntime().exit(1);
     }
@@ -70,7 +72,7 @@ public final class Main {
                     break;
 
                 case "-gen":
-                    Generator generator = Generator.create(args[++i]);
+                    Generator generator = Generators.create(args[++i]);
                     if (generator == null)
                         usage("");
                     generators.add(generator);

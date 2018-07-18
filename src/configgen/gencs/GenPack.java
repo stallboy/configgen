@@ -1,8 +1,9 @@
 package configgen.gencs;
 
 import configgen.Logger;
-import configgen.define.DomUtils;
+import configgen.util.DomUtils;
 import configgen.gen.*;
+import configgen.util.CachedFileOutputStream;
 import configgen.value.VDb;
 import org.w3c.dom.Element;
 
@@ -20,7 +21,7 @@ import java.util.zip.ZipOutputStream;
 public class GenPack extends Generator {
 
     public static void register() {
-        providers.put("pack", new Provider() {
+        Generators.addProvider("pack", new GeneratorProvider() {
             @Override
             public Generator create(Parameter parameter) {
                 return new GenPack(parameter);

@@ -1,7 +1,7 @@
 package configgen.value;
 
 import configgen.Node;
-import configgen.data.CSV;
+import configgen.util.CSV;
 import configgen.define.Bean;
 import configgen.define.ForeignKey;
 import configgen.type.TBean;

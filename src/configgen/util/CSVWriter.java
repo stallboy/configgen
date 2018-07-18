@@ -1,4 +1,4 @@
-package configgen.genlua;
+package configgen.util;
 
 import java.io.*;
 import java.util.List;

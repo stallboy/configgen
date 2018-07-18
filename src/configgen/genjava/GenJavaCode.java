@@ -6,6 +6,7 @@ import configgen.define.ForeignKey;
 import configgen.define.Table;
 import configgen.gen.*;
 import configgen.type.*;
+import configgen.util.CachedFileOutputStream;
 import configgen.value.VDb;
 import configgen.value.VTable;
 
@@ -21,7 +22,7 @@ import java.util.stream.Stream;
 public class GenJavaCode extends Generator {
 
     public static void register() {
-        providers.put("java", new Provider() {
+        Generators.addProvider("java", new GeneratorProvider() {
             @Override
             public Generator create(Parameter parameter) {
                 return new GenJavaCode(parameter);

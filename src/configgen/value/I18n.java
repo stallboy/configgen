@@ -1,6 +1,6 @@
 package configgen.value;
 
-import configgen.data.CSV;
+import configgen.util.CSV;
 
 import java.io.File;
 import java.util.HashMap;

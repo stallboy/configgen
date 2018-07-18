@@ -1,5 +1,7 @@
 package configgen.data;
 
+import configgen.util.CSV;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;

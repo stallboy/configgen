@@ -5,6 +5,7 @@ import configgen.define.Column;
 import configgen.gen.*;
 import configgen.genjava.IndentPrint;
 import configgen.type.*;
+import configgen.util.CachedFileOutputStream;
 import configgen.value.*;
 
 import java.io.File;
@@ -16,7 +17,7 @@ import java.util.stream.Stream;
 public class GenLua extends Generator {
 
     public static void register() {
-        providers.put("lua", new Provider() {
+        Generators.addProvider("lua", new GeneratorProvider() {
             @Override
             public Generator create(Parameter parameter) {
                 return new GenLua(parameter);

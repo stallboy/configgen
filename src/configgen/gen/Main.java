@@ -28,6 +28,7 @@ public final class Main {
         System.out.println("	-encoding     配表和配表结构文件的编码，默认是GBK");
         System.out.println("	-i18nfile     国际化需要的文件，如果不用国际化，就不要配置");
         System.out.println("	-i18nencoding 国际化需要的文件的编码，默认是GBK");
+        System.out.println("	-verify       检查配表约束");
         System.out.println("	-v            输出一些额外信息");
         Generator.providers.forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
 
@@ -48,6 +49,7 @@ public final class Main {
         String encoding = "GBK";
         String i18nfile = null;
         String i18nencoding = "GBK";
+        boolean verify = false;
         List<Generator> generators = new ArrayList<>();
 
 
@@ -67,6 +69,9 @@ public final class Main {
                     break;
                 case "-i18nencoding":
                     i18nencoding = args[++i];
+                    break;
+                case "-verify":
+                    verify = true;
                     break;
 
                 case "-gen":
@@ -115,6 +120,10 @@ public final class Main {
             newType.resolve();
             mm("fixtype");
             ctx = new Context(define, newType, data, new I18n(i18nfile,i18nencoding));
+        }
+
+        if (verify){
+            ctx.verify();
         }
 
         for (Generator generator : generators) {

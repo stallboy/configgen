@@ -35,6 +35,9 @@ public final class I18n {
     }
 
     public void enter(String table) {
+        if (map == null) {
+            return;
+        }
         curTable = map.get(table);
     }
 

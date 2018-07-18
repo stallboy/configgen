@@ -24,6 +24,11 @@ public class Context {
     private VDb lastValue;
     private String lastValueOwn;
 
+    public void verify(){
+        VDb value = new VDb(type, data, i18n);
+        value.verifyConstraint();
+    }
+
     public VDb makeValue() {
         return makeValue(null);
     }

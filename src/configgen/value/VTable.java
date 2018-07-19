@@ -99,7 +99,6 @@ public class VTable extends Node {
     }
 
     public void verifyConstraint() {
-
         vbeanList.forEach(VBean::verifyConstraint);
     }
 }

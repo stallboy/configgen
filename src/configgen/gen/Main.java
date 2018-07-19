@@ -88,7 +88,7 @@ public final class Main {
 
 
         if (datadir == null) {
-            usage("-datadir miss");
+            usage("-datadir 未配置");
             return;
         }
         Path dataDir = Paths.get(datadir);

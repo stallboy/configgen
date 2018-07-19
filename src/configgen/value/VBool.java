@@ -3,6 +3,7 @@ package configgen.value;
 import configgen.Node;
 import configgen.define.Range;
 import configgen.type.TBool;
+import configgen.util.CSV;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class VBool extends VPrimitive {
     public VBool(Node parent, String name, TBool type, List<Cell> data) {
         super(parent, name, type, data);
         String s = raw.data.trim();
-        value = s.equalsIgnoreCase("true") || s.equals("1");
+        value = CSV.parseBoolean(s); //s.equalsIgnoreCase("true") || s.equals("1");
         require(s.isEmpty() || s.equalsIgnoreCase("false") || s.equals("0") || value, "not bool", raw.toString());
     }
 

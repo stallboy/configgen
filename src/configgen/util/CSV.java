@@ -1,14 +1,9 @@
 package configgen.util;
 
 import java.io.*;
-import java.lang.reflect.Method;
-import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.zip.CRC32;
-import java.util.zip.CheckedInputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public final class CSV {
 
@@ -23,7 +18,7 @@ public final class CSV {
 
     public static List<List<String>> readFromFile(File file, String encoding) {
         try {
-            try(Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))){
+            try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
                 return parse(reader, true);
             }
         } catch (Exception e) {
@@ -141,6 +136,9 @@ public final class CSV {
                 break;
             case CR:
                 field.append(cr);
+                record.add(field.toString());
+                result.add(record);
+                break;
             default:
                 record.add(field.toString());
                 result.add(record);
@@ -234,7 +232,7 @@ public final class CSV {
 
     public static boolean parseBoolean(String s) {
         String t = s.trim();
-        return !t.isEmpty() && (t.equals("1") || t.equalsIgnoreCase("true"));
+        return t.equals("1") || t.equalsIgnoreCase("true");
     }
 
     public static float parseFloat(String s) {
@@ -252,49 +250,4 @@ public final class CSV {
         return t.isEmpty() ? 0 : Long.decode(t);
     }
 
-    public static String path2ConfigName(String path) {
-        return String.join(".", path.split("\\\\|/")).toLowerCase();
-    }
-
-    private static String[] configName2ClassFullName(String configName) {
-        String[] seps = configName.split("\\.");
-        String c = seps[seps.length - 1];
-        seps[seps.length - 1] = c.substring(0, 1).toUpperCase() + c.substring(1);
-        return seps;
-    }
-
-    static Set<String> load(Path zipPath, String encoding) throws Exception {
-        Set<String> loaded = new HashSet<>();
-        String packageName = CSV.class.getPackage().getName();
-        try (ZipInputStream zis = new ZipInputStream(new CheckedInputStream(new FileInputStream(zipPath.toFile()), new CRC32()))) {
-            Collection<Class<?>> classList = new ArrayList<>();
-            for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
-                if (entry.getName().endsWith(".csv")) {
-                    String configName = path2ConfigName(entry.getName().substring(0, entry.getName().length() - 4));
-                    try {
-                        Class<?> clz = Class.forName(packageName + "." + String.join(".", configName2ClassFullName(configName)));
-                        if (clz != null) {
-                            classList.add(clz);
-                            Method initialize = clz.getDeclaredMethod("initialize", List.class);
-                            initialize.setAccessible(true);
-                            List<List<String>> res = parse(new BufferedReader(new InputStreamReader(zis, encoding)), true);
-                            initialize.invoke(null, res.subList(2, res.size()));
-                            loaded.add(configName);
-                        }
-                    } catch (ClassNotFoundException ignore) {
-                    }
-                }
-            }
-
-            for (Class<?> clz : classList) {
-                try {
-                    Method resolve = clz.getDeclaredMethod("resolve");
-                    resolve.setAccessible(true);
-                    resolve.invoke(null);
-                } catch (NoSuchMethodException ignore) {
-                }
-            }
-        }
-        return loaded;
-    }
 }

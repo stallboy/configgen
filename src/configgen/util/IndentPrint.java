@@ -33,7 +33,7 @@ public class IndentPrint implements Closeable {
     }
 
     public void println() {
-        ps.printf("\n");
+        ps.print("\n");
     }
 
     public void println(String fmt, Object... args) {

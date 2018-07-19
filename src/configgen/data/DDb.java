@@ -34,9 +34,10 @@ public class DDb extends Node {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes a) throws IOException {
                     String path = dataDir.relativize(file).toString();
                     if (path.endsWith(".csv")) {
-                        String name = CSV.path2ConfigName(path.substring(0, path.length() - 4));
+                        String p = path.substring(0, path.length() - 4);
+                        String configName = String.join(".", p.split("\\\\|/")).toLowerCase();
                         try (Reader reader = encoding.startsWith("UTF") ? new InputStreamReader(new FileInputStream(file.toFile()), encoding) : new UnicodeReader(new FileInputStream(file.toFile()), encoding)) {
-                            dtables.put(name, new DTable(DDb.this, name, CSV.parse(reader, false)));
+                            dtables.put(configName, new DTable(DDb.this, configName, CSV.parse(reader, false)));
                         }
                     }
                     return FileVisitResult.CONTINUE;

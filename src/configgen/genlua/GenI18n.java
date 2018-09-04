@@ -38,26 +38,24 @@ public final class GenI18n extends Generator {
     public void generate(Context ctx) {
         VDb value = ctx.makeValue();
 
-
-        Map<String, Set<String>> table2TextSet = new TreeMap<>();
+        Map<String, Map<String, String>> table2TextMap = new TreeMap<>();
         for (VTable vTable : value.vtables.values()) {
             if (vTable.tableType.tbean.hasText()) {
-                Set<String> textSet = new TreeSet<>();
-                ValueVisitor visitor = new TextValueVisitor(textSet);
+                Map<String, String> textMap = new LinkedHashMap<>();
+                ValueVisitor visitor = new TextValueVisitor(textMap);
                 vTable.vbeanList.forEach(v -> v.accept(visitor));
-                table2TextSet.put(vTable.name, textSet);
+                table2TextMap.put(vTable.name, textMap);
             }
         }
 
-
         List<List<String>> rows = new ArrayList<>();
-        for (Map.Entry<String, Set<String>> stringSetEntry : table2TextSet.entrySet()) {
-            String table = stringSetEntry.getKey();
-            for (String s : stringSetEntry.getValue()) {
+        for (Map.Entry<String, Map<String, String>> table2TextEntry : table2TextMap.entrySet()) {
+            String table = table2TextEntry.getKey();
+            for (Map.Entry<String, String> s : table2TextEntry.getValue().entrySet()) {
                 List<String> r = new ArrayList<>(2);
                 r.add(table);
-                r.add(s);
-                r.add("");
+                r.add(s.getKey());
+                r.add(s.getValue());
                 rows.add(r);
             }
         }
@@ -66,10 +64,10 @@ public final class GenI18n extends Generator {
     }
 
     private static class TextValueVisitor implements ValueVisitor {
-        Set<String> textSet;
+        Map<String, String> original2I18nMap;
 
-        TextValueVisitor(Set<String> set) {
-            textSet = set;
+        TextValueVisitor(Map<String, String> map) {
+            original2I18nMap = map;
         }
 
         @Override
@@ -94,8 +92,8 @@ public final class GenI18n extends Generator {
                 return;
             }
 
-            if (!value.value.isEmpty()) {
-                textSet.add(value.value);
+            if (!value.originalValue.isEmpty()) {
+                original2I18nMap.put(value.originalValue, value.i18nValue);
             }
         }
 

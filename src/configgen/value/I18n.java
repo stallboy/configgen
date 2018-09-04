@@ -43,7 +43,7 @@ public final class I18n {
 
     public String get(String raw) {
         if (curTable == null) {
-            return raw;
+            return null;
         }
 
         String text = curTable.get(raw);
@@ -51,7 +51,7 @@ public final class I18n {
             if (!raw.isEmpty()) {
                 System.out.println(raw + " 未翻译");
             }
-            return raw;
+            return null;
         }
         return text;
     }

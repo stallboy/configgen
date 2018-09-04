@@ -8,7 +8,10 @@ import java.util.List;
 
 public class VString extends VPrimitive {
     public final TString tstring;
-    public final String value;
+    public final String value; //生成代码用这个
+
+    public final String originalValue; //这个原始值
+    public final String i18nValue;      //是否有翻译值
 
     public VString(Node parent, String name, TString type, List<Cell> data) {
         super(parent, name, type, data);
@@ -16,9 +19,19 @@ public class VString extends VPrimitive {
 
         if (tstring.subtype == TString.Subtype.STRING){
             value = raw.data;
+            originalValue = value;
+            i18nValue = "";
         }else{
+            originalValue = raw.data;
             I18n i18n = ((VDb)root).i18n;
-            value = i18n.get(raw.data);
+            String v = i18n.get(originalValue);
+            if (v == null){
+                value = originalValue;
+                i18nValue = "";
+            }else{
+                value = v;
+                i18nValue = v;
+            }
         }
     }
 

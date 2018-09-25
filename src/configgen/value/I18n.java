@@ -1,5 +1,6 @@
 package configgen.value;
 
+import configgen.Logger;
 import configgen.util.CSV;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public final class I18n {
         String text = curTable.get(raw);
         if (text == null || text.isEmpty()) {
             if (!raw.isEmpty()) {
-                System.out.println(raw + " 未翻译");
+                Logger.verbose(raw + " 未翻译");
             }
             return null;
         }

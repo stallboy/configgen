@@ -26,6 +26,7 @@ public final class Main {
         System.out.println("	-encoding     配表和配表结构文件的编码，默认是GBK");
         System.out.println("	-i18nfile     国际化需要的文件，如果不用国际化，就不要配置");
         System.out.println("	-i18nencoding 国际化需要的文件的编码，默认是GBK");
+        System.out.println("   -i18ncrlfaslf     把字符串里的\\r\\n 替换为 \\n，默认是false");
         System.out.println("	-verify       检查配表约束");
         System.out.println("	-v            输出一些额外信息");
         Generators.getAllProviders().forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
@@ -47,6 +48,7 @@ public final class Main {
         String encoding = "GBK";
         String i18nfile = null;
         String i18nencoding = "GBK";
+        boolean i18ncrlfaslf = false;
         boolean verify = false;
         List<Generator> generators = new ArrayList<>();
 
@@ -67,9 +69,13 @@ public final class Main {
                 case "-i18nencoding":
                     i18nencoding = args[++i];
                     break;
+                case "-i18ncrlfaslf":
+                    i18ncrlfaslf = true;
+                    break;
                 case "-verify":
                     verify = true;
                     break;
+
 
                 case "-gen":
                     Generator generator = Generators.create(args[++i]);
@@ -91,10 +97,15 @@ public final class Main {
             usage("-datadir 未配置");
             return;
         }
+
+        if (i18nfile != null){
+            Logger.enablePrintNotFound18n();
+        }
+
         Path dataDir = Paths.get(datadir);
         File xmlFile = xml != null ? new File(xml) : dataDir.resolve("config.xml").toFile();
 
-        Context ctx = new Context(dataDir, xmlFile, encoding, i18nfile, i18nencoding);
+        Context ctx = new Context(dataDir, xmlFile, encoding, i18nfile, i18nencoding, i18ncrlfaslf);
         if (verify) {
             Logger.verbose("verify");
             ctx.verify();

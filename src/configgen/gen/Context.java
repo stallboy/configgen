@@ -17,7 +17,7 @@ public class Context {
     public final DDb data;
     private final I18n i18n;
 
-    Context(Path dataDir, File xmlFile, String encoding, String i18nFile, String i18nEncoding) {
+    Context(Path dataDir, File xmlFile, String encoding, String i18nFile, String i18nEncoding, boolean crlfaslf) {
         mm("start");
         define = new Db(xmlFile);
         mm("define");
@@ -37,7 +37,7 @@ public class Context {
         type.resolve();
         mm("type");
 
-        i18n = new I18n(i18nFile, i18nEncoding);
+        i18n = new I18n(i18nFile, i18nEncoding, crlfaslf);
     }
 
     private static void mm(String step) {

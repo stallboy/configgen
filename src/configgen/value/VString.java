@@ -1,5 +1,6 @@
 package configgen.value;
 
+import configgen.Logger;
 import configgen.Node;
 import configgen.define.Range;
 import configgen.type.TString;
@@ -26,6 +27,9 @@ public class VString extends VPrimitive {
             I18n i18n = ((VDb)root).i18n;
             String v = i18n.get(originalValue);
             if (v == null){
+                if (Logger.isPrintNotFoundI18n() && originalValue.length() > 0){
+                    System.out.println(originalValue);
+                }
                 value = originalValue;
                 i18nValue = "";
             }else{

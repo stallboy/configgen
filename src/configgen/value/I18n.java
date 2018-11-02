@@ -12,7 +12,7 @@ public final class I18n {
     private Map<String, Map<String, String>> map = null;
     private Map<String, String> curTable = null;
 
-    public I18n(String file, String encoding) {
+    public I18n(String file, String encoding, boolean crlfaslf) {
         if (file == null) {
             return;
         }
@@ -30,6 +30,10 @@ public final class I18n {
             String table = row.get(0);
             String raw = row.get(1);
             String i18 = row.get(2);
+            if (crlfaslf) {
+                raw = raw.replaceAll("\r\n", "\n");
+                i18 = i18.replaceAll("\r\n", "\n");
+            }
             Map<String, String> m = map.computeIfAbsent(table, k -> new HashMap<>());
             m.put(raw, i18);
         }

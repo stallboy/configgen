@@ -1,31 +1,19 @@
-local Beans = require("cfg._beans")
+local cfg = require "cfg._cfgs"
+local Beans = cfg._beans
 
-local task = {}
+local this = cfg.task.task
 
-function task:_create(os)
-    local o = {}
-    setmetatable(o, self)
-    self.__index = self
-    o.taskid = os:ReadInt32() -- 任务完成条件类型（id的范围为1-100）
-    o.name = os:ReadString() -- 程序用名字
-    o.desc = os:ReadString() -- 注释
-    o.nexttask = os:ReadInt32()
-    o.completecondition = Beans.task.completecondition:_create(os)
-    o.exp = os:ReadInt32()
-    return o
-end
+local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
+    "taskid", -- int, 任务完成条件类型（id的范围为1-100）
+    "name", -- string, 程序用名字
+    "desc", -- string, 注释
+    "nexttask", -- int
+    "completecondition", -- task.completecondition
+    "exp"  -- int
+    )
 
+mk(1, "杀个怪", "杀怪", 2, Beans.task.completecondition.killmonster(1, 3), 1000)
+mk(2, "和npc对话", "和npc对话", 3, Beans.task.completecondition.talknpc(1), 2000)
+mk(3, "收集物品", "收集物品", 0, Beans.task.completecondition.collectitem(11, 1), 3000)
 
-task.all = {}
-function task.get(taskid)
-    return task.all[taskid]
-end
-
-function task._initialize(os, errors)
-    for _ = 1, os:ReadSize() do
-        local v = task:_create(os)
-        task.all[v.taskid] = v
-    end
-end
-
-return task
+return this

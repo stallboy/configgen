@@ -71,7 +71,7 @@ namespace Config.Equip
         {
             var self = new DataJewelrysuit();
             self.SuitID = os.ReadInt32();
-            self.Name = os.ReadText();
+            self.Name = os.ReadString();
             self.Ability1 = os.ReadInt32();
             self.Ability1Value = os.ReadInt32();
             self.Ability2 = os.ReadInt32();

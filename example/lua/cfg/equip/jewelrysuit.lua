@@ -1,35 +1,25 @@
-local jewelrysuit = {}
+local cfg = require "cfg._cfgs"
 
-function jewelrysuit:_create(os)
-    local o = {}
-    setmetatable(o, self)
-    self.__index = self
-    o.suitID = os:ReadInt32() -- 饰品套装ID
-    o.name = os:ReadText() -- 策划用名字
-    o.ability1 = os:ReadInt32() -- 套装属性类型1（装备套装中的两件时增加的属性）
-    o.ability1Value = os:ReadInt32() -- 套装属性1
-    o.ability2 = os:ReadInt32() -- 套装属性类型2（装备套装中的三件时增加的属性）
-    o.ability2Value = os:ReadInt32() -- 套装属性2
-    o.ability3 = os:ReadInt32() -- 套装属性类型3（装备套装中的四件时增加的属性）
-    o.ability3Value = os:ReadInt32() -- 套装属性3
-    o.suitList = {} -- 部件1
-    for _ = 1, os:ReadSize() do
-        table.insert(o.suitList, os:ReadInt32())
-    end
-    return o
-end
+local this = cfg.equip.jewelrysuit
 
+local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
+    "suitID", -- int, 饰品套装ID
+    "name", -- text, 策划用名字
+    "ability1", -- int, 套装属性类型1（装备套装中的两件时增加的属性）
+    "ability1Value", -- int, 套装属性1
+    "ability2", -- int, 套装属性类型2（装备套装中的三件时增加的属性）
+    "ability2Value", -- int, 套装属性2
+    "ability3", -- int, 套装属性类型3（装备套装中的四件时增加的属性）
+    "ability3Value", -- int, 套装属性3
+    "suitList"  -- list,int,4, 部件1
+    )
 
-jewelrysuit.all = {}
-function jewelrysuit.get(suitID)
-    return jewelrysuit.all[suitID]
-end
+mk(1, "20级橙色套装", 3, 750, 2, 40, 6, 222, {10, 35, 60, 85})
+mk(2, "40级紫色套装", 2, 40, 3, 1200, 1, 123, {14, 39, 64, 89})
+mk(3, "40级橙色套装", 3, 1600, 4, 135, 6, 398, {15, 40, 65, 90})
+mk(4, "60级紫色套装", 2, 54, 3, 1800, 1, 186, {19, 44, 69, 94})
+mk(5, "60级橙色套装", 3, 2600, 4, 226, 6, 556, {20, 45, 70, 95})
+mk(6, "80级紫色套装", 2, 70, 3, 2900, 1, 243, {24, 49, 74, 99})
+mk(7, "80级橙色套装", 3, 3800, 4, 286, 6, 711, {25, 50, 75, 100})
 
-function jewelrysuit._initialize(os, errors)
-    for _ = 1, os:ReadSize() do
-        local v = jewelrysuit:_create(os)
-        jewelrysuit.all[v.suitID] = v
-    end
-end
-
-return jewelrysuit
+return this

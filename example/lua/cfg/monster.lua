@@ -1,30 +1,14 @@
-local Beans = require("cfg._beans")
+local cfg = require "cfg._cfgs"
+local Beans = cfg._beans
 
-local monster = {}
+local this = cfg.monster
 
-function monster:_create(os)
-    local o = {}
-    setmetatable(o, self)
-    self.__index = self
-    o.id = os:ReadInt32() -- id
-    o.posList = {}
-    for _ = 1, os:ReadSize() do
-        table.insert(o.posList, Beans.position:_create(os))
-    end
-    return o
-end
+local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
+    "id", -- int, id
+    "posList"  -- list,Position
+    )
 
+mk(1, {Beans.position(1, 2, 3), Beans.position(11, 22, 33), Beans.position(111, 222, 333)})
+mk(2, {Beans.position(33, 44, 55)})
 
-monster.all = {}
-function monster.get(id)
-    return monster.all[id]
-end
-
-function monster._initialize(os, errors)
-    for _ = 1, os:ReadSize() do
-        local v = monster:_create(os)
-        monster.all[v.id] = v
-    end
-end
-
-return monster
+return this

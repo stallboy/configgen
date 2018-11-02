@@ -1,31 +1,23 @@
-local loot = {}
+local cfg = require "cfg._cfgs"
 
-function loot:_create(os)
-    local o = {}
-    setmetatable(o, self)
-    self.__index = self
-    o.lootid = os:ReadInt32() -- 序号
-    o.ename = os:ReadString()
-    o.name = os:ReadString() -- 名字
-    o.chanceList = {} -- 掉落0件物品的概率
-    for _ = 1, os:ReadSize() do
-        table.insert(o.chanceList, os:ReadInt32())
-    end
-    o.ListRefLootid = {}
-    return o
-end
+local this = cfg.loot
 
+local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
+    "lootid", -- int, 序号
+    "ename", -- string
+    "name", -- string, 名字
+    "chanceList"  -- list,int,7, 掉落0件物品的概率
+    )
 
-loot.all = {}
-function loot.get(lootid)
-    return loot.all[lootid]
-end
+mk(1, "", "测试掉落", {100, 200, 200, 200, 200, 50, 50})
+mk(2, "combo1", "小宝箱", {0, 100, 0, 0, 0, 0, 0})
+mk(3, "combo2", "中宝箱", {0, 100, 0, 0, 0, 0, 0})
+mk(4, "combo3", "大宝箱", {0, 100, 0, 0, 0, 0, 0})
+mk(5, "", "测试掉落2", {20, 10, 10, 20, 20, 10, 10})
+mk(6, "", "剧情任务测试1", {0, 100, 0, 0, 0, 0, 0})
+mk(7, "", "剧情任务测试2", {0, 100, 0, 0, 0, 0, 0})
+mk(8, "", "通告栏掉落染色模板1", {80, 20, 0, 0, 0, 0, 0})
+mk(9, "", "通告栏掉落染色模板2", {80, 20, 0, 0, 0, 0, 0})
+mk(10, "", "通告栏掉落染色模板3", {80, 20, 0, 0, 0, 0, 0})
 
-function loot._initialize(os, errors)
-    for _ = 1, os:ReadSize() do
-        local v = loot:_create(os)
-        loot.all[v.lootid] = v
-    end
-end
-
-return loot
+return this

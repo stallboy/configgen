@@ -1,34 +1,26 @@
-local signin = {}
+local cfg = require "cfg._cfgs"
 
-function signin:_create(os)
-    local o = {}
-    setmetatable(o, self)
-    self.__index = self
-    o.id = os:ReadInt32() -- 礼包ID
-    o.item2countMap = {} -- 普通奖励
-    for _ = 1, os:ReadSize() do
-        o.item2countMap[os:ReadInt32()] = os:ReadInt32()
-    end
-    o.vipitem2vipcountMap = {} -- vip奖励
-    for _ = 1, os:ReadSize() do
-        o.vipitem2vipcountMap[os:ReadInt32()] = os:ReadInt32()
-    end
-    o.viplevel = os:ReadInt32() -- 领取vip奖励的最低等级
-    o.iconFile = os:ReadString() -- 礼包图标
-    return o
-end
+local this = cfg.signin
 
+local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
+    "id", -- int, 礼包ID
+    "item2countMap", -- map,int,int,5, 普通奖励
+    "vipitem2vipcountMap", -- map,int,int,2, vip奖励
+    "viplevel", -- int, 领取vip奖励的最低等级
+    "iconFile"  -- string, 礼包图标
+    )
 
-signin.all = {}
-function signin.get(id)
-    return signin.all[id]
-end
+mk(1, {[10001] = 1}, {}, 0, "texture/t_i10005.bundle")
+mk(2, {[10014] = 1}, {}, 0, "texture/t_i10006.bundle")
+mk(3, {[30001] = 1}, {}, 0, "texture/t_i10007.bundle")
+mk(4, {[10001] = 5, [30002] = 5, [30001] = 5}, {[10001] = 10}, 0, "texture/t_i10008.bundle")
+mk(5, {[10001] = 1}, {}, 0, "texture/t_i10009.bundle")
+mk(6, {[10025] = 1}, {}, 0, "texture/t_i10010.bundle")
+mk(7, {[30001] = 1}, {}, 0, "texture/t_i10005.bundle")
+mk(8, {[10001] = 5, [30002] = 5, [30001] = 5}, {[10001] = 10}, 0, "texture/t_i10006.bundle")
+mk(9, {[10001] = 1}, {}, 0, "texture/t_i10007.bundle")
+mk(10, {[10040] = 1}, {}, 0, "texture/t_i10008.bundle")
+mk(11, {[30001] = 1}, {}, 0, "texture/t_i10009.bundle")
+mk(12, {[10001] = 5, [30002] = 5, [30001] = 5}, {[10001] = 10}, 0, "texture/t_i10010.bundle")
 
-function signin._initialize(os, errors)
-    for _ = 1, os:ReadSize() do
-        local v = signin:_create(os)
-        signin.all[v.id] = v
-    end
-end
-
-return signin
+return this

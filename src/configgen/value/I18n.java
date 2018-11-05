@@ -27,15 +27,19 @@ public final class I18n {
         }
 
         for (List<String> row : rows) {
-            String table = row.get(0);
-            String raw = row.get(1);
-            String i18 = row.get(2);
-            if (crlfaslf) {
-                raw = raw.replaceAll("\r\n", "\n");
-                i18 = i18.replaceAll("\r\n", "\n");
+            if (row.size() != 3) {
+                System.out.println(row + " 不是3列，被忽略");
+            } else {
+                String table = row.get(0);
+                String raw = row.get(1);
+                String i18 = row.get(2);
+                if (crlfaslf) {
+                    raw = raw.replaceAll("\r\n", "\n");
+                    i18 = i18.replaceAll("\r\n", "\n");
+                }
+                Map<String, String> m = map.computeIfAbsent(table, k -> new HashMap<>());
+                m.put(raw, i18);
             }
-            Map<String, String> m = map.computeIfAbsent(table, k -> new HashMap<>());
-            m.put(raw, i18);
         }
     }
 
@@ -53,9 +57,6 @@ public final class I18n {
 
         String text = curTable.get(raw);
         if (text == null || text.isEmpty()) {
-            if (!raw.isEmpty()) {
-                Logger.verbose(raw + " 未翻译");
-            }
             return null;
         }
         return text;

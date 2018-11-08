@@ -20,12 +20,13 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class DDb extends Node {
     public final Path dataDir;
     public final Map<String, DTable> dtables = new HashMap<>();
 
-    public DDb(Path _dataDir, String encoding) {
+    public DDb(Path _dataDir, String dataEncoding, Set<String> utf8fileset) {
         super(null, "ddb");
         dataDir = _dataDir;
         try {
@@ -35,7 +36,11 @@ public class DDb extends Node {
                     String path = dataDir.relativize(file).toString();
                     if (path.endsWith(".csv")) {
                         String p = path.substring(0, path.length() - 4);
-                        String configName = String.join(".", p.split("\\\\|/")).toLowerCase();
+                        String configName = String.join(".", p.split("[\\\\/]")).toLowerCase();
+                        String encoding = dataEncoding;
+                        if (utf8fileset.contains(configName)) {
+                            encoding = "UTF8";
+                        }
                         try (Reader reader = encoding.startsWith("UTF") ? new InputStreamReader(new FileInputStream(file.toFile()), encoding) : new UnicodeReader(new FileInputStream(file.toFile()), encoding)) {
                             dtables.put(configName, new DTable(DDb.this, configName, CSV.parse(reader, false)));
                         }

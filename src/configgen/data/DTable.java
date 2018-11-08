@@ -50,7 +50,14 @@ public class DTable extends Node {
 
     public DTable(DDb parent, String name, List<List<String>> raw) {
         super(parent, name);
-        require(raw.size() > 1);
+        if (raw.size() < 2) {
+            System.out.println(fullName() + " 数据行数小于2");
+            for (List<String> strings : raw) {
+                System.out.println(String.join(",", strings));
+            }
+            throw new AssertionError();
+        }
+        ;
         descLine = raw.get(0);
         nameLine = raw.get(1);
         for (int i = 2; i < raw.size(); i++) {
@@ -68,9 +75,9 @@ public class DTable extends Node {
         dcolumns.forEach((n, col) -> {
             Column f = old.remove(n);
             if (f == null) {
-                f = ((Db)table.parent).newColumn(table, n, col.guessType(), col.desc());
+                f = ((Db) table.parent).newColumn(table, n, col.guessType(), col.desc());
                 Logger.verbose("new column " + f.fullName());
-            }else{
+            } else {
                 bean.columns.put(f.name, f);
                 f.desc = col.desc();
             }

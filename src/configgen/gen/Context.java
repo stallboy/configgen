@@ -10,6 +10,7 @@ import configgen.value.VDb;
 import java.nio.file.Path;
 import java.io.File;
 import java.util.Objects;
+import java.util.Set;
 
 public class Context {
     public final Db define;
@@ -17,7 +18,7 @@ public class Context {
     public final DDb data;
     private final I18n i18n;
 
-    Context(Path dataDir, File xmlFile, String encoding, String i18nFile, String i18nEncoding, boolean crlfaslf) {
+    Context(Path dataDir, File xmlFile, String encoding, Set<String> utf8fileset, String i18nFile, String i18nEncoding, boolean crlfaslf) {
         mm("start");
         define = new Db(xmlFile);
         mm("define");
@@ -28,7 +29,7 @@ public class Context {
         mm("defineType");
         //type.dump(System.out);
 
-        data = new DDb(dataDir, encoding);
+        data = new DDb(dataDir, encoding, utf8fileset);
         data.autoCompleteDefine(defineType);
         define.save(xmlFile, encoding);
         mm("data");

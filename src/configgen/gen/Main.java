@@ -13,8 +13,7 @@ import configgen.util.CachedFileOutputStream;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public final class Main {
     private static void usage(String reason) {
@@ -23,7 +22,9 @@ public final class Main {
         System.out.println("Usage: java -jar configgen.jar [options]");
         System.out.println("	-datadir      配表所在目录");
         System.out.println("	-xml          配表结构文件，默认是config.xml");
-        System.out.println("	-encoding     配表和配表结构文件的编码，默认是GBK");
+        System.out.println("	-encoding     配表文件编码，默认是GBK");
+        System.out.println("	-utf8files    utf8编码的配表文件列表，逗号分割，默认空, 用于encoding不是utf8但有部分文件是utf8编码时");
+
         System.out.println("	-i18nfile     国际化需要的文件，如果不用国际化，就不要配置");
         System.out.println("	-i18nencoding 国际化需要的文件的编码，默认是GBK");
         System.out.println("   -i18ncrlfaslf     把字符串里的\\r\\n 替换为 \\n，默认是false");
@@ -46,6 +47,7 @@ public final class Main {
         String datadir = null;
         String xml = null;
         String encoding = "GBK";
+        String utf8files = null;
         String i18nfile = null;
         String i18nencoding = "GBK";
         boolean i18ncrlfaslf = false;
@@ -63,6 +65,11 @@ public final class Main {
                 case "-encoding":
                     encoding = args[++i];
                     break;
+                case "-utf8files":
+                    utf8files = args[++i];
+                    break;
+
+
                 case "-i18nfile":
                     i18nfile = args[++i];
                     break;
@@ -98,14 +105,21 @@ public final class Main {
             return;
         }
 
-        if (i18nfile != null){
+        if (i18nfile != null) {
             Logger.enablePrintNotFound18n();
         }
 
         Path dataDir = Paths.get(datadir);
         File xmlFile = xml != null ? new File(xml) : dataDir.resolve("config.xml").toFile();
 
-        Context ctx = new Context(dataDir, xmlFile, encoding, i18nfile, i18nencoding, i18ncrlfaslf);
+        Set<String> utf8fileset;
+        if (utf8files != null) {
+            utf8fileset = new HashSet<>(Arrays.asList(utf8files.split(",")));
+        } else {
+            utf8fileset = Collections.emptySet();
+        }
+
+        Context ctx = new Context(dataDir, xmlFile, encoding, utf8fileset, i18nfile, i18nencoding, i18ncrlfaslf);
         if (verify) {
             Logger.verbose("verify");
             ctx.verify();

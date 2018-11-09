@@ -41,9 +41,7 @@ public class DDb extends Node {
                         if (utf8fileset.contains(configName)) {
                             encoding = "UTF8";
                         }
-                        try (Reader reader = encoding.startsWith("UTF") ? new InputStreamReader(new FileInputStream(file.toFile()), encoding) : new UnicodeReader(new FileInputStream(file.toFile()), encoding)) {
-                            dtables.put(configName, new DTable(DDb.this, configName, CSV.parse(reader, false)));
-                        }
+                        dtables.put(configName, new DTable(DDb.this, configName, CSV.readFromFile(file.toFile(), encoding, false)));
                     }
                     return FileVisitResult.CONTINUE;
                 }

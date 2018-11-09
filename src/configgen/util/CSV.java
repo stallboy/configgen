@@ -16,10 +16,10 @@ public final class CSV {
         START, NO_QUOTE, QUOTE, QUOTE2, CR,
     }
 
-    public static List<List<String>> readFromFile(File file, String encoding) {
+    public static List<List<String>> readFromFile(File file, String encoding, boolean removeEmptyLine) {
         try {
-            try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
-                return parse(reader, true);
+            try (Reader reader = UnicodeReader.makeReader(new FileInputStream(file), encoding)) {
+                return parse(reader, removeEmptyLine);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

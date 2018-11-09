@@ -1,6 +1,5 @@
 package configgen.value;
 
-import configgen.Logger;
 import configgen.util.CSV;
 
 import java.io.File;
@@ -17,7 +16,7 @@ public final class I18n {
             return;
         }
         map = new HashMap<>();
-        List<List<String>> rows = CSV.readFromFile(new File(file), encoding);
+        List<List<String>> rows = CSV.readFromFile(new File(file), encoding, true);
         List<String> row0 = rows.get(0);
         if (row0 == null) {
             throw new IllegalArgumentException("国际化i18n文件为空");

@@ -22,12 +22,12 @@ public final class Main {
         System.out.println("Usage: java -jar configgen.jar [options]");
         System.out.println("	-datadir      配表所在目录");
         System.out.println("	-xml          配表结构文件，默认是config.xml");
-        System.out.println("	-encoding     配表和配表结构文件的编码，默认是GBK");
-        System.out.println("	-utf8files    utf8编码的配表文件列表，逗号分割，默认空, 用于encoding不是utf8但有部分文件是utf8编码时");
+        System.out.println("	-encoding     配表和配表结构文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
+        System.out.println("	-utf8files    utf8编码的配表文件列表，逗号分割，默认空, 用于encoding不是utf8但有部分文件是无bom的utf8编码时");
         System.out.println("	              比如datadir下有task/question.csv是utf8编码，则这里要写成-utf8files task.question");
 
         System.out.println("	-i18nfile     国际化需要的文件，如果不用国际化，就不要配置");
-        System.out.println("	-i18nencoding 国际化需要的文件的编码，默认是GBK");
+        System.out.println("	-i18nencoding 国际化需要的文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
         System.out.println("   -i18ncrlfaslf     把字符串里的\\r\\n 替换为 \\n，默认是false");
         System.out.println("	-verify       检查配表约束");
         System.out.println("	-v            输出一些额外信息");

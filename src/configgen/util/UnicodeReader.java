@@ -27,15 +27,6 @@ import java.io.*;
  * then use a given default or system encoding.
  */
 public class UnicodeReader extends Reader {
-
-    public static Reader makeReader(InputStream inputStream, String encoding) throws UnsupportedEncodingException {
-        if (encoding.toLowerCase().startsWith("utf")) {
-            return new UnicodeReader(inputStream, encoding);
-        } else {
-            return new InputStreamReader(inputStream, encoding);
-        }
-    }
-
     private PushbackInputStream internalIn;
     private InputStreamReader internalIn2 = null;
     private String defaultEnc;

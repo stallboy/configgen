@@ -18,7 +18,7 @@ public final class CSV {
 
     public static List<List<String>> readFromFile(File file, String encoding, boolean removeEmptyLine) {
         try {
-            try (Reader reader = UnicodeReader.makeReader(new FileInputStream(file), encoding)) {
+            try (Reader reader = new UnicodeReader(new FileInputStream(file), encoding)) {
                 return parse(reader, removeEmptyLine);
             }
         } catch (Exception e) {

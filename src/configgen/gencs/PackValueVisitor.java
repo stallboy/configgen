@@ -42,13 +42,13 @@ class PackValueVisitor implements ValueVisitor {
 
     @Override
     public void visit(VList value) {
-        addSize(value.list.size());
+        addInt(value.list.size());
         value.list.forEach(v -> v.accept(this));
     }
 
     @Override
     public void visit(VMap value) {
-        addSize(value.map.size());
+        addInt(value.map.size());
         value.map.forEach((k, v) -> {
             k.accept(this);
             v.accept(this);
@@ -67,26 +67,13 @@ class PackValueVisitor implements ValueVisitor {
 
     public void addVTable(VTable vtable) throws IOException {
         addString(vtable.tableType.tbean.beanDefine.name);
-        addSize(vtable.vbeanList.size());
+        addInt(vtable.vbeanList.size());
         vtable.vbeanList.forEach(v -> v.accept(this));
     }
-
-
 
     private void addBool(boolean v) {
         try {
             byter.writeBoolean(v);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void addSize(int v) {
-        if (v > 0xFFFF)
-            throw new RuntimeException("size > 0xFFFF");
-        try {
-            byter.write((v) & 0xFF);
-            byter.write((v >>> 8) & 0xFF);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -126,7 +113,7 @@ class PackValueVisitor implements ValueVisitor {
     private void addString(String v) {
         try {
             byte[] b = v.getBytes("UTF-8");
-            addSize(b.length);
+            addInt(b.length);
             byter.write(b);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -279,7 +279,7 @@ public class GenCs extends Generator {
                 ps.println3(uniqueKeyMapName(uniqueKey) + " = new Config.KeyedList<" + keyClassName(uniqueKey) + ", " + name.className + ">();");
             }
 
-            ps.println3("for (var c = os.ReadSize(); c > 0; c--) {");
+            ps.println3("for (var c = os.ReadInt32(); c > 0; c--) {");
             ps.println4("var self = _create(os);");
             generateAllMapPut(ttable, ps);
 
@@ -330,11 +330,11 @@ public class GenCs extends Generator {
         tbean.columns.forEach((n, t) -> {
             if (t instanceof TList) {
                 ps.println3("self." + upper1(n) + " = new " + type(t) + "();");
-                ps.println3("for (var c = (int)os.ReadSize(); c > 0; c--)");
+                ps.println3("for (var c = os.ReadInt32(); c > 0; c--)");
                 ps.println4("self." + upper1(n) + ".Add(" + _create(((TList) t).value) + ");");
             } else if (t instanceof TMap) {
                 ps.println3("self." + upper1(n) + " = new " + type(t) + "();");
-                ps.println3("for (var c = (int)os.ReadSize(); c > 0; c--)");
+                ps.println3("for (var c = os.ReadInt32(); c > 0; c--)");
                 ps.println4("self." + upper1(n) + ".Add(" + _create(((TMap) t).key) + ", " + _create(((TMap) t).value) + ");");
             } else {
                 ps.println3("self." + upper1(n) + " = " + _create(t) + ";");

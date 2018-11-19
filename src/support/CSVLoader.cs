@@ -41,12 +41,12 @@ namespace Config
 
         public int ReadSize()
         {
-            return _byter.ReadUInt16();
+            return _byter.ReadInt32();
         }
 
         public string ReadString()
         {
-            var count = _byter.ReadUInt16();
+            var count = _byter.ReadInt32();
             return Encoding.UTF8.GetString(_byter.ReadBytes(count));
         }
 

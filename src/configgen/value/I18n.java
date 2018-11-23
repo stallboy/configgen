@@ -10,6 +10,7 @@ import java.util.Map;
 public final class I18n {
     private Map<String, Map<String, String>> map = null;
     private Map<String, String> curTable = null;
+    private boolean isCRLFAsLF;
 
     public I18n(String file, String encoding, boolean crlfaslf) {
         if (file == null) {
@@ -25,6 +26,7 @@ public final class I18n {
             throw new IllegalArgumentException("国际化i18n文件列数不为3");
         }
 
+        isCRLFAsLF = crlfaslf;
         for (List<String> row : rows) {
             if (row.size() != 3) {
                 System.out.println(row + " 不是3列，被忽略");
@@ -32,13 +34,19 @@ public final class I18n {
                 String table = row.get(0);
                 String raw = row.get(1);
                 String i18 = row.get(2);
-                if (crlfaslf) {
-                    raw = raw.replaceAll("\r\n", "\n");
-                    i18 = i18.replaceAll("\r\n", "\n");
-                }
+                raw = normalizeRaw(raw);
+
                 Map<String, String> m = map.computeIfAbsent(table, k -> new HashMap<>());
                 m.put(raw, i18);
             }
+        }
+    }
+
+    private String normalizeRaw(String raw){
+        if (isCRLFAsLF){
+            return raw.replaceAll("\r\n", "\n");
+        }else{
+            return raw;
         }
     }
 
@@ -54,6 +62,11 @@ public final class I18n {
             return null;
         }
 
+        if (raw == null){
+            return null;
+        }
+
+        raw = normalizeRaw(raw);
         String text = curTable.get(raw);
         if (text == null || text.isEmpty()) {
             return null;

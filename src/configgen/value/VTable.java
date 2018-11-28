@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class VTable extends Node {
     public final TTable tableType;
     public final ArrayList<VBean> vbeanList = new ArrayList<>();
-    public final Set<Value> primaryKeyValueSet = new HashSet<>();
+    public final Set<Value> primaryKeyValueSet = new LinkedHashSet<>();
     public final Map<String, Set<Value>> uniqueKeyValueSetMap = new LinkedHashMap<>();
 
     public final Set<String> enumNames = new LinkedHashSet<>();
@@ -42,7 +42,6 @@ public class VTable extends Node {
         vbeanList.trimToSize();
 
 
-
         extractKeyValues(tableType.tableDefine.primaryKey, primaryKeyValueSet);
 
         for (UniqueKey uk : tableType.tableDefine.uniqueKeys.values()) {
@@ -69,9 +68,9 @@ public class VTable extends Node {
                     require(names.add(e.toUpperCase()), "enum data duplicate", e);
                     enumNames.add(e);
 
-                    if (!tableType.tableDefine.isEnumAsPrimaryKey()){
+                    if (!tableType.tableDefine.isEnumAsPrimaryKey()) {
                         Value primaryV = vbean.valueMap.get(tableType.tableDefine.primaryKey[0]);
-                        Integer iv = ((VInt)primaryV).value;
+                        Integer iv = ((VInt) primaryV).value;
                         enumName2IntegerValueMap.put(e, iv);
                     }
                 }
@@ -100,5 +99,13 @@ public class VTable extends Node {
 
     public void verifyConstraint() {
         vbeanList.forEach(VBean::verifyConstraint);
+        if (getTableDefine().isPrimaryKeySeq) {
+            int seq = 1;
+            for (Value value : primaryKeyValueSet) {
+                require(value instanceof VInt, "isPrimaryKeySeq primaryKey must be int");
+                require(((VInt) value).value == seq, "isPrimaryKeySeq primaryKey value must be 1,2,3...");
+                seq++;
+            }
+        }
     }
 }

@@ -19,16 +19,18 @@ public class Table extends Node {
     public EnumType enumType;
     public String enumStr;
     public String[] primaryKey;
+    public boolean isPrimaryKeySeq;
+
     public final Map<String, UniqueKey> uniqueKeys = new LinkedHashMap<>();
 
     public Table(Db parent, Element self) {
         super(parent, self.getAttribute("name"));
-        DomUtils.permitAttributes(self, "name", "own", "enum", "enumPart", "primaryKey");
+        DomUtils.permitAttributes(self, "name", "own", "enum", "enumPart", "primaryKey", "isPrimaryKeySeq");
         DomUtils.permitElements(self, "column", "foreignKey", "range", "uniqueKey");
 
         bean = new Bean(this, self);
-        enumType = EnumType.None;
-        enumStr = "";
+
+
         if (self.hasAttribute("enum")) {
             enumType = EnumType.EnumFull;
             enumStr = self.getAttribute("enum");
@@ -38,6 +40,9 @@ public class Table extends Node {
             enumType = EnumType.EnumPart;
             enumStr = self.getAttribute("enumPart");
             require(!enumStr.isEmpty(), "enumPart empty");
+        }else{
+            enumType = EnumType.None;
+            enumStr = "";
         }
 
         if (self.hasAttribute("primaryKey")) {
@@ -45,6 +50,8 @@ public class Table extends Node {
         } else {
             primaryKey = new String[]{bean.columns.keySet().iterator().next()};
         }
+
+        isPrimaryKeySeq = self.hasAttribute("isPrimaryKeySeq");
 
         for (Element ele : DomUtils.elements(self, "uniqueKey")) {
             UniqueKey uk = new UniqueKey(this, ele);
@@ -87,6 +94,7 @@ public class Table extends Node {
         enumType = EnumType.None;
         enumStr = "";
         primaryKey = new String[0];
+        isPrimaryKeySeq = false;
     }
 
     private Table(Db _parent, Table original) {
@@ -94,6 +102,7 @@ public class Table extends Node {
         enumType = original.enumType;
         enumStr = original.enumStr;
         primaryKey = original.primaryKey;
+        isPrimaryKeySeq = original.isPrimaryKeySeq;
     }
 
 
@@ -137,6 +146,9 @@ public class Table extends Node {
         }
         if (primaryKey.length > 0) {
             self.setAttribute("primaryKey", String.join(",", primaryKey));
+        }
+        if (isPrimaryKeySeq){
+            self.setAttribute("isPrimaryKeySeq", "true");
         }
     }
 }

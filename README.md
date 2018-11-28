@@ -29,9 +29,10 @@
 * bean.enumRef
     - 支持动态bean，这个指向一个enum的table，在这个bean里定义子bean
 * table.name
-* table.primaryKey
+* table.primaryKey, isPrimaryKeySeq
     - primary key! 默认是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
-* table.enum
+    - 如果有isPrimaryKeySeq，则主键值必须是1,2,3,4...
+* table.enum, enumPart
     - 如果程序想访问单独一行，配置这个，比如enum="aa"就是field aa作为enum名称
 * column.desc, name
     - configgen.jar会从csv文件第1,2行提取

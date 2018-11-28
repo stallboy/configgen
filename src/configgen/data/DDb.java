@@ -2,17 +2,13 @@ package configgen.data;
 
 import configgen.Logger;
 import configgen.Node;
-import configgen.define.Table;
 import configgen.define.Db;
-import configgen.type.TTable;
+import configgen.define.Table;
 import configgen.type.TDb;
+import configgen.type.TTable;
 import configgen.util.CSV;
-import configgen.util.UnicodeReader;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,28 +16,23 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class DDb extends Node {
     public final Path dataDir;
     public final Map<String, DTable> dtables = new HashMap<>();
 
-    public DDb(Path _dataDir, String dataEncoding, Set<String> utf8fileset) {
+    public DDb(Path _dataDir, String dataEncoding) {
         super(null, "ddb");
         dataDir = _dataDir;
         try {
             Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes a) throws IOException {
+                public FileVisitResult visitFile(Path file, BasicFileAttributes a) {
                     String path = dataDir.relativize(file).toString();
                     if (path.endsWith(".csv")) {
                         String p = path.substring(0, path.length() - 4);
                         String configName = String.join(".", p.split("[\\\\/]")).toLowerCase();
-                        String encoding = dataEncoding;
-                        if (utf8fileset.contains(configName)) {
-                            encoding = "UTF8";
-                        }
-                        dtables.put(configName, new DTable(DDb.this, configName, CSV.readFromFile(file.toFile(), encoding, false)));
+                        dtables.put(configName, new DTable(DDb.this, configName, CSV.readFromFile(file.toFile(), dataEncoding, false)));
                     }
                     return FileVisitResult.CONTINUE;
                 }

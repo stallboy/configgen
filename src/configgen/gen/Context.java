@@ -14,45 +14,36 @@ import java.util.Objects;
 public class Context {
     public final Db define;
     public final TDb type;
+    public final Path dataDir;
     public final DDb data;
     private final I18n i18n;
 
-
     Context(Path dataDir, File xmlFile, String encoding, String i18nFile, String i18nEncoding, boolean crlfaslf) {
-        mm("start");
+        this.dataDir = dataDir;
+        Logger.mm("start");
         define = new Db(xmlFile);
-        mm("define");
+        Logger.mm("define");
 
         //define.dump(System.out);
         TDb defineType = new TDb(define);
         defineType.resolve();
-        mm("defineType");
         //type.dump(System.out);
 
         data = new DDb(dataDir, encoding);
+        Logger.mm("data");
         data.autoCompleteDefine(defineType);
         define.save(xmlFile, encoding);
-        mm("data");
 
         type = new TDb(define);
         type.resolve();
-        mm("type");
+        Logger.mm("type");
 
         i18n = new I18n(i18nFile, i18nEncoding, crlfaslf);
     }
 
-    private static void mm(String step) {
-        //Runtime.getRuntime().gc();
-        Logger.printf("%s\t use %dm, total %dm\n", step, Runtime.getRuntime().totalMemory() / 1024 / 1024, Runtime.getRuntime().maxMemory() / 1024 / 1024);
-    }
 
     private VDb lastValue;
     private String lastValueOwn;
-
-    void verify() {
-        VDb value = new VDb(type, data, i18n);
-        value.verifyConstraint();
-    }
 
     public VDb makeValue() {
         return makeValue(null);
@@ -63,26 +54,30 @@ public class Context {
             if (Objects.equals(own, lastValueOwn)) {
                 return lastValue;
             }
-            lastValue = null;
         }
 
+        lastValue = null; //make it gc able
         VDb value;
         if (own == null || own.isEmpty()) {
-            value = new VDb(type, data, i18n);
-            value.verifyConstraint();
+            value = make(type);
         } else {
             Db ownDefine = define.extract(own);
             TDb ownType = new TDb(ownDefine);
             ownType.resolve();
-
-            value = new VDb(ownType, data, i18n);
-            value.verifyConstraint();
+            value = make(ownType);
         }
 
         lastValueOwn = own;
         lastValue = value;
 
-        mm("mk " + own);
+        Logger.mm("verify " + (own == null ? "" : own));
+        return value;
+    }
+
+    private VDb make(TDb myType) {
+        VDb value = new VDb(myType, data, i18n);
+        Logger.mm("value");
+        value.verifyConstraint();
         return value;
     }
 

@@ -28,8 +28,8 @@ public final class CSV {
 
     //https://tools.ietf.org/html/rfc4180
     public static List<List<String>> parse(Reader reader, boolean removeEmptyLine) throws IOException {
-        List<List<String>> result = new ArrayList<>();
-        List<String> record = new ArrayList<>();
+        ArrayList<List<String>> result = new ArrayList<>();
+        ArrayList<String> record = new ArrayList<>();
         State state = State.START;
         StringBuilder field = null;
 
@@ -113,8 +113,9 @@ public final class CSV {
                             break;
                         case lf:
                             record.add(field.toString());
-                            result.add(record);
-                            record = new ArrayList<>();
+                            addLine(result, record, removeEmptyLine);
+
+                            record = new ArrayList<>(record.size());
                             state = State.START;
                             break;
                         default:
@@ -131,25 +132,31 @@ public final class CSV {
             case START:
                 if (!record.isEmpty()) {
                     record.add("");
-                    result.add(record);
+                    addLine(result, record, removeEmptyLine);
+
                 }
                 break;
             case CR:
                 field.append(cr);
                 record.add(field.toString());
-                result.add(record);
+                addLine(result, record, removeEmptyLine);
                 break;
             default:
                 record.add(field.toString());
-                result.add(record);
+                addLine(result, record, removeEmptyLine);
                 break;
         }
 
-        if (removeEmptyLine) {
-            return result.stream().filter(CSV::isLineHasContent).collect(Collectors.toList());
-        } else {
-            return result;
+        result.trimToSize();
+        return result;
+    }
+
+    private static void addLine(ArrayList<List<String>> result, ArrayList<String> line, boolean noEmptyLine){
+        if (noEmptyLine && !isLineHasContent(line)){
+            return;
         }
+        line.trimToSize();
+        result.add(line);
     }
 
     public static boolean isLineHasContent(List<String> line) {

@@ -63,14 +63,14 @@ public class GenCs extends Generator {
         //copyFile("KeyedList.cs");
         genCSVProcessor();
 
-        for (TBean tbean : value.dbType.tbeans.values()) {
+        for (TBean tbean : value.getDbType().tbeans.values()) {
             generateBeanClass(tbean, null);
 
             for (TBean actionBean : tbean.actionBeans.values()) {
                 generateBeanClass(actionBean, null);
             }
         }
-        for (VTable vtable : value.vtables.values()) {
+        for (VTable vtable : value.getVTables()) {
             generateBeanClass(vtable.tableType.tbean, vtable);
         }
 
@@ -724,7 +724,7 @@ public class GenCs extends Generator {
             ps.println2("{");
             ps.println3("var configNulls = new List<string>");
             ps.println3("{");
-            for (String name : value.dbType.ttables.keySet()) {
+            for (String name : value.getDbType().ttables.keySet()) {
                 ps.println4("\"" + name + "\",");
             }
             ps.println3("};");
@@ -737,7 +737,7 @@ public class GenCs extends Generator {
 
             ps.println4("switch(csv)");
             ps.println4("{");
-            value.dbType.ttables.forEach((name, cfg) -> {
+            value.getDbType().ttables.forEach((name, cfg) -> {
                 ps.println5("case \"" + name + "\":");
                 ps.println6("configNulls.Remove(csv);");
                 ps.println6(fullName(cfg.tbean) + ".Initialize(os, Errors);");
@@ -752,7 +752,7 @@ public class GenCs extends Generator {
             ps.println3("foreach (var csv in configNulls)");
             ps.println4("Errors.ConfigNull(csv);");
 
-            value.dbType.ttables.forEach((n, c) -> {
+            value.getDbType().ttables.forEach((n, c) -> {
                 if (c.tbean.hasRef()) {
                     ps.println3(fullName(c) + ".Resolve(Errors);");
                 }

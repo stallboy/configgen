@@ -1,31 +1,29 @@
 package configgen.value;
 
-import configgen.Node;
 import configgen.type.TMap;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class VMap extends Value {
+public class VMap extends VComposite {
     public final Map<Value, Value> map = new LinkedHashMap<>();
 
-    public VMap(Node parent, String name, TMap type, List<Cell> data) {
-        super(parent, name, type, data);
+    VMap(TMap type, List<Cell> data) {
+        super(type, data);
 
-        require(data.size() == type.columnSpan());
+        require(data.size() == type.columnSpan(), "数据和类型占格数不匹配");
         int kc = type.key.columnSpan();
         int vc = type.value.columnSpan();
-        for (int i = 0, idx = 0; i < type.count; i++) {
+        for (int i = 0; i < type.count; i++) {
             int s = i * (kc + vc);
             if (!data.get(s).data.isEmpty()) {
-                Value key = Value.create(this, "key" + idx, type.key, data.subList(s, s + kc));
-                Value value = Value.create(this, "value" + idx, type.value, data.subList(s + kc, s + kc + vc));
-                require(null == map.put(key, value), "map key duplicate", toString());
-                idx++;
+                Value key = Value.create(type.key, data.subList(s, s + kc));
+                Value value = Value.create(type.value, data.subList(s + kc, s + kc + vc));
+                require(null == map.put(key, value), "字典key重复");
             } else {
                 for (Cell dc : data.subList(s, s + kc + vc)) {
-                    require(dc.data.trim().isEmpty(), "map entry ignore by first cell empty, but part filled", dc.toString());
+                    require(dc.data.trim().isEmpty(), "字典遇到entry空格后，之后也必须都是空格", dc.toString());
                 }
             }
         }
@@ -46,7 +44,7 @@ public class VMap extends Value {
 
     @Override
     public boolean equals(Object o) {
-        return o != null && o instanceof VMap && map.equals(((VMap) o).map);
+        return o instanceof VMap && map.equals(((VMap) o).map);
     }
 
     @Override

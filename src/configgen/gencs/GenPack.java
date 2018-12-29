@@ -55,14 +55,14 @@ public class GenPack extends Generator {
         Map<String, Set<String>> packs = new HashMap<>();
 
         if (packAll != 0) {
-            packs.put("all", value.vtables.keySet());
+            packs.put("all", value.getTableNames());
         } else {
-            File packXmlFile = xml != null ? new File(xml) : ctx.data.dataDir.resolve("pack.xml").toFile();
+            File packXmlFile = xml != null ? new File(xml) : ctx.dataDir.resolve("pack.xml").toFile();
             if (packXmlFile.exists()) {
                 parsePack(packs, packXmlFile, value);
             } else {
                 Logger.log(packXmlFile.getCanonicalPath() + "  not exist, pack to all.zip");
-                packs.put("all", value.vtables.keySet());
+                packs.put("all", value.getTableNames());
             }
         }
 
@@ -77,7 +77,7 @@ public class GenPack extends Generator {
                     zos.putNextEntry(ze);
                     PackValueVisitor pack = new PackValueVisitor(zos);
                     for (String cfg : packCfgs) {
-                        pack.addVTable(value.vtables.get(cfg));
+                        pack.addVTable(value.getVTable(cfg));
                     }
                 }
             }
@@ -92,7 +92,7 @@ public class GenPack extends Generator {
     }
 
     private void parsePack(Map<String, Set<String>> packs, File packXmlFile, VDb value) {
-        Set<String> source = new HashSet<>(value.vtables.keySet());
+        Set<String> source = new HashSet<>(value.getTableNames());
         Set<String> picked = new HashSet<>();
 
         Element root = DomUtils.rootElement(packXmlFile);

@@ -1,32 +1,34 @@
 package configgen.value;
 
-import configgen.Node;
-import configgen.util.CSV;
 import configgen.type.TList;
+import configgen.util.CSV;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class VList extends Value {
-    public final ArrayList<Value> list = new ArrayList<>();
+public class VList extends VComposite {
+    private ArrayList<Value> list;
 
-    public VList(Node parent, String name, List<Value> vs) { // for primaryKey and keysRef
-        super(parent, name, null, toRaw(vs));
-        list.addAll(vs);
-        list.trimToSize();
+    public VList(ArrayList<Value> vs) { // for primaryKey and keysRef
+        super(null, toRaw(vs));
+        list = vs;
+    }
+
+    public List<Value> getList() {
+        return list;
     }
 
     private static List<Cell> toRaw(List<Value> vs) {
-        List<Cell> res = new ArrayList<>();
+        List<Cell> res = new ArrayList<>(vs.size());
         for (Value v : vs) {
-            res.addAll(v.cells);
+            v.collectCells(res);
         }
         return res;
     }
 
-    public VList(Node parent, String link, TList type, List<Cell> data) {
-        super(parent, link, type, data);
+    public VList(TList type, List<Cell> data) {
+        super(type, data);
 
         List<Cell> parsed;
         if (type.count == 0) { //compress
@@ -38,14 +40,14 @@ public class VList extends Value {
             parsed = data;
         }
 
+        list = new ArrayList<>();
         int vc = type.value.columnSpan();
-        for (int s = 0, idx = 0; s < parsed.size(); s += vc) {
+        for (int s = 0; s < parsed.size(); s += vc) {
             if (!parsed.get(s).data.isEmpty()) { //first as a null clue, see code generator
-                list.add(Value.create(this, String.valueOf(idx), type.value, parsed.subList(s, s + vc)));
-                idx++;
+                list.add(Value.create(type.value, parsed.subList(s, s + vc)));
             } else {
                 for (Cell dc : parsed.subList(s, s + vc)) {
-                    require(dc.data.isEmpty(), "list value ignored by first cell empty, but part filled, " + dc);
+                    require(dc.data.isEmpty(), "数组遇到item空格后，之后必须也都是空格" + dc);
                 }
             }
         }
@@ -60,17 +62,20 @@ public class VList extends Value {
 
     @Override
     public void verifyConstraint() {
-        list.forEach(Value::verifyConstraint);
+        for (Value value : list) {
+            value.verifyConstraint();
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        return o != null && o instanceof VList && list.equals(((VList) o).list);
+        return o instanceof VList && list.equals(((VList) o).list);
     }
 
     @Override
     public int hashCode() {
         return list.hashCode();
     }
+
 
 }

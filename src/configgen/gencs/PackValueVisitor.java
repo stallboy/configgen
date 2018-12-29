@@ -1,6 +1,5 @@
 package configgen.gencs;
 
-import configgen.define.Bean;
 import configgen.value.*;
 
 import java.io.DataOutputStream;
@@ -42,8 +41,10 @@ class PackValueVisitor implements ValueVisitor {
 
     @Override
     public void visit(VList value) {
-        addInt(value.list.size());
-        value.list.forEach(v -> v.accept(this));
+        addInt(value.getList().size());
+        for (Value v : value.getList()) {
+            v.accept(this);
+        }
     }
 
     @Override
@@ -57,18 +58,24 @@ class PackValueVisitor implements ValueVisitor {
 
     @Override
     public void visit(VBean value) {
-        if (value.beanType.beanDefine.type == Bean.BeanType.BaseAction) {
-            addString(value.actionVBean.name);
-            value.actionVBean.valueMap.values().forEach(v -> v.accept(this));
+        if (value.actionVBean != null) {
+            addString(value.actionVBean.beanType.name);
+            for (Value v : value.actionVBean.getValues()) {
+                v.accept(this);
+            }
         }else{
-            value.valueMap.values().forEach(v -> v.accept(this));
+            for (Value v : value.getValues()) {
+                v.accept(this);
+            }
         }
     }
 
-    public void addVTable(VTable vtable) throws IOException {
+    public void addVTable(VTable vtable) {
         addString(vtable.tableType.tbean.beanDefine.name);
-        addInt(vtable.vbeanList.size());
-        vtable.vbeanList.forEach(v -> v.accept(this));
+        addInt(vtable.getVBeanList().size());
+        for (VBean v : vtable.getVBeanList()) {
+            v.accept(this);
+        }
     }
 
     private void addBool(boolean v) {

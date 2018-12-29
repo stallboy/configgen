@@ -1,6 +1,5 @@
 package configgen.genlua;
 
-import configgen.define.Bean;
 import configgen.gen.*;
 import configgen.util.CSVWriter;
 import configgen.value.*;
@@ -39,11 +38,11 @@ public final class GenI18n extends Generator {
         VDb value = ctx.makeValue();
 
         Map<String, Map<String, String>> table2TextMap = new TreeMap<>();
-        for (VTable vTable : value.vtables.values()) {
+        for (VTable vTable : value.getVTables()) {
             if (vTable.tableType.tbean.hasText()) {
                 Map<String, String> textMap = new LinkedHashMap<>();
                 ValueVisitor visitor = new TextValueVisitor(textMap);
-                vTable.vbeanList.forEach(v -> v.accept(visitor));
+                vTable.getVBeanList().forEach(v -> v.accept(visitor));
                 table2TextMap.put(vTable.name, textMap);
             }
         }
@@ -99,7 +98,7 @@ public final class GenI18n extends Generator {
 
         @Override
         public void visit(VList value) {
-            for (Value v : value.list) {
+            for (Value v : value.getList()) {
                 v.accept(this);
             }
         }
@@ -117,12 +116,12 @@ public final class GenI18n extends Generator {
             if (!value.type.hasText()) {
                 return;
             }
-            if (value.beanType.beanDefine.type == Bean.BeanType.BaseAction) {
-                for (Value v : value.actionVBean.valueMap.values()) {
+            if (value.actionVBean != null) {
+                for (Value v : value.actionVBean.getValues()) {
                     v.accept(this);
                 }
             } else {
-                for (Value v : value.valueMap.values()) {
+                for (Value v : value.getValues()) {
                     v.accept(this);
                 }
             }

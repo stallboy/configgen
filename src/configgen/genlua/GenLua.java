@@ -64,7 +64,7 @@ public class GenLua extends Generator {
             generate_beans(ps);
         }
 
-        for (VTable v : value.vtables.values()) {
+        for (VTable v : value.getVTables()) {
             Name name = new Name(pkg, v.name);
             try (IndentPrint ps = createCode(dstDir.toPath().resolve(name.path).toFile(), encoding)) {
                 generate_table(v, name, ps);
@@ -117,7 +117,7 @@ public class GenLua extends Generator {
 
         Set<String> context = new HashSet<>();
         context.add(pkg);
-        for (TTable c : value.dbType.ttables.values()) {
+        for (TTable c : value.getDbType().ttables.values()) {
             String full = fullName(c);
             definePkg(full, ps, context);
             if (preload){
@@ -145,7 +145,7 @@ public class GenLua extends Generator {
     private void generate_loads(IndentPrint ps) {
         ps.println("local require = require");
         ps.println();
-        for (TTable c : value.dbType.ttables.values()) {
+        for (TTable c : value.getDbType().ttables.values()) {
             ps.println("require \"%s\"", fullName(c));
         }
         ps.println();
@@ -165,7 +165,7 @@ public class GenLua extends Generator {
 
         Set<String> context = new HashSet<>();
         context.add("Beans");
-        for (TBean tbean : value.dbType.tbeans.values()) {
+        for (TBean tbean : value.getDbType().tbeans.values()) {
             String full = fullName(tbean);
             definePkg(full, ps, context);
             context.add(full);
@@ -206,7 +206,7 @@ public class GenLua extends Generator {
         ps.println("local mk = %s._mk.table(this, %s, %s, %s, %s\n    )", pkg, getLuaUniqKeysString(ttable), getLuaEnumIdxString(ttable), getLuaRefsString(tbean), getLuaFieldsString(tbean));
         ps.println();
 
-        for (VBean vBean : vtable.vbeanList) {
+        for (VBean vBean : vtable.getVBeanList()) {
             ps.println(getLuaValueString(vBean, "mk", false));
         }
 
@@ -277,7 +277,7 @@ public class GenLua extends Generator {
             @Override
             public void visit(VList value) {
                 List<String> list = new ArrayList<>();
-                for (Value eleValue : value.list) {
+                for (Value eleValue : value.getList()) {
                     list.add(getLuaValueString(eleValue));
                 }
                 String liststr = String.join(", ", list);
@@ -308,7 +308,7 @@ public class GenLua extends Generator {
                 }
 
                 List<String> list = new ArrayList<>();
-                for (Value fieldValue : val.valueMap.values()) {
+                for (Value fieldValue : val.getValues()) {
                     list.add(getLuaValueString(fieldValue));
                 }
                 String params = String.join(", ", list);

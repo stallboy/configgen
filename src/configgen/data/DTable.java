@@ -48,7 +48,7 @@ public class DTable extends Node {
         NORM, MAYBE_LIST_OR_MAP, LIST, MAYBE_MAP, MAYBE_MAP2, MAP
     }
 
-    public DTable(DDb parent, String name, List<List<String>> raw) {
+    DTable(DDb parent, String name, List<List<String>> raw) {
         super(parent, name);
         if (raw.size() < 2) {
             System.out.println(fullName() + " 数据行数小于2");
@@ -68,7 +68,7 @@ public class DTable extends Node {
         }
     }
 
-    public void autoCompleteDefine(Table table) {
+    void autoCompleteDefine(Table table) {
         Bean bean = table.bean;
         Map<String, Column> old = new LinkedHashMap<>(bean.columns);
         bean.columns.clear();
@@ -386,7 +386,7 @@ public class DTable extends Node {
     }
 
     private void put(String s, int i) {
-        List<Integer> a = new ArrayList<>();
+        List<Integer> a = new ArrayList<>(1);
         a.add(i);
         put(s, a);
     }

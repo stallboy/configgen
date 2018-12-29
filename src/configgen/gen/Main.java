@@ -81,7 +81,7 @@ public final class Main {
                 case "-v":
                     Logger.enableVerbose();
                     break;
-                    
+
                 case "-gen":
                     Generator generator = Generators.create(args[++i]);
                     if (generator == null)
@@ -108,19 +108,21 @@ public final class Main {
         File xmlFile = xml != null ? new File(xml) : dataDir.resolve("config.xml").toFile();
 
 
+        Logger.mm(String.format("start total memory %dm", Runtime.getRuntime().maxMemory() / 1024 / 1024));
         Context ctx = new Context(dataDir, xmlFile, encoding, i18nfile, i18nencoding, i18ncrlfaslf);
         if (verify) {
-            Logger.verbose("verify");
-            ctx.verify();
+            Logger.verbose("-----start verify");
+            ctx.makeValue();
         }
 
         for (Generator generator : generators) {
-            Logger.verbose("generate " + generator.parameter);
+            Logger.verbose("-----generate " + generator.parameter);
             generator.generate(ctx);
+            Logger.mm("generate " + generator.parameter.type);
         }
 
         CachedFileOutputStream.finalExit();
-        Logger.verbose("end");
+        Logger.mm("end");
     }
 
 

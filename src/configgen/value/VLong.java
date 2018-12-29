@@ -1,22 +1,21 @@
 package configgen.value;
 
-import configgen.Node;
-import configgen.util.CSV;
 import configgen.define.Range;
 import configgen.type.TLong;
+import configgen.util.CSV;
 
 import java.util.List;
 
 public class VLong extends VPrimitive {
     public final long value;
 
-    public VLong(Node parent, String name, TLong type, List<Cell> data) {
-        super(parent, name, type, data);
+    VLong(TLong type, List<Cell> data) {
+        super(type, data);
         long v = 0;
         try {
             v = CSV.parseLong(raw.data);
         } catch (Exception e) {
-            require(false, e.toString(), raw.toString());
+            error(e.toString());
         }
         value = v;
     }
@@ -28,7 +27,7 @@ public class VLong extends VPrimitive {
 
     @Override
     public boolean equals(Object o) {
-        return o != null && o instanceof VLong && value == ((VLong) o).value;
+        return o instanceof VLong && value == ((VLong) o).value;
     }
 
     @Override

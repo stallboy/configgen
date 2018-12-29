@@ -1,8 +1,8 @@
 package configgen.value;
 
 public final class Cell {
-    public final int row;
-    public final int col;
+    final int row;
+    final int col;
     public final String data;
 
     public Cell(int row, int col, String data) {

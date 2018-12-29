@@ -50,7 +50,7 @@ public class GenAllRefValues extends Generator {
     public void generate(Context ctx) throws IOException {
         Set<String> allrefs = new TreeSet<>();
         VDb value = ctx.makeValue();
-        TTable refTable = value.dbType.ttables.get(ref);
+        TTable refTable = value.getDbType().ttables.get(ref);
         if (refTable == null) {
             System.out.println("ref " + ref + " not a table");
             return;
@@ -97,7 +97,7 @@ public class GenAllRefValues extends Generator {
 
             @Override
             public void visit(VList value) {
-                value.list.forEach(v -> v.accept(this));
+                value.getList().forEach(v -> v.accept(this));
             }
 
             @Override
@@ -110,15 +110,19 @@ public class GenAllRefValues extends Generator {
 
             @Override
             public void visit(VBean value) {
-                value.valueMap.forEach((name, v) -> v.accept(this));
+                value.getValues().forEach((v) -> {
+                    v.accept(this);
+                });
             }
         };
 
-        value.vtables.forEach((name, vtable) -> {
-            if (!ignores.contains(name)) {
-                vtable.vbeanList.forEach(vbean -> vbean.accept(vs));
+        for (VTable vTable : value.getVTables()) {
+            if (!ignores.contains(vTable.name)) {
+                for (VBean vBean : vTable.getVBeanList()) {
+                    vBean.accept(vs);
+                }
             }
-        });
+        }
 
         try (OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(out)), StandardCharsets.UTF_8)) {
             writer.write(String.join("\r\n", allrefs));

@@ -19,6 +19,7 @@ public class TBean extends Type {
     public TTable actionEnumRefTable;
     public final Map<String, TBean> actionBeans = new LinkedHashMap<>();
 
+
     public TBean(TDb parent, Bean bean) {
         super(parent, bean.name, new Constraint());
         beanDefine = bean;
@@ -55,43 +56,102 @@ public class TBean extends Type {
         }
     }
 
+
+    public int getColumnIndex(String col) {
+        return columns.get(col).indexAtBean;
+    }
+
+    private boolean _hasRef = false;
+    private boolean _hasRefChecked = false;
+
+    private boolean _hasSubBean = false;
+    private boolean _hasSubBeanChecked = false;
+
+    private boolean _hasText = false;
+    private boolean _hasTextChecked = false;
+
+    private int _columnSpan = 0;
+    private boolean _hasColumnSpanChecked = false;
+
     @Override
     public boolean hasRef() {
-        if (beanDefine.type == Bean.BeanType.BaseAction)
-            return actionBeans.values().stream().filter(TBean::hasRef).count() > 0;
-        else
-            return mRefs.size() > 0 || listRefs.size() > 0 || columns.values().stream().filter(Type::hasRef).count() > 0;
+        if (!_hasRefChecked) {
+            _hasRef = checkHasRef();
+            _hasRefChecked = true;
+        }
+        return _hasRef;
+
     }
 
     @Override
     public boolean hasSubBean() {
-        if (beanDefine.type == Bean.BeanType.BaseAction)
-            return actionBeans.values().stream().filter(TBean::hasSubBean).count() > 0;
-        else
-            return columns.values().stream().filter(t -> t.hasSubBean() || t instanceof TBean).count() > 0;
+        if (!_hasSubBeanChecked) {
+            _hasSubBean = checkHasSubBean();
+            _hasSubBeanChecked = true;
+        }
+        return _hasSubBean;
     }
 
     @Override
     public boolean hasText() {
-        if (beanDefine.type == Bean.BeanType.BaseAction)
-            return actionBeans.values().stream().filter(TBean::hasText).count() > 0;
-        else
-            return columns.values().stream().filter(Type::hasText).count() > 0;
+        if (!_hasTextChecked) {
+            _hasText = checkHasText();
+            _hasTextChecked = true;
+        }
+        return _hasText;
     }
 
     @Override
     public int columnSpan() {
-        if (beanDefine.type == Bean.BeanType.BaseAction) {
-            return actionBeans.values().stream().mapToInt(TBean::columnSpan).max().getAsInt() + 1;
-        } else {
-            return beanDefine.compress ? 1 : columns.values().stream().mapToInt(Type::columnSpan).sum();
+        if (!_hasColumnSpanChecked) {
+            _columnSpan = checkColumnSpan();
+            _hasColumnSpanChecked = true;
         }
+        return _columnSpan;
     }
 
     @Override
     public String toString() {
         return beanDefine.name;
     }
+
+
+    private boolean checkHasRef() {
+        if (beanDefine.type == Bean.BeanType.BaseAction)
+            return actionBeans.values().stream().anyMatch(TBean::hasRef);
+        else
+            return mRefs.size() > 0 || listRefs.size() > 0 || columns.values().stream().anyMatch(Type::hasRef);
+    }
+
+
+    private boolean checkHasSubBean() {
+        if (beanDefine.type == Bean.BeanType.BaseAction)
+            return actionBeans.values().stream().anyMatch(TBean::hasSubBean);
+        else
+            return columns.values().stream().anyMatch(t -> t.hasSubBean() || t instanceof TBean);
+    }
+
+
+    private boolean checkHasText() {
+        if (beanDefine.type == Bean.BeanType.BaseAction)
+            return actionBeans.values().stream().anyMatch(TBean::hasText);
+        else
+            return columns.values().stream().anyMatch(Type::hasText);
+    }
+
+    private int checkColumnSpan() {
+        if (beanDefine.type == Bean.BeanType.BaseAction) {
+            OptionalInt max = actionBeans.values().stream().mapToInt(TBean::columnSpan).max();
+            if (max.isPresent()) {
+                return max.getAsInt() + 1;
+            } else {
+                return 1;
+            }
+        } else {
+            return beanDefine.compress ? 1 : columns.values().stream().mapToInt(Type::columnSpan).sum();
+        }
+    }
+
 
     @Override
     public void accept(TypeVisitor visitor) {
@@ -148,7 +208,7 @@ public class TBean extends Type {
                 c = Integer.parseInt(sp[2].trim());
                 require(c >= 1);
             }
-            if (c == 0){
+            if (c == 0) {
                 require(col.compress, "count=0 list must has compress attribute");
                 compressSeparator = col.compressSeparator;
             }
@@ -164,7 +224,11 @@ public class TBean extends Type {
         }
 
         Type type = resolveType(col.name, cons, t, k, v, c, compressSeparator);
-        col.require(type != null, "type resolve err", col.type);
-        columns.put(col.name, type);
+        if (type != null) {
+            type.indexAtBean = columns.size();
+            columns.put(col.name, type);
+        } else {
+            error("type resolve err", col.type);
+        }
     }
 }

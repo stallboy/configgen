@@ -18,8 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DDb extends Node {
-    public final Path dataDir;
-    public final Map<String, DTable> dtables = new HashMap<>();
+    private final Path dataDir;
+    private final Map<String, DTable> dTables = new HashMap<>();
 
     public DDb(Path _dataDir, String dataEncoding) {
         super(null, "ddb");
@@ -32,7 +32,7 @@ public class DDb extends Node {
                     if (path.endsWith(".csv")) {
                         String p = path.substring(0, path.length() - 4);
                         String configName = String.join(".", p.split("[\\\\/]")).toLowerCase();
-                        dtables.put(configName, new DTable(DDb.this, configName, CSV.readFromFile(file.toFile(), dataEncoding, false)));
+                        dTables.put(configName, new DTable(DDb.this, configName, CSV.readFromFile(file.toFile(), dataEncoding, false)));
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -42,11 +42,15 @@ public class DDb extends Node {
         }
     }
 
+    public DTable getDTable(String tableName){
+        return dTables.get(tableName);
+    }
+
     public void autoCompleteDefine(TDb tdb) {
         Db db = tdb.dbDefine;
         Map<String, TTable> old = new HashMap<>(tdb.ttables);
         db.tables.clear();
-        for (DTable dTable : dtables.values()) {
+        for (DTable dTable : dTables.values()) {
             TTable ttable = old.remove(dTable.name);
             Table tableDefine;
             if (ttable != null) {

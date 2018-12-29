@@ -57,7 +57,7 @@ public class GenJavaCode extends Generator {
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
 
 
-        for (TBean tbean : value.dbType.tbeans.values()) {
+        for (TBean tbean : value.getDbType().tbeans.values()) {
             generateBeanClass(tbean);
             for (TBean actionBean : tbean.actionBeans.values()) {
                 generateBeanClass(actionBean);
@@ -85,7 +85,7 @@ public class GenJavaCode extends Generator {
             mgrPrint.println();
 
 
-            for (VTable vtable : value.vtables.values()) {
+            for (VTable vtable : value.getVTables()) {
                 generateTableClass(vtable, mgrPrint);
                 mgrPrint.println();
             }
@@ -1083,7 +1083,7 @@ public class GenJavaCode extends Generator {
             ps.println2("ConfigMgr mgr = new ConfigMgr();");
 
             int cnt = 0;
-            for (VTable vTable : vdb.vtables.values()) {
+            for (VTable vTable : vdb.getVTables()) {
                 if (vTable.tableType.tableDefine.isEnumFull() && vTable.tableType.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                     continue;
                 }
@@ -1099,7 +1099,7 @@ public class GenJavaCode extends Generator {
             ps.println3("String tableName = input.readStr();");
             ps.println3("int tableSize = input.readInt();");
             ps.println3("switch (tableName) {");
-            for (VTable vTable : vdb.vtables.values()) {
+            for (VTable vTable : vdb.getVTables()) {
                 if (vTable.tableType.tableDefine.isEnumFull() && vTable.tableType.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                     continue;
                 }
@@ -1118,7 +1118,7 @@ public class GenJavaCode extends Generator {
             ps.println2("}");
             ps.println();
 
-            for (VTable vTable : vdb.vtables.values()) {
+            for (VTable vTable : vdb.getVTables()) {
                 if (vTable.tableType.tableDefine.isEnumFull() && vTable.tableType.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                     continue;
                 }

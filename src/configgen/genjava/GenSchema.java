@@ -12,10 +12,10 @@ public final class GenSchema {
 
     public static SchemaInterface parse(VDb vdb) {
         SchemaInterface root = new SchemaInterface();
-        for (TBean tBean : vdb.dbType.tbeans.values()) {
+        for (TBean tBean : vdb.getDbType().tbeans.values()) {
             root.addImp(tBean.name, parseBean(tBean));
         }
-        for (VTable vTable : vdb.vtables.values()) {
+        for (VTable vTable : vdb.getVTables()) {
             TTable tTable = vTable.tableType;
 
             if (tTable.tableDefine.isEnumFull()) {

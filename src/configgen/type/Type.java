@@ -4,6 +4,7 @@ import configgen.Node;
 
 public abstract class Type extends Node {
     public final Constraint constraint;
+    int indexAtBean;
 
     Type(Node parent, String name, Constraint cons) {
         super(parent, name);

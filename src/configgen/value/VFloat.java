@@ -1,22 +1,21 @@
 package configgen.value;
 
-import configgen.Node;
-import configgen.util.CSV;
 import configgen.define.Range;
 import configgen.type.TFloat;
+import configgen.util.CSV;
 
 import java.util.List;
 
 public class VFloat extends VPrimitive {
     public final float value;
 
-    public VFloat(Node parent, String name, TFloat type, List<Cell> data) {
-        super(parent, name, type, data);
+    VFloat(TFloat type, List<Cell> data) {
+        super(type, data);
         float v = 0;
         try {
             v = CSV.parseFloat(raw.data);
         } catch (Exception e) {
-            require(false, e.toString(), raw.toString());
+            error(e.toString());
         }
         value = v;
     }
@@ -28,7 +27,7 @@ public class VFloat extends VPrimitive {
 
     @Override
     public boolean equals(Object o) {
-        return o != null && o instanceof VFloat && value == ((VFloat) o).value;
+        return o instanceof VFloat && value == ((VFloat) o).value;
     }
 
     @Override

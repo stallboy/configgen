@@ -22,7 +22,7 @@
             <fileset dir="${src}/support"/>
         </copy>
         <jar jarfile="configgen.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
-	<delete dir="${build}"/>
+		<delete dir="${build}"/>
     </target>
 
 </project>

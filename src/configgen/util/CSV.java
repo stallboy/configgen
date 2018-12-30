@@ -61,7 +61,7 @@ public final class CSV {
                 case NO_QUOTE:
                     switch (c) {
                         case comma:
-                            record.add(field.toString());
+                            addField(record, field);
                             state = State.START;
                             break;
                         case cr:
@@ -87,7 +87,7 @@ public final class CSV {
                 case QUOTE2:
                     switch (c) {
                         case comma:
-                            record.add(field.toString());
+                            addField(record, field);
                             state = State.START;
                             break;
                         case quote:
@@ -108,11 +108,11 @@ public final class CSV {
                     switch (c) {
                         case comma:
                             field.append(cr);
-                            record.add(field.toString());
+                            addField(record, field);
                             state = State.START;
                             break;
                         case lf:
-                            record.add(field.toString());
+                            addField(record, field);
                             addLine(result, record, removeEmptyLine);
 
                             record = new ArrayList<>(record.size());
@@ -138,17 +138,22 @@ public final class CSV {
                 break;
             case CR:
                 field.append(cr);
-                record.add(field.toString());
+                addField(record, field);
                 addLine(result, record, removeEmptyLine);
                 break;
             default:
-                record.add(field.toString());
+                addField(record, field);
                 addLine(result, record, removeEmptyLine);
                 break;
         }
 
         result.trimToSize();
         return result;
+    }
+
+    private static void addField(ArrayList<String> record, StringBuilder field){
+        String s = field.toString().intern();
+        record.add(s);
     }
 
     private static void addLine(ArrayList<List<String>> result, ArrayList<String> line, boolean noEmptyLine){

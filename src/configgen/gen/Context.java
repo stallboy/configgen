@@ -2,13 +2,22 @@ package configgen.gen;
 
 import configgen.Logger;
 import configgen.data.DDb;
+import configgen.data.DTable;
 import configgen.define.Db;
 import configgen.type.TDb;
+import configgen.util.CSV;
 import configgen.value.I18n;
 import configgen.value.VDb;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Context {
@@ -28,6 +37,7 @@ public class Context {
         TDb defineType = new TDb(define);
         defineType.resolve();
         //type.dump(System.out);
+
 
         data = new DDb(dataDir, encoding);
         Logger.mm("data");

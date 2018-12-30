@@ -26,11 +26,11 @@ public final class Main {
 
         System.out.println("	-i18nfile     国际化需要的文件，如果不用国际化，就不要配置");
         System.out.println("	-i18nencoding 国际化需要的文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
-        System.out.println("   -i18ncrlfaslf     把字符串里的\\r\\n 替换为 \\n，默认是false");
+        System.out.println("    -i18ncrlfaslf 把字符串里的\\r\\n 替换为 \\n，默认是false");
 
         System.out.println("	-verify       检查配表约束");
         System.out.println("	-v            输出一些额外信息");
-        Generators.getAllProviders().forEach((k, v) -> System.out.println("	-gen        " + k + "," + v.usage()));
+        Generators.getAllProviders().forEach((k, v) -> System.out.println("	-gen          " + k + "," + v.usage()));
 
         Runtime.getRuntime().exit(1);
     }

@@ -18,7 +18,7 @@ public class VDb extends Node {
     }
 
     private final TDb dbType;
-    final I18n i18n;
+    private final I18n i18n;
     private Map<String, VTable> vTables;
 
     public VDb(TDb tdb, DDb ddb, I18n i18n) {
@@ -63,5 +63,7 @@ public class VDb extends Node {
         return vTables.get(tableName);
     }
 
-
+    I18n getI18n() {
+        return i18n;
+    }
 }

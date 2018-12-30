@@ -9,7 +9,7 @@ public class TMap extends Type {
     public final Type value;
     public final int count; // must > 0
 
-    public TMap(Node parent, String name, Constraint cons, String key, String value, int count) {
+    TMap(Node parent, String name, Constraint cons, String key, String value, int count) {
         super(parent, name, cons);
         require(cons.range == null, "map not support range");
 

@@ -20,7 +20,7 @@ public class Generators {
         providers.put(name, provider);
     }
 
-    public static Map<String, GeneratorProvider> getAllProviders() {
+    static Map<String, GeneratorProvider> getAllProviders() {
         return providers;
     }
 

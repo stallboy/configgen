@@ -7,7 +7,7 @@ import org.w3c.dom.Element;
 public class UniqueKey extends Node {
     public final String[] keys;
 
-    public UniqueKey(Table parent, Element self) {
+    UniqueKey(Table parent, Element self) {
         super(parent, "uniqueKey");
         keys = DomUtils.parseStringArray(self, "keys");
     }

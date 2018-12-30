@@ -4,7 +4,7 @@ import configgen.Node;
 
 public class TInt extends TPrimitive {
 
-    public TInt(Node parent, String name, Constraint cons) {
+    TInt(Node parent, String name, Constraint cons) {
         super(parent, name, cons);
     }
 

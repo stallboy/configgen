@@ -16,9 +16,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DTable extends Node {
-    public final Map<Integer, List<String>> line2data = new LinkedHashMap<>(); //start from 0
     public final Map<String, DColumn> dcolumns = new LinkedHashMap<>();
-
+    public final List<List<String>> recordList;
     private final List<String> descLine;
     private final List<String> nameLine;
 
@@ -57,15 +56,10 @@ public class DTable extends Node {
             }
             throw new AssertionError();
         }
-        ;
+
         descLine = raw.get(0);
         nameLine = raw.get(1);
-        for (int i = 2; i < raw.size(); i++) {
-            List<String> line = raw.get(i);
-            if (CSV.isLineHasContent(line)) {
-                line2data.put(i, line);
-            }
-        }
+        recordList = raw.subList(2, raw.size());
     }
 
     void autoCompleteDefine(Table table) {

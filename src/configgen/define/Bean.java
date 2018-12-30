@@ -26,7 +26,7 @@ public class Bean extends Node {
     public final String actionEnumRef;
     public final Map<String, Bean> actionBeans = new LinkedHashMap<>();
 
-    public Bean(Db _parent, Element self) {
+    Bean(Db _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
 
@@ -55,7 +55,7 @@ public class Bean extends Node {
         }
     }
 
-    public Bean(Table _parent, Element self) {
+    Bean(Table _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
         type = BeanType.Table;
@@ -65,7 +65,7 @@ public class Bean extends Node {
         init(self);
     }
 
-    public Bean(Bean _parent, Element self) {
+    private Bean(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
         type = BeanType.Action;

@@ -3,12 +3,16 @@ package configgen.value;
 public final class Cell {
     final int row;
     final int col;
-    public final String data;
+    final String data;
 
     public Cell(int row, int col, String data) {
         this.row = row;
         this.col = col;
         this.data = data;
+    }
+
+    public String getData(){
+        return data;
     }
 
     @Override

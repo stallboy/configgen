@@ -16,14 +16,14 @@ public class ForeignKey extends Node {
     public RefType refType;
     public Ref mapKeyRef;
 
-    public ForeignKey(Bean _parent, Element self) {
+    ForeignKey(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         DomUtils.permitAttributes(self, "name", "keys", "ref", "refType", "keyRef");
         keys = DomUtils.parseStringArray(self, "keys");
         init(self);
     }
 
-    public ForeignKey(Column _parent, Element self) {
+    ForeignKey(Column _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         keys = new String[]{name};
         init(self);

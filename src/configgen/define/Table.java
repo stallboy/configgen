@@ -23,7 +23,7 @@ public class Table extends Node {
 
     public final Map<String, UniqueKey> uniqueKeys = new LinkedHashMap<>();
 
-    public Table(Db parent, Element self) {
+    Table(Db parent, Element self) {
         super(parent, self.getAttribute("name"));
         DomUtils.permitAttributes(self, "name", "own", "enum", "enumPart", "primaryKey", "isPrimaryKeySeq");
         DomUtils.permitElements(self, "column", "foreignKey", "range", "uniqueKey");

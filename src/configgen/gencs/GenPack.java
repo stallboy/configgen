@@ -57,7 +57,7 @@ public class GenPack extends Generator {
         if (packAll != 0) {
             packs.put("all", value.getTableNames());
         } else {
-            File packXmlFile = xml != null ? new File(xml) : ctx.dataDir.resolve("pack.xml").toFile();
+            File packXmlFile = xml != null ? new File(xml) : ctx.getDataDir().resolve("pack.xml").toFile();
             if (packXmlFile.exists()) {
                 parsePack(packs, packXmlFile, value);
             } else {

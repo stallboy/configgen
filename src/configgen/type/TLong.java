@@ -4,7 +4,7 @@ import configgen.Node;
 
 public class TLong extends TPrimitive {
 
-    public TLong(Node parent, String name, Constraint cons) {
+    TLong(Node parent, String name, Constraint cons) {
         super(parent, name, cons);
     }
 

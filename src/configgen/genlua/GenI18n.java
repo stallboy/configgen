@@ -128,6 +128,4 @@ public final class GenI18n extends Generator {
         }
     }
 
-    ;
-
 }

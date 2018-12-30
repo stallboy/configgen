@@ -9,7 +9,7 @@ public class TList extends Type {
     public final int count; // >=0; 0 means list store in one column separated by ;
     public final char compressSeparator;
 
-    public TList(Node parent, String name, Constraint cons, String value, int count, char compressSeparator) {
+    TList(Node parent, String name, Constraint cons, String value, int count, char compressSeparator) {
         super(parent, name, cons);
         require(cons.range == null, "list not support range");
         for (SRef sref : cons.references) {

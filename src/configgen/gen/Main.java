@@ -29,7 +29,7 @@ public final class Main {
         System.out.println("    -i18ncrlfaslf 把字符串里的\\r\\n 替换为 \\n，默认是false");
 
         System.out.println("	-verify       检查配表约束");
-        System.out.println("	-v            输出一些额外信息");
+        System.out.println("	-v[1]       输出一些额外信息,1是额外gc测试内存");
         Generators.getAllProviders().forEach((k, v) -> System.out.println("	-gen          " + k + "," + v.usage()));
 
         Runtime.getRuntime().exit(1);
@@ -81,6 +81,10 @@ public final class Main {
                 case "-v":
                     Logger.enableVerbose();
                     break;
+                case "-v1":
+                    Logger.enableVerbose();
+                    Logger.enableMmGc();
+                    break;
 
                 case "-gen":
                     Generator generator = Generators.create(args[++i]);
@@ -106,7 +110,6 @@ public final class Main {
 
         Path dataDir = Paths.get(datadir);
         File xmlFile = xml != null ? new File(xml) : dataDir.resolve("config.xml").toFile();
-
 
         Logger.mm(String.format("start total memory %dm", Runtime.getRuntime().maxMemory() / 1024 / 1024));
         Context ctx = new Context(dataDir, xmlFile, encoding, i18nfile, i18nencoding, i18ncrlfaslf);

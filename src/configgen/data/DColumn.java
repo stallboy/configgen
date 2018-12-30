@@ -1,18 +1,18 @@
 package configgen.data;
 
 import configgen.Node;
+import configgen.util.CSV;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public final class DColumn extends Node {
     public final List<Integer> indexes = new ArrayList<>();
-    public final List<String> descs = new ArrayList<>();
+    final List<String> descs = new ArrayList<>();
 
-    public DColumn(DTable parent, String name) {
+    DColumn(DTable parent, String name) {
         super(parent, name);
     }
 
@@ -36,8 +36,15 @@ public final class DColumn extends Node {
 
     private Set<String> dataSet() {
         Set<String> r = new HashSet<>();
-        for (List<String> row : ((DTable) parent).line2data.values())
-            r.addAll(indexes.stream().map(row::get).collect(Collectors.toList()));
+        for (List<String> row : ((DTable) parent).recordList){
+            if (CSV.isEmptyRecord(row)){
+                continue;
+            }
+
+            for (Integer index : indexes) {
+                r.add(row.get(index));
+            }
+        }
         return r;
     }
 
@@ -48,9 +55,13 @@ public final class DColumn extends Node {
 
     private Pair dataKeyValueSet() {
         Pair res = new Pair();
-        for (List<String> row : ((DTable) parent).line2data.values()) {
+        for (List<String> row : ((DTable) parent).recordList) {
+            if (CSV.isEmptyRecord(row)){
+                continue;
+            }
+
             int i = 0;
-            for (int index : indexes) {
+            for (Integer index : indexes) {
                 String r = row.get(index);
                 if (i % 2 == 0)
                     res.key.add(r);

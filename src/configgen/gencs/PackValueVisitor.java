@@ -70,7 +70,7 @@ class PackValueVisitor implements ValueVisitor {
         }
     }
 
-    public void addVTable(VTable vtable) {
+    void addVTable(VTable vtable) {
         addString(vtable.tableType.tbean.beanDefine.name);
         addInt(vtable.getVBeanList().size());
         for (VBean v : vtable.getVBeanList()) {

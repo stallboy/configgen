@@ -107,8 +107,12 @@ public class Db extends Node {
     private void save(Document doc) {
         Element self = doc.createElement("db");
         doc.appendChild(self);
-        beans.values().forEach(b -> b.save(self));
-        tables.values().forEach(t -> t.save(self));
+        for (Bean b : beans.values()) {
+            b.save(self);
+        }
+        for (Table t : tables.values()) {
+            t.save(self);
+        }
     }
 
 }

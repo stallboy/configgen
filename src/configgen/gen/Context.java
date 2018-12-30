@@ -2,30 +2,24 @@ package configgen.gen;
 
 import configgen.Logger;
 import configgen.data.DDb;
-import configgen.data.DTable;
 import configgen.define.Db;
 import configgen.type.TDb;
-import configgen.util.CSV;
 import configgen.value.I18n;
 import configgen.value.VDb;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class Context {
-    public final Db define;
-    public final TDb type;
-    public final Path dataDir;
-    public final DDb data;
+    private final Path dataDir;
+    private final Db define;
+    private final TDb type;
+    private final DDb data;
     private final I18n i18n;
+
+    private VDb lastValue;
+    private String lastValueOwn;
 
     Context(Path dataDir, File xmlFile, String encoding, String i18nFile, String i18nEncoding, boolean crlfaslf) {
         this.dataDir = dataDir;
@@ -37,7 +31,6 @@ public class Context {
         TDb defineType = new TDb(define);
         defineType.resolve();
         //type.dump(System.out);
-
 
         data = new DDb(dataDir, encoding);
         Logger.mm("data");
@@ -51,9 +44,9 @@ public class Context {
         i18n = new I18n(i18nFile, i18nEncoding, crlfaslf);
     }
 
-
-    private VDb lastValue;
-    private String lastValueOwn;
+    public Path getDataDir() {
+        return dataDir;
+    }
 
     public VDb makeValue() {
         return makeValue(null);
@@ -90,5 +83,4 @@ public class Context {
         value.verifyConstraint();
         return value;
     }
-
 }

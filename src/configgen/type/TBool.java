@@ -4,10 +4,10 @@ import configgen.Node;
 
 public class TBool extends TPrimitive {
 
-    public TBool(Node parent, String name, Constraint cons) {
+    TBool(Node parent, String name, Constraint cons) {
         super(parent, name, cons);
-        require(cons.references.isEmpty(), "bool not support ref");
-        require(cons.range == null, "bool not support range");
+        require(cons.references.isEmpty(), "布尔类型不支持外键");
+        require(cons.range == null, "布尔类型不支持区间限定");
     }
 
     @Override

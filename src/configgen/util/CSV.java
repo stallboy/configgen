@@ -1,9 +1,11 @@
 package configgen.util;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class CSV {
 
@@ -16,18 +18,22 @@ public final class CSV {
         START, NO_QUOTE, QUOTE, QUOTE2, CR,
     }
 
-    public static List<List<String>> readFromFile(File file, String encoding, boolean removeEmptyLine) {
+    public static List<List<String>> readFromFile(File file, String encoding) {
         try {
             try (Reader reader = new UnicodeReader(new FileInputStream(file), encoding)) {
-                return parse(reader, removeEmptyLine);
+                return parse(reader);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    private static int fieldCountPerRecordHint;
+    private static ArrayList<String> emptyRecord = new ArrayList<>();
+
     //https://tools.ietf.org/html/rfc4180
-    public static List<List<String>> parse(Reader reader, boolean removeEmptyLine) throws IOException {
+    public static List<List<String>> parse(Reader reader) throws IOException {
+        fieldCountPerRecordHint = -1;
         ArrayList<List<String>> result = new ArrayList<>();
         ArrayList<String> record = new ArrayList<>();
         State state = State.START;
@@ -113,7 +119,7 @@ public final class CSV {
                             break;
                         case lf:
                             addField(record, field);
-                            addLine(result, record, removeEmptyLine);
+                            addRecord(result, record);
 
                             record = new ArrayList<>(record.size());
                             state = State.START;
@@ -132,18 +138,18 @@ public final class CSV {
             case START:
                 if (!record.isEmpty()) {
                     record.add("");
-                    addLine(result, record, removeEmptyLine);
+                    addRecord(result, record);
 
                 }
                 break;
             case CR:
                 field.append(cr);
                 addField(record, field);
-                addLine(result, record, removeEmptyLine);
+                addRecord(result, record);
                 break;
             default:
                 addField(record, field);
-                addLine(result, record, removeEmptyLine);
+                addRecord(result, record);
                 break;
         }
 
@@ -156,21 +162,30 @@ public final class CSV {
         record.add(s);
     }
 
-    private static void addLine(ArrayList<List<String>> result, ArrayList<String> line, boolean noEmptyLine){
-        if (noEmptyLine && !isLineHasContent(line)){
-            return;
+    private static void addRecord(ArrayList<List<String>> result, ArrayList<String> record){
+        if (fieldCountPerRecordHint == -1){
+            record.trimToSize();
+            fieldCountPerRecordHint = record.size();
         }
-        line.trimToSize();
-        result.add(line);
+
+        if (!checkRecordHasContent(record)){
+            record = emptyRecord;
+        }
+
+        result.add(record);
     }
 
-    public static boolean isLineHasContent(List<String> line) {
-        for (String s : line) {
+    private static boolean checkRecordHasContent(List<String> record) {
+        for (String s : record) {
             if (!s.isEmpty()) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static boolean isEmptyRecord(List<String> record){
+        return record == emptyRecord;
     }
 
 
@@ -180,7 +195,7 @@ public final class CSV {
 
     public static List<String> parseList(String str, char separator) {
         ListState state = ListState.START;
-        List<String> list = new ArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         StringBuilder field = null;
 
         for (char c : str.toCharArray()) {
@@ -200,7 +215,7 @@ public final class CSV {
 
                 case NO_QUOTE:
                     if (c == separator) {
-                        list.add(field.toString());
+                        addField(list, field);
                         state = ListState.START;
                     } else {
                         field.append(c);
@@ -218,7 +233,7 @@ public final class CSV {
 
                 case QUOTE2:
                     if (c == separator) {
-                        list.add(field.toString());
+                        addField(list, field);
                         state = ListState.START;
                     } else if (c == quote) {
                         field.append(quote);
@@ -235,10 +250,10 @@ public final class CSV {
             case START:
                 break;
             default:
-                list.add(field.toString());
+                addField(list, field);
                 break;
         }
-
+        list.trimToSize();
         return list;
     }
 

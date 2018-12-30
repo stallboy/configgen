@@ -23,7 +23,7 @@ public class VString extends VPrimitive {
             i18nValue = "";
         }else{
             originalValue = raw.data;
-            I18n i18n = VDb.getCurrent().i18n;
+            I18n i18n = VDb.getCurrent().getI18n();
             String v = i18n.get(originalValue);
             if (v == null){
                 if (Logger.isPrintNotFoundI18n() && originalValue.length() > 0){

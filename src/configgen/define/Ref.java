@@ -6,7 +6,7 @@ public class Ref {
     public final String table;
     public final String[] cols;
 
-    public Ref(String self) {
+    Ref(String self) {
         if (!self.isEmpty()) {
             String[] r = self.split(",");
             table = r[0];

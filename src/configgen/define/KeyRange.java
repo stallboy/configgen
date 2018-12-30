@@ -8,7 +8,7 @@ public class KeyRange extends Node {
     public final String key;
     public final Range range;
 
-    public KeyRange(Bean _parent, Element self) {
+    KeyRange(Bean _parent, Element self) {
         super(_parent, "keyRange");
         DomUtils.permitAttributes(self, "key", "min", "max");
         key = self.getAttribute("key");
@@ -18,7 +18,7 @@ public class KeyRange extends Node {
         range = new Range(min, max);
     }
 
-    public KeyRange(Column _parent, Element self) {
+    KeyRange(Column _parent, Element self) {
         super(_parent, "range");
         key = self.getAttribute("name");
         String[] sp = self.getAttribute("range").split(",");

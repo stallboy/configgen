@@ -5,6 +5,7 @@ import configgen.data.DTable;
 import configgen.define.Table;
 import configgen.define.UniqueKey;
 import configgen.type.TTable;
+import configgen.util.CSV;
 
 import java.util.*;
 
@@ -25,15 +26,18 @@ public class VTable extends Node {
     public VTable(VDb parent, TTable ttable, DTable dtable) {
         super(parent, ttable.name);
         tableType = ttable;
-        parent.i18n.enter(name);
+        parent.getI18n().enter(name);
         List<Integer> columnIndexes = new ArrayList<>();
         ttable.tbean.columns.forEach((fn, type) -> columnIndexes.addAll(dtable.dcolumns.get(fn).indexes));
         require(columnIndexes.size() > 0);
 
-        vBeanList = new ArrayList<>(dtable.line2data.size());
-        for (Map.Entry<Integer, List<String>> line : dtable.line2data.entrySet()) {
-            int row = line.getKey();
-            List<String> rowData = line.getValue();
+        vBeanList = new ArrayList<>(dtable.recordList.size());
+        int row = 1;
+        for (List<String> rowData : dtable.recordList) {
+            row++; //从2开始
+            if (CSV.isEmptyRecord(rowData)){
+                continue;
+            }
             List<Cell> cells = new ArrayList<>(columnIndexes.size());
             for (Integer columnIndex : columnIndexes) {
                 Cell c = new Cell(row, columnIndex, rowData.get(columnIndex));

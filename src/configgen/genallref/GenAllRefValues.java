@@ -66,7 +66,7 @@ public class GenAllRefValues extends Generator {
                     }
                 }
                 if (has) {
-                    allrefs.add(value.raw.data);
+                    allrefs.add(value.raw.getData());
                 }
             }
 

@@ -17,7 +17,7 @@ public final class I18n {
             return;
         }
         map = new HashMap<>();
-        List<List<String>> rows = CSV.readFromFile(new File(file), encoding, true);
+        List<List<String>> rows = CSV.readFromFile(new File(file), encoding);
         List<String> row0 = rows.get(0);
         if (row0 == null) {
             throw new IllegalArgumentException("国际化i18n文件为空");
@@ -28,6 +28,9 @@ public final class I18n {
 
         isCRLFAsLF = crlfaslf;
         for (List<String> row : rows) {
+            if (CSV.isEmptyRecord(row)) {
+                continue;
+            }
             if (row.size() != 3) {
                 System.out.println(row + " 不是3列，被忽略");
             } else {
@@ -42,10 +45,10 @@ public final class I18n {
         }
     }
 
-    private String normalizeRaw(String raw){
-        if (isCRLFAsLF){
+    private String normalizeRaw(String raw) {
+        if (isCRLFAsLF) {
             return raw.replaceAll("\r\n", "\n");
-        }else{
+        } else {
             return raw;
         }
     }
@@ -62,7 +65,7 @@ public final class I18n {
             return null;
         }
 
-        if (raw == null){
+        if (raw == null) {
             return null;
         }
 

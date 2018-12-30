@@ -7,14 +7,14 @@ import org.w3c.dom.Element;
 public class Column extends Node {
     public String desc;
     public final String type;
-    public final String own;
+    private final String own;
     public final boolean compress;
     public final char compressSeparator;
 
     public ForeignKey foreignKey;
     public KeyRange keyRange;
 
-    public Column(Bean _parent, Element self) {
+    Column(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         DomUtils.permitAttributes(self, "desc", "name", "type", "own",
                 "ref", "refType", "keyRef", "range", "compress");
@@ -58,34 +58,6 @@ public class Column extends Node {
 
         compress = original.compress;
         compressSeparator = original.compressSeparator;
-    }
-
-    static String[] parse(String ctype) {
-        String t, k = "", v = "";
-        int c = 0;
-        if (ctype.startsWith("list,")) {
-            t = "list";
-            String[] sp = ctype.split(",");
-            v = sp[1].trim();
-            String[] s = new String[2];
-            s[0] = t;
-            s[1] = v;
-            return s;
-        } else if (ctype.startsWith("map,")) {
-            t = "map";
-            String[] sp = ctype.split(",");
-            k = sp[1].trim();
-            v = sp[2].trim();
-            String[] s = new String[3];
-            s[0] = t;
-            s[1] = k;
-            s[2] = v;
-            return s;
-        } else {
-            String[] s = new String[1];
-            s[0] = ctype;
-            return s;
-        }
     }
 
     Column extract(Bean _parent, String _own) {

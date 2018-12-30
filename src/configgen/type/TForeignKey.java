@@ -7,9 +7,9 @@ import configgen.define.Ref;
 public class TForeignKey extends Node {
     public final ForeignKey foreignKeyDefine;
     public TTable refTable;
-    public TTable mapKeyRefTable;
+    TTable mapKeyRefTable;
 
-    public TForeignKey(TBean parent, ForeignKey fk) {
+    TForeignKey(TBean parent, ForeignKey fk) {
         super(parent, fk.name);
         foreignKeyDefine = fk;
     }
@@ -27,10 +27,14 @@ public class TForeignKey extends Node {
 
     private TTable resolveRef(Ref ref){
         TTable tt = ((TDb) root).ttables.get(ref.table);
-        require(tt != null, "ref table not found", ref.table);
-        for (String col : ref.cols) {
-            require(null != tt.tbean.beanDefine.columns.get(col), "ref column not exist", col); //must use beanDefine
+        if (tt != null){
+            for (String col : ref.cols) {
+                require(null != tt.tbean.beanDefine.columns.get(col), "外键列不存在", col); //must use beanDefine
+            }
+        }else{
+            error("外键表不存在", ref.table);
         }
+
         return tt;
     }
 }

@@ -1,6 +1,7 @@
 package configgen.util;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class UTF8Writer implements Closeable {
     private final OutputStream stream;
@@ -8,9 +9,9 @@ public class UTF8Writer implements Closeable {
     private boolean touched;
     private static final byte[] UTF8_BOM = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
 
-    public UTF8Writer(OutputStream out) throws UnsupportedEncodingException {
+    public UTF8Writer(OutputStream out) {
         stream = out;
-        writer = new OutputStreamWriter(out, "UTF-8");
+        writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
     }
 
     public void write(String str) throws IOException {

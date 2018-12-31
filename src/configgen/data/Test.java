@@ -2,11 +2,7 @@ package configgen.data;
 
 import configgen.util.CSV;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 final class Test {
@@ -32,12 +28,10 @@ final class Test {
         septestf("a123a");
         septestf("1231");
 
-        // need strip bom
-        System.out.println(CSV.parse(new InputStreamReader(new FileInputStream("text.csv"), StandardCharsets.UTF_8)));
     }
 
-    private static void test(String source, int rowcnt, int testrow, String... row) throws IOException {
-        List<List<String>> r = CSV.parse(new StringReader(source));
+    private static void test(String source, int rowcnt, int testrow, String... row) {
+        List<List<String>> r = CSV.parse(source);
         equal(rowcnt, r.size());
         List<String> a = r.get(testrow);
         equal(row.length, a.size());

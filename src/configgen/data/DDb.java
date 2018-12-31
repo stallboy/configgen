@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DDb extends Node {
@@ -24,6 +25,15 @@ public class DDb extends Node {
     public DDb(Path _dataDir, String dataEncoding) {
         super(null, "ddb");
         dataDir = _dataDir;
+
+
+//        System.gc();
+//        Logger.mm("--");
+//        List<List<String>> allLines = CSV.readFromFile(dataDir.resolve("filter\\fullwordfilter.csv"), dataEncoding);
+//        System.gc();
+//        Logger.mm("==");
+//        System.exit(1);
+
         try {
             Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                 @Override
@@ -32,7 +42,9 @@ public class DDb extends Node {
                     if (path.endsWith(".csv")) {
                         String p = path.substring(0, path.length() - 4);
                         String configName = String.join(".", p.split("[\\\\/]")).toLowerCase();
-                        dTables.put(configName, new DTable(DDb.this, configName, CSV.readFromFile(file.toFile(), dataEncoding)));
+                        List<List<String>> allLines = CSV.readFromFile(file, dataEncoding);
+//                        Logger.mm(file.toString());
+                        dTables.put(configName, new DTable(DDb.this, configName, allLines));
                     }
                     return FileVisitResult.CONTINUE;
                 }

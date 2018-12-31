@@ -2,7 +2,7 @@ package configgen.value;
 
 import configgen.util.CSV;
 
-import java.io.File;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,7 @@ public final class I18n {
             return;
         }
         map = new HashMap<>();
-        List<List<String>> rows = CSV.readFromFile(new File(file), encoding);
+        List<List<String>> rows = CSV.readFromFile(Paths.get(file), encoding);
         List<String> row0 = rows.get(0);
         if (row0 == null) {
             throw new IllegalArgumentException("国际化i18n文件为空");

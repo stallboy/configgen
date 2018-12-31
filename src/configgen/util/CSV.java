@@ -49,11 +49,11 @@ public final class CSV {
             if (size > (long) MAX_BUFFER_SIZE)
                 throw new OutOfMemoryError("Required array size too large");
 
-            return read(in, (int) size);
+            return read(in);
         }
     }
 
-    private static int read(InputStream source, int initialSize) throws IOException {
+    private static int read(InputStream source) throws IOException {
         int capacity = buf.length;
         int nread = 0;
         int n;

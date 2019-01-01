@@ -26,37 +26,40 @@ public class TTable extends Node {
         tbean.resolve();
         if (tableDefine.enumType != Table.EnumType.None) {
             Type type = tbean.columns.get(tableDefine.enumStr);
-            require(type != null, "enum not found", tableDefine.enumStr);
-            require(type instanceof TString, "enum type not string", type.toString());
+            if (type == null) {
+                error("枚举列未找到", tableDefine.enumStr);
+            } else {
+                require(type instanceof TString, "枚举列必须是字符串", tableDefine.enumStr, type);
+            }
         }
-        resolveKey(tableDefine.primaryKey, primaryKey, true);
+        resolveKey(tableDefine.primaryKey, primaryKey);
 
         if (tableDefine.enumType != Table.EnumType.None) {
-            require(primaryKey.size() == 1, "enum primary key must be one column");
+            require(primaryKey.size() == 1, "有枚举的表主键必须是自己或int");
             Type t = primaryKey.values().iterator().next();
-
             if (!tableDefine.isEnumAsPrimaryKey()) {
-                require(t instanceof TInt, "enum table's primary key must be Int if not self");
+                require(t instanceof TInt, "有枚举的表主键必须是自己或int");
             }
         }
 
         for (UniqueKey uk : tableDefine.uniqueKeys.values()) {
             Map<String, Type> res = new LinkedHashMap<>();
-            resolveKey(uk.keys, res, false);
+            resolveKey(uk.keys, res);
             uniqueKeys.add(res);
         }
     }
 
-    private void resolveKey(String[] keys, Map<String, Type> res, boolean isPrimary) {
+    private void resolveKey(String[] keys, Map<String, Type> res) {
         for (String k : keys) {
             Type t = tbean.columns.get(k);
-            require(t != null, "primary/unique key not found", k);
-            if (t.hasText()) {
+            if (t == null) {
+                error("外键列未找到", k);
+            } else if (t.hasText()) {
                 Logger.verbose(fullName() + "的" + k + "有国际化字符串");
             }
 
-            require(null == res.put(k, t), "primary/unique key duplicate", k);
-            require(keys.length == 1 || t instanceof TPrimitive, "multi primary/unique key not support bean and container", k);
+            require(null == res.put(k, t), "外键列重复", k);
+            require(keys.length == 1 || t instanceof TPrimitive, "外键类型不支持容器和Bean", k);
         }
     }
 }

@@ -22,7 +22,7 @@ public class VBean extends VComposite {
         if (beanType.beanDefine.type == Bean.BeanType.BaseAction) {
             String actionName = data.get(0).data;
             TBean actionBean = beanType.actionBeans.get(actionName);
-            require(Objects.nonNull(actionBean), actionName + " not exist");
+            require(Objects.nonNull(actionBean), "子Bean不存在", actionName);
             actionVBean = new VBean(actionBean, data.subList(1, data.size()));
             values = new ArrayList<>();
         } else {
@@ -37,7 +37,7 @@ public class VBean extends VComposite {
                     require(data.size() >= beanType.columnSpan());
                     parsed = data.subList(0, beanType.columnSpan());
                 } else {
-                    require(data.size() == beanType.columnSpan(), " columns should equals " + beanType.columnSpan());
+                    require(data.size() == beanType.columnSpan(), "列宽度应该等于", beanType.columnSpan());
                     parsed = data;
                 }
             }
@@ -73,7 +73,7 @@ public class VBean extends VComposite {
                 }
                 VList keyValue = new VList(vs);
                 if (isCellEmpty()) {
-                    require(fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE, keyValue.toString(), "空数据，外键必须nullable", fk.foreignKeyDefine.fullName());
+                    require(fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE, keyValue.toString(), "空数据，外键必须nullable", fk.foreignKeyDefine);
                 } else {
                     VTable vtable = VDb.getCurrent().getVTable(fk.refTable.name);
                     Set<Value> keyValueSet;
@@ -82,7 +82,7 @@ public class VBean extends VComposite {
                     } else {
                         keyValueSet = vtable.uniqueKeyValueSetMap.get(String.join(",", fk.foreignKeyDefine.ref.cols));
                     }
-                    require(keyValueSet.contains(keyValue), keyValue.toString(), "外键未找到", fk.refTable.fullName());
+                    require(keyValueSet.contains(keyValue), keyValue.toString(), "外键未找到", fk.refTable);
                 }
             }
         }

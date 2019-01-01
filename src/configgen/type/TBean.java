@@ -44,13 +44,13 @@ public class TBean extends Type {
 
     private void init() {
         for (ForeignKey fk : beanDefine.foreignKeys.values()) {
-            require(refNames.add(fk.name), "ref name conflict for generate", fk.name);
+            require(refNames.add(fk.name), "外键名字重复", fk.name);
             foreignKeys.add(new TForeignKey(this, fk));
         }
         for (Column col : beanDefine.columns.values()) {
             ForeignKey fk = col.foreignKey;
             if (fk != null) {
-                require(refNames.add(fk.name), "ref name conflict for generate", fk.name);
+                require(refNames.add(fk.name), "外键名字重复", fk.name);
                 foreignKeys.add(new TForeignKey(this, fk));
             }
         }
@@ -166,12 +166,12 @@ public class TBean extends Type {
     public void resolve() {
         if (beanDefine.type == Bean.BeanType.BaseAction) {
             actionEnumRefTable = ((TDb) root).ttables.get(beanDefine.actionEnumRef);
-            require(actionEnumRefTable != null, "action enum ref table not found", beanDefine.actionEnumRef);
+            require(actionEnumRefTable != null, "多态Bean的枚举表不存在", beanDefine.actionEnumRef);
             actionBeans.values().forEach(TBean::resolve);
         } else {
             foreignKeys.forEach(TForeignKey::resolve);
             beanDefine.columns.values().forEach(this::resolveColumn);
-            require(columns.size() > 0, "has no columns");
+            require(columns.size() > 0, "Bean列数不能为0");
             foreignKeys.forEach(fk -> {
                 if (fk.foreignKeyDefine.refType == ForeignKey.RefType.LIST)
                     listRefs.add(fk);
@@ -183,10 +183,10 @@ public class TBean extends Type {
 
     private void resolveColumn(Column col) {
         Constraint cons = new Constraint();
-        foreignKeys.forEach(fk -> {
+        for (TForeignKey fk : foreignKeys) {
             if (fk.foreignKeyDefine.refType != ForeignKey.RefType.LIST && fk.foreignKeyDefine.keys.length == 1 && fk.foreignKeyDefine.keys[0].equals(col.name))
                 cons.references.add(new SRef(fk));
-        });
+        }
 
         if (null != col.keyRange) {
             cons.range = col.keyRange.range;
@@ -209,7 +209,7 @@ public class TBean extends Type {
                 require(c >= 1);
             }
             if (c == 0) {
-                require(col.compress, "count=0 list must has compress attribute");
+                require(col.compress, "未定义列表的长度时必须定义分隔符compress");
                 compressSeparator = col.compressSeparator;
             }
         } else if (col.type.startsWith("map,")) {
@@ -228,7 +228,7 @@ public class TBean extends Type {
             type.indexAtBean = columns.size();
             columns.put(col.name, type);
         } else {
-            error("type resolve err", col.type);
+            error("类型不支持", col.type);
         }
     }
 }

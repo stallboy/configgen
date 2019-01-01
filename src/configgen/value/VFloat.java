@@ -15,7 +15,7 @@ public class VFloat extends VPrimitive {
         try {
             v = CSV.parseFloat(raw.data);
         } catch (Exception e) {
-            error(e.toString());
+            error(e);
         }
         value = v;
     }

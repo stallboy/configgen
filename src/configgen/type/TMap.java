@@ -11,12 +11,12 @@ public class TMap extends Type {
 
     TMap(Node parent, String name, Constraint cons, String key, String value, int count) {
         super(parent, name, cons);
-        require(cons.range == null, "map not support range");
+        require(cons.range == null, "map不支持range");
 
         Constraint kc = new Constraint();
         Constraint vc = new Constraint();
         for (SRef sref : cons.references) {
-            require(!sref.refNullable, "map not support nullableRef");
+            require(!sref.refNullable, "map不支持nullableRef");
             if (null != sref.mapKeyRefTable)
                 kc.references.add(new SRef(sref.mapKeyRefTable, sref.mapKeyRefCols));
             if (null != sref.refTable)
@@ -24,9 +24,9 @@ public class TMap extends Type {
         }
 
         this.key = resolveType("key", kc, key);
-        require(Objects.nonNull(this.key), this.fullName()+" column, key = " + key + " is not exist");
+        require(Objects.nonNull(this.key), "map的Key类型不存在", key);
         this.value = resolveType("value", vc, value);
-        require(Objects.nonNull(this.value), this.fullName()+" column, type = " + value + " is not exist");
+        require(Objects.nonNull(this.value), "map的Value类型不存在", value);
         this.count = count;
     }
 

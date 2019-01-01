@@ -389,7 +389,7 @@ public class DTable extends Node {
         DColumn col = new DColumn(this, s);
         col.indexes.addAll(a);
         col.descs.addAll(a.stream().map(descLine::get).collect(Collectors.toList()));
-        require(null == dcolumns.put(s, col), "column duplicate " + s);
+        require(null == dcolumns.put(s, col), "列重复", s);
     }
 
     private void add(String s, int i) {

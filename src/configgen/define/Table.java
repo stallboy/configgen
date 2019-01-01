@@ -55,9 +55,9 @@ public class Table extends Node {
 
         for (Element ele : DomUtils.elements(self, "uniqueKey")) {
             UniqueKey uk = new UniqueKey(this, ele);
-            require(!Arrays.equals(uk.keys, primaryKey), "uniqueKey duplicate primaryKey", uk.toString());
+            require(!Arrays.equals(uk.keys, primaryKey), "uniqueKey和primaryKey重复", uk);
             UniqueKey old = uniqueKeys.put(uk.toString(), uk);
-            require(old == null, "uniqueKey duplicate", uk.toString());
+            require(old == null, "uniqueKey重复", uk);
         }
     }
 

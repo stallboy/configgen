@@ -2,7 +2,10 @@ package configgen;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Node {
     protected final Node root;
@@ -23,6 +26,11 @@ public class Node {
         } else {
             root = this;
         }
+    }
+
+    @Override
+    public String toString(){
+        return fullName();
     }
 
     public String fullName() {
@@ -50,12 +58,16 @@ public class Node {
         }
     }
 
-    protected void require(boolean cond, String... str) {
+    protected void require(boolean cond, Object... args) {
         if (!cond)
-            error(str);
+            error(args);
     }
 
-    protected void error(String... str) {
-        throw new AssertionError(fullName() + ": " + String.join(",", str));
+    protected void error(Object... args) {
+        throw new AssertionError(fullName() + ": " + join(args));
+    }
+
+    private String join(Object... args) {
+        return Arrays.stream(args).map(Objects::toString).collect(Collectors.joining(","));
     }
 }

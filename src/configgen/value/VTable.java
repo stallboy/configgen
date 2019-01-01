@@ -99,7 +99,7 @@ public class VTable extends Node {
             } else {
                 keyValue = new VList(vs);
             }
-            require(keyValueSet.add(keyValue), "主键或唯一键重复", keyValue.toString());
+            require(keyValueSet.add(keyValue), "主键或唯一键重复", keyValue);
         }
 
     }

@@ -30,7 +30,7 @@ public class Column extends Node {
         compress = self.hasAttribute("compress");
         if (compress) {
             String sep = self.getAttribute("compress");
-            require(sep.length() == 1, "compress separator length not 1, separator=" + sep);
+            require(sep.length() == 1, "compress字符串长度必须是1", sep);
             compressSeparator = sep.toCharArray()[0];
         } else {
             compressSeparator = ';';

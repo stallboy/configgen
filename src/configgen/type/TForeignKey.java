@@ -16,7 +16,7 @@ public class TForeignKey extends Node {
 
     public void resolve() {
         for (String key : foreignKeyDefine.keys) {
-            require(null != ((TBean) parent).beanDefine.columns.get(key), "key not exist", key);
+            require(null != ((TBean) parent).beanDefine.columns.get(key), "外键列不存在", key);
         }
 
         refTable = resolveRef(foreignKeyDefine.ref);

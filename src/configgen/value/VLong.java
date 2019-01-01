@@ -15,7 +15,7 @@ public class VLong extends VPrimitive {
         try {
             v = CSV.parseLong(raw.data);
         } catch (Exception e) {
-            error(e.toString());
+            error(e);
         }
         value = v;
     }

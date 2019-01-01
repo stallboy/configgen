@@ -2,8 +2,11 @@ package configgen.value;
 
 import configgen.type.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class Value {
     public final Type type;
@@ -23,29 +26,33 @@ public abstract class Value {
     void verifyRefs() {
         for (SRef sref : type.constraint.references) {
             if (isCellEmpty()) {
-                require(sref.refNullable, "有空格子，则外键必须是nullable的", sref.refTable.fullName());
+                require(sref.refNullable, "有空格子，则外键必须是nullable的", sref.refTable);
             } else {
                 if (sref.refTable != null) {
                     VTable vtable = VDb.getCurrent().getVTable(sref.refTable.name);
                     Set<Value> keyValueSet = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
-                    require(keyValueSet.contains(this), "外键未找到", sref.refTable.fullName());
+                    require(keyValueSet.contains(this), "外键未找到", sref.refTable);
                 } else {
-                    error("refTable null");
+                    error("不该发生");
                 }
             }
         }
     }
 
 
-    void require(boolean cond, String... str) {
+    void require(boolean cond, Object... args) {
         if (!cond)
-            error(str);
+            error(args);
     }
 
-    void error(String... str) {
-        throw new AssertionError(String.join(",", str) + " -- " + toString());
+    void error(Object... args) {
+        throw new AssertionError(join(args) + " -- " + toString());
     }
 
+
+    private String join(Object... args){
+        return Arrays.stream(args).map(Objects::toString).collect(Collectors.joining(","));
+    }
 
     public static Value create(Type t, List<Cell> data) {
         return t.accept(new TypeVisitorT<Value>() {

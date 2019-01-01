@@ -31,7 +31,6 @@ public final class CSV {
             BomChecker.EncodingAndBomSize bom = BomChecker.checkBom(buf, nread, encoding);
             String fileStr = new String(buf, bom.bomSize, nread - bom.bomSize, bom.encoding);
             return parse(fileStr);
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

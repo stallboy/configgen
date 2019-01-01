@@ -33,7 +33,7 @@ public class Bean extends Node {
         compress = self.hasAttribute("compress");
         if (compress) {
             String sep = self.getAttribute("compress");
-            require(sep.length() == 1, "compress separator length not 1, separator=" + sep);
+            require(sep.length() == 1, "分隔符compress长度必须为1");
             compressSeparator = sep.toCharArray()[0];
         } else {
             compressSeparator = ';';
@@ -45,7 +45,7 @@ public class Bean extends Node {
             DomUtils.permitElements(self, "bean");
             for (Element e : DomUtils.elements(self, "bean")) {
                 Bean b = new Bean(this, e);
-                require(null == actionBeans.put(b.name, b), "bean duplicate name=" + b.name);
+                require(null == actionBeans.put(b.name, b), "Bean名字重复", b.name);
             }
         } else {
             type = BeanType.NormalBean;
@@ -80,17 +80,17 @@ public class Bean extends Node {
     private void init(Element self) {
         for (Element ele : DomUtils.elements(self, "column")) {
             Column c = new Column(this, ele);
-            require(null == columns.put(c.name, c), "column duplicate name=" + c.name);
+            require(null == columns.put(c.name, c), "列名字定义重复", c.name);
         }
 
         for (Element ele : DomUtils.elements(self, "foreignKey")) {
             ForeignKey fk = new ForeignKey(this, ele);
-            require(null == foreignKeys.put(fk.name, fk), "ForeignKey duplicate name=" + fk.name);
+            require(null == foreignKeys.put(fk.name, fk), "外键名字定义重复", fk.name);
         }
 
         for (Element ef : DomUtils.elements(self, "keyRange")) {
             KeyRange r = new KeyRange(this, ef);
-            require(null == ranges.put(r.key, r), "keyRange duplicate key=" + r.key);
+            require(null == ranges.put(r.key, r), "keyRange定义重复", r.key);
         }
     }
 

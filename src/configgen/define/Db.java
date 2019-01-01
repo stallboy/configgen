@@ -25,13 +25,13 @@ public class Db extends Node {
 
             for (Element e : DomUtils.elements(self, "bean")) {
                 Bean b = new Bean(this, e);
-                require(null == beans.put(b.name, b), "bean duplicate name=" + b.name);
+                require(null == beans.put(b.name, b), "Bean定义名字重复", b.name);
             }
 
             for (Element e : DomUtils.elements(self, "table")) {
                 Table t = new Table(this, e);
-                require(null == tables.put(t.bean.name, t), "table duplicate name=" + t.bean.name);
-                require(!beans.containsKey(t.bean.name), "table bean duplicate name=" + t.bean.name);
+                require(null == tables.put(t.bean.name, t), "表定义名字重复", t.bean.name);
+                require(!beans.containsKey(t.bean.name), "表和Bean定义名字重复", t.bean.name);
             }
         }
     }
@@ -39,7 +39,6 @@ public class Db extends Node {
     private Db(String own) {
         super(null, "db(" + own + ")");
     }
-
 
 
     public Table newTable(String tableName) {
@@ -61,7 +60,7 @@ public class Db extends Node {
                 Bean pb = bean.extract(part, own);
                 if (pb != null)
                     part.beans.put(bean.name, pb);
-            }catch (Throwable e){
+            } catch (Throwable e) {
                 throw new AssertionError(bean.name + ",从这个结构体抽取[" + own + "]出错", e);
             }
         }
@@ -71,7 +70,7 @@ public class Db extends Node {
                 Table pc = table.extract(part, own);
                 if (pc != null)
                     part.tables.put(table.name, pc);
-            }catch (Throwable e){
+            } catch (Throwable e) {
                 throw new AssertionError(table.name + ",从这个表结构抽取[" + own + "]出错", e);
             }
         }
@@ -85,14 +84,14 @@ public class Db extends Node {
         for (Bean bean : beans.values()) {
             try {
                 bean.resolveExtract();
-            }catch (Throwable e){
+            } catch (Throwable e) {
                 throw new AssertionError(bean.name + ",解析这个结构体抽取部分出错", e);
             }
         }
         for (Table table : tables.values()) {
             try {
                 table.resolveExtract();
-            }catch (Throwable e){
+            } catch (Throwable e) {
                 throw new AssertionError(table.name + ",解析这个表结构抽取部分出错", e);
             }
         }

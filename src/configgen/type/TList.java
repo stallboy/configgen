@@ -11,13 +11,13 @@ public class TList extends Type {
 
     TList(Node parent, String name, Constraint cons, String value, int count, char compressSeparator) {
         super(parent, name, cons);
-        require(cons.range == null, "list not support range");
+        require(cons.range == null, "list不支持Range");
         for (SRef sref : cons.references) {
-            require(!sref.refNullable, "list not support nullableRef");
-            require(null == sref.mapKeyRefTable, "list not support keyRef");
+            require(!sref.refNullable, "list不支持nullableRef");
+            require(null == sref.mapKeyRefTable, "list不支持keyRef");
         }
         this.value = resolveType("value", cons, value);
-        require(Objects.nonNull(this.value), this.fullName()+" column, type = " + value + " is not exist");
+        require(Objects.nonNull(this.value), "list里的值类型不存在", value);
         this.count = count;
         this.compressSeparator = compressSeparator;
     }

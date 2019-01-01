@@ -47,7 +47,7 @@ public class VList extends VComposite {
                 list.add(Value.create(type.value, parsed.subList(s, s + vc)));
             } else {
                 for (Cell dc : parsed.subList(s, s + vc)) {
-                    require(dc.data.isEmpty(), "数组遇到item空格后，之后必须也都是空格" + dc);
+                    require(dc.data.isEmpty(), "数组遇到item空格后，之后必须也都是空格", dc);
                 }
             }
         }

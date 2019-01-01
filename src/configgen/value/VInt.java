@@ -15,7 +15,7 @@ public class VInt extends VPrimitive {
         try {
             v = CSV.parseInt(raw.data);
         } catch (Exception e) {
-            error(e.toString());
+            error(e);
         }
         value = v;
     }

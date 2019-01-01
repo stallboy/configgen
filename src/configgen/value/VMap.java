@@ -23,7 +23,7 @@ public class VMap extends VComposite {
                 require(null == map.put(key, value), "字典key重复");
             } else {
                 for (Cell dc : data.subList(s, s + kc + vc)) {
-                    require(dc.data.trim().isEmpty(), "字典遇到entry空格后，之后也必须都是空格", dc.toString());
+                    require(dc.data.trim().isEmpty(), "字典遇到entry空格后，之后也必须都是空格", dc);
                 }
             }
         }

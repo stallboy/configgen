@@ -28,10 +28,11 @@ public abstract class Value {
             if (isCellEmpty()) {
                 require(sref.refNullable, "有空格子，则外键必须是nullable的", sref.refTable);
             } else {
-                //TODO 以下keyValueSet要不要cache到sref下呢
-                VTable vtable = VDb.getCurrent().getVTable(sref.refTable.name);
-                Set<Value> keyValueSet = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
-                require(keyValueSet.contains(this), "外键未找到", sref.refTable);
+                if (sref.cache == null){
+                    VTable vtable = VDb.getCurrent().getVTable(sref.refTable.name);
+                    sref.cache = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
+                }
+                require(sref.cache.contains(this), "外键未找到", sref.refTable);
             }
         }
     }

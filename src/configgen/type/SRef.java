@@ -1,6 +1,9 @@
 package configgen.type;
 
 import configgen.define.ForeignKey;
+import configgen.value.Value;
+
+import java.util.Set;
 
 public class SRef {
     public final String name;
@@ -10,6 +13,8 @@ public class SRef {
 
     public final TTable mapKeyRefTable;
     public final String[] mapKeyRefCols;
+
+    public Set<Value> cache; //优化
 
     public SRef(TForeignKey fk) {
         name = fk.name;

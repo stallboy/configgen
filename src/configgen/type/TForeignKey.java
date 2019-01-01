@@ -3,11 +3,16 @@ package configgen.type;
 import configgen.Node;
 import configgen.define.ForeignKey;
 import configgen.define.Ref;
+import configgen.value.Value;
+
+import java.util.Set;
 
 public class TForeignKey extends Node {
     public final ForeignKey foreignKeyDefine;
     public TTable refTable;
     TTable mapKeyRefTable;
+
+    public Set<Value> cache;  //优化
 
     TForeignKey(TBean parent, ForeignKey fk) {
         super(parent, fk.name);

@@ -76,15 +76,11 @@ public class VBean extends VComposite {
                 if (isCellEmpty()) {
                     require(fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE, "空数据，外键必须nullable", fk.foreignKeyDefine);
                 } else {
-                    //TODO 以下keyValueSet是否要cache下来到fk里呢
-                    VTable vtable = VDb.getCurrent().getVTable(fk.refTable.name);
-                    Set<Value> keyValueSet;
-                    if (fk.foreignKeyDefine.ref.refToPrimaryKey()) {
-                        keyValueSet = vtable.primaryKeyValueSet;
-                    } else {
-                        keyValueSet = vtable.uniqueKeyValueSetMap.get(String.join(",", fk.foreignKeyDefine.ref.cols));
+                    if (fk.cache == null) {
+                        VTable vtable = VDb.getCurrent().getVTable(fk.refTable.name);
+                        fk.cache = fk.foreignKeyDefine.ref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", fk.foreignKeyDefine.ref.cols));
                     }
-                    require(keyValueSet.contains(keyValue), "外键未找到", fk.refTable, keyValue);
+                    require(fk.cache.contains(keyValue), "外键未找到", fk.refTable, keyValue);
                 }
             }
         }

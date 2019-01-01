@@ -61,6 +61,10 @@ public class TBean extends Type {
         return columns.get(col).indexAtBean;
     }
 
+    public Collection<Type> getColumns(){
+        return columns.values();
+    }
+
     private boolean _hasRef = false;
     private boolean _hasRefChecked = false;
 

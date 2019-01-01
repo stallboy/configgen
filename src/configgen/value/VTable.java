@@ -105,7 +105,9 @@ public class VTable extends Node {
     }
 
     void verifyConstraint() {
-        vBeanList.forEach(VBean::verifyConstraint);
+        for (VBean vBean : vBeanList) {
+            vBean.verifyConstraint();
+        }
         if (tableType.tableDefine.isPrimaryKeySeq) {
             int seq = 1;
             for (Value value : primaryKeyValueSet) {

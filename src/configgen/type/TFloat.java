@@ -6,7 +6,7 @@ public class TFloat extends TPrimitive {
 
     TFloat(Node parent, String name, Constraint cons) {
         super(parent, name, cons);
-        require(cons.references.isEmpty(), "float not support ref");
+        require(cons.references.isEmpty(), "浮点数不支持外键");
     }
 
     @Override

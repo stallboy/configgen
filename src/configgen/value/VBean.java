@@ -44,8 +44,7 @@ public class VBean extends VComposite {
 
             values = new ArrayList<>(beanType.columns.size());
             int s = 0;
-            for (Map.Entry<String, Type> e : beanType.columns.entrySet()) {
-                Type t = e.getValue();
+            for (Type t : beanType.getColumns()) {
                 int span = t.columnSpan();
                 Value v = Value.create(t, parsed.subList(s, s + span));
                 values.add(v);
@@ -65,7 +64,9 @@ public class VBean extends VComposite {
             actionVBean.verifyConstraint();
         } else {
             verifyRefs();
-            values.forEach(Value::verifyConstraint);
+            for (Value value : values) {
+                value.verifyConstraint();
+            }
             for (TForeignKey fk : beanType.mRefs) {
                 ArrayList<Value> vs = new ArrayList<>();
                 for (String k : fk.foreignKeyDefine.keys) {
@@ -73,8 +74,9 @@ public class VBean extends VComposite {
                 }
                 VList keyValue = new VList(vs);
                 if (isCellEmpty()) {
-                    require(fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE, keyValue.toString(), "空数据，外键必须nullable", fk.foreignKeyDefine);
+                    require(fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE, "空数据，外键必须nullable", fk.foreignKeyDefine);
                 } else {
+                    //TODO 以下keyValueSet是否要cache下来到fk里呢
                     VTable vtable = VDb.getCurrent().getVTable(fk.refTable.name);
                     Set<Value> keyValueSet;
                     if (fk.foreignKeyDefine.ref.refToPrimaryKey()) {
@@ -82,7 +84,7 @@ public class VBean extends VComposite {
                     } else {
                         keyValueSet = vtable.uniqueKeyValueSetMap.get(String.join(",", fk.foreignKeyDefine.ref.cols));
                     }
-                    require(keyValueSet.contains(keyValue), keyValue.toString(), "外键未找到", fk.refTable);
+                    require(keyValueSet.contains(keyValue), "外键未找到", fk.refTable, keyValue);
                 }
             }
         }

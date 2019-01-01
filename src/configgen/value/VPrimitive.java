@@ -30,8 +30,8 @@ public abstract class VPrimitive extends Value {
     }
 
     @Override
-    public void collectCells(List<Cell> cells) {
-        cells.add(raw);
+    public void collectCells(List<Cell> targetCells) {
+        targetCells.add(raw);
     }
 
     @Override

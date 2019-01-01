@@ -28,13 +28,10 @@ public abstract class Value {
             if (isCellEmpty()) {
                 require(sref.refNullable, "有空格子，则外键必须是nullable的", sref.refTable);
             } else {
-                if (sref.refTable != null) {
-                    VTable vtable = VDb.getCurrent().getVTable(sref.refTable.name);
-                    Set<Value> keyValueSet = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
-                    require(keyValueSet.contains(this), "外键未找到", sref.refTable);
-                } else {
-                    error("不该发生");
-                }
+                //TODO 以下keyValueSet要不要cache到sref下呢
+                VTable vtable = VDb.getCurrent().getVTable(sref.refTable.name);
+                Set<Value> keyValueSet = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
+                require(keyValueSet.contains(this), "外键未找到", sref.refTable);
             }
         }
     }
@@ -50,7 +47,7 @@ public abstract class Value {
     }
 
 
-    private String join(Object... args){
+    private String join(Object... args) {
         return Arrays.stream(args).map(Objects::toString).collect(Collectors.joining(","));
     }
 

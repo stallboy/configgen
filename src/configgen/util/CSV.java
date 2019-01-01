@@ -28,7 +28,7 @@ public final class CSV {
             //使用reader很费内存
             //Reader reader = new UnicodeReader(new BufferedInputStream(new FileInputStream(file)), encoding)
             int nread = readAllBytes(path);
-            BomChecker.EncodingAndBomSize bom = BomChecker.checkBom(buf, nread, encoding);
+            BomChecker.Res bom = BomChecker.checkBom(buf, nread, encoding);
             String fileStr = new String(buf, bom.bomSize, nread - bom.bomSize, bom.encoding);
             return parse(fileStr);
         } catch (Exception e) {

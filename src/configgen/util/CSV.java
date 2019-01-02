@@ -1,13 +1,7 @@
 package configgen.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public final class CSV {
@@ -21,13 +15,14 @@ public final class CSV {
         START, NO_QUOTE, QUOTE, QUOTE2, CR,
     }
 
-    private static byte[] buf = new byte[512 * 1024];
 
     public static List<List<String>> readFromFile(Path path, String encoding) {
         try {
             //使用reader很费内存
             //Reader reader = new UnicodeReader(new BufferedInputStream(new FileInputStream(file)), encoding)
-            int nread = readAllBytes(path);
+            int nread = FileReadUtils.readAllBytes(path);
+            byte[] buf = FileReadUtils.getBuf();
+
             BomChecker.Res bom = BomChecker.checkBom(buf, nread, encoding);
             String fileStr = new String(buf, bom.bomSize, nread - bom.bomSize, bom.encoding);
             return parse(fileStr);
@@ -36,50 +31,6 @@ public final class CSV {
         }
     }
 
-
-    //下面2个方法，来自Files.readAllBytes
-    private static final int MAX_BUFFER_SIZE = Integer.MAX_VALUE - 8;
-    private static final int BUFFER_SIZE = 8192;
-
-    private static int readAllBytes(Path path) throws IOException {
-        try (SeekableByteChannel sbc = Files.newByteChannel(path);
-             InputStream in = Channels.newInputStream(sbc)) {
-            long size = sbc.size();
-            if (size > (long) MAX_BUFFER_SIZE)
-                throw new OutOfMemoryError("Required array size too large");
-
-            return read(in);
-        }
-    }
-
-    private static int read(InputStream source) throws IOException {
-        int capacity = buf.length;
-        int nread = 0;
-        int n;
-        for (; ; ) {
-            // read to EOF which may read more or less than initialSize (eg: file
-            // is truncated while we are reading)
-            while ((n = source.read(buf, nread, capacity - nread)) > 0)
-                nread += n;
-
-            // if last call to source.read() returned -1, we are done
-            // otherwise, try to read one more byte; if that failed we're done too
-            if (n < 0 || (n = source.read()) < 0)
-                break;
-
-            // one more byte was read; need to allocate a larger buffer
-            if (capacity <= MAX_BUFFER_SIZE - capacity) {
-                capacity = Math.max(capacity << 1, BUFFER_SIZE);
-            } else {
-                if (capacity == MAX_BUFFER_SIZE)
-                    throw new OutOfMemoryError("Required array size too large");
-                capacity = MAX_BUFFER_SIZE;
-            }
-            buf = Arrays.copyOf(buf, capacity);
-            buf[nread++] = (byte) n;
-        }
-        return nread;
-    }
 
 
     private static ArrayList<String> emptyRecord = new ArrayList<>();

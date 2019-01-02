@@ -1,13 +1,13 @@
 package configgen.genjava;
 
-import configgen.util.IndentPrint;
+import configgen.util.CachedIndentPrinter;
 
 import java.util.Map;
 
 public final class GenJavaCodeSchema {
 
 
-    public static void print(SchemaInterface schemaInterface, IndentPrint ip) {
+    public static void print(SchemaInterface schemaInterface, CachedIndentPrinter ip) {
         {
             ip.println1("public static Schema getCodeSchema() {");
             ip.inc();

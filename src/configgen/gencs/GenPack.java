@@ -1,9 +1,10 @@
 package configgen.gencs;
 
 import configgen.Logger;
+import configgen.util.CachedFileOutputStream;
 import configgen.util.DomUtils;
 import configgen.gen.*;
-import configgen.util.CachedFileOutputStream;
+import configgen.util.CachedFiles;
 import configgen.value.VDb;
 import org.w3c.dom.Element;
 
@@ -88,7 +89,7 @@ public class GenPack extends Generator {
             writer.write(String.join(",", packs.keySet()));
         }
 
-        CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
+        CachedFiles.keepMetaAndDeleteOtherFiles(dstDir);
     }
 
     private void parsePack(Map<String, Set<String>> packs, File packXmlFile, VDb value) {

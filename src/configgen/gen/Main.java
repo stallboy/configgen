@@ -8,7 +8,7 @@ import configgen.genjava.GenJavaCode;
 import configgen.genjava.GenJavaData;
 import configgen.genlua.GenI18n;
 import configgen.genlua.GenLua;
-import configgen.util.CachedFileOutputStream;
+import configgen.util.CachedFiles;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -124,7 +124,7 @@ public final class Main {
             Logger.mm("generate " + generator.parameter.type);
         }
 
-        CachedFileOutputStream.finalExit();
+        CachedFiles.finalExit();
         Logger.mm("end");
     }
 

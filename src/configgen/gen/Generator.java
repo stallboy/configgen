@@ -1,11 +1,10 @@
 package configgen.gen;
 
 import configgen.util.CachedFileOutputStream;
-import configgen.util.IndentPrint;
+import configgen.util.CachedIndentPrinter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.ZipOutputStream;
@@ -25,11 +24,15 @@ public abstract class Generator {
             throw new AssertionError(getClass().getSimpleName() + ": " + String.join(",", str));
     }
 
-    protected static IndentPrint createCode(File file, String encoding) throws IOException {
-        return new IndentPrint(new PrintStream(new CachedFileOutputStream(file), false, encoding), 0);
+    protected static CachedIndentPrinter createCode(File file, String encoding) {
+        return new CachedIndentPrinter(file, encoding);
     }
 
-    protected static ZipOutputStream createZip(File file) throws IOException {
+    protected static CachedIndentPrinter createCode(File file, String encoding, StringBuilder dst, StringBuilder tmp) {
+        return new CachedIndentPrinter(file, encoding, dst, tmp);
+    }
+
+    protected static ZipOutputStream createZip(File file) {
         return new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(file), new CRC32()));
     }
 

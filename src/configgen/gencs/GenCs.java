@@ -5,8 +5,8 @@ import configgen.define.Column;
 import configgen.define.ForeignKey;
 import configgen.gen.*;
 import configgen.type.*;
-import configgen.util.CachedFileOutputStream;
-import configgen.util.IndentPrint;
+import configgen.util.CachedFiles;
+import configgen.util.CachedIndentPrinter;
 import configgen.value.VDb;
 import configgen.value.VTable;
 
@@ -74,7 +74,7 @@ public class GenCs extends Generator {
             generateBeanClass(vtable.tableType.tbean, vtable);
         }
 
-        CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
+        CachedFiles.keepMetaAndDeleteOtherFiles(dstDir);
     }
 
     private static class Name {
@@ -118,7 +118,7 @@ public class GenCs extends Generator {
         Name name = new Name(pkg, prefix, tbean);
         File csFile = dstDir.toPath().resolve(name.path).toFile();
         System.out.println(csFile);
-        try (IndentPrint ps = createCode(csFile, encoding)) {
+        try (CachedIndentPrinter ps = createCode(csFile, encoding)) {
             if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
                 generateBaseActionClass(tbean, name, ps);
             } else {
@@ -127,7 +127,7 @@ public class GenCs extends Generator {
         }
     }
 
-    private void generateBaseActionClass(TBean tbean, Name name, IndentPrint ps) {
+    private void generateBaseActionClass(TBean tbean, Name name, CachedIndentPrinter ps) {
         ps.println("using System;");
         ps.println("using System.Collections.Generic;");
         ps.println("using System.IO;");
@@ -161,7 +161,7 @@ public class GenCs extends Generator {
         ps.println("}");
     }
 
-    private void generateBeanClass(TBean tbean, VTable vtable, Name name, IndentPrint ps) {
+    private void generateBeanClass(TBean tbean, VTable vtable, Name name, CachedIndentPrinter ps) {
         TTable ttable = vtable != null ? vtable.tableType : null;
         ps.println("using System;");
         ps.println("using System.Collections.Generic;");
@@ -449,7 +449,7 @@ public class GenCs extends Generator {
 
     }
 
-    private void generateMapGetBy(Map<String, Type> keys, GenCs.Name name, IndentPrint ps, boolean isPrimaryKey) {
+    private void generateMapGetBy(Map<String, Type> keys, GenCs.Name name, CachedIndentPrinter ps, boolean isPrimaryKey) {
         generateKeyClassIf(keys, ps);
 
         //static all
@@ -468,20 +468,20 @@ public class GenCs extends Generator {
         ps.println();
     }
 
-    private void generateAllMapPut(TTable ttable, IndentPrint ps) {
+    private void generateAllMapPut(TTable ttable, CachedIndentPrinter ps) {
         generateMapPut(ttable.primaryKey, ps, true);
         for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
             generateMapPut(uniqueKey, ps, false);
         }
     }
 
-    private void generateMapPut(Map<String, Type> keys, IndentPrint ps, boolean isPrimaryKey) {
+    private void generateMapPut(Map<String, Type> keys, CachedIndentPrinter ps, boolean isPrimaryKey) {
         String mapName = isPrimaryKey ? "all" : uniqueKeyMapName(keys);
         ps.println4(mapName + ".Add(" + actualParamsKeySelf(keys) + ", self);");
     }
 
 
-    private void generateKeyClassIf(Map<String, Type> keys, IndentPrint ps) {
+    private void generateKeyClassIf(Map<String, Type> keys, CachedIndentPrinter ps) {
         if (keys.size() > 1) {
             String keyClassName = keyClassName(keys);
             //static Key class
@@ -699,7 +699,7 @@ public class GenCs extends Generator {
     private void copyFile(String file) throws IOException {
         try (InputStream is = getClass().getResourceAsStream("/support/" + file);
              BufferedReader br = new BufferedReader(new InputStreamReader(is != null ? is : new FileInputStream("src/support/" + file), "GBK"));
-             IndentPrint ps = createCode(new File(dstDir, file), encoding)) {
+             CachedIndentPrinter ps = createCode(new File(dstDir, file), encoding)) {
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 ps.println(line);
             }
@@ -707,7 +707,7 @@ public class GenCs extends Generator {
     }
 
     private void genCSVProcessor() throws IOException {
-        try (IndentPrint ps = createCode(new File(dstDir, "CSVProcessor.cs"), encoding)) {
+        try (CachedIndentPrinter ps = createCode(new File(dstDir, "CSVProcessor.cs"), encoding)) {
             ps.println("using System.Collections.Generic;");
             if (!pkg.equals("Config")){
                 ps.println("using Config;");

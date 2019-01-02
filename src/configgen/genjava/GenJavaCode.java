@@ -6,8 +6,8 @@ import configgen.define.ForeignKey;
 import configgen.define.Table;
 import configgen.gen.*;
 import configgen.type.*;
-import configgen.util.CachedFileOutputStream;
-import configgen.util.IndentPrint;
+import configgen.util.CachedFiles;
+import configgen.util.CachedIndentPrinter;
 import configgen.value.VDb;
 import configgen.value.VTable;
 
@@ -65,7 +65,7 @@ public class GenJavaCode extends Generator {
         }
 
         File mgrFile = dstDir.toPath().resolve("ConfigMgr.java").toFile();
-        try (IndentPrint mgrPrint = createCode(mgrFile, encoding)) {
+        try (CachedIndentPrinter mgrPrint = createCode(mgrFile, encoding)) {
 
             mgrPrint.println("package %s;", pkg);
             mgrPrint.println();
@@ -96,7 +96,7 @@ public class GenJavaCode extends Generator {
 
         genConfigMgrLoader(value);
         genConfigSchema(value);
-        CachedFileOutputStream.deleteOtherFiles(dstDir);
+        CachedFiles.deleteOtherFiles(dstDir);
     }
 
     private class Name {
@@ -145,7 +145,7 @@ public class GenJavaCode extends Generator {
         Name name = new Name(tbean);
         File javaFile = dstDir.toPath().resolve(name.path).toFile();
 
-        try (IndentPrint ps = createCode(javaFile, encoding)) {
+        try (CachedIndentPrinter ps = createCode(javaFile, encoding)) {
             if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
                 generateBaseActionClass(tbean, name, ps);
             } else {
@@ -154,7 +154,7 @@ public class GenJavaCode extends Generator {
         }
     }
 
-    private void generateTableClass(VTable vtable, IndentPrint mgrPrint) throws IOException {
+    private void generateTableClass(VTable vtable, CachedIndentPrinter mgrPrint) throws IOException {
         boolean isNeedReadData = true;
         String dataPostfix = "";
         Table define = vtable.tableType.tableDefine;
@@ -173,7 +173,7 @@ public class GenJavaCode extends Generator {
             Name name = new Name(vtable.tableType.tbean, entryPostfix);
             Name dataName = new Name(vtable.tableType.tbean, dataPostfix);
             File javaFile = dstDir.toPath().resolve(name.path).toFile();
-            try (IndentPrint ps = createCode(javaFile, encoding)) {
+            try (CachedIndentPrinter ps = createCode(javaFile, encoding)) {
                 generateEnumClass(vtable, name, ps, define.isEnumFull(), isNeedReadData, dataName);
             }
         }
@@ -182,13 +182,13 @@ public class GenJavaCode extends Generator {
             Name name = new Name(vtable.tableType.tbean, dataPostfix);
             File javaFile = dstDir.toPath().resolve(name.path).toFile();
 
-            try (IndentPrint ps = createCode(javaFile, encoding)) {
+            try (CachedIndentPrinter ps = createCode(javaFile, encoding)) {
                 generateBeanClass(vtable.tableType.tbean, vtable, name, ps, mgrPrint);
             }
         }
     }
 
-    private void generateBaseActionClass(TBean tbean, Name name, IndentPrint ps) {
+    private void generateBaseActionClass(TBean tbean, Name name, CachedIndentPrinter ps) {
         ps.println("package %s;", name.pkg);
         ps.println();
         ps.println("public interface %s {", name.className);
@@ -218,7 +218,7 @@ public class GenJavaCode extends Generator {
         ps.println("}");
     }
 
-    private void generateEnumClass(VTable vtable, Name name, IndentPrint ps, boolean isFull, boolean isNeedReadData, Name dataName) throws IOException {
+    private void generateEnumClass(VTable vtable, Name name, CachedIndentPrinter ps, boolean isFull, boolean isNeedReadData, Name dataName) throws IOException {
         ps.println("package " + name.pkg + ";");
         ps.println();
 
@@ -362,7 +362,7 @@ public class GenJavaCode extends Generator {
         ps.println("}");
     }
 
-    private void generateBeanClass(TBean tbean, VTable vtable, Name name, IndentPrint ps, IndentPrint mgrPrint) {
+    private void generateBeanClass(TBean tbean, VTable vtable, Name name, CachedIndentPrinter ps, CachedIndentPrinter mgrPrint) {
         boolean isBean = vtable == null;
         boolean isTable = !isBean;
         TTable ttable = isTable ? vtable.tableType : null;
@@ -675,7 +675,7 @@ public class GenJavaCode extends Generator {
 
     }
 
-    private void generateMapGetBy(Map<String, Type> keys, Name name, IndentPrint ps, boolean isPrimaryKey, IndentPrint mgrPrint) {
+    private void generateMapGetBy(Map<String, Type> keys, Name name, CachedIndentPrinter ps, boolean isPrimaryKey, CachedIndentPrinter mgrPrint) {
         if (keys.size() > 1) {
             generateKeyClass(keys, ps);
         }
@@ -721,19 +721,19 @@ public class GenJavaCode extends Generator {
         }
     }
 
-    private void generateAllMapPut(TTable ttable, Name name, IndentPrint ps) {
+    private void generateAllMapPut(TTable ttable, Name name, CachedIndentPrinter ps) {
         generateMapPut(ttable.primaryKey, name, ps, true);
         for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
             generateMapPut(uniqueKey, name, ps, false);
         }
     }
 
-    private void generateMapPut(Map<String, Type> keys, Name name, IndentPrint ps, boolean isPrimaryKey) {
+    private void generateMapPut(Map<String, Type> keys, Name name, CachedIndentPrinter ps, boolean isPrimaryKey) {
         String mapName = name.containerPrefix + (isPrimaryKey ? "All" : uniqueKeyMapName(keys));
         ps.println3("mgr." + mapName + ".put(" + actualParamsKey(keys, "self.") + ", self);");
     }
 
-    private void generateKeyClass(Map<String, Type> keys, IndentPrint ps) {
+    private void generateKeyClass(Map<String, Type> keys, CachedIndentPrinter ps) {
         String keyClassName = keyClassName(keys);
         //static Key class
         ps.println1("public static class " + keyClassName + " {");
@@ -1072,7 +1072,7 @@ public class GenJavaCode extends Generator {
 
 
     private void genConfigMgrLoader(VDb vdb) throws IOException {
-        try (IndentPrint ps = createCode(new File(dstDir, "ConfigMgrLoader.java"), encoding)) {
+        try (CachedIndentPrinter ps = createCode(new File(dstDir, "ConfigMgrLoader.java"), encoding)) {
             ps.println("package " + pkg + ";");
             ps.println();
 
@@ -1137,7 +1137,7 @@ public class GenJavaCode extends Generator {
 
 
     private void genConfigSchema(VDb vdb) throws IOException {
-        try (IndentPrint ps = createCode(new File(dstDir, "ConfigCodeSchema.java"), encoding)) {
+        try (CachedIndentPrinter ps = createCode(new File(dstDir, "ConfigCodeSchema.java"), encoding)) {
 
             ps.println("package " + pkg + ";");
             ps.println();

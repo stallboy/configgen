@@ -1,19 +1,31 @@
 package configgen.util;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.nio.file.Path;
 
-public class IndentPrint implements Closeable {
-    private final PrintStream ps;
+public class CachedIndentPrinter implements Closeable {
+    private Path path;
+    private String encoding;
+    private StringBuilder dst;
+    private StringBuilder tmp;
     private int indent;
 
-    public IndentPrint(PrintStream ps, int indent) {
-        this.ps = ps;
-        this.indent = indent;
-        if (indent < 0) {
-            throw new IllegalArgumentException("indent < 0");
-        }
+    public CachedIndentPrinter(File file, String encoding) {
+        this.path = file.toPath().toAbsolutePath().normalize();
+        this.encoding = encoding;
+        this.dst = new StringBuilder(1024*2048);
+        this.tmp = new StringBuilder(128);
+        dst.setLength(0);
+    }
+
+    public CachedIndentPrinter(File file, String encoding, StringBuilder dst, StringBuilder tmp) {
+        this.path = file.toPath().toAbsolutePath().normalize();
+        this.encoding = encoding;
+        this.dst = dst;
+        this.tmp = tmp;
+        dst.setLength(0);
     }
 
     public int indent() {
@@ -33,7 +45,7 @@ public class IndentPrint implements Closeable {
     }
 
     public void println() {
-        ps.print("\n");
+        dst.append("\n");
     }
 
     public void println(String fmt, Object... args) {
@@ -68,28 +80,30 @@ public class IndentPrint implements Closeable {
         printlnn(7, fmt, args);
     }
 
+
     private void printlnn(int n, String fmt, Object... args) {
         indent += n;
-        if (args.length > 0){
-            ps.printf(prefix() + fmt + "\n", args);
-
-        }else{
-            ps.print(prefix() + fmt + "\n");
+        if (args.length > 0) {
+            tmp.setLength(0);
+            prefix(tmp, fmt);
+            dst.append(String.format(tmp.toString(), args));
+        } else {
+            prefix(dst, fmt);
         }
         indent -= n;
     }
 
-    private String prefix() {
-        StringBuilder indentStr = new StringBuilder();
+    private void prefix(StringBuilder sb, String fmt) {
         for (int i = 0; i < indent; i++) {
-            indentStr.append("    ");
+            sb.append("    ");
         }
-        return indentStr.toString();
+        sb.append(fmt);
+        sb.append('\n');
     }
 
     @Override
     public void close() throws IOException {
-        ps.close();
+        CachedFiles.writeFile(path, dst.toString().getBytes(encoding));
     }
 }
 

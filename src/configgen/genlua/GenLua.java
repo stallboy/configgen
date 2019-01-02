@@ -3,9 +3,9 @@ package configgen.genlua;
 import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.gen.*;
-import configgen.util.IndentPrint;
 import configgen.type.*;
-import configgen.util.CachedFileOutputStream;
+import configgen.util.CachedFiles;
+import configgen.util.CachedIndentPrinter;
 import configgen.value.*;
 
 import java.io.File;
@@ -52,26 +52,30 @@ public class GenLua extends Generator {
         File dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = ctx.makeValue(own);
 
-        try (IndentPrint ps = createCode(new File(dstDir, "_cfgs.lua"), encoding)) {
+
+        StringBuilder fileDst = new StringBuilder(512 * 1024); //优化gc alloc
+        StringBuilder tmp = new StringBuilder(128);
+        try (CachedIndentPrinter ps = createCode(new File(dstDir, "_cfgs.lua"), encoding, fileDst, tmp)) {
             generate_cfgs(ps);
         }
-        if (preload){
-            try (IndentPrint ps = createCode(new File(dstDir, "_loads.lua"), encoding)) {
+        if (preload) {
+            try (CachedIndentPrinter ps = createCode(new File(dstDir, "_loads.lua"), encoding, fileDst, tmp)) {
                 generate_loads(ps);
             }
         }
-        try (IndentPrint ps = createCode(new File(dstDir, "_beans.lua"), encoding)) {
+        try (CachedIndentPrinter ps = createCode(new File(dstDir, "_beans.lua"), encoding, fileDst, tmp)) {
             generate_beans(ps);
         }
 
+        StringBuilder lineCache = new StringBuilder(256);
         for (VTable v : value.getVTables()) {
             Name name = new Name(pkg, v.name);
-            try (IndentPrint ps = createCode(dstDir.toPath().resolve(name.path).toFile(), encoding)) {
-                generate_table(v, name, ps);
+            try (CachedIndentPrinter ps = createCode(dstDir.toPath().resolve(name.path).toFile(), encoding, fileDst, tmp)) {
+                generate_table(v, name, ps, lineCache);
             }
         }
 
-        CachedFileOutputStream.keepMetaAndDeleteOtherFiles(dstDir);
+        CachedFiles.keepMetaAndDeleteOtherFiles(dstDir);
     }
 
     private static class Name {
@@ -105,7 +109,7 @@ public class GenLua extends Generator {
     }
 
 
-    private void generate_cfgs(IndentPrint ps) {
+    private void generate_cfgs(CachedIndentPrinter ps) {
         ps.println("local %s = {}", pkg);
         ps.println();
 
@@ -120,9 +124,9 @@ public class GenLua extends Generator {
         for (TTable c : value.getDbType().ttables.values()) {
             String full = fullName(c);
             definePkg(full, ps, context);
-            if (preload){
+            if (preload) {
                 ps.println("%s = {}", full);
-            }else{
+            } else {
                 ps.println("%s = pre(\"%s\")", full, full);
             }
             context.add(full);
@@ -131,7 +135,7 @@ public class GenLua extends Generator {
         ps.println("return %s", pkg);
     }
 
-    private void definePkg(String beanName, IndentPrint ps, Set<String> context) {
+    private void definePkg(String beanName, CachedIndentPrinter ps, Set<String> context) {
         List<String> seps = Arrays.asList(beanName.split("\\."));
         for (int i = 0; i < seps.size() - 1; i++) {
             String pkg = String.join(".", seps.subList(0, i + 1));
@@ -142,7 +146,7 @@ public class GenLua extends Generator {
     }
 
 
-    private void generate_loads(IndentPrint ps) {
+    private void generate_loads(CachedIndentPrinter ps) {
         ps.println("local require = require");
         ps.println();
         for (TTable c : value.getDbType().ttables.values()) {
@@ -152,7 +156,7 @@ public class GenLua extends Generator {
     }
 
 
-    private void generate_beans(IndentPrint ps) {
+    private void generate_beans(CachedIndentPrinter ps) {
         ps.println("local %s = require \"%s._cfgs\"", pkg, pkg);
         ps.println();
 
@@ -188,7 +192,7 @@ public class GenLua extends Generator {
         ps.println("return Beans");
     }
 
-    private void generate_table(VTable vtable, Name name, IndentPrint ps) {
+    private void generate_table(VTable vtable, Name name, CachedIndentPrinter ps, StringBuilder lineCache) {
         TTable ttable = vtable.tableType;
         TBean tbean = ttable.tbean;
 
@@ -207,93 +211,97 @@ public class GenLua extends Generator {
         ps.println();
 
         for (VBean vBean : vtable.getVBeanList()) {
-            ps.println(getLuaValueString(vBean, "mk", false));
+            lineCache.setLength(0);
+            getLuaValueString(lineCache, vBean, "mk", false);
+            ps.println(lineCache.toString());
         }
 
         ps.println();
         ps.println("return this");
     }
 
-    private String getLuaValueString(Value thisValue) {
-        return getLuaValueString(thisValue, null, false);
+    private void getLuaValueString(StringBuilder res, Value thisValue) {
+        getLuaValueString(res, thisValue, null, false);
     }
 
-    private String getLuaValueString(Value thisValue, String beanTypeStr, boolean asKey) {
-        String[] v = new String[1];
+    private void getLuaValueString(StringBuilder res, Value thisValue, String beanTypeStr, boolean asKey) {
         thisValue.accept(new ValueVisitor() {
+
+            private void add(String val) {
+                if (asKey) {
+                    res.append('[').append(val).append(']');
+                } else {
+                    res.append(val);
+                }
+            }
+
             @Override
             public void visit(VBool value) {
-                String val = value.value ? "true" : "false";
-                if (asKey) {
-                    v[0] = String.format("[%s]", val);
-                } else {
-                    v[0] = val;
-                }
+                add(value.value ? "true" : "false");
             }
 
             @Override
             public void visit(VInt value) {
-                if (asKey) {
-                    v[0] = String.format("[%s]", String.valueOf(value.value));
-                } else {
-                    v[0] = String.valueOf(value.value);
-                }
+                add(String.valueOf(value.value));
             }
 
             @Override
             public void visit(VLong value) {
-                if (asKey) {
-                    v[0] = String.format("[%s]", String.valueOf(value.value));
-                } else {
-                    v[0] = String.valueOf(value.value);
-                }
+                add(String.valueOf(value.value));
             }
 
             @Override
             public void visit(VFloat value) {
-                if (asKey) {
-                    v[0] = String.format("[%s]", String.valueOf(value.value));
-                } else {
-                    v[0] = String.valueOf(value.value);
-                }
+                add(String.valueOf(value.value));
             }
 
             @Override
             public void visit(VString value) {
                 String val = value.value.replace("\r\n", "\\n");
                 val = val.replace("\n", "\\n");
-                String val2 = val.replace("\"", "\\\"");
+                val = val.replace("\"", "\\\"");
                 if (asKey) {
-                    if (keywords.contains(val2) || val2.contains("-") || val2.contains("=") || val2.contains(",")) {
-                        v[0] = String.format("[\"%s\"]", val2);
+                    if (keywords.contains(val) || val.contains("-") || val.contains("=") || val.contains(",")) {
+                        res.append("[\"").append(val).append("\"]");
                     } else {
-                        v[0] = val2;
+                        res.append(val);
                     }
                 } else {
-                    v[0] = String.format("\"%s\"", val2);
+                    res.append("\"").append(val).append("\"");
                 }
             }
 
             @Override
             public void visit(VList value) {
-                List<String> list = new ArrayList<>();
+                int sz = value.getList().size();
+                int idx = 0;
+                res.append("{");
                 for (Value eleValue : value.getList()) {
-                    list.add(getLuaValueString(eleValue));
+                    getLuaValueString(res, eleValue);
+                    idx++;
+                    if (idx != sz) {
+                        res.append(", ");
+                    }
                 }
-                String liststr = String.join(", ", list);
-                v[0] = String.format("{%s}", liststr);
+                res.append("}");
             }
 
             @Override
             public void visit(VMap value) {
-                List<String> list = new ArrayList<>();
+                int sz = value.map.size();
+                int idx = 0;
+
+                res.append("{");
                 for (Map.Entry<Value, Value> entry : value.map.entrySet()) {
-                    String key = getLuaValueString(entry.getKey(), null, true);
-                    String val = getLuaValueString(entry.getValue());
-                    list.add(String.format("%s = %s", key, val));
+                    getLuaValueString(res, entry.getKey(), null, true);
+                    res.append(" = ");
+                    getLuaValueString(res, entry.getValue());
+                    idx++;
+                    if (idx != sz) {
+                        res.append(", ");
+                    }
                 }
-                String liststr = String.join(", ", list);
-                v[0] = String.format("{%s}", liststr);
+                res.append("}");
             }
 
             @Override
@@ -307,16 +315,20 @@ public class GenLua extends Generator {
                     beanType = fullName(val.beanType);
                 }
 
-                List<String> list = new ArrayList<>();
+                res.append(beanType).append("(");
+
+                int sz = val.getValues().size();
+                int idx = 0;
                 for (Value fieldValue : val.getValues()) {
-                    list.add(getLuaValueString(fieldValue));
+                    getLuaValueString(res, fieldValue);
+                    idx++;
+                    if (idx != sz) {
+                        res.append(", ");
+                    }
                 }
-                String params = String.join(", ", list);
-                v[0] = String.format("%s(%s)", beanType, params);
+                res.append(")");
             }
         });
-
-        return v[0];
     }
 
     private static Set<String> keywords = new HashSet<>(Arrays.asList("break", "goto", "do", "end", "for", "in", "repeat", "util", "while", "if", "then", "elseif", "function", "local", "nil", "true", "false"));

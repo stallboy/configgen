@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-public class FileReadUtils {
+class FileReadUtils {
 
     private static byte[] buf = new byte[512 * 1024];
     private static final int MAX_BUFFER_SIZE = Integer.MAX_VALUE - 8;

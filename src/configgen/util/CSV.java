@@ -32,9 +32,8 @@ public final class CSV {
     }
 
 
-
     private static ArrayList<String> emptyRecord = new ArrayList<>();
-    private static StringBuilder field = new StringBuilder(4096); //这里假设是单线程
+    private static StringBuilder field = new StringBuilder(128); //这里假设是单线程
 
     //https://tools.ietf.org/html/rfc4180
     public static List<List<String>> parse(String source) {
@@ -163,7 +162,10 @@ public final class CSV {
     }
 
     private static void addField(ArrayList<String> record, StringBuilder field) {
-        String s = field.toString().intern();
+        String s = field.toString();
+        if (s.length() < 5) {//与速度和内存间取个平衡吧
+            s = s.intern();
+        }
         record.add(s);
     }
 

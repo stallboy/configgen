@@ -104,10 +104,6 @@ public final class Main {
             return;
         }
 
-        if (i18nfile != null) {
-            Logger.enablePrintNotFound18n();
-        }
-
         Path dataDir = Paths.get(datadir);
         File xmlFile = xml != null ? new File(xml) : dataDir.resolve("config.xml").toFile();
 
@@ -127,6 +123,5 @@ public final class Main {
         CachedFiles.finalExit();
         Logger.mm("end");
     }
-
 
 }

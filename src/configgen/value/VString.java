@@ -10,31 +10,17 @@ public class VString extends VPrimitive {
     public final TString tstring;
     public final String value; //生成代码用这个
 
-    public final String originalValue; //这个原始值
-    public final String i18nValue;      //是否有翻译值
 
     VString(TString type, List<Cell> data) {
         super(type, data);
         tstring = type;
 
-        if (tstring.subtype == TString.Subtype.STRING){
+        if (tstring.subtype == TString.Subtype.STRING) {
             value = raw.data;
-            originalValue = value;
-            i18nValue = "";
-        }else{
-            originalValue = raw.data;
-            I18n i18n = VDb.getCurrent().getI18n();
-            String v = i18n.get(originalValue);
-            if (v == null){
-                if (Logger.isPrintNotFoundI18n() && originalValue.length() > 0){
-                    System.out.println(originalValue);
-                }
-                value = originalValue;
-                i18nValue = "";
-            }else{
-                value = v;
-                i18nValue = v;
-            }
+        } else {
+            String originalValue = raw.data;
+            String v = VDb.getCurrent().getI18n().enterText(originalValue);
+            value = v != null ? v : originalValue;
         }
     }
 

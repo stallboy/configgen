@@ -135,8 +135,4 @@ public final class DomUtils {
             return new String[0];
     }
 
-    static boolean parseBool(Element self, String attrName) {
-        String attr = self.getAttribute(attrName).trim();
-        return attr.equalsIgnoreCase("true") || attr.equals("1");
-    }
 }

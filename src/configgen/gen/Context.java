@@ -48,6 +48,10 @@ public class Context {
         return dataDir;
     }
 
+    public I18n getI18n() {
+        return i18n;
+    }
+
     public VDb makeValue() {
         return makeValue(null);
     }

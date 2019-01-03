@@ -1,16 +1,28 @@
 package configgen.value;
 
+import configgen.Logger;
 import configgen.util.CSV;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class I18n {
+
+    public interface Collector {
+        void enterTable(String table);
+
+        void enterText(String original, String text);
+    }
+
     private Map<String, Map<String, String>> map = null;
     private Map<String, String> curTable = null;
     private boolean isCRLFAsLF;
+
+
+    private Collector collector;
 
     public I18n(String file, String encoding, boolean crlfaslf) {
         if (file == null) {
@@ -53,28 +65,47 @@ public final class I18n {
         }
     }
 
-    public void enter(String table) {
+    public void setCollector(Collector collector) {
+        this.collector = collector;
+    }
+
+    public void enterTable(String table) {
+        if (collector != null) {
+            collector.enterTable(table);
+        }
+
         if (map == null) {
             return;
         }
         curTable = map.get(table);
     }
 
-    public String get(String raw) {
-        if (curTable == null) {
-            return null;
-        }
-
-        if (raw == null) {
+    public String enterText(String raw) {
+        if (collector == null && curTable == null) {
             return null;
         }
 
         raw = normalizeRaw(raw);
-        String text = curTable.get(raw);
-        if (text == null || text.isEmpty()) {
-            return null;
+        String text;
+        String res;
+        if (curTable != null) {
+            text = curTable.get(raw);
+            if (text != null && !text.isEmpty()) {
+                res = text;
+            } else {
+                res = null;
+                text = "";
+            }
+        } else {
+            text = "";
+            res = null;
         }
-        return text;
+
+        if (collector != null) {
+            collector.enterText(raw, text);
+        }
+        return res;
     }
 
 }
+

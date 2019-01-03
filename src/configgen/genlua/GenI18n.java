@@ -2,13 +2,12 @@ package configgen.genlua;
 
 import configgen.gen.*;
 import configgen.util.CSVWriter;
-import configgen.value.*;
+import configgen.value.I18n;
 
 import java.io.File;
 import java.util.*;
 
-public final class GenI18n extends Generator {
-
+public final class GenI18n extends Generator implements I18n.Collector {
     public static void register() {
         Generators.addProvider("i18n", new GeneratorProvider() {
             @Override
@@ -33,21 +32,15 @@ public final class GenI18n extends Generator {
         parameter.end();
     }
 
+
+
     @Override
     public void generate(Context ctx) {
-        VDb value = ctx.makeValue();
+        table2TextMap.clear();
+        ctx.getI18n().setCollector(this);
+        ctx.makeValue();
 
-        Map<String, Map<String, String>> table2TextMap = new TreeMap<>();
-        for (VTable vTable : value.getVTables()) {
-            if (vTable.tableType.tbean.hasText()) {
-                Map<String, String> textMap = new LinkedHashMap<>();
-                ValueVisitor visitor = new TextValueVisitor(textMap);
-                vTable.getVBeanList().forEach(v -> v.accept(visitor));
-                table2TextMap.put(vTable.name, textMap);
-            }
-        }
-
-        List<List<String>> rows = new ArrayList<>();
+        List<List<String>> rows = new ArrayList<>(64 * 1024);
         for (Map.Entry<String, Map<String, String>> table2TextEntry : table2TextMap.entrySet()) {
             String table = table2TextEntry.getKey();
             for (Map.Entry<String, String> s : table2TextEntry.getValue().entrySet()) {
@@ -62,70 +55,22 @@ public final class GenI18n extends Generator {
         CSVWriter.writeToFile(file, encoding, rows);
     }
 
-    private static class TextValueVisitor implements ValueVisitor {
-        Map<String, String> original2I18nMap;
+    private Map<String, Map<String, String>> table2TextMap = new TreeMap<>();
+    private String lastTable;
+    private Map<String, String> lastTextMap;
 
-        TextValueVisitor(Map<String, String> map) {
-            original2I18nMap = map;
-        }
-
-        @Override
-        public void visit(VBool value) {
-        }
-
-        @Override
-        public void visit(VInt value) {
-        }
-
-        @Override
-        public void visit(VLong value) {
-        }
-
-        @Override
-        public void visit(VFloat value) {
-        }
-
-        @Override
-        public void visit(VString value) {
-            if (!value.type.hasText()) {
-                return;
-            }
-
-            if (!value.originalValue.isEmpty()) {
-                original2I18nMap.put(value.originalValue, value.i18nValue);
-            }
-        }
-
-        @Override
-        public void visit(VList value) {
-            for (Value v : value.getList()) {
-                v.accept(this);
-            }
-        }
-
-        @Override
-        public void visit(VMap value) {
-            value.map.forEach((k, v) -> {
-                k.accept(this);
-                v.accept(this);
-            });
-        }
-
-        @Override
-        public void visit(VBean value) {
-            if (!value.type.hasText()) {
-                return;
-            }
-            if (value.actionVBean != null) {
-                for (Value v : value.actionVBean.getValues()) {
-                    v.accept(this);
-                }
-            } else {
-                for (Value v : value.getValues()) {
-                    v.accept(this);
-                }
-            }
-        }
+    @Override
+    public void enterTable(String table) {
+        lastTable = table;
+        lastTextMap = null;
     }
 
+    @Override
+    public void enterText(String original, String text) {
+        if (lastTextMap == null){
+            lastTextMap = new LinkedHashMap<>();
+            table2TextMap.put(lastTable, lastTextMap);
+        }
+        lastTextMap.put(original, text);
+    }
 }

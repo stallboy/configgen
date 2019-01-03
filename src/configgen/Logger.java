@@ -21,16 +21,6 @@ public class Logger {
         }
     }
 
-    private static boolean printNotFoundI18n = false;
-
-    public static void enablePrintNotFound18n() {
-        printNotFoundI18n = true;
-    }
-
-    public static boolean isPrintNotFoundI18n() {
-        return printNotFoundI18n;
-    }
-
     private final static SimpleDateFormat df = new SimpleDateFormat("HH.mm.ss.SSS");
     private static long time;
     private static long firstTime;

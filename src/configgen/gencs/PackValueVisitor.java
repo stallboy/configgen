@@ -5,6 +5,7 @@ import configgen.value.*;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 class PackValueVisitor implements ValueVisitor {
     private final DataOutputStream byter;
@@ -119,7 +120,7 @@ class PackValueVisitor implements ValueVisitor {
 
     private void addString(String v) {
         try {
-            byte[] b = v.getBytes("UTF-8");
+            byte[] b = v.getBytes(StandardCharsets.UTF_8);
             addInt(b.length);
             byter.write(b);
         } catch (IOException e) {

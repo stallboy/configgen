@@ -2,6 +2,7 @@ package configgen.util;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+//import java.util.HashMap;
 import java.util.List;
 
 public final class CSV {
@@ -161,9 +162,19 @@ public final class CSV {
         return result;
     }
 
+//    private static HashMap<String, String> stringCache = new HashMap<>(1024);
+
     private static void addField(ArrayList<String> record, StringBuilder field) {
         String s = field.toString();
+
         if (s.length() < 5) {//与速度和内存间取个平衡吧
+//            String c = stringCache.get(s);
+//            if (c == null) {
+//                stringCache.put(s, s);
+//            } else {
+//                s = c;
+//            }
+
             s = s.intern();
         }
         record.add(s);

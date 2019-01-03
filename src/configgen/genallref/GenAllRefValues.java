@@ -4,7 +4,6 @@ import configgen.gen.*;
 import configgen.type.SRef;
 import configgen.type.TTable;
 import configgen.util.CachedFileOutputStream;
-import configgen.util.CachedFiles;
 import configgen.value.*;
 
 import java.io.File;

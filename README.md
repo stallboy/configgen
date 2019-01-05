@@ -1,6 +1,6 @@
 # configgen
 
-配置生成工具（从relational csv中生成只读object的mappingg工具）
+配置生成工具（从relational csv 到 只读object的mapping工具）
 
 ## 项目概况
 
@@ -71,7 +71,7 @@
 *   有哪些注意事项？
 
       单元格中不填的话默认为false,0,""，所以不要用0作为一行的id。
-      如果有nullableref请不要填0，请用留空。否则程序会检测报错
+      如果有nullableRef请不要填0，请用留空。否则程序会检测报错
 
 *   为什么使用csv？
 
@@ -83,37 +83,20 @@
       有时候允许部分设置是很方便的，比如掉落表，一般用id索引，但有些行如果能配置enum导出引用，则程序会方便的多。
       所以enum在实现上，java中如果部分enum则用静态成员，如果全部enum则生成enum；c#中生成为一个静态成员。
 
-*   为什么要支持nullableref？
+*   为什么要支持nullableRef？
 
-      java，c#的引用可以为null，应该是个设计错误。简单点说原因就是允许为null妨碍了类型状态的最小化。
-      这里我们约定ref就是必须有引用的，nullableref是可为null的，生成代码时用前缀ref，nullableRef来做区别，逻辑使用refXx就不用检测是否为null了。
+      java，c#的引用可以为null，是个设计错误，默认引用可为null妨碍了类型状态的最小化。
+      这里约定ref是必须有引用的，nullableRef是可为null的，生成代码时用前缀ref，nullableRef来做区别，逻辑使用refXx就不用检测是否为null了。
       
-*   listref的使用场景？
+*   嵌套Bean支持，多态Bean支持？
 
-      比如一般任务task，有个前置任务配置pretaskid，指的是这个任务完成前必须先完成这个前置任务。
-      我需要知道当前任务完成后会开启哪些任务, 这时配置listref="task,pretaskid"。
-      比如配置掉落表loot，然后lootitem是具体信息，loot里不用指明包含哪些lootitemid，而是在lootitem里指明lootid。
-      这样再给lootid配上listref="lootitem,lootid"。
-
-*   keyref的使用场景？
-
-      只针对map，现在没用到，完整性上来说要应该有啊，特别是它的key是enum这种应该挺常见。
-
-*   嵌套结构支持？
-
-      可以通过ref,nullableref间接嵌套，可以直接嵌套任意层，但现在不支持循环直接嵌套（因为我们要维持固定列模式）
-
-*   客户端更新策略？
-
-      lua直接生成数据在lua文件里了，所以这里就不单独支持了
-      c#分包处理，使用 -gen pack 配合pack.xml来生成分包文件。pack.xml里声明哪些文件打成一个包，使用CSVLoader.LoadPack来加载。
-      如果pack.xml不存在，就全打包到all.zip。
+      可以通过ref,nullableRef,listRef间接嵌套，可以直接嵌套任意层
+      通过在Bean下定义多个Bean支持多态，但现在不支持多态Bean的循环直接嵌套（因为我们是固定列模式，要支持需要通过引入类似lisp的语法）
 
 *   国际化策略？
 
-      对于需要国际化的字段，把类型从原来的string修改为text
-      使用-gen i18n 会提取标记为text类型的所有数据到../i18n/i18n-config.csv
-      然后使用国际化的时候加入 -i18nfile ../i18n/i18n-config.csv 这样之后生成文件会直接包含国际化文本
+      对于需要国际化的字段，把类型从原来的string修改为text，使用-gen i18n 会提取标记为text类型的所有数据到../i18n/i18n-config.csv
+      然后在这个csv里翻译，之后再次gen时使用 -i18nfile ../i18n/i18n-config.csv 参数，这样生成文件会直接包含国际化文本
 
 *   另一个可变列模式配置生成
       

@@ -29,7 +29,7 @@ public final class Main {
         System.out.println("    -i18nencoding 国际化需要的文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
         System.out.println("    -i18ncrlfaslf 把字符串里的\\r\\n 替换为 \\n，默认是false");
 
-        System.out.println("    -binaryToText 后可接2个参数table match，把java data转变为文本");
+        System.out.println("    -binaryToText 后可接2个参数（java data的file，table名称-用startsWith匹配），打印table的定义和数据");
 
         System.out.println("    -verify       检查配表约束");
         System.out.println("    -v[1]         输出一些额外信息,1是额外gc测试内存");
@@ -62,7 +62,7 @@ public final class Main {
             switch (args[i]) {
                 case "-binaryToText":
                     binaryToTextFile = args[++i];
-                    if (!args[i+1].startsWith("-")){
+                    if (!args[i + 1].startsWith("-")) {
                         match = args[++i];
                     }
                     break;
@@ -110,7 +110,7 @@ public final class Main {
             }
         }
 
-        if (binaryToTextFile != null){
+        if (binaryToTextFile != null) {
             BinaryToText.parse(binaryToTextFile, match);
             return;
         }

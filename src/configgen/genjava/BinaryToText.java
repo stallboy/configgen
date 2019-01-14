@@ -18,7 +18,7 @@ public class BinaryToText {
             for (int i = 0; i < tableCount; i++) {
                 String tableName = input.readStr();
                 int tableSize = input.readInt();
-                if (tableName.startsWith(match)) {
+                if (match == null || tableName.startsWith(match)) {
                     printTableInfo(tableName, tableSize, input);
                     println("");
                 } else {
@@ -54,6 +54,12 @@ public class BinaryToText {
                 printSchemaBean(tableName, schemaBean);
                 printDepSchemas();
 
+                String schemaName = tableName + "_Entry";
+                Schema entrySchema = rootSchema.implementations.get(schemaName);
+                if (entrySchema instanceof SchemaEnum){
+                    printSchemaEnum(schemaName, (SchemaEnum) entrySchema);
+                }
+
                 println("%s data(size=%d):", tableName, tableSize);
                 printTableData(input, schemaBean);
             }
@@ -78,27 +84,12 @@ public class BinaryToText {
         });
     }
 
-
-    private static int indent = 0;
-    private static StringBuilder tmp = new StringBuilder();
-
-    private static void println(String fmt, Object... args) {
-        tmp.setLength(0);
-        if (args.length > 0) {
-            prefix(tmp, fmt);
-            System.out.printf(tmp.toString(), args);
-        } else {
-            prefix(tmp, fmt);
-            System.out.print(tmp);
+    private static void printTableData(ConfigInput input, SchemaBean tableSchema) {
+        for (int c = input.readInt(); c > 0; c--) {
+            StringBuilder sb = new StringBuilder();
+            visitSchemaToReadData(tableSchema, input, sb);
+            println(sb.toString());
         }
-    }
-
-    private static void prefix(StringBuilder sb, String fmt) {
-        for (int i = 0; i < indent; i++) {
-            sb.append("    ");
-        }
-        sb.append(fmt);
-        sb.append('\n');
     }
 
 
@@ -106,11 +97,14 @@ public class BinaryToText {
     private static HashMap<String, Schema> needSchemas = new LinkedHashMap<>();
 
     private static void initDepSchemas() {
-        needSchemas.clear();
+        needSchemas = new LinkedHashMap<>();
     }
 
     private static void printDepSchemas() {
-        for (Map.Entry<String, Schema> entry : needSchemas.entrySet()) {
+        HashMap<String, Schema> old = needSchemas;
+        needSchemas = new LinkedHashMap<>();
+
+        for (Map.Entry<String, Schema> entry : old.entrySet()) {
             visitSchemaToPrintSchema(entry.getKey(), entry.getValue());
         }
     }
@@ -317,14 +311,26 @@ public class BinaryToText {
     }
 
 
-    private static void printTableData(ConfigInput input, SchemaBean tableSchema) {
-        for (int c = input.readInt(); c > 0; c--) {
-            StringBuilder sb = new StringBuilder();
-            visitSchemaToReadData(tableSchema, input, sb);
-            println(sb.toString());
-        }
+    private static int indent = 0;
+    private static StringBuilder tmp = new StringBuilder();
 
+    private static void println(String fmt, Object... args) {
+        tmp.setLength(0);
+        if (args.length > 0) {
+            prefix(tmp, fmt);
+            System.out.printf(tmp.toString(), args);
+        } else {
+            prefix(tmp, fmt);
+            System.out.print(tmp);
+        }
     }
 
+    private static void prefix(StringBuilder sb, String fmt) {
+        for (int i = 0; i < indent; i++) {
+            sb.append("    ");
+        }
+        sb.append(fmt);
+        sb.append('\n');
+    }
 
 }

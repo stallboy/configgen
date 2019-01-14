@@ -62,7 +62,7 @@ public final class Main {
             switch (args[i]) {
                 case "-binaryToText":
                     binaryToTextFile = args[++i];
-                    if (!args[i + 1].startsWith("-")) {
+                    if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
                         match = args[++i];
                     }
                     break;

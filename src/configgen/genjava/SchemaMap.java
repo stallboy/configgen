@@ -16,7 +16,7 @@ public class SchemaMap implements Schema {
 
     @Override
     public boolean compatible(Schema other) {
-        if (other == null || !(other instanceof SchemaMap)) {
+        if (!(other instanceof SchemaMap)) {
             return false;
         }
         SchemaMap sm = (SchemaMap) other;
@@ -40,4 +40,8 @@ public class SchemaMap implements Schema {
         value.write(output);
     }
 
+    @Override
+    public String toString() {
+        return "Map<" + key + ", " + value + ">";
+    }
 }

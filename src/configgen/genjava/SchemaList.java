@@ -13,7 +13,7 @@ public class SchemaList implements Schema {
 
     @Override
     public boolean compatible(Schema other) {
-        return other != null && other instanceof SchemaList && ele.compatible(((SchemaList) other).ele);
+        return other instanceof SchemaList && ele.compatible(((SchemaList) other).ele);
     }
 
     @Override
@@ -32,5 +32,9 @@ public class SchemaList implements Schema {
         ele.write(output);
     }
 
+    @Override
+    public String toString() {
+        return "List<" + ele + ">";
+    }
 
 }

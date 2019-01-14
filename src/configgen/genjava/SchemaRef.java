@@ -13,7 +13,7 @@ public class SchemaRef implements Schema {
 
     @Override
     public boolean compatible(Schema other) {
-        return other != null && other instanceof SchemaRef && type.equals(((SchemaRef) other).type);
+        return other instanceof SchemaRef && type.equals(((SchemaRef) other).type);
     }
 
     @Override
@@ -30,6 +30,11 @@ public class SchemaRef implements Schema {
     public void write(ConfigOutput output) {
         output.writeInt(REF);
         output.writeStr(type);
+    }
+
+    @Override
+    public String toString() {
+        return type;
     }
 
 }

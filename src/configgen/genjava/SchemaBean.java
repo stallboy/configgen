@@ -40,7 +40,7 @@ public class SchemaBean implements Schema {
 
     @Override
     public boolean compatible(Schema other) {
-        if (other == null || !(other instanceof SchemaBean)) {
+        if (!(other instanceof SchemaBean)) {
             return false;
         }
         SchemaBean sb = (SchemaBean) other;

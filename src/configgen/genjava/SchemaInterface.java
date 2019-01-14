@@ -1,6 +1,5 @@
 package configgen.genjava;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -30,7 +29,7 @@ public class SchemaInterface implements Schema {
 
     @Override
     public boolean compatible(Schema other) {
-        if (other == null || !(other instanceof SchemaInterface)) {
+        if (!(other instanceof SchemaInterface)) {
             return false;
         }
         SchemaInterface si = (SchemaInterface) other;

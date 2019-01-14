@@ -1,8 +1,6 @@
 package configgen.genjava;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 //为了服务器热更新配置
@@ -44,7 +42,7 @@ public class SchemaEnum implements Schema {
 
     @Override
     public boolean compatible(Schema other) {
-        if (other == null || !(other instanceof SchemaEnum)) {
+        if (!(other instanceof SchemaEnum)) {
             return false;
         }
         SchemaEnum newData = (SchemaEnum) other;

@@ -174,9 +174,9 @@ public class GenLua extends Generator {
             definePkg(full, ps, context);
             context.add(full);
 
-            if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
+            if (tbean.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
                 ps.println("%s = {}", full);
-                for (TBean actionBean : tbean.actionBeans.values()) {
+                for (TBean actionBean : tbean.childDynamicBeans.values()) {
                     //function mkcfg.action(typeName, refs, ...)
                     String fulln = fullName(actionBean);
                     definePkg(fulln, ps, context);
@@ -307,7 +307,7 @@ public class GenLua extends Generator {
             @Override
             public void visit(VBean value) {
                 VBean val = value;
-                if (value.beanType.beanDefine.type == Bean.BeanType.BaseAction) {
+                if (value.beanType.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
                     val = value.actionVBean;
                 }
                 String beanType = beanTypeStr;
@@ -501,7 +501,7 @@ public class GenLua extends Generator {
     private String fullName(TBean tbean) {
         if (tbean.beanDefine.type == Bean.BeanType.Table)
             return new Name(pkg, tbean.name).fullName;
-        else if (tbean.beanDefine.type == Bean.BeanType.Action)
+        else if (tbean.beanDefine.type == Bean.BeanType.ChildDynamicBean)
             return "Beans." + (((TBean) tbean.parent)).name.toLowerCase() + "." + tbean.name.toLowerCase();
         else
             return "Beans." + tbean.name.toLowerCase();

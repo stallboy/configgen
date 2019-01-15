@@ -10,14 +10,19 @@ import java.util.*;
 public class TBean extends Type {
     public final Bean beanDefine;
 
+    // 列
     public final Map<String, Type> columns = new LinkedHashMap<>();
+
+    // 可以有多个外键，foreignKeys包含所有外键信息。
+    // 然后把单列外键分配到Type.constraints.references，多列外键分配到mRefs，
+    // 索引到非unique key的表的外键分配到listRefs。
     private final List<TForeignKey> foreignKeys = new ArrayList<>();
     public final List<TForeignKey> mRefs = new ArrayList<>();
     public final List<TForeignKey> listRefs = new ArrayList<>();
-    private final Set<String> refNames = new HashSet<>(); //make sure generate ok
 
-    public TTable actionEnumRefTable;
-    public final Map<String, TBean> actionBeans = new LinkedHashMap<>();
+    // 多态Bean基类包含这些子类定义
+    public TTable childDynamicBeanEnumRefTable;
+    public final Map<String, TBean> childDynamicBeans = new LinkedHashMap<>();
 
 
     public TBean(TDb parent, Bean bean) {
@@ -26,7 +31,7 @@ public class TBean extends Type {
         if (beanDefine.type == Bean.BeanType.NormalBean) {
             init();
         } else {
-            beanDefine.actionBeans.forEach((n, b) -> actionBeans.put(n, new TBean(this, b)));
+            beanDefine.childDynamicBeans.forEach((n, b) -> childDynamicBeans.put(n, new TBean(this, b)));
         }
     }
 
@@ -43,6 +48,7 @@ public class TBean extends Type {
     }
 
     private void init() {
+        Set<String> refNames = new HashSet<>();
         for (ForeignKey fk : beanDefine.foreignKeys.values()) {
             require(refNames.add(fk.name), "外键名字重复", fk.name);
             foreignKeys.add(new TForeignKey(this, fk));
@@ -61,7 +67,7 @@ public class TBean extends Type {
         return columns.get(col).indexAtBean;
     }
 
-    public Collection<Type> getColumns(){
+    public Collection<Type> getColumns() {
         return columns.values();
     }
 
@@ -121,31 +127,31 @@ public class TBean extends Type {
 
 
     private boolean checkHasRef() {
-        if (beanDefine.type == Bean.BeanType.BaseAction)
-            return actionBeans.values().stream().anyMatch(TBean::hasRef);
+        if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
+            return childDynamicBeans.values().stream().anyMatch(TBean::hasRef);
         else
             return mRefs.size() > 0 || listRefs.size() > 0 || columns.values().stream().anyMatch(Type::hasRef);
     }
 
 
     private boolean checkHasSubBean() {
-        if (beanDefine.type == Bean.BeanType.BaseAction)
-            return actionBeans.values().stream().anyMatch(TBean::hasSubBean);
+        if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
+            return childDynamicBeans.values().stream().anyMatch(TBean::hasSubBean);
         else
             return columns.values().stream().anyMatch(t -> t.hasSubBean() || t instanceof TBean);
     }
 
 
     private boolean checkHasText() {
-        if (beanDefine.type == Bean.BeanType.BaseAction)
-            return actionBeans.values().stream().anyMatch(TBean::hasText);
+        if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
+            return childDynamicBeans.values().stream().anyMatch(TBean::hasText);
         else
             return columns.values().stream().anyMatch(Type::hasText);
     }
 
     private int checkColumnSpan() {
-        if (beanDefine.type == Bean.BeanType.BaseAction) {
-            OptionalInt max = actionBeans.values().stream().mapToInt(TBean::columnSpan).max();
+        if (beanDefine.type == Bean.BeanType.BaseDynamicBean) {
+            OptionalInt max = childDynamicBeans.values().stream().mapToInt(TBean::columnSpan).max();
             if (max.isPresent()) {
                 return max.getAsInt() + 1;
             } else {
@@ -168,20 +174,26 @@ public class TBean extends Type {
     }
 
     public void resolve() {
-        if (beanDefine.type == Bean.BeanType.BaseAction) {
-            actionEnumRefTable = ((TDb) root).ttables.get(beanDefine.actionEnumRef);
-            require(actionEnumRefTable != null, "多态Bean的枚举表不存在", beanDefine.actionEnumRef);
-            actionBeans.values().forEach(TBean::resolve);
+        if (beanDefine.type == Bean.BeanType.BaseDynamicBean) {
+            childDynamicBeanEnumRefTable = ((TDb) root).ttables.get(beanDefine.childDynamicBeanEnumRef);
+            require(childDynamicBeanEnumRefTable != null, "多态Bean的枚举表不存在", beanDefine.childDynamicBeanEnumRef);
+            for (TBean tBean : childDynamicBeans.values()) {
+                tBean.resolve();
+            }
         } else {
-            foreignKeys.forEach(TForeignKey::resolve);
-            beanDefine.columns.values().forEach(this::resolveColumn);
+            for (TForeignKey foreignKey : foreignKeys) {
+                foreignKey.resolve();
+            }
+            for (Column column : beanDefine.columns.values()) {
+                resolveColumn(column);
+            }
             require(columns.size() > 0, "Bean列数不能为0");
-            foreignKeys.forEach(fk -> {
+            for (TForeignKey fk : foreignKeys) {
                 if (fk.foreignKeyDefine.refType == ForeignKey.RefType.LIST)
                     listRefs.add(fk);
                 else if (fk.foreignKeyDefine.keys.length > 1)
                     mRefs.add(fk);
-            });
+            }
         }
     }
 

@@ -7,8 +7,8 @@ import org.w3c.dom.Element;
 public class ForeignKey extends Node {
     public enum RefType {
         NORMAL,
-        NULLABLE,
-        LIST
+        NULLABLE, // 单元格可以什么都不填
+        LIST      // 可以外键到其他表的非unique key
     }
 
     public final String[] keys;

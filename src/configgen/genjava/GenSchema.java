@@ -51,9 +51,9 @@ public final class GenSchema {
     }
 
     private static Schema parseBean(TBean tBean) {
-        if (tBean.beanDefine.type == Bean.BeanType.BaseAction) {
+        if (tBean.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
             SchemaInterface si = new SchemaInterface();
-            for (TBean subBean : tBean.actionBeans.values()) {
+            for (TBean subBean : tBean.childDynamicBeans.values()) {
                 si.addImp(subBean.name, parseBean(subBean));
             }
             return si;

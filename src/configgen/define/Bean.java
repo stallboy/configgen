@@ -8,10 +8,10 @@ import java.util.*;
 
 public class Bean extends Node {
     public enum BeanType {
-        NormalBean,
-        Table,
-        BaseAction,
-        Action,
+        NormalBean,         //Bean
+        Table,              //表
+        BaseDynamicBean,    //多态Bean的基类
+        ChildDynamicBean,   //多态Bean的具体子类
     }
 
     public final BeanType type;
@@ -19,12 +19,14 @@ public class Bean extends Node {
     public final boolean compress;
     public final char compressSeparator;
 
-    public final Map<String, Column> columns = new LinkedHashMap<>();
-    public final Map<String, ForeignKey> foreignKeys = new LinkedHashMap<>();
-    public final Map<String, KeyRange> ranges = new LinkedHashMap<>();
+    public final Map<String, Column> columns = new LinkedHashMap<>();  //列
+    public final Map<String, ForeignKey> foreignKeys = new LinkedHashMap<>(); //外键
+    public final Map<String, KeyRange> ranges = new LinkedHashMap<>(); //额外约束
 
-    public final String actionEnumRef;
-    public final Map<String, Bean> actionBeans = new LinkedHashMap<>();
+    //多态Bean基类包含这些子类定义
+    public final String childDynamicBeanEnumRef;
+    public final Map<String, Bean> childDynamicBeans = new LinkedHashMap<>();
+    
 
     Bean(Db _parent, Element self) {
         super(_parent, self.getAttribute("name"));
@@ -38,14 +40,14 @@ public class Bean extends Node {
         } else {
             compressSeparator = ';';
         }
-        actionEnumRef = self.getAttribute("enumRef");
+        childDynamicBeanEnumRef = self.getAttribute("enumRef");
         if (self.hasAttribute("enumRef")) {
-            type = BeanType.BaseAction;
+            type = BeanType.BaseDynamicBean;
             DomUtils.permitAttributes(self, "name", "own", "enumRef");
             DomUtils.permitElements(self, "bean");
             for (Element e : DomUtils.elements(self, "bean")) {
                 Bean b = new Bean(this, e);
-                require(null == actionBeans.put(b.name, b), "Bean名字重复", b.name);
+                require(null == childDynamicBeans.put(b.name, b), "Bean名字重复", b.name);
             }
         } else {
             type = BeanType.NormalBean;
@@ -61,16 +63,16 @@ public class Bean extends Node {
         type = BeanType.Table;
         compress = false;
         compressSeparator = ';';
-        actionEnumRef = "";
+        childDynamicBeanEnumRef = "";
         init(self);
     }
 
     private Bean(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
-        type = BeanType.Action;
+        type = BeanType.ChildDynamicBean;
         compress = false;
-        actionEnumRef = "";
+        childDynamicBeanEnumRef = "";
         compressSeparator = ';';
         DomUtils.permitAttributes(self, "name", "own");
         DomUtils.permitElements(self, "column", "foreignKey", "keyRange");
@@ -97,7 +99,7 @@ public class Bean extends Node {
     Bean(Table table, String name) {
         super(table, name);
         type = BeanType.Table;
-        actionEnumRef = "";
+        childDynamicBeanEnumRef = "";
         own = "";
         compress = false;
         compressSeparator = ';';
@@ -106,7 +108,7 @@ public class Bean extends Node {
     private Bean(Node _parent, Bean original) {
         super(_parent, original.name);
         type = original.type;
-        actionEnumRef = original.actionEnumRef;
+        childDynamicBeanEnumRef = original.childDynamicBeanEnumRef;
         own = original.own;
         compress = original.compress;
         compressSeparator = original.compressSeparator;
@@ -115,13 +117,13 @@ public class Bean extends Node {
     Bean extract(Node _parent, String _own) {
         Bean part = new Bean(_parent, this);
 
-        if (type == BeanType.BaseAction) {
+        if (type == BeanType.BaseDynamicBean) {
             if (!own.contains(_own))
                 return null;
-            actionBeans.forEach((name, actionBean) -> {
+            childDynamicBeans.forEach((name, actionBean) -> {
                 Bean bn = actionBean.extract(part, "_do_not_set_own_on_action_");
                 if (bn != null)
-                    part.actionBeans.put(name, bn);
+                    part.childDynamicBeans.put(name, bn);
             });
         } else {
             columns.forEach((name, c) -> {
@@ -129,7 +131,7 @@ public class Bean extends Node {
                 if (pc != null)
                     part.columns.put(name, pc);
             });
-            if (part.columns.isEmpty() && (own.contains(_own) || type == BeanType.Action)) {
+            if (part.columns.isEmpty() && (own.contains(_own) || type == BeanType.ChildDynamicBean)) {
                 columns.forEach((name, f) -> part.columns.put(name, new Column(part, f)));
             }
             if (part.columns.isEmpty())
@@ -171,12 +173,12 @@ public class Bean extends Node {
             self.setAttribute("own", own);
         if (compress)
             self.setAttribute("compress", String.valueOf(compressSeparator));
-        if (!actionEnumRef.isEmpty())
-            self.setAttribute("enumRef", actionEnumRef);
+        if (!childDynamicBeanEnumRef.isEmpty())
+            self.setAttribute("enumRef", childDynamicBeanEnumRef);
 
         columns.values().forEach(c -> c.save(self));
         foreignKeys.values().forEach(c -> c.save(self));
         ranges.values().forEach(c -> c.save(self));
-        actionBeans.values().forEach(c -> c.save(self));
+        childDynamicBeans.values().forEach(c -> c.save(self));
     }
 }

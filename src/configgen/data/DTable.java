@@ -3,11 +3,10 @@ package configgen.data;
 import configgen.Logger;
 import configgen.Node;
 import configgen.define.Bean;
+import configgen.define.Column;
 import configgen.define.Db;
 import configgen.define.Table;
-import configgen.define.Column;
 import configgen.type.*;
-import configgen.util.CSV;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -130,12 +129,12 @@ public class DTable extends Node {
                     defined.put(k, new NameType(k, t));
                 } else {
                     String columnName = (type.value instanceof TBean) ? k : GuessHelper.parseListName(k);
-                    require(null == defined.put(columnName, new NameType(k, t)), "list column name duplicate");
+                    require(null == defined.put(columnName, new NameType(k, t)), "列名称重复", columnName);
                 }
             } else if (t instanceof TMap) {
                 TMap type = (TMap) t;
                 String columnName = (type.key instanceof TBean || type.value instanceof TBean) ? k : GuessHelper.parseMapName(k).key;
-                require(null == defined.put(columnName, new NameType(k, t)), "map column name duplicate");
+                require(null == defined.put(columnName, new NameType(k, t)), "列名称重复", columnName);
             } else {
                 defined.put(k, new NameType(k, t));
             }

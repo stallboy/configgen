@@ -12,9 +12,12 @@ import java.util.Map;
 
 public class TTable extends Node {
     public final Table tableDefine;
-    public final TBean tbean;
+    public final TBean tbean; //具体的column委派到TBean中
+
+    //表可以有一个主键，多个唯一键
     public final Map<String, Type> primaryKey = new LinkedHashMap<>();
     public final List<Map<String, Type>> uniqueKeys = new ArrayList<>();
+
 
     public TTable(TDb parent, Table cfg) {
         super(parent, cfg.bean.name);

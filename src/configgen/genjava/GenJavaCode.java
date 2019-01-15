@@ -59,7 +59,7 @@ public class GenJavaCode extends Generator {
 
         for (TBean tbean : value.getDbType().tbeans.values()) {
             generateBeanClass(tbean);
-            for (TBean actionBean : tbean.actionBeans.values()) {
+            for (TBean actionBean : tbean.childDynamicBeans.values()) {
                 generateBeanClass(actionBean);
             }
         }
@@ -113,7 +113,7 @@ public class GenJavaCode extends Generator {
         Name(TBean tbean, String postfix) {
             String topPkg = GenJavaCode.this.pkg;
             String name;
-            if (tbean.beanDefine.type == Bean.BeanType.Action) {
+            if (tbean.beanDefine.type == Bean.BeanType.ChildDynamicBean) {
                 TBean baseAction = (TBean) tbean.parent;
                 name = baseAction.name.toLowerCase() + "." + tbean.name;
             } else {
@@ -146,7 +146,7 @@ public class GenJavaCode extends Generator {
         File javaFile = dstDir.toPath().resolve(name.path).toFile();
 
         try (CachedIndentPrinter ps = createCode(javaFile, encoding)) {
-            if (tbean.beanDefine.type == Bean.BeanType.BaseAction) {
+            if (tbean.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
                 generateBaseActionClass(tbean, name, ps);
             } else {
                 generateBeanClass(tbean, null, name, ps, null);
@@ -193,7 +193,7 @@ public class GenJavaCode extends Generator {
         ps.println();
         ps.println("public interface %s {", name.className);
         ps.inc();
-        ps.println("%s type();", fullName(tbean.actionEnumRefTable));
+        ps.println("%s type();", fullName(tbean.childDynamicBeanEnumRefTable));
         ps.println();
 
         if (tbean.hasRef()) {
@@ -205,7 +205,7 @@ public class GenJavaCode extends Generator {
         ps.println("static %s _create(configgen.genjava.ConfigInput input) {", name.className);
         ps.inc();
         ps.println("switch(input.readStr()) {");
-        for (TBean actionBean : tbean.actionBeans.values()) {
+        for (TBean actionBean : tbean.childDynamicBeans.values()) {
             ps.println1("case \"%s\":", actionBean.name);
             ps.println2("return %s._create(input);", fullName(actionBean));
         }
@@ -369,12 +369,12 @@ public class GenJavaCode extends Generator {
 
         ps.println("package " + name.pkg + ";");
         ps.println();
-        if (tbean.beanDefine.type == Bean.BeanType.Action) {
+        if (tbean.beanDefine.type == Bean.BeanType.ChildDynamicBean) {
             TBean baseAction = (TBean) tbean.parent;
             ps.println("public class " + name.className + " implements " + fullName(baseAction) + " {");
             ps.println1("@Override");
-            ps.println1("public " + fullName(baseAction.actionEnumRefTable) + " type() {");
-            ps.println2("return " + fullName(baseAction.actionEnumRefTable) + "." + tbean.name.toUpperCase() + ";");
+            ps.println1("public " + fullName(baseAction.childDynamicBeanEnumRefTable) + " type() {");
+            ps.println2("return " + fullName(baseAction.childDynamicBeanEnumRefTable) + "." + tbean.name.toUpperCase() + ";");
             ps.println1("}");
             ps.println();
         } else {
@@ -493,7 +493,7 @@ public class GenJavaCode extends Generator {
 
         //_resolve
         if (tbean.hasRef()) {
-            if (tbean.beanDefine.type == Bean.BeanType.Action) {
+            if (tbean.beanDefine.type == Bean.BeanType.ChildDynamicBean) {
                 ps.println1("@Override");
             }
             ps.println1("public void _resolve(%s.ConfigMgr mgr) {", pkg);

@@ -19,9 +19,9 @@ public class VBean extends VComposite {
     VBean(TBean tbean, List<Cell> data) {
         super(tbean, data);
         beanType = tbean;
-        if (beanType.beanDefine.type == Bean.BeanType.BaseAction) {
+        if (beanType.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
             String actionName = data.get(0).data;
-            TBean actionBean = beanType.actionBeans.get(actionName);
+            TBean actionBean = beanType.childDynamicBeans.get(actionName);
             require(Objects.nonNull(actionBean), "子Bean不存在", actionName);
             actionVBean = new VBean(actionBean, data.subList(1, data.size()));
             values = new ArrayList<>();
@@ -29,12 +29,12 @@ public class VBean extends VComposite {
             actionVBean = null;
             List<Cell> parsed;
             if (beanType.beanDefine.compress) {
-                require(data.size() == 1);
+                require(data.size() == 1, "compress的Bean应该只占一格");
                 Cell dat = data.get(0);
                 parsed = CSV.parseList(dat.data, beanType.beanDefine.compressSeparator).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
             } else {
-                if (beanType.beanDefine.type == Bean.BeanType.Action) {
-                    require(data.size() >= beanType.columnSpan());
+                if (beanType.beanDefine.type == Bean.BeanType.ChildDynamicBean) {
+                    require(data.size() >= beanType.columnSpan(), "各个动态子Bean占格子数要<=基类Bean计算的格子数");
                     parsed = data.subList(0, beanType.columnSpan());
                 } else {
                     require(data.size() == beanType.columnSpan(), "列宽度应该等于", beanType.columnSpan());
@@ -60,7 +60,7 @@ public class VBean extends VComposite {
 
     @Override
     public void verifyConstraint() {
-        if (beanType.beanDefine.type == Bean.BeanType.BaseAction) {
+        if (beanType.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
             actionVBean.verifyConstraint();
         } else {
             verifyRefs();

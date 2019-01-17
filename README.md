@@ -91,7 +91,8 @@
 *   嵌套Bean支持，多态Bean支持？
 
       可以通过ref,nullableRef,listRef间接嵌套，可以直接嵌套任意层
-      通过在Bean下定义多个Bean支持多态，但现在不支持多态Bean的循环直接嵌套（因为我们是固定列模式，要支持需要通过引入类似lisp的语法）
+      通过在Bean下定义多个Bean支持多态 比如CompleteTaskCond，有Level 5, KillMonster 1001 3这样的多态Bean
+      同时支持递归嵌套Bean，比如可增加CondAnd 有2个条件，这两个又都是CompleteTaskCond，配置为CondAnd Level(5) KillMonster(1001,3)
 
 *   国际化策略？
 

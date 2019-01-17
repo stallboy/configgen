@@ -36,13 +36,12 @@ public class GenJavaCode extends Generator {
         });
     }
 
-    private VDb value;
     private File dstDir;
     private final String dir;
     private final String pkg;
     private final String encoding;
 
-    GenJavaCode(Parameter parameter) {
+    private GenJavaCode(Parameter parameter) {
         super(parameter);
         dir = parameter.get("dir", "config");
         pkg = parameter.getNotEmpty("pkg", "config");
@@ -53,11 +52,11 @@ public class GenJavaCode extends Generator {
 
     @Override
     public void generate(Context ctx) throws IOException {
-        value = ctx.makeValue();
+        VDb value = ctx.makeValue();
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
 
 
-        for (TBean tbean : value.getDbType().tbeans.values()) {
+        for (TBean tbean : value.getTDb().getTBeans()) {
             generateBeanClass(tbean);
             for (TBean actionBean : tbean.childDynamicBeans.values()) {
                 generateBeanClass(actionBean);
@@ -218,7 +217,7 @@ public class GenJavaCode extends Generator {
         ps.println("}");
     }
 
-    private void generateEnumClass(VTable vtable, Name name, CachedIndentPrinter ps, boolean isFull, boolean isNeedReadData, Name dataName) throws IOException {
+    private void generateEnumClass(VTable vtable, Name name, CachedIndentPrinter ps, boolean isFull, boolean isNeedReadData, Name dataName) {
         ps.println("package " + name.pkg + ";");
         ps.println();
 
@@ -486,7 +485,7 @@ public class GenJavaCode extends Generator {
         //toString
         ps.println1("@Override");
         ps.println1("public String toString() {");
-        ps.println2("return \"(\" + " + String.join(" + \",\" + ", tbean.columns.keySet().stream().map(Generator::lower1).collect(Collectors.toList())) + " + \")\";");
+        ps.println2("return \"(\" + " + tbean.columns.keySet().stream().map(Generator::lower1).collect(Collectors.joining(" + \",\" + ")) + " + \")\";");
         ps.println1("}");
         ps.println();
 
@@ -505,7 +504,7 @@ public class GenJavaCode extends Generator {
                     if (t instanceof TList) {
                         TList tt = (TList) t;
                         ps.println2(lower1(n) + ".forEach( e -> {");
-                        if (tt.value instanceof TBean && tt.value.hasRef()) {
+                        if (tt.value instanceof TBeanRef && tt.value.hasRef()) {
                             ps.println3("e._resolve(mgr);");
                         }
                         for (SRef sr : t.constraint.references) {
@@ -517,10 +516,10 @@ public class GenJavaCode extends Generator {
                     } else if (t instanceof TMap) {
                         TMap tt = (TMap) t;
                         ps.println2(lower1(n) + ".forEach( (k, v) -> {");
-                        if (tt.key instanceof TBean && tt.key.hasRef()) {
+                        if (tt.key instanceof TBeanRef && tt.key.hasRef()) {
                             ps.println3("k._resolve(mgr);");
                         }
-                        if (tt.value instanceof TBean && tt.value.hasRef()) {
+                        if (tt.value instanceof TBeanRef && tt.value.hasRef()) {
                             ps.println3("v._resolve(mgr);");
                         }
                         for (SRef sr : t.constraint.references) {
@@ -540,7 +539,7 @@ public class GenJavaCode extends Generator {
                         }
                         ps.println2("});");
                     } else {
-                        if (t instanceof TBean && t.hasRef()) {
+                        if (t instanceof TBeanRef && t.hasRef()) {
                             ps.println2(lower1(n) + "._resolve(mgr);");
                         }
                         for (SRef sr : t.constraint.references) {
@@ -562,7 +561,6 @@ public class GenJavaCode extends Generator {
                 boolean gen = false;
                 if (l.foreignKeyDefine.keys.length == 1) {
                     String k = l.foreignKeyDefine.keys[0];
-                    String rk = l.foreignKeyDefine.ref.cols[0];
                     Type col = tbean.columns.get(k);
                     if (col instanceof TList) {
                         gen = true;
@@ -670,6 +668,11 @@ public class GenJavaCode extends Generator {
             @Override
             public String visit(TBean type) {
                 return fullName(type) + "._create(input)";
+            }
+
+            @Override
+            public String visit(TBeanRef type) {
+                return fullName(type.tBean) + "._create(input)";
             }
         });
 
@@ -837,6 +840,11 @@ public class GenJavaCode extends Generator {
             public String visit(TBean type) {
                 return fullName(type);
             }
+
+            @Override
+            public String visit(TBeanRef type) {
+                return fullName(type.tBean);
+            }
         });
     }
 
@@ -880,6 +888,11 @@ public class GenJavaCode extends Generator {
 
             @Override
             public String visit(TBean type) {
+                return "";
+            }
+
+            @Override
+            public String visit(TBeanRef type) {
                 return "";
             }
         });
@@ -959,21 +972,21 @@ public class GenJavaCode extends Generator {
     }
 
     private String formalParams(Map<String, Type> fs) {
-        return String.join(", ", fs.entrySet().stream().map(e -> type(e.getValue()) + " " + lower1(e.getKey())).collect(Collectors.toList()));
+        return fs.entrySet().stream().map(e -> type(e.getValue()) + " " + lower1(e.getKey())).collect(Collectors.joining(", "));
     }
 
     private String actualParams(String[] keys) {
-        return String.join(", ", Arrays.asList(keys).stream().map(Generator::lower1).collect(Collectors.toList()));
+        return Arrays.stream(keys).map(Generator::lower1).collect(Collectors.joining(", "));
     }
 
 
     private String actualParamsKey(Map<String, Type> keys, String pre) {
-        String p = String.join(", ", keys.entrySet().stream().map(e -> pre + lower1(e.getKey())).collect(Collectors.toList()));
+        String p = keys.entrySet().stream().map(e -> pre + lower1(e.getKey())).collect(Collectors.joining(", "));
         return keys.size() > 1 ? "new " + keyClassName(keys) + "(" + p + ")" : p;
     }
 
     private String hashCodes(Map<String, Type> fs) {
-        return String.join(" + ", fs.entrySet().stream().map(e -> hashCode(e.getKey(), e.getValue())).collect(Collectors.toList()));
+        return fs.entrySet().stream().map(e -> hashCode(e.getKey(), e.getValue())).collect(Collectors.joining(" + "));
     }
 
     private static String hashCode(String name, Type t) {
@@ -1018,11 +1031,16 @@ public class GenJavaCode extends Generator {
             public String visit(TBean type) {
                 return n + ".hashCode()";
             }
+
+            @Override
+            public String visit(TBeanRef type) {
+                return n + ".hashCode()";
+            }
         });
     }
 
     private String equals(Map<String, Type> fs) {
-        return String.join(" && ", fs.entrySet().stream().map(e -> equal(lower1(e.getKey()), "o." + lower1(e.getKey()), e.getValue())).collect(Collectors.toList()));
+        return fs.entrySet().stream().map(e -> equal(lower1(e.getKey()), "o." + lower1(e.getKey()), e.getValue())).collect(Collectors.joining(" && "));
     }
 
     private String equal(String a, String b, Type t) {
@@ -1066,6 +1084,11 @@ public class GenJavaCode extends Generator {
             public Boolean visit(TBean type) {
                 return true;
             }
+
+            @Override
+            public Boolean visit(TBeanRef type) {
+                return true;
+            }
         });
         return eq ? a + ".equals(" + b + ")" : a + " == " + b;
     }
@@ -1103,8 +1126,6 @@ public class GenJavaCode extends Generator {
                 if (vTable.tableType.tableDefine.isEnumFull() && vTable.tableType.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                     continue;
                 }
-
-                Name name = new Name(vTable.tableType.tbean);
 
                 ps.println4("case \"%s\":", vTable.name);
                 ps.println5("%s._createAll(mgr, input);", tableDataFullName(vTable.tableType));

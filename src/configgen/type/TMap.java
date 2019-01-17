@@ -9,8 +9,8 @@ public class TMap extends Type {
     public final Type value;
     public final int count; // must > 0
 
-    TMap(Node parent, String name, Constraint cons, String key, String value, int count) {
-        super(parent, name, cons);
+    TMap(Node parent, String name, int idx, Constraint cons, String key, String value, int count) {
+        super(parent, name, idx, cons);
         require(cons.range == null, "map不支持range");
 
         Constraint kc = new Constraint();
@@ -23,9 +23,9 @@ public class TMap extends Type {
                 vc.references.add(new SRef(sref.refTable, sref.refCols));
         }
 
-        this.key = resolveType("key", kc, key);
+        this.key = resolveType("key", idx, kc, key, false);
         require(Objects.nonNull(this.key), "map的Key类型不存在", key);
-        this.value = resolveType("value", vc, value);
+        this.value = resolveType("value", idx, vc, value, false);
         require(Objects.nonNull(this.value), "map的Value类型不存在", value);
         this.count = count;
     }
@@ -52,7 +52,7 @@ public class TMap extends Type {
 
     @Override
     public boolean hasSubBean() {
-        return key instanceof TBean || value instanceof TBean;
+        return key instanceof TBeanRef || value instanceof TBeanRef;
     }
 
     @Override

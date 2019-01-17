@@ -5,7 +5,6 @@ import configgen.type.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class Value {
@@ -28,7 +27,7 @@ public abstract class Value {
             if (isCellEmpty()) {
                 require(sref.refNullable, "有空格子，则外键必须是nullable的", sref.refTable);
             } else {
-                if (sref.cache == null){
+                if (sref.cache == null) {
                     VTable vtable = VDb.getCurrent().getVTable(sref.refTable.name);
                     sref.cache = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
                 }
@@ -52,7 +51,7 @@ public abstract class Value {
         return Arrays.stream(args).map(Objects::toString).collect(Collectors.joining(","));
     }
 
-    public static Value create(Type t, List<Cell> data) {
+    public static Value create(Type t, List<Cell> data, boolean compressAsOne) {
         return t.accept(new TypeVisitorT<Value>() {
             @Override
             public Value visit(TBool type) {
@@ -81,17 +80,22 @@ public abstract class Value {
 
             @Override
             public Value visit(TList type) {
-                return new VList(type, data);
+                return new VList(type, data, compressAsOne);
             }
 
             @Override
             public Value visit(TMap type) {
-                return new VMap(type, data);
+                return new VMap(type, data, compressAsOne);
             }
 
             @Override
             public Value visit(TBean type) {
-                return new VBean(type, data);
+                throw new AssertionError("不该通过Value.create创建TBean的Value");
+            }
+
+            @Override
+            public Value visit(TBeanRef type) {
+                return new VBean(type.tBean, data, compressAsOne || type.compressAsOne);
             }
         });
     }

@@ -50,7 +50,7 @@ final class GuessHelper {
         Matcher m = LIST_PATTERN.matcher(name);
         if (m.matches())
             return m.group(1);
-        throw new RuntimeException("list name not endsWith List�� " + name);
+        throw new RuntimeException("list名称没有endsWith List " + name);
     }
 
     static String makeMapName(String key, String value) {

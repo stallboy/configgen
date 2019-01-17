@@ -59,9 +59,9 @@ class PackValueVisitor implements ValueVisitor {
 
     @Override
     public void visit(VBean value) {
-        if (value.actionVBean != null) {
-            addString(value.actionVBean.beanType.name);
-            for (Value v : value.actionVBean.getValues()) {
+        if (value.childDynamicVBean != null) {
+            addString(value.childDynamicVBean.beanType.name);
+            for (Value v : value.childDynamicVBean.getValues()) {
                 v.accept(this);
             }
         }else{

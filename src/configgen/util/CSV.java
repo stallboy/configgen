@@ -270,6 +270,23 @@ public final class CSV {
         return list;
     }
 
+    // "(b,c)" 解析为一段
+    // "a(b,c)" 解析为一段
+    // "b,c" 解析为两段：<1>b <2>c
+    // "a,(b,c),d(e,f)" 解析为三段：<1>a <2>b,c <3>d(e,f)
+    public static List<String> parseNestList(String str) {
+        ArrayList<String> list = new ArrayList<>();
+        return list;
+    }
+
+    // "a(b,c)" 解析为两段，<1>a <2>b,c
+    public static List<String> parseFunction(String str) {
+        ArrayList<String> list = new ArrayList<>();
+        return list;
+    }
+
+
+
     public static boolean parseBoolean(String s) {
         String t = s.trim();
         return t.equals("1") || t.equalsIgnoreCase("true");

@@ -12,7 +12,7 @@ public final class GenSchema {
 
     public static SchemaInterface parse(VDb vdb) {
         SchemaInterface root = new SchemaInterface();
-        for (TBean tBean : vdb.getDbType().tbeans.values()) {
+        for (TBean tBean : vdb.getTDb().getTBeans()) {
             root.addImp(tBean.name, parseBean(tBean));
         }
         for (VTable vTable : vdb.getVTables()) {
@@ -105,7 +105,12 @@ public final class GenSchema {
 
             @Override
             public Schema visit(TBean type) {
-                return new SchemaRef(type.name);
+                throw new AssertionError("不该访问到TBean");
+            }
+
+            @Override
+            public Schema visit(TBeanRef type) {
+                return new SchemaRef(type.tBean.name);
             }
         });
     }

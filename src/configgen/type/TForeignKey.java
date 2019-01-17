@@ -31,7 +31,7 @@ public class TForeignKey extends Node {
     }
 
     private TTable resolveRef(Ref ref){
-        TTable tt = ((TDb) root).ttables.get(ref.table);
+        TTable tt = ((TDb) root).tTables.get(ref.table);
         if (tt != null){
             for (String col : ref.cols) {
                 require(null != tt.tbean.beanDefine.columns.get(col), "外键列不存在", col); //must use beanDefine

@@ -5,30 +5,29 @@ import configgen.define.Bean;
 import configgen.define.Db;
 import configgen.define.Table;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class TDb extends Node {
-    public final Db dbDefine;
-    public final Map<String, TBean> tbeans = new LinkedHashMap<>();
-    public final Map<String, TTable> ttables = new LinkedHashMap<>();
+    private final Map<String, TBean> tBeans = new LinkedHashMap<>();
+    public final Map<String, TTable> tTables = new LinkedHashMap<>();
 
-    public TDb(Db def) {
+    public TDb(Db defineDb) {
         super(null, "tdb");
-        dbDefine = def;
-        for (Bean bean : dbDefine.beans.values()) {
+        for (Bean bean : defineDb.getBeans()) {
             try {
                 TBean tBean = new TBean(this, bean);
-                tbeans.put(bean.name, tBean);
+                tBeans.put(bean.name, tBean);
             } catch (Throwable e) {
                 throw new AssertionError(bean.name + "，这个结构体类型构造出错", e);
             }
         }
 
-        for (Table table : dbDefine.tables.values()) {
+        for (Table table : defineDb.tables.values()) {
             try {
                 TTable tTable = new TTable(this, table);
-                ttables.put(table.name, tTable);
+                tTables.put(table.name, tTable);
             } catch (Throwable e) {
                 throw new AssertionError(table.name + "，这个表类型构造出错", e);
             }
@@ -36,7 +35,7 @@ public class TDb extends Node {
     }
 
     public void resolve() {
-        for (TBean tBean : tbeans.values()) {
+        for (TBean tBean : tBeans.values()) {
             try {
                 tBean.resolve();
             } catch (Throwable e) {
@@ -44,12 +43,24 @@ public class TDb extends Node {
             }
         }
 
-        for (TTable tTable : ttables.values()) {
+        for (TTable tTable : tTables.values()) {
             try {
                 tTable.resolve();
             } catch (Throwable e) {
                 throw new AssertionError(tTable.name + ",这个表类型解析出错", e);
             }
         }
+    }
+
+    public TBean getTBean(String beanName){
+        return tBeans.get(beanName);
+    }
+
+    public Collection<TBean> getTBeans() {
+        return tBeans.values();
+    }
+
+    public Collection<TTable> getTTables() {
+        return tTables.values();
     }
 }

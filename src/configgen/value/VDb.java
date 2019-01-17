@@ -25,9 +25,9 @@ public class VDb extends Node {
         super(null, "value");
         this.dbType = tdb;
         this.i18n = i18n;
-        vTables = new LinkedHashMap<>(tdb.ttables.size());
+        vTables = new LinkedHashMap<>(tdb.tTables.size());
         current = this;
-        for (TTable tTable : tdb.ttables.values()) {
+        for (TTable tTable : tdb.getTTables()) {
             try {
                 VTable vt = new VTable(this, tTable, ddb.getDTable(tTable.name));
                 vTables.put(tTable.name, vt);
@@ -47,7 +47,7 @@ public class VDb extends Node {
         }
     }
 
-    public TDb getDbType() {
+    public TDb getTDb() {
         return dbType;
     }
 

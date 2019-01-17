@@ -26,7 +26,7 @@ public class TBean extends Type {
 
 
     public TBean(TDb parent, Bean bean) {
-        super(parent, bean.name, new Constraint());
+        super(parent, bean.name, -1, new Constraint());
         beanDefine = bean;
         if (beanDefine.type == Bean.BeanType.NormalBean) {
             init();
@@ -36,13 +36,13 @@ public class TBean extends Type {
     }
 
     public TBean(TTable parent, Bean bean) {
-        super(parent, bean.name, new Constraint());
+        super(parent, bean.name, -1, new Constraint());
         beanDefine = bean;
         init();
     }
 
     public TBean(TBean parent, Bean bean) {
-        super(parent, bean.name, new Constraint());
+        super(parent, bean.name, -1, new Constraint());
         beanDefine = bean;
         init();
     }
@@ -62,9 +62,17 @@ public class TBean extends Type {
         }
     }
 
+    @Override
+    public String fullName() {
+        if (parent instanceof TTable) {
+            return parent.fullName();
+        } else {
+            return parent.fullName() + "." + name;
+        }
+    }
 
     public int getColumnIndex(String col) {
-        return columns.get(col).indexAtBean;
+        return columns.get(col).getColumnIndex();
     }
 
     public Collection<Type> getColumns() {
@@ -138,7 +146,7 @@ public class TBean extends Type {
         if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
             return childDynamicBeans.values().stream().anyMatch(TBean::hasSubBean);
         else
-            return columns.values().stream().anyMatch(t -> t.hasSubBean() || t instanceof TBean);
+            return columns.values().stream().anyMatch(t -> t instanceof TBeanRef || t.hasSubBean());
     }
 
 
@@ -175,7 +183,7 @@ public class TBean extends Type {
 
     public void resolve() {
         if (beanDefine.type == Bean.BeanType.BaseDynamicBean) {
-            childDynamicBeanEnumRefTable = ((TDb) root).ttables.get(beanDefine.childDynamicBeanEnumRef);
+            childDynamicBeanEnumRefTable = ((TDb) root).tTables.get(beanDefine.childDynamicBeanEnumRef);
             require(childDynamicBeanEnumRefTable != null, "多态Bean的枚举表不存在", beanDefine.childDynamicBeanEnumRef);
             for (TBean tBean : childDynamicBeans.values()) {
                 tBean.resolve();
@@ -209,13 +217,12 @@ public class TBean extends Type {
         }
         KeyRange kr = beanDefine.ranges.get(col.name);
         if (kr != null) {
-            require(cons.range == null, "range allow one per column");
+            require(cons.range == null, "一列只允许定义一个range", col.name);
             cons.range = kr.range;
         }
 
         String t, k = "", v = "";
         int c = 0;
-        char compressSeparator = ';';
         if (col.type.startsWith("list,")) {
             t = "list";
             String[] sp = col.type.split(",");
@@ -225,8 +232,8 @@ public class TBean extends Type {
                 require(c >= 1);
             }
             if (c == 0) {
-                require(col.compress, "未定义列表的长度时必须定义分隔符compress");
-                compressSeparator = col.compressSeparator;
+                require(col.compressType == Column.CompressType.UseSeparator || col.compressType == Column.CompressType.AsOne,
+                        "未定义列表的长度时必须定义compress或compressAsOne");
             }
         } else if (col.type.startsWith("map,")) {
             t = "map";
@@ -235,13 +242,18 @@ public class TBean extends Type {
             v = sp[2].trim();
             c = Integer.parseInt(sp[3].trim());
             require(c >= 1);
+            require(c >= 1 && col.compressType == Column.CompressType.NoCompress,
+                    "map必须配置长度，不支持配置compress或compressAsOne");
         } else {
             t = col.type;
         }
 
-        Type type = resolveType(col.name, cons, t, k, v, c, compressSeparator);
+        Type type = resolveType(col.name, columns.size(), cons, t, k, v, c, col.compressType, col.compressSeparator);
         if (type != null) {
-            type.indexAtBean = columns.size();
+            if (type instanceof TPrimitive) {
+                require(col.compressType == Column.CompressType.NoCompress,
+                        "原始类型不要配置compress或compressAsOne");
+            }
             columns.put(col.name, type);
         } else {
             error("类型不支持", col.type);

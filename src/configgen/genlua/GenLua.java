@@ -121,7 +121,7 @@ public class GenLua extends Generator {
 
         Set<String> context = new HashSet<>();
         context.add(pkg);
-        for (TTable c : value.getDbType().ttables.values()) {
+        for (TTable c : value.getTDb().getTTables()) {
             String full = fullName(c);
             definePkg(full, ps, context);
             if (preload) {
@@ -149,7 +149,7 @@ public class GenLua extends Generator {
     private void generate_loads(CachedIndentPrinter ps) {
         ps.println("local require = require");
         ps.println();
-        for (TTable c : value.getDbType().ttables.values()) {
+        for (TTable c : value.getTDb().getTTables()) {
             ps.println("require \"%s\"", fullName(c));
         }
         ps.println();
@@ -169,7 +169,7 @@ public class GenLua extends Generator {
 
         Set<String> context = new HashSet<>();
         context.add("Beans");
-        for (TBean tbean : value.getDbType().tbeans.values()) {
+        for (TBean tbean : value.getTDb().getTBeans()) {
             String full = fullName(tbean);
             definePkg(full, ps, context);
             context.add(full);
@@ -308,7 +308,7 @@ public class GenLua extends Generator {
             public void visit(VBean value) {
                 VBean val = value;
                 if (value.beanType.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
-                    val = value.actionVBean;
+                    val = value.childDynamicVBean;
                 }
                 String beanType = beanTypeStr;
                 if (beanType == null) {

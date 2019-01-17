@@ -63,11 +63,11 @@ public class GenCs extends Generator {
         //copyFile("KeyedList.cs");
         genCSVProcessor();
 
-        for (TBean tbean : value.getDbType().tbeans.values()) {
+        for (TBean tbean : value.getTDb().getTBeans()) {
             generateBeanClass(tbean, null);
 
-            for (TBean actionBean : tbean.childDynamicBeans.values()) {
-                generateBeanClass(actionBean, null);
+            for (TBean childBean : tbean.childDynamicBeans.values()) {
+                generateBeanClass(childBean, null);
             }
         }
         for (VTable vtable : value.getVTables()) {
@@ -117,7 +117,6 @@ public class GenCs extends Generator {
     private void generateBeanClass(TBean tbean, VTable vtable) throws IOException {
         Name name = new Name(pkg, prefix, tbean);
         File csFile = dstDir.toPath().resolve(name.path).toFile();
-        System.out.println(csFile);
         try (CachedIndentPrinter ps = createCode(csFile, encoding)) {
             if (tbean.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
                 generateBaseActionClass(tbean, name, ps);
@@ -354,7 +353,7 @@ public class GenCs extends Generator {
                     String field = "\"" + n + "\"";
                     if (t instanceof TList) {
                         TList tt = (TList) t;
-                        if (tt.value instanceof TBean && tt.value.hasRef()) {
+                        if (tt.value instanceof TBeanRef && tt.value.hasRef()) {
                             ps.println3("foreach (var e in " + upper1(n) + ")");
                             ps.println3("{");
                             ps.println4("e._resolve(errors);");
@@ -372,13 +371,13 @@ public class GenCs extends Generator {
                         }
                     } else if (t instanceof TMap) {
                         TMap tt = (TMap) t;
-                        if ((tt.key instanceof TBean && tt.key.hasRef()) || (tt.value instanceof TBean && tt.value.hasRef())) {
+                        if ((tt.key instanceof TBeanRef && tt.key.hasRef()) || (tt.value instanceof TBeanRef && tt.value.hasRef())) {
                             ps.println3("foreach (var kv in " + upper1(n) + ".Map)");
                             ps.println3("{");
-                            if (tt.key instanceof TBean && tt.key.hasRef()) {
+                            if (tt.key instanceof TBeanRef && tt.key.hasRef()) {
                                 ps.println4("kv.Key._resolve(errors);");
                             }
-                            if (tt.value instanceof TBean && tt.value.hasRef()) {
+                            if (tt.value instanceof TBeanRef && tt.value.hasRef()) {
                                 ps.println4("kv.Value._resolve(errors);");
                             }
                             ps.println3("}");
@@ -405,7 +404,7 @@ public class GenCs extends Generator {
                             ps.println3("}");
                         }
                     } else {
-                        if (t instanceof TBean && t.hasRef()) {
+                        if (t instanceof TBeanRef && t.hasRef()) {
                             ps.println3(upper1(n) + "._resolve(errors);");
                         }
 
@@ -530,33 +529,33 @@ public class GenCs extends Generator {
     }
 
     private String formalParams(Map<String, Type> fs) {
-        return String.join(", ", fs.entrySet().stream().map(e -> type(e.getValue()) + " " + lower1(e.getKey())).collect(Collectors.toList()));
+        return fs.entrySet().stream().map(e -> type(e.getValue()) + " " + lower1(e.getKey())).collect(Collectors.joining(", "));
     }
 
     private String actualParams(String[] keys) {
-        return String.join(", ", Arrays.asList(keys).stream().map(Generator::upper1).collect(Collectors.toList()));
+        return Arrays.stream(keys).map(Generator::upper1).collect(Collectors.joining(", "));
     }
 
     private String actualParamsKey(Map<String, Type> keys) {
-        String p = String.join(", ", keys.keySet().stream().map(Generator::lower1).collect(Collectors.toList()));
+        String p = keys.keySet().stream().map(Generator::lower1).collect(Collectors.joining(", "));
         return keys.size() > 1 ? "new " + keyClassName(keys) + "(" + p + ")" : p;
     }
 
     private String actualParamsKeySelf(Map<String, Type> keys) {
-        String p = String.join(", ", keys.keySet().stream().map(n -> "self." + upper1(n)).collect(Collectors.toList()));
+        String p = keys.keySet().stream().map(n -> "self." + upper1(n)).collect(Collectors.joining(", "));
         return keys.size() > 1 ? "new " + keyClassName(keys) + "(" + p + ")" : p;
     }
 
     private String equals(Map<String, Type> fs) {
-        return String.join(" && ", fs.entrySet().stream().map(e -> upper1(e.getKey()) + ".Equals(o." + upper1((e.getKey())) + ")").collect(Collectors.toList()));
+        return fs.entrySet().stream().map(e -> upper1(e.getKey()) + ".Equals(o." + upper1((e.getKey())) + ")").collect(Collectors.joining(" && "));
     }
 
     private String hashCodes(Map<String, Type> fs) {
-        return String.join(" + ", fs.entrySet().stream().map(e -> upper1(e.getKey()) + ".GetHashCode()").collect(Collectors.toList()));
+        return fs.entrySet().stream().map(e -> upper1(e.getKey()) + ".GetHashCode()").collect(Collectors.joining(" + "));
     }
 
     private String toStrings(Map<String, Type> fs) {
-        return String.join(" + \",\" + ", fs.entrySet().stream().map(e -> toString(e.getKey(), e.getValue())).collect(Collectors.toList()));
+        return fs.entrySet().stream().map(e -> toString(e.getKey(), e.getValue())).collect(Collectors.joining(" + \",\" + "));
     }
 
     private String toString(String n, Type t) {
@@ -649,6 +648,11 @@ public class GenCs extends Generator {
             public String visit(TBean type) {
                 return fullName(type);
             }
+
+            @Override
+            public String visit(TBeanRef type) {
+                return fullName(type.tBean);
+            }
         });
     }
 
@@ -693,6 +697,11 @@ public class GenCs extends Generator {
             public String visit(TBean type) {
                 return fullName(type) + "._create(os)";
             }
+
+            @Override
+            public String visit(TBeanRef type) {
+                return fullName(type.tBean) + "._create(os)";
+            }
         });
     }
 
@@ -724,7 +733,7 @@ public class GenCs extends Generator {
             ps.println2("{");
             ps.println3("var configNulls = new List<string>");
             ps.println3("{");
-            for (String name : value.getDbType().ttables.keySet()) {
+            for (String name : value.getTDb().tTables.keySet()) {
                 ps.println4("\"" + name + "\",");
             }
             ps.println3("};");
@@ -737,7 +746,7 @@ public class GenCs extends Generator {
 
             ps.println4("switch(csv)");
             ps.println4("{");
-            value.getDbType().ttables.forEach((name, cfg) -> {
+            value.getTDb().tTables.forEach((name, cfg) -> {
                 ps.println5("case \"" + name + "\":");
                 ps.println6("configNulls.Remove(csv);");
                 ps.println6(fullName(cfg.tbean) + ".Initialize(os, Errors);");
@@ -752,7 +761,7 @@ public class GenCs extends Generator {
             ps.println3("foreach (var csv in configNulls)");
             ps.println4("Errors.ConfigNull(csv);");
 
-            value.getDbType().ttables.forEach((n, c) -> {
+            value.getTDb().tTables.forEach((n, c) -> {
                 if (c.tbean.hasRef()) {
                     ps.println3(fullName(c) + ".Resolve(Errors);");
                 }

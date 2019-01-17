@@ -9,8 +9,8 @@ public class TString extends TPrimitive {
 
     public final Subtype subtype;
 
-    TString(Node parent, String name, Constraint cons, Subtype subtype) {
-        super(parent, name, cons);
+    TString(Node parent, String name, int idx, Constraint cons, Subtype subtype) {
+        super(parent, name, idx, cons);
         this.subtype = subtype;
         switch (subtype) {
             case STRING:

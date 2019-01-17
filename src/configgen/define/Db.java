@@ -6,12 +6,17 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class Db extends Node {
-    public final Map<String, Bean> beans = new TreeMap<>();
+    private final Map<String, Bean> beans = new TreeMap<>();
     public final Map<String, Table> tables = new TreeMap<>();
+
+    public Collection<Bean> getBeans(){
+        return beans.values();
+    }
 
     public Db(File file) {
         this(file.exists() ? DomUtils.rootElement(file) : null);

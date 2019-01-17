@@ -16,6 +16,8 @@ public interface TypeVisitor {
     void visit(TMap type);
 
     void visit(TBean type);
+
+    void visit(TBeanRef type);
 }
 
 

@@ -20,22 +20,12 @@ public class DTable extends Node {
     private final List<String> descLine;
     private final List<String> nameLine;
 
-    private static class NameType {
-        final String name;
-        final Type type;
-
-        NameType(String n, Type t) {
-            name = n;
-            type = t;
-        }
-    }
-
-    private final Map<String, NameType> defined = new LinkedHashMap<>();
+    private final Map<String, Type> defined = new LinkedHashMap<>();
     private State state;
     private int index;
     private String _name;
     private GuessHelper.Sep nameSep;
-    private NameType nameSepColumn;
+    private Type nameSepColumn;
 
     private int nameSepVisited;
     private String A;
@@ -126,25 +116,25 @@ public class DTable extends Node {
             if (t instanceof TList) {
                 TList type = (TList) t;
                 if (type.count == 0) {
-                    defined.put(k, new NameType(k, t));
+                    defined.put(k, t);
                 } else {
-                    String columnName = (type.value instanceof TBean) ? k : GuessHelper.parseListName(k);
-                    require(null == defined.put(columnName, new NameType(k, t)), "列名称重复", columnName);
+                    String columnName = (type.value instanceof TBeanRef) ? k : GuessHelper.parseListName(k);
+                    require(null == defined.put(columnName, t), "列名称重复", columnName);
                 }
             } else if (t instanceof TMap) {
                 TMap type = (TMap) t;
-                String columnName = (type.key instanceof TBean || type.value instanceof TBean) ? k : GuessHelper.parseMapName(k).key;
-                require(null == defined.put(columnName, new NameType(k, t)), "列名称重复", columnName);
+                String columnName = (type.key instanceof TBeanRef || type.value instanceof TBeanRef) ? k : GuessHelper.parseMapName(k).key;
+                require(null == defined.put(columnName, t), "列名称重复", columnName);
             } else {
-                defined.put(k, new NameType(k, t));
+                defined.put(k, t);
             }
         });
     }
 
     private boolean isDefined() {
-        NameType t = defined.get(_name);
+        Type t = defined.get(_name);
         if (t != null) {
-            require(t.type.columnSpan() == 1);
+            require(t.columnSpan() == 1);
             return true;
         }
         return false;
@@ -152,10 +142,11 @@ public class DTable extends Node {
 
     private boolean isNameSepDefined() {
         if (nameSep.type != GuessHelper.SepType.None) {
-            NameType t = defined.get(nameSep.columnName);
+            Type t = defined.get(nameSep.columnName);
             if (t != null) {
                 if (nameSep.type == GuessHelper.SepType.IntPostfix)
                     require(nameSep.num == 1);
+
                 nameSepColumn = t;
                 nameSepVisited = 1;
                 return true;
@@ -167,7 +158,7 @@ public class DTable extends Node {
     private boolean isNameSepDefinedProcessing() {
         if (nameSepColumn != null) {
             nameSepVisited++;
-            if (nameSepVisited > nameSepColumn.type.columnSpan()) {
+            if (nameSepVisited > nameSepColumn.columnSpan()) {
                 nameSepColumn = null;
                 return false;
             }

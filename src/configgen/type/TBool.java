@@ -4,8 +4,8 @@ import configgen.Node;
 
 public class TBool extends TPrimitive {
 
-    TBool(Node parent, String name, Constraint cons) {
-        super(parent, name, cons);
+    TBool(Node parent, String name, int idx, Constraint cons) {
+        super(parent, name, idx, cons);
         require(cons.references.isEmpty(), "布尔类型不支持外键");
         require(cons.range == null, "布尔类型不支持区间限定");
     }

@@ -4,8 +4,8 @@ import configgen.Node;
 
 public class TFloat extends TPrimitive {
 
-    TFloat(Node parent, String name, Constraint cons) {
-        super(parent, name, cons);
+    TFloat(Node parent, String name, int idx, Constraint cons) {
+        super(parent, name, idx, cons);
         require(cons.references.isEmpty(), "浮点数不支持外键");
     }
 

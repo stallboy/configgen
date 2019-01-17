@@ -89,17 +89,15 @@ public final class GenJavaData extends Generator {
 
         @Override
         public void visit(VBean value) {
-            if (value.actionVBean != null) {
-                output.writeStr(value.actionVBean.beanType.name);
-                value.actionVBean.getValues().forEach(v -> v.accept(this));
+            if (value.childDynamicVBean != null) {
+                output.writeStr(value.childDynamicVBean.beanType.name);
+                value.childDynamicVBean.getValues().forEach(v -> v.accept(this));
             } else {
                 value.getValues().forEach(v -> v.accept(this));
             }
         }
     }
-
-    ;
-
+    
     private void writeValue(VDb vDb, ConfigOutput output) throws IOException {
         int cnt = 0;
         for (VTable vTable : vDb.getVTables()) {

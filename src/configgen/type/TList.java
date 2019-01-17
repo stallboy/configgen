@@ -1,24 +1,27 @@
 package configgen.type;
 
 import configgen.Node;
+import configgen.define.Column;
 
 import java.util.Objects;
 
 public class TList extends Type {
     public final Type value;
-    public final int count; // >=0; 0 means list store in one column separated by ;
+    public final int count; // >=0; 0 意味着这个是compress的，使用compressSeparator分割
+    public final Column.CompressType compressType;
     public final char compressSeparator;
 
-    TList(Node parent, String name, Constraint cons, String value, int count, char compressSeparator) {
-        super(parent, name, cons);
+    TList(Node parent, String name, int idx, Constraint cons, String value, int count, Column.CompressType compressType, char compressSeparator) {
+        super(parent, name, idx, cons);
         require(cons.range == null, "list不支持Range");
         for (SRef sref : cons.references) {
             require(!sref.refNullable, "list不支持nullableRef");
             require(null == sref.mapKeyRefTable, "list不支持keyRef");
         }
-        this.value = resolveType("value", cons, value);
+        this.value = resolveType("value", idx, cons, value, compressType == Column.CompressType.AsOne);
         require(Objects.nonNull(this.value), "list里的值类型不存在", value);
         this.count = count;
+        this.compressType = compressType;
         this.compressSeparator = compressSeparator;
     }
 
@@ -45,7 +48,7 @@ public class TList extends Type {
 
     @Override
     public boolean hasSubBean() {
-        return value instanceof TBean;
+        return value instanceof TBeanRef;
     }
 
     @Override
@@ -55,7 +58,7 @@ public class TList extends Type {
 
     @Override
     public int columnSpan() {
-        return count == 0 ? 1 : (value.columnSpan() * count);
+        return compressType != Column.CompressType.NoCompress ? 1 : (value.columnSpan() * count);
     }
 
 }

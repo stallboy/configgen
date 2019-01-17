@@ -1,6 +1,7 @@
 package configgen.define;
 
 import configgen.Node;
+import configgen.type.TTable;
 import configgen.util.DomUtils;
 import org.w3c.dom.Element;
 
@@ -16,6 +17,8 @@ public class Bean extends Node {
 
     public final BeanType type;
     private final String own;
+
+    //对应Column.CompressType.UseSeparator,之后建议column配置用AsOne，这里就不需要了。
     public final boolean compress;
     public final char compressSeparator;
 
@@ -26,7 +29,7 @@ public class Bean extends Node {
     //多态Bean基类包含这些子类定义
     public final String childDynamicBeanEnumRef;
     public final Map<String, Bean> childDynamicBeans = new LinkedHashMap<>();
-    
+
 
     Bean(Db _parent, Element self) {
         super(_parent, self.getAttribute("name"));
@@ -112,6 +115,15 @@ public class Bean extends Node {
         own = original.own;
         compress = original.compress;
         compressSeparator = original.compressSeparator;
+    }
+
+    @Override
+    public String fullName() {
+        if (parent instanceof Table) {
+            return parent.fullName();
+        } else {
+            return parent.fullName() + "." + name;
+        }
     }
 
     Bean extract(Node _parent, String _own) {

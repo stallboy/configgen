@@ -4,10 +4,10 @@ import configgen.Node;
 
 public abstract class TPrimitive extends Type {
 
-    TPrimitive(Node parent, String name, Constraint cons) {
-        super(parent, name, cons);
+    TPrimitive(Node parent, String name, int idx, Constraint cons) {
+        super(parent, name, idx, cons);
         for (SRef sref : cons.references) {
-            require(null == sref.mapKeyRefTable, "primitive do not keyRef");
+            require(null == sref.mapKeyRefTable, "原始类型不用配置keyRef");
         }
     }
 

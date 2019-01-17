@@ -34,7 +34,7 @@ public class Context {
 
         data = new DDb(dataDir, encoding);
         Logger.mm("data");
-        data.autoCompleteDefine(defineType);
+        data.autoCompleteDefine(define, defineType);
         define.save(xmlFile, encoding);
 
         type = new TDb(define);

@@ -34,8 +34,8 @@ public class VTable extends Node {
         vBeanList = new ArrayList<>(dtable.recordList.size());
         int row = 1;
         for (List<String> rowData : dtable.recordList) {
-            row++; //从2开始
-            if (CSV.isEmptyRecord(rowData)){
+            row++; // 从2开始
+            if (CSV.isEmptyRecord(rowData)) {
                 continue;
             }
             List<Cell> cells = new ArrayList<>(columnIndexes.size());
@@ -44,7 +44,7 @@ public class VTable extends Node {
                 cells.add(c);
             }
 
-            VBean vbean = new VBean(ttable.tbean, cells);
+            VBean vbean = new VBean(ttable.tbean, cells, false);
             vBeanList.add(vbean);
         }
 

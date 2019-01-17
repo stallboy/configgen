@@ -5,7 +5,7 @@ import java.util.ArrayList;
 //import java.util.HashMap;
 import java.util.List;
 
-public final class CSV {
+public final class CSVParser {
 
     private static final char comma = ',';
     private static final char quote = '"';
@@ -109,7 +109,7 @@ public final class CSV {
                             state = State.CR;
                             break;
                         default:
-                            field.append(c);
+                            field.append(c); //忽略了"，
                             state = State.NO_QUOTE;
                             break;
                     }
@@ -144,7 +144,6 @@ public final class CSV {
                 if (!record.isEmpty()) {
                     record.add("");
                     addRecord(result, record);
-
                 }
                 break;
             case CR:
@@ -199,90 +198,6 @@ public final class CSV {
 
     public static boolean isEmptyRecord(List<String> record) {
         return record == emptyRecord;
-    }
-
-
-    private enum ListState {
-        START, NO_QUOTE, QUOTE, QUOTE2
-    }
-
-    public static List<String> parseList(String str, char separator) {
-        ListState state = ListState.START;
-        ArrayList<String> list = new ArrayList<>();
-        field.setLength(0);
-
-        for (char c : str.toCharArray()) {
-            switch (state) {
-                case START:
-                    if (c == separator) {
-                        list.add("");
-                    } else if (c == quote) {
-                        field.setLength(0);
-                        state = ListState.QUOTE;
-                    } else {
-                        field.setLength(0);
-                        field.append(c);
-                        state = ListState.NO_QUOTE;
-                    }
-                    break;
-
-                case NO_QUOTE:
-                    if (c == separator) {
-                        addField(list, field);
-                        state = ListState.START;
-                    } else {
-                        field.append(c);
-
-                    }
-                    break;
-
-                case QUOTE:
-                    if (c == quote) {
-                        state = ListState.QUOTE2;
-                    } else {
-                        field.append(c);
-                    }
-                    break;
-
-                case QUOTE2:
-                    if (c == separator) {
-                        addField(list, field);
-                        state = ListState.START;
-                    } else if (c == quote) {
-                        field.append(quote);
-                        state = ListState.QUOTE;
-                    } else {
-                        field.append(c);
-                        state = ListState.NO_QUOTE;
-                    }
-                    break;
-            }
-        }
-
-        switch (state) {
-            case START:
-                break;
-            default:
-                addField(list, field);
-                break;
-        }
-        list.trimToSize();
-        return list;
-    }
-
-    // "(b,c)" 解析为一段
-    // "a(b,c)" 解析为一段
-    // "b,c" 解析为两段：<1>b <2>c
-    // "a,(b,c),d(e,f)" 解析为三段：<1>a <2>b,c <3>d(e,f)
-    public static List<String> parseNestList(String str) {
-        ArrayList<String> list = new ArrayList<>();
-        return list;
-    }
-
-    // "a(b,c)" 解析为两段，<1>a <2>b,c
-    public static List<String> parseFunction(String str) {
-        ArrayList<String> list = new ArrayList<>();
-        return list;
     }
 
 

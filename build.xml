@@ -8,7 +8,7 @@
     </target>
 
     <target name="compile" depends="init">
-        <javac encoding="UTF-8" srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true"
+        <javac encoding="UTF-8" srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true" excludes="**/*Test.java"
                debuglevel="lines,source">
         </javac>
     </target>

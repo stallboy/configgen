@@ -6,7 +6,7 @@ import configgen.define.Db;
 import configgen.define.Table;
 import configgen.type.TDb;
 import configgen.type.TTable;
-import configgen.util.CSV;
+import configgen.util.CSVParser;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -42,7 +42,7 @@ public class DDb extends Node {
                     if (path.endsWith(".csv")) {
                         String p = path.substring(0, path.length() - 4);
                         String configName = String.join(".", p.split("[\\\\/]")).toLowerCase();
-                        List<List<String>> allLines = CSV.readFromFile(file, dataEncoding);
+                        List<List<String>> allLines = CSVParser.readFromFile(file, dataEncoding);
 //                        Logger.mm(file.toString());
                         dTables.put(configName, new DTable(DDb.this, configName, allLines));
                     }

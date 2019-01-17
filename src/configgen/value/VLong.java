@@ -2,7 +2,7 @@ package configgen.value;
 
 import configgen.define.Range;
 import configgen.type.TLong;
-import configgen.util.CSV;
+import configgen.util.CSVParser;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class VLong extends VPrimitive {
         super(type, data);
         long v = 0;
         try {
-            v = CSV.parseLong(raw.data);
+            v = CSVParser.parseLong(raw.data);
         } catch (Exception e) {
             error(e);
         }

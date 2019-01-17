@@ -134,39 +134,74 @@ public class TBean extends Type {
     }
 
 
+    private boolean checking = false;
+
     private boolean checkHasRef() {
-        if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
-            return childDynamicBeans.values().stream().anyMatch(TBean::hasRef);
-        else
-            return mRefs.size() > 0 || listRefs.size() > 0 || columns.values().stream().anyMatch(Type::hasRef);
+        if (checking) { //递归时候的处理
+            return false;
+        }
+        checking = true;
+        try {
+            if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
+                return childDynamicBeans.values().stream().anyMatch(TBean::hasRef);
+            else
+                return mRefs.size() > 0 || listRefs.size() > 0 || columns.values().stream().anyMatch(Type::hasRef);
+        } finally {
+            checking = false;
+        }
     }
 
 
     private boolean checkHasSubBean() {
-        if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
-            return childDynamicBeans.values().stream().anyMatch(TBean::hasSubBean);
-        else
-            return columns.values().stream().anyMatch(t -> t instanceof TBeanRef || t.hasSubBean());
+        if (checking) { //递归时候的处理
+            return false;
+        }
+        checking = true;
+        try {
+            if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
+                return childDynamicBeans.values().stream().anyMatch(TBean::hasSubBean);
+            else
+                return columns.values().stream().anyMatch(t -> t instanceof TBeanRef || t.hasSubBean());
+        } finally {
+            checking = false;
+        }
     }
 
 
     private boolean checkHasText() {
-        if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
-            return childDynamicBeans.values().stream().anyMatch(TBean::hasText);
-        else
-            return columns.values().stream().anyMatch(Type::hasText);
+        if (checking) { //递归时候的处理
+            return false;
+        }
+        checking = true;
+        try {
+            if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
+                return childDynamicBeans.values().stream().anyMatch(TBean::hasText);
+            else
+                return columns.values().stream().anyMatch(Type::hasText);
+        } finally {
+            checking = false;
+        }
     }
 
     private int checkColumnSpan() {
-        if (beanDefine.type == Bean.BeanType.BaseDynamicBean) {
-            OptionalInt max = childDynamicBeans.values().stream().mapToInt(TBean::columnSpan).max();
-            if (max.isPresent()) {
-                return max.getAsInt() + 1;
+        if (checking) { //递归时候的处理
+            throw new RuntimeException("使用递归Bean时候要使用compressAsOne来避免没法计算列数");
+        }
+
+        checking = true;
+        try {
+            if (beanDefine.type == Bean.BeanType.BaseDynamicBean) {
+                OptionalInt max = childDynamicBeans.values().stream().mapToInt(TBean::columnSpan).max();
+                if (max.isPresent()) {
+                    return max.getAsInt() + 1;
+                } else {
+                    return 1;
+                }
             } else {
-                return 1;
+                return beanDefine.compress ? 1 : columns.values().stream().mapToInt(Type::columnSpan).sum();
             }
-        } else {
-            return beanDefine.compress ? 1 : columns.values().stream().mapToInt(Type::columnSpan).sum();
+        } finally {
+            checking = false;
         }
     }
 

@@ -1,7 +1,7 @@
 package configgen.data;
 
 import configgen.Node;
-import configgen.util.CSV;
+import configgen.util.CSVParser;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,7 +37,7 @@ public final class DColumn extends Node {
     private Set<String> dataSet() {
         Set<String> r = new HashSet<>();
         for (List<String> row : ((DTable) parent).recordList){
-            if (CSV.isEmptyRecord(row)){
+            if (CSVParser.isEmptyRecord(row)){
                 continue;
             }
 
@@ -56,7 +56,7 @@ public final class DColumn extends Node {
     private Pair dataKeyValueSet() {
         Pair res = new Pair();
         for (List<String> row : ((DTable) parent).recordList) {
-            if (CSV.isEmptyRecord(row)){
+            if (CSVParser.isEmptyRecord(row)){
                 continue;
             }
 

@@ -1,6 +1,7 @@
 package configgen.data;
 
-import configgen.util.CSV;
+import configgen.util.CSVParser;
+import configgen.util.ListParser;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -92,7 +93,7 @@ final class GuessHelper {
         if (t.equals("string")) {
             Collection<String> parsed = new ArrayList<>();
             for (String s : data)
-                parsed.addAll(CSV.parseList(s, ';'));
+                parsed.addAll(ListParser.parseList(s, ';'));
             if (parsed.size() > data.size() * 1.8) {
                 return "list," + guessPrimitiveType(new HashSet<>(parsed));
             }
@@ -113,7 +114,7 @@ final class GuessHelper {
     private static boolean isInt(Set<String> data) {
         for (String s : data) {
             try {
-                CSV.parseInt(s);
+                CSVParser.parseInt(s);
             } catch (NumberFormatException e) {
                 return false;
             }
@@ -124,7 +125,7 @@ final class GuessHelper {
     private static boolean isLong(Set<String> data) {
         for (String s : data) {
             try {
-                CSV.parseLong(s);
+                CSVParser.parseLong(s);
             } catch (NumberFormatException e) {
                 return false;
             }
@@ -135,7 +136,7 @@ final class GuessHelper {
     private static boolean isFloat(Set<String> data) {
         for (String s : data) {
             try {
-                CSV.parseFloat(s);
+                CSVParser.parseFloat(s);
             } catch (NumberFormatException e) {
                 return false;
             }

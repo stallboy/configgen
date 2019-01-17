@@ -2,7 +2,7 @@ package configgen.value;
 
 import configgen.define.Range;
 import configgen.type.TFloat;
-import configgen.util.CSV;
+import configgen.util.CSVParser;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class VFloat extends VPrimitive {
         super(type, data);
         float v = 0;
         try {
-            v = CSV.parseFloat(raw.data);
+            v = CSVParser.parseFloat(raw.data);
         } catch (Exception e) {
             error(e);
         }

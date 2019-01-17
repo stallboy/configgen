@@ -2,7 +2,7 @@ package configgen.value;
 
 import configgen.define.Range;
 import configgen.type.TBool;
-import configgen.util.CSV;
+import configgen.util.CSVParser;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ public class VBool extends VPrimitive {
     VBool(TBool type, List<Cell> data) {
         super(type, data);
         String s = raw.data.trim();
-        value = CSV.parseBoolean(s); //s.equalsIgnoreCase("true") || s.equals("1");
+        value = CSVParser.parseBoolean(s); //s.equalsIgnoreCase("true") || s.equals("1");
         require(s.isEmpty() || s.equalsIgnoreCase("false") || s.equals("0") || value, "不是布尔值");
     }
 

@@ -5,7 +5,7 @@ import configgen.data.DTable;
 import configgen.define.Table;
 import configgen.define.UniqueKey;
 import configgen.type.TTable;
-import configgen.util.CSV;
+import configgen.util.CSVParser;
 
 import java.util.*;
 
@@ -35,7 +35,7 @@ public class VTable extends Node {
         int row = 1;
         for (List<String> rowData : dtable.recordList) {
             row++; // 从2开始
-            if (CSV.isEmptyRecord(rowData)) {
+            if (CSVParser.isEmptyRecord(rowData)) {
                 continue;
             }
             List<Cell> cells = new ArrayList<>(columnIndexes.size());

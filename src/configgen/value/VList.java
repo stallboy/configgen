@@ -2,7 +2,8 @@ package configgen.value;
 
 import configgen.define.Column;
 import configgen.type.TList;
-import configgen.util.CSV;
+import configgen.util.ListParser;
+import configgen.util.NestListParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +19,11 @@ public class VList extends VComposite {
         if (compressAsOne || type.compressType == Column.CompressType.AsOne) {
             require(data.size() == 1);
             Cell dat = data.get(0);
-            parsed = CSV.parseNestList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+            parsed = NestListParser.parseNestList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
         } else if (type.compressType == Column.CompressType.UseSeparator) {
             require(data.size() == 1);
             Cell dat = data.get(0);
-            parsed = CSV.parseList(dat.data, type.compressSeparator).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+            parsed = ListParser.parseList(dat.data, type.compressSeparator).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
         } else {
             require(data.size() == type.columnSpan());
             parsed = data;

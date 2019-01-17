@@ -5,9 +5,13 @@ import configgen.define.ForeignKey;
 import configgen.type.TBean;
 import configgen.type.TForeignKey;
 import configgen.type.Type;
-import configgen.util.CSV;
+import configgen.util.ListParser;
+import configgen.util.NestListParser;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class VBean extends VComposite {
@@ -24,14 +28,14 @@ public class VBean extends VComposite {
             require(data.size() == 1, "compressAsOne应该只占一格");
             Cell dat = data.get(0);
             if (beanType.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
-                parsed = CSV.parseFunction(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+                parsed = NestListParser.parseFunction(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
             } else {
-                parsed = CSV.parseNestList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+                parsed = NestListParser.parseNestList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
             }
         } else if (beanType.beanDefine.compress) {
             require(data.size() == 1, "compress的Bean应该只占一格");
             Cell dat = data.get(0);
-            parsed = CSV.parseList(dat.data, beanType.beanDefine.compressSeparator).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+            parsed = ListParser.parseList(dat.data, beanType.beanDefine.compressSeparator).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
 
         } else if (beanType.beanDefine.type == Bean.BeanType.ChildDynamicBean) {
             require(data.size() >= beanType.columnSpan(), "动态子Bean占格子数要<=基类Bean计算的格子数");
@@ -43,10 +47,10 @@ public class VBean extends VComposite {
         }
 
         if (beanType.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
-            String childDynamicBeanName = data.get(0).data;
+            String childDynamicBeanName = parsed.get(0).data;
             TBean childTBean = beanType.childDynamicBeans.get(childDynamicBeanName);
             require(Objects.nonNull(childTBean), "子Bean不存在", childDynamicBeanName);
-            childDynamicVBean = new VBean(childTBean, data.subList(1, data.size()), compressAsOne);
+            childDynamicVBean = new VBean(childTBean, parsed.subList(1, parsed.size()), compressAsOne);
             values = new ArrayList<>();
         } else {
             childDynamicVBean = null;

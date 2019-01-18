@@ -8,10 +8,7 @@ import configgen.define.Db;
 import configgen.define.Table;
 import configgen.type.*;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DTable extends Node {
@@ -20,14 +17,15 @@ public class DTable extends Node {
     private final List<String> descLine;
     private final List<String> nameLine;
 
-    private final Map<String, Type> defined = new LinkedHashMap<>();
+    private Map<String, Type> defined;
     private State state;
     private int index;
-    private String _name;
-    private GuessHelper.Sep nameSep;
-    private Type nameSepColumn;
 
-    private int nameSepVisited;
+    private String curColumnName;
+    private String prevColumnName;
+    private int prevColumnSpan;
+    private int prevColumnVisited;
+
     private String A;
     private String B;
     private List<Integer> ABSpan;
@@ -71,7 +69,9 @@ public class DTable extends Node {
 
     void parse(TTable ttable) {
         if (ttable != null) {
-            makeOriginal(ttable.tbean.columns);
+            defined = ttable.tbean.columns;
+        } else {
+            defined = Collections.emptyMap();
         }
 
         state = State.NORM;
@@ -81,8 +81,7 @@ public class DTable extends Node {
             if (s.isEmpty())
                 continue;
 
-            _name = s;
-            nameSep = GuessHelper.trySep(_name);
+            curColumnName = GuessHelper.getColumnName(s);
 
             switch (state) {
                 case LIST:
@@ -111,108 +110,60 @@ public class DTable extends Node {
         onEnd();
     }
 
-    private void makeOriginal(Map<String, Type> definedColumns) {
-        definedColumns.forEach((k, t) -> {
-            if (t instanceof TList) {
-                TList type = (TList) t;
-                if (type.count == 0) {
-                    defined.put(k, t);
-                } else {
-                    String columnName = (type.value instanceof TBeanRef) ? k : GuessHelper.parseListName(k);
-                    require(null == defined.put(columnName, t), "列名称重复", columnName);
-                }
-            } else if (t instanceof TMap) {
-                TMap type = (TMap) t;
-                String columnName = (type.key instanceof TBeanRef || type.value instanceof TBeanRef) ? k : GuessHelper.parseMapName(k).key;
-                require(null == defined.put(columnName, t), "列名称重复", columnName);
-            } else {
-                defined.put(k, t);
-            }
-        });
-    }
-
-    private boolean isDefined() {
-        Type t = defined.get(_name);
+    private boolean isCurColumnDefined() {
+        Type t = defined.get(curColumnName);
         if (t != null) {
-            require(t.columnSpan() == 1);
+            prevColumnName = curColumnName;
+            prevColumnSpan = t.columnSpan();
+            prevColumnVisited = 1;
             return true;
         }
         return false;
     }
 
-    private boolean isNameSepDefined() {
-        if (nameSep.type != GuessHelper.SepType.None) {
-            Type t = defined.get(nameSep.columnName);
-            if (t != null) {
-                if (nameSep.type == GuessHelper.SepType.IntPostfix)
-                    require(nameSep.num == 1);
-
-                nameSepColumn = t;
-                nameSepVisited = 1;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isNameSepDefinedProcessing() {
-        if (nameSepColumn != null) {
-            nameSepVisited++;
-            if (nameSepVisited > nameSepColumn.columnSpan()) {
-                nameSepColumn = null;
-                return false;
-            }
+    private boolean isPrevDefinedColumnProcessing() {
+        if (prevColumnVisited < prevColumnSpan) {
+            prevColumnVisited++;
             return true;
+        } else {
+            return false;
         }
-        return false;
     }
 
     private void onNorm() {
-        if (isNameSepDefinedProcessing()) {
-            add(nameSepColumn.name, index);
+        if (isPrevDefinedColumnProcessing()) {
+            add(prevColumnName, index);
             return;
         }
 
-        if (isDefined()) {
-            put(_name, index);
+        if (isCurColumnDefined()) {
+            put(curColumnName, index);
             return;
         }
 
-        if (isNameSepDefined()) {
-            put(nameSepColumn.name, index);
-            return;
-        }
-
-        if (nameSep.type == GuessHelper.SepType.IntPostfix && nameSep.num == 1) {
-            A = nameSep.columnName;
+        if (curColumnName.endsWith("1")) {
+            A = curColumnName.substring(0, curColumnName.length() - 1);
             ABSpan = new ArrayList<>();
             ABSpan.add(index);
             state = State.MAYBE_LIST_OR_MAP;
         } else {
-            put(_name, index);
+            put(curColumnName, index);
         }
     }
 
     private void onMaybeListOrMap() {
-        if (isDefined()) {
+        if (isCurColumnDefined()) {
             put(A + "1", ABSpan.get(0));
-            put(_name, index);
+            put(curColumnName, index);
             state = State.NORM;
             return;
         }
 
-        if (isNameSepDefined()) {
-            put(A + "1", ABSpan.get(0));
-            put(nameSepColumn.name, index);
-            state = State.NORM;
-            return;
-        }
-
-        if (_name.equals(A + "2")) {
+        if (curColumnName.equals(A + "2")) {
             ABSpan.add(index);
             state = State.LIST;
-        } else if (nameSep.type == GuessHelper.SepType.IntPostfix && nameSep.num == 1) {
-            B = nameSep.columnName;
+        } else if (curColumnName.endsWith("1")) {
+            B = curColumnName.substring(0, curColumnName.length() - 1);
             ABSpan.add(index);
             state = State.MAYBE_MAP;
         } else {
@@ -223,21 +174,14 @@ public class DTable extends Node {
     }
 
     private void onList() {
-        if (isDefined()) {
+        if (isCurColumnDefined()) {
             put(GuessHelper.makeListName(A), ABSpan);
-            put(_name, index);
+            put(curColumnName, index);
             state = State.NORM;
             return;
         }
 
-        if (isNameSepDefined()) {
-            put(GuessHelper.makeListName(A), ABSpan);
-            put(nameSepColumn.name, index);
-            state = State.NORM;
-            return;
-        }
-
-        if (_name.equals(A + (ABSpan.size() + 1))) {
+        if (curColumnName.equals(A + (ABSpan.size() + 1))) {
             ABSpan.add(index);
         } else {
             put(GuessHelper.makeListName(A), ABSpan);
@@ -247,26 +191,18 @@ public class DTable extends Node {
     }
 
     private void onMaybeMap() {
-        if (isDefined()) {
+        if (isCurColumnDefined()) {
             put(A + "1", ABSpan.get(0));
             put(B + "1", ABSpan.get(1));
-            put(_name, index);
+            put(curColumnName, index);
             state = State.NORM;
             return;
         }
 
-        if (isNameSepDefined()) {
-            put(A + "1", ABSpan.get(0));
-            put(B + "1", ABSpan.get(1));
-            put(nameSepColumn.name, index);
-            state = State.NORM;
-            return;
-        }
-
-        if (_name.equals(A + "2")) {
+        if (curColumnName.equals(A + "2")) {
             ABSpan.add(index);
             state = State.MAYBE_MAP2;
-        } else if (_name.equals(B + "2")) {
+        } else if (curColumnName.equals(B + "2")) {
             put(A + "1", ABSpan.remove(0));
             A = B;
             ABSpan.add(index);
@@ -281,25 +217,16 @@ public class DTable extends Node {
     }
 
     private void onMaybeMap2() {
-        if (isDefined()) {
+        if (isCurColumnDefined()) {
             put(A + "1", ABSpan.get(0));
             put(B + "1", ABSpan.get(1));
             put(A + "2", ABSpan.get(2));
-            put(_name, index);
+            put(curColumnName, index);
             state = State.NORM;
             return;
         }
 
-        if (isNameSepDefined()) {
-            put(A + "1", ABSpan.get(0));
-            put(B + "1", ABSpan.get(1));
-            put(A + "2", ABSpan.get(2));
-            put(nameSepColumn.name, index);
-            state = State.NORM;
-            return;
-        }
-
-        if (_name.equals(B + "2")) {
+        if (curColumnName.equals(B + "2")) {
             ABSpan.add(index);
             state = State.MAP;
         } else {
@@ -312,25 +239,17 @@ public class DTable extends Node {
     }
 
     private void onMap() {
-        if (isDefined()) {
+        if (isCurColumnDefined()) {
             require(ABSpan.size() % 2 == 0);
             put(GuessHelper.makeMapName(A, B), ABSpan);
-            put(_name, index);
+            put(curColumnName, index);
             state = State.NORM;
             return;
         }
 
-        if (isNameSepDefined()) {
-            require(ABSpan.size() % 2 == 0);
-            put(GuessHelper.makeMapName(A, B), ABSpan);
-            put(nameSepColumn.name, index);
-            state = State.NORM;
-            return;
-        }
-
-        if (ABSpan.size() % 2 == 0 && _name.equals(A + (ABSpan.size() / 2 + 1))) {
+        if (ABSpan.size() % 2 == 0 && curColumnName.equals(A + (ABSpan.size() / 2 + 1))) {
             ABSpan.add(index);
-        } else if (ABSpan.size() % 2 == 1 && _name.equals(B + (ABSpan.size() / 2 + 1))) {
+        } else if (ABSpan.size() % 2 == 1 && curColumnName.equals(B + (ABSpan.size() / 2 + 1))) {
             ABSpan.add(index);
         } else {
             require(ABSpan.size() % 2 == 0);

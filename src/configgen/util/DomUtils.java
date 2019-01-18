@@ -40,14 +40,14 @@ public final class DomUtils {
     }
 
     public static void prettySaveDocument(Document document, File file, String encoding)  {
-        try (OutputStream dst = new FileOutputStream(file)) {
+        try (OutputStream dst = new CachedFileOutputStream(file)) {
             prettySaveDocument(document, dst, encoding);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void prettySaveDocument(Document document, OutputStream destination, String encoding) {
+    private static void prettySaveDocument(Document document, OutputStream destination, String encoding) {
         DOMImplementation impl = document.getImplementation();
         Object f = impl.getFeature("LS", "3.0");
         if (f != null) {

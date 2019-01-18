@@ -7,73 +7,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 final class GuessHelper {
 
-    private static final Pattern INT_POSTFIX_PATTERN = Pattern.compile("(.*\\D)(\\d+)");
-
-    enum SepType {
-        None, IntPostfix, BeanPrefix
-    }
-
-    static class Sep {
-        SepType type = SepType.None;
-        String columnName;
-        int num;
-    }
-
-    static Sep trySep(String name) {
-        Sep r = new Sep();
-        int i = name.indexOf('@');
+    static String getColumnName(String name){
+        int i = name.indexOf('@'); //这个是兼容之前版本
         if (i != -1) {
-            r.type = SepType.BeanPrefix;
-            r.columnName = name.substring(0, i);
-        } else {
-            Matcher m = INT_POSTFIX_PATTERN.matcher(name);
-            if (m.matches()) {
-                r.type = SepType.IntPostfix;
-                r.columnName = m.group(1);
-                r.num = Integer.parseInt(m.group(2));
-            }
+            return name.substring(0, i);
+        }else{
+            return name;
         }
-        return r;
     }
 
     static String makeListName(String name) {
         return name + "List";
     }
 
-    private static final Pattern LIST_PATTERN = Pattern.compile("(\\D.*)List");
-
-    static String parseListName(String name) {
-        Matcher m = LIST_PATTERN.matcher(name);
-        if (m.matches())
-            return m.group(1);
-        throw new RuntimeException("list名称没有endsWith List " + name);
-    }
-
     static String makeMapName(String key, String value) {
         return key + "2" + value + "Map";
-    }
-
-    private static final Pattern MAP_PATTERN = Pattern.compile("(.*\\D)2(\\D.*)Map");
-
-    static class Pair {
-        String key;
-        String value;
-    }
-
-    static Pair parseMapName(String name) {
-        Pair r = new Pair();
-        Matcher m = MAP_PATTERN.matcher(name);
-        if (m.matches()) {
-            r.key = m.group(1);
-            r.value = m.group(2);
-            return r;
-        }
-        throw new RuntimeException("map name not match <k>2<v>Map: " + name);
     }
 
     static String guessPrimitiveType(Set<String> data) {

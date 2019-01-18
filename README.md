@@ -6,7 +6,7 @@
 
 * 通过配置外键，取值范围，使策划可以随时检测数据一致性
 * 通过生成代码，使程序方便访问类型化数据，外键引用和枚举得到一行，支持java,cSharp,lua
-
+* 支持多态bean，bean嵌套，可在一个单元格里，写任意复杂的bean结构数据，相当于让csv有了xml的灵活性
 
 ## 快速开始
 * example/config 下是csv；config.xml 是配置文件；example/java, cs, lua目录下文件是gen.bat生成的代码文件。
@@ -30,13 +30,14 @@
     - primary key! 默认是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
     - 如果有isPrimaryKeySeq，则主键值必须是1,2,3,4...
     - 如果程序想访问单独一行，配置enumPart，比如enumPart="aa"就是field aa作为enum名称，enum是全枚举，如果增加不支持热更
-* column.name，desc, compress
+* column.name，desc, compress， compressAsOne
     - configgen.jar会从csv文件第1,2行提取
     - list a1,a2: name为aList
     - map a1,b1,a2,b2: name为a2bMap
     - 生成代码时保留csv中配置名称的大小写，成员变量为首字母小写的name
     - 引用的成员变量为Ref+首字母大写的name
     - compress，对list，count为0的时候，配置这个，用于分隔符
+    - compressAsOne，可支持把任意嵌套bean（包括循环嵌套bean）写在一个格子里，比如a,(b1,b2),c(d,e(f,g))
 * column.type
     - bool,int,long,float,string(text),bean
     - list,xx,count     ArrayList；count不存在的时候，单元格是list；count存在的话从多列fieldname1，fieldname2。。。中读取数据。

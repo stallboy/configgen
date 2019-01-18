@@ -2,3 +2,4 @@
 configgen.jar
 /out
 /.idea
+/classes.test

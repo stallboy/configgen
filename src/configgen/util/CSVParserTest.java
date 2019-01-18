@@ -1,28 +1,29 @@
 package configgen.util;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
-class CSVParserTest {
+
+public class CSVParserTest {
 
     @Test
-    void parse() {
+    public void parse() {
         testOneLine("aa, bb", "aa", " bb");
         testOneLine("aa, bb,", "aa", " bb", "");
         test("aa, bb\r\ncc,\"dd", 2, 1, "cc", "dd");
     }
 
     @Test
-    void useCRLF_MakeNewLine() {
+    public void useCRLF_MakeNewLine() {
         testOneLine("aa, bb\r\n", "aa", " bb");
         test("aa, bb\r\ncc,dd", 2, 1, "cc", "dd");
     }
 
     @Test
-    void useCR_Or_LF_Alone_Not_MakeNewLine() {
+    public void useCR_Or_LF_Alone_Not_MakeNewLine() {
         testOneLine("aa, bb\r", "aa", " bb\r");
         testOneLine("aa, bb\n", "aa", " bb\n");
         testOneLine("aa, bb\rcc,dd", "aa", " bb\rcc", "dd");
@@ -30,14 +31,14 @@ class CSVParserTest {
     }
 
     @Test
-    void useDoubleQuoteToEscape() {
+    public void useDoubleQuoteToEscape() {
         testOneLine("\"aa\", bb", "aa", " bb");
         testOneLine("\"a,a\", bb", "a,a", " bb");
         testOneLine("aa,\"bb\r\ncc\",dd", "aa", "bb\r\ncc", "dd");
     }
 
     @Test
-    void oneDoubleQuoteInMiddle_Ignore() {
+    public void oneDoubleQuoteInMiddle_Ignore() {
         testOneLine("\"aa\"123, bb", "aa123", " bb");
     }
 

@@ -1,36 +1,37 @@
 package configgen.util;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
-class ListParserTest {
+
+public class ListParserTest {
 
     @Test
-    void parseList() {
+    public void parseList() {
         test("aa,bb", "aa", "bb");
     }
 
     @Test
-    void prefixSeparator_Counts() {
+    public void prefixSeparator_Counts() {
         test(",aa,bb", "", "aa", "bb");
     }
 
     @Test
-    void surfixSeparator_NotCounts() {
+    public void surfixSeparator_NotCounts() {
         test("aa,bb,", "aa", "bb");
     }
 
     @Test
-    void useQuoteToEscapeSeperatorInString() {
+    public void useQuoteToEscapeSeperatorInString() {
         test("\"a,a\", bb", "a,a", " bb");
         test("\"aa\", bb", "aa", " bb");
     }
 
     @Test
-    void whitespace_Counts() {
+    public void whitespace_Counts() {
         test("aa, bb", "aa", " bb");
         test(" aa, bb ", " aa", " bb ");
     }

@@ -2,27 +2,54 @@
 <project name="configgen" default="dist">
     <property name="src" value="src/"/>
     <property name="build" value="classes/"/>
+    <property name="build.test" value="classes.test/"/>
 
-    <target name="init">
-        <mkdir dir="${build}"/>
+    <target name="clean">
+        <delete dir="${build}"/>
+        <delete dir="${build.test}"/>
     </target>
 
-    <target name="compile" depends="init">
-        <javac encoding="UTF-8" srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true" excludes="**/*Test.java"
+    <target name="compile">
+        <mkdir dir="${build}"/>
+        <javac encoding="UTF-8" srcdir="${src}" destdir="${build}" includeantruntime="false" debug="true"
+               excludes="**/*Test.java"
                debuglevel="lines,source">
         </javac>
     </target>
 
-    <target name="clean">
-        <delete dir="${build}"/>
-    </target>
-
-    <target name="dist" depends="clean, compile">
+    <target name="dist" depends="compile">
         <copy todir="${build}/support">
             <fileset dir="${src}/support"/>
         </copy>
-        <jar jarfile="configgen.jar" basedir="${build}" manifest="${src}/MANIFEST.MF"/>
-		<delete dir="${build}"/>
+        <jar jarfile="configgen.jar" basedir="${build}" excludes="**/*Test.java" manifest="${src}/MANIFEST.MF"/>
+        <delete dir="${build}"/>
+    </target>
+
+
+    <path id="classpath.test">
+        <fileset dir="lib" includes="*.jar"/>
+    </path>
+
+    <target name="test-compile">
+        <mkdir dir="${build.test}"/>
+        <javac encoding="UTF-8" srcdir="${src}" destdir="${build.test}" includeantruntime="false" debug="true"
+               includes="**/*Test.java" classpathref="classpath.test"
+               debuglevel="lines,source">
+        </javac>
+    </target>
+
+    <target name="test" depends="test-compile">
+        <junit>
+            <classpath>
+                <path refid="classpath.test"/>
+                <pathelement location="${build.test}"/>
+            </classpath>
+
+            <formatter type="brief" usefile="false"/>
+            <batchtest>
+                <fileset dir="${src}" includes="**/*Test.java"/>
+            </batchtest>
+        </junit>
     </target>
 
 </project>

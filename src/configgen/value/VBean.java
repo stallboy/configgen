@@ -72,41 +72,41 @@ public class VBean extends VComposite {
 
     @Override
     public void verifyConstraint() {
-        if (beanType.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
+        if (childDynamicVBean != null) {
             childDynamicVBean.verifyConstraint();
-        } else {
-            verifyRefs();
-            for (Value value : values) {
-                value.verifyConstraint();
-            }
-            for (TForeignKey fk : beanType.mRefs) {
-                ArrayList<Value> vs = new ArrayList<>();
-                for (String k : fk.foreignKeyDefine.keys) {
-                    vs.add(getColumnValue(k));
-                }
-                VList keyValue = new VList(vs);
-                if (isCellEmpty()) {
-                    require(fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE, "空数据，外键必须nullable", fk.foreignKeyDefine);
-                } else {
-                    if (fk.cache == null) {
-                        VTable vtable = VDb.getCurrent().getVTable(fk.refTable.name);
-                        fk.cache = fk.foreignKeyDefine.ref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", fk.foreignKeyDefine.ref.cols));
-                    }
-                    require(fk.cache.contains(keyValue), "外键未找到", fk.refTable, keyValue);
-                }
-            }
+            return;
         }
 
+        verifyRefs();
+        for (Value value : values) {
+            value.verifyConstraint();
+        }
+        for (TForeignKey fk : beanType.mRefs) {
+            if (isCellEmpty()) {
+                require(fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE, "空数据，外键必须nullable", fk.foreignKeyDefine);
+            } else {
+                ArrayList<Value> vs = new ArrayList<>();
+                for (Type col : fk.thisTableKeys) {
+                    vs.add(values.get(col.getColumnIndex()));
+                }
+                VList keyValue = new VList(vs);
+
+                if (fk.cache == null) {
+                    VTable vtable = VDb.getCurrent().getVTable(fk.refTable.name);
+                    fk.cache = fk.foreignKeyDefine.ref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", fk.foreignKeyDefine.ref.cols));
+                }
+                require(fk.cache.contains(keyValue), "外键未找到", fk.refTable, keyValue);
+            }
+        }
     }
 
-    Value getColumnValue(String col) {
-        return values.get(beanType.getColumnIndex(col));
+    Value getColumnValue(Type col) {
+        return values.get(col.getColumnIndex());
     }
 
     public Collection<Value> getValues() {
         return values;
     }
-
 
     @Override
     public boolean equals(Object o) {

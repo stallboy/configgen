@@ -388,7 +388,7 @@ public class GenLua extends Generator {
         int i = 0;
         for (Type t : tbean.columns.values()) {
             i++;
-            for (SRef r : t.constraint.references) {
+            for (SRef r : t.getConstraint().references) {
                 if (t instanceof TMap) {
                     System.out.println("map sref not suppport, bean=" + tbean.name);
                     break;

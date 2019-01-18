@@ -3,8 +3,8 @@ package configgen.value;
 import configgen.Node;
 import configgen.data.DTable;
 import configgen.define.Table;
-import configgen.define.UniqueKey;
 import configgen.type.TTable;
+import configgen.type.Type;
 import configgen.util.CSVParser;
 
 import java.util.*;
@@ -48,19 +48,19 @@ public class VTable extends Node {
             vBeanList.add(vbean);
         }
 
-
-        extractKeyValues(tableType.tableDefine.primaryKey, primaryKeyValueSet);
-
-        for (UniqueKey uk : tableType.tableDefine.uniqueKeys.values()) {
+        // 收集主键和唯一键
+        extractKeyValues(tableType.primaryKey.values(), primaryKeyValueSet);
+        for (Map<String, Type> uniqueKey : tableType.uniqueKeys) {
             Set<Value> res = new HashSet<>();
-            extractKeyValues(uk.keys, res);
-            uniqueKeyValueSetMap.put(uk.toString(), res);
+            extractKeyValues(uniqueKey.values(), res);
+            uniqueKeyValueSetMap.put(String.join(",", uniqueKey.keySet()), res);
         }
 
+        // 收集枚举
         if (tableType.tableDefine.isEnum()) {
             Set<String> names = new HashSet<>();
             for (VBean vbean : vBeanList) {
-                Value v = vbean.getColumnValue(tableType.tableDefine.enumStr);
+                Value v = vbean.getColumnValue(tableType.getEnumColumnType());
                 VString vStr = (VString) v;
                 if (vStr == null) {
                     error("枚举必须是字符串");
@@ -75,8 +75,9 @@ public class VTable extends Node {
                     require(names.add(e.toUpperCase()), "枚举数据重复", e);
                     enumNames.add(e);
 
-                    if (!tableType.tableDefine.isEnumAsPrimaryKey()) {
-                        Value primaryV = vbean.getColumnValue(tableType.tableDefine.primaryKey[0]);
+                    if (!tableType.tableDefine.isEnumAsPrimaryKey()) { //必须是int，这里是java生成需要
+                        Type primaryKeyCol = tableType.primaryKey.values().iterator().next();
+                        Value primaryV = vbean.getColumnValue(primaryKeyCol);
                         Integer iv = ((VInt) primaryV).value;
                         enumName2IntegerValueMap.put(e, iv);
                     }
@@ -85,10 +86,10 @@ public class VTable extends Node {
         }
     }
 
-    private void extractKeyValues(String[] keys, Set<Value> keyValueSet) {
+    private void extractKeyValues(Collection<Type> keys, Set<Value> keyValueSet) {
         for (VBean vbean : vBeanList) {
-            ArrayList<Value> vs = new ArrayList<>(keys.length);
-            for (String k : keys) {
+            ArrayList<Value> vs = new ArrayList<>(keys.size());
+            for (Type k : keys) {
                 Value v = vbean.getColumnValue(k);
                 require(v != null);
                 vs.add(v);

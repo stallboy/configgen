@@ -9,17 +9,19 @@ public class TString extends TPrimitive {
 
     public final Subtype subtype;
 
-    TString(Node parent, String name, int idx, Constraint cons, Subtype subtype) {
-        super(parent, name, idx, cons);
+    TString(Node parent, String name, int idx, Subtype subtype) {
+        super(parent, name, idx);
         this.subtype = subtype;
-        switch (subtype) {
-            case STRING:
-                break;
-            case TEXT:
-                require(cons.references.isEmpty(), "text类型不支持外键");
-                break;
+    }
+
+    @Override
+    void setConstraint(Constraint cons) {
+        super.setConstraint(cons);
+        if (subtype == Subtype.TEXT) {
+            require(cons.references.isEmpty(), "text类型不支持外键");
         }
     }
+
 
     @Override
     public boolean hasText() {
@@ -29,11 +31,6 @@ public class TString extends TPrimitive {
     @Override
     public String toString() {
         return subtype.toString().toLowerCase();
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
     }
 
     @Override

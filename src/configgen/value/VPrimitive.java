@@ -19,8 +19,8 @@ public abstract class VPrimitive extends Value {
     @Override
     public void verifyConstraint() {
         verifyRefs();
-        if (type.constraint.range != null) {
-            require(checkRange(type.constraint.range), "取值范围错误，范围是", type.constraint.range, "值是", raw);
+        if (type.getConstraint().range != null) {
+            require(checkRange(type.getConstraint().range), "取值范围错误，范围是", type.getConstraint().range, "值是", raw);
         }
     }
 

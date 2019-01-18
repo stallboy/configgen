@@ -4,8 +4,13 @@ import configgen.Node;
 
 public class TBool extends TPrimitive {
 
-    TBool(Node parent, String name, int idx, Constraint cons) {
-        super(parent, name, idx, cons);
+    TBool(Node parent, String name, int idx) {
+        super(parent, name, idx);
+    }
+
+    @Override
+    void setConstraint(Constraint cons) {
+        super.setConstraint(cons);
         require(cons.references.isEmpty(), "布尔类型不支持外键");
         require(cons.range == null, "布尔类型不支持区间限定");
     }
@@ -18,11 +23,6 @@ public class TBool extends TPrimitive {
     @Override
     public String toString() {
         return "bool";
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
     }
 
     @Override

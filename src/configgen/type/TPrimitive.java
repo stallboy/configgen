@@ -4,8 +4,13 @@ import configgen.Node;
 
 public abstract class TPrimitive extends Type {
 
-    TPrimitive(Node parent, String name, int idx, Constraint cons) {
-        super(parent, name, idx, cons);
+    TPrimitive(Node parent, String name, int idx) {
+        super(parent, name, idx);
+    }
+
+    @Override
+    void setConstraint(Constraint cons) {
+        super.setConstraint(cons);
         for (SRef sref : cons.references) {
             require(null == sref.mapKeyRefTable, "原始类型不用配置keyRef");
         }
@@ -13,7 +18,7 @@ public abstract class TPrimitive extends Type {
 
     @Override
     public boolean hasRef() {
-        return constraint.references.size() > 0;
+        return getConstraint().references.size() > 0;
     }
 
     @Override

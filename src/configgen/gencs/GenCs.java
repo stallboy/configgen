@@ -199,7 +199,7 @@ public class GenCs extends Generator {
             Column f = tbean.beanDefine.columns.get(n);
             String c = f.desc.isEmpty() ? "" : " // " + f.desc;
             ps.println2("public " + type(t) + " " + upper1(n) + " { get; private set; }" + c);
-            t.constraint.references.forEach(r -> ps.println2("public " + refType(t, r) + " " + refName(r) + " { get; private set; }"));
+            t.getConstraint().references.forEach(r -> ps.println2("public " + refType(t, r) + " " + refName(r) + " { get; private set; }"));
         });
 
         tbean.mRefs.forEach(m -> ps.println2("public " + fullName(m.refTable) + " " + refName(m) + " { get; private set; }"));
@@ -360,7 +360,7 @@ public class GenCs extends Generator {
                             ps.println3("}");
                         }
 
-                        for (SRef sr : t.constraint.references) {
+                        for (SRef sr : t.getConstraint().references) {
                             ps.println3(refName(sr) + " = new " + refType(t, sr) + "();");
                             ps.println3("foreach (var e in " + upper1(n) + ")");
                             ps.println3("{");
@@ -382,7 +382,7 @@ public class GenCs extends Generator {
                             }
                             ps.println3("}");
                         }
-                        for (SRef sr : t.constraint.references) {
+                        for (SRef sr : t.getConstraint().references) {
                             ps.println3(refName(sr) + " = new " + refType(t, sr) + "();");
                             ps.println3("foreach (var kv in " + upper1(n) + ".Map)");
                             ps.println3("{");
@@ -408,7 +408,7 @@ public class GenCs extends Generator {
                             ps.println3(upper1(n) + "._resolve(errors);");
                         }
 
-                        for (SRef sr : t.constraint.references) {
+                        for (SRef sr : t.getConstraint().references) {
                             ps.println3(refName(sr) + " = " + tableGet(sr.refTable, sr.refCols, upper1(n)));
                             if (!sr.refNullable)
                                 ps.println3("if (" + refName(sr) + " == null) errors.RefNull(" + csv + ", ToString(), " + field + ", " + upper1(n) + ");");

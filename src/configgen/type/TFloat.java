@@ -4,8 +4,13 @@ import configgen.Node;
 
 public class TFloat extends TPrimitive {
 
-    TFloat(Node parent, String name, int idx, Constraint cons) {
-        super(parent, name, idx, cons);
+    TFloat(Node parent, String name, int idx) {
+        super(parent, name, idx);
+    }
+
+    @Override
+    void setConstraint(Constraint cons) {
+        super.setConstraint(cons);
         require(cons.references.isEmpty(), "浮点数不支持外键");
     }
 
@@ -17,11 +22,6 @@ public class TFloat extends TPrimitive {
     @Override
     public String toString() {
         return "float";
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
     }
 
     @Override

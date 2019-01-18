@@ -328,7 +328,7 @@ public class GenJavaCode extends Generator {
                 ps.println1("}");
                 ps.println();
 
-                t.constraint.references.forEach(r -> {
+                t.getConstraint().references.forEach(r -> {
                     ps.println1("public " + refType(t, r) + " " + lower1(refName(r)) + "() {");
                     ps.println2("return ref()." + lower1(refName(r)) + "();");
                     ps.println1("}");
@@ -383,7 +383,7 @@ public class GenJavaCode extends Generator {
         //field
         tbean.columns.forEach((n, t) -> {
             ps.println1("private " + type(t) + " " + lower1(n) + initialValue(t) + ";");
-            t.constraint.references.forEach(r -> ps.println1("private " + refType(t, r) + " " + refName(r) + refInitialValue(t) + ";"));
+            t.getConstraint().references.forEach(r -> ps.println1("private " + refType(t, r) + " " + refName(r) + refInitialValue(t) + ";"));
         });
 
         tbean.mRefs.forEach(m -> ps.println1("private " + fullName(m.refTable) + " " + refName(m) + ";"));
@@ -441,7 +441,7 @@ public class GenJavaCode extends Generator {
             ps.println1("}");
             ps.println();
 
-            t.constraint.references.forEach(r -> {
+            t.getConstraint().references.forEach(r -> {
                 ps.println1("public " + refType(t, r) + " " + lower1(refName(r)) + "() {");
                 ps.println2("return " + refName(r) + ";");
                 ps.println1("}");
@@ -507,7 +507,7 @@ public class GenJavaCode extends Generator {
                         if (tt.value instanceof TBeanRef && tt.value.hasRef()) {
                             ps.println3("e._resolve(mgr);");
                         }
-                        for (SRef sr : t.constraint.references) {
+                        for (SRef sr : t.getConstraint().references) {
                             ps.println3(fullName(sr.refTable) + " r = " + tableGet(sr.refTable, sr.refCols, "e"));
                             ps.println3("java.util.Objects.requireNonNull(r);");
                             ps.println3(refName(sr) + ".add(r);");
@@ -522,7 +522,7 @@ public class GenJavaCode extends Generator {
                         if (tt.value instanceof TBeanRef && tt.value.hasRef()) {
                             ps.println3("v._resolve(mgr);");
                         }
-                        for (SRef sr : t.constraint.references) {
+                        for (SRef sr : t.getConstraint().references) {
                             String k = "k";
                             if (sr.mapKeyRefTable != null) {
                                 ps.println3(fullName(sr.mapKeyRefTable) + " rk = " + tableGet(sr.mapKeyRefTable, sr.mapKeyRefCols, "k"));
@@ -542,7 +542,7 @@ public class GenJavaCode extends Generator {
                         if (t instanceof TBeanRef && t.hasRef()) {
                             ps.println2(lower1(n) + "._resolve(mgr);");
                         }
-                        for (SRef sr : t.constraint.references) {
+                        for (SRef sr : t.getConstraint().references) {
                             ps.println2(refName(sr) + " = " + tableGet(sr.refTable, sr.refCols, lower1(n)));
                             if (!sr.refNullable)
                                 ps.println2("java.util.Objects.requireNonNull(" + refName(sr) + ");");

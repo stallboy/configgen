@@ -12,6 +12,8 @@ public class TForeignKey extends Node {
     public TTable refTable;
     TTable mapKeyRefTable;
 
+    public Type[] thisTableKeys;
+
     public Set<Value> cache;  //优化
 
     TForeignKey(TBean parent, ForeignKey fk) {
@@ -20,26 +22,23 @@ public class TForeignKey extends Node {
     }
 
     public void resolve() {
-        for (String key : foreignKeyDefine.keys) {
-            require(null != ((TBean) parent).beanDefine.columns.get(key), "外键列不存在", key);
-        }
-
         refTable = resolveRef(foreignKeyDefine.ref);
         if (foreignKeyDefine.mapKeyRef != null) {
             mapKeyRefTable = resolveRef(foreignKeyDefine.mapKeyRef);
         }
+
+        thisTableKeys = new Type[foreignKeyDefine.keys.length];
+        int i = 0;
+        for (String key : foreignKeyDefine.keys) {
+            Type t = ((TBean) parent).columns.get(key);
+            require(null != t, "外键列不存在", key);
+            thisTableKeys[i++] = t;
+        }
     }
 
-    private TTable resolveRef(Ref ref){
+    private TTable resolveRef(Ref ref) {
         TTable tt = ((TDb) root).tTables.get(ref.table);
-        if (tt != null){
-            for (String col : ref.cols) {
-                require(null != tt.tbean.beanDefine.columns.get(col), "外键列不存在", col); //must use beanDefine
-            }
-        }else{
-            error("外键表不存在", ref.table);
-        }
-
+        require(tt != null, "外键表不存在", ref.table);
         return tt;
     }
 }

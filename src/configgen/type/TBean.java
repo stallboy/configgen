@@ -26,7 +26,7 @@ public class TBean extends Type {
 
 
     public TBean(TDb parent, Bean bean) {
-        super(parent, bean.name, -1, new Constraint());
+        super(parent, bean.name, -1);
         beanDefine = bean;
         if (beanDefine.type == Bean.BeanType.NormalBean) {
             init();
@@ -36,13 +36,13 @@ public class TBean extends Type {
     }
 
     public TBean(TTable parent, Bean bean) {
-        super(parent, bean.name, -1, new Constraint());
+        super(parent, bean.name, -1);
         beanDefine = bean;
         init();
     }
 
     public TBean(TBean parent, Bean bean) {
-        super(parent, bean.name, -1, new Constraint());
+        super(parent, bean.name, -1);
         beanDefine = bean;
         init();
     }
@@ -69,10 +69,6 @@ public class TBean extends Type {
         } else {
             return parent.fullName() + "." + name;
         }
-    }
-
-    public int getColumnIndex(String col) {
-        return columns.get(col).getColumnIndex();
     }
 
     public Collection<Type> getColumns() {
@@ -205,12 +201,6 @@ public class TBean extends Type {
         }
     }
 
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
-    }
-
     @Override
     public <T> T accept(TypeVisitorT<T> visitor) {
         return visitor.visit(this);
@@ -224,12 +214,17 @@ public class TBean extends Type {
                 tBean.resolve();
             }
         } else {
+            for (Column column : beanDefine.columns.values()) {
+                resolveColumnType(column);
+            }
             for (TForeignKey foreignKey : foreignKeys) {
                 foreignKey.resolve();
             }
-            for (Column column : beanDefine.columns.values()) {
-                resolveColumn(column);
+            for (Type columnType : columns.values()) {
+                Column column = beanDefine.columns.get(columnType.name);
+                resolveColumnConstraint(columnType, column);
             }
+
             require(columns.size() > 0, "Bean列数不能为0");
             for (TForeignKey fk : foreignKeys) {
                 if (fk.foreignKeyDefine.refType == ForeignKey.RefType.LIST)
@@ -240,10 +235,10 @@ public class TBean extends Type {
         }
     }
 
-    private void resolveColumn(Column col) {
+    private void resolveColumnConstraint(Type columnType, Column col) {
         Constraint cons = new Constraint();
         for (TForeignKey fk : foreignKeys) {
-            if (fk.foreignKeyDefine.refType != ForeignKey.RefType.LIST && fk.foreignKeyDefine.keys.length == 1 && fk.foreignKeyDefine.keys[0].equals(col.name))
+            if (fk.foreignKeyDefine.refType != ForeignKey.RefType.LIST && fk.thisTableKeys.length == 1 && fk.thisTableKeys[0] == columnType)
                 cons.references.add(new SRef(fk));
         }
 
@@ -255,13 +250,15 @@ public class TBean extends Type {
             require(cons.range == null, "一列只允许定义一个range", col.name);
             cons.range = kr.range;
         }
+        columnType.setConstraint(cons);
+    }
 
-        String t, k = "", v = "";
-        int c = 0;
+    private void resolveColumnType(Column col) {
+        Type type;
         if (col.type.startsWith("list,")) {
-            t = "list";
             String[] sp = col.type.split(",");
-            v = sp[1].trim();
+            String v = sp[1].trim();
+            int c = 0;
             if (sp.length > 2) {
                 c = Integer.parseInt(sp[2].trim());
                 require(c >= 1);
@@ -270,25 +267,27 @@ public class TBean extends Type {
                 require(col.compressType == Column.CompressType.UseSeparator || col.compressType == Column.CompressType.AsOne,
                         "未定义列表的长度时必须定义compress或compressAsOne");
             }
+            type = new TList(this, col.name, columns.size(), v, c, col.compressType, col.compressSeparator);
+
         } else if (col.type.startsWith("map,")) {
-            t = "map";
             String[] sp = col.type.split(",");
-            k = sp[1].trim();
-            v = sp[2].trim();
-            c = Integer.parseInt(sp[3].trim());
+            String k = sp[1].trim();
+            String v = sp[2].trim();
+            int c = Integer.parseInt(sp[3].trim());
             require(c >= 1);
             require(c >= 1 && col.compressType == Column.CompressType.NoCompress,
                     "map必须配置长度，不支持配置compress或compressAsOne");
-        } else {
-            t = col.type;
-        }
+            type = new TMap(this, col.name, columns.size(), k, v, c);
 
-        Type type = resolveType(col.name, columns.size(), cons, t, k, v, c, col.compressType, col.compressSeparator);
-        if (type != null) {
+        } else {
+            type = resolveType(col.name, columns.size(), col.type, col.compressType == Column.CompressType.AsOne);
             if (type instanceof TPrimitive) {
                 require(col.compressType == Column.CompressType.NoCompress,
                         "原始类型不要配置compress或compressAsOne");
             }
+        }
+
+        if (type != null) {
             columns.put(col.name, type);
         } else {
             error("类型不支持", col.type);

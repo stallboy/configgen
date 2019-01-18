@@ -14,6 +14,10 @@ public class TTable extends Node {
     public final Table tableDefine;
     public final TBean tbean; //具体的column委派到TBean中
 
+    // 枚举列
+    private Type enumColumn;
+
+
     //表可以有一个主键，多个唯一键
     public final Map<String, Type> primaryKey = new LinkedHashMap<>();
     public final List<Map<String, Type>> uniqueKeys = new ArrayList<>();
@@ -25,14 +29,18 @@ public class TTable extends Node {
         tbean = new TBean(this, cfg.bean);
     }
 
+    public Type getEnumColumnType(){
+        return enumColumn;
+    }
+
     public void resolve() {
         tbean.resolve();
         if (tableDefine.enumType != Table.EnumType.None) {
-            Type type = tbean.columns.get(tableDefine.enumStr);
-            if (type == null) {
+            enumColumn = tbean.columns.get(tableDefine.enumStr);
+            if (enumColumn == null) {
                 error("枚举列未找到", tableDefine.enumStr);
             } else {
-                require(type instanceof TString, "枚举列必须是字符串", tableDefine.enumStr, type);
+                require(enumColumn instanceof TString, "枚举列必须是字符串", tableDefine.enumStr, enumColumn);
             }
         }
         resolveKey(tableDefine.primaryKey, primaryKey);
@@ -40,7 +48,7 @@ public class TTable extends Node {
         if (tableDefine.enumType != Table.EnumType.None) {
             require(primaryKey.size() == 1, "有枚举的表主键必须是自己或int");
             Type t = primaryKey.values().iterator().next();
-            if (!tableDefine.isEnumAsPrimaryKey()) {
+            if (!tableDefine.isEnumAsPrimaryKey()) { // 这个是java需要的，用于支持热更
                 require(t instanceof TInt, "有枚举的表主键必须是自己或int");
             }
         }

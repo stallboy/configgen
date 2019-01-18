@@ -9,10 +9,19 @@ public class TMap extends Type {
     public final Type value;
     public final int count; // must > 0
 
-    TMap(Node parent, String name, int idx, Constraint cons, String key, String value, int count) {
-        super(parent, name, idx, cons);
-        require(cons.range == null, "map不支持range");
+    TMap(Node parent, String name, int idx, String key, String value, int count) {
+        super(parent, name, idx);
+        this.key = resolveType("key", idx, key, false);
+        require(Objects.nonNull(this.key), "map的Key类型不存在", key);
+        this.value = resolveType("value", idx, value, false);
+        require(Objects.nonNull(this.value), "map的Value类型不存在", value);
+        this.count = count;
+    }
 
+    @Override
+    void setConstraint(Constraint cons) {
+        super.setConstraint(cons);
+        require(cons.range == null, "map不支持range");
         Constraint kc = new Constraint();
         Constraint vc = new Constraint();
         for (SRef sref : cons.references) {
@@ -22,22 +31,13 @@ public class TMap extends Type {
             if (null != sref.refTable)
                 vc.references.add(new SRef(sref.refTable, sref.refCols));
         }
-
-        this.key = resolveType("key", idx, kc, key, false);
-        require(Objects.nonNull(this.key), "map的Key类型不存在", key);
-        this.value = resolveType("value", idx, vc, value, false);
-        require(Objects.nonNull(this.value), "map的Value类型不存在", value);
-        this.count = count;
+        key.setConstraint(kc);
+        value.setConstraint(vc);
     }
 
     @Override
     public String toString() {
         return "map," + key + "," + value + "," + count;
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
     }
 
     @Override

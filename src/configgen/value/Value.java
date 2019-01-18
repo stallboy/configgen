@@ -23,7 +23,7 @@ public abstract class Value {
     public abstract void collectCells(List<Cell> cells);
 
     void verifyRefs() {
-        for (SRef sref : type.constraint.references) {
+        for (SRef sref : type.getConstraint().references) {
             if (isCellEmpty()) {
                 require(sref.refNullable, "有空格子，则外键必须是nullable的", sref.refTable);
             } else {

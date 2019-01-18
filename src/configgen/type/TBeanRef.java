@@ -6,8 +6,8 @@ public class TBeanRef extends Type {
     public final TBean tBean;
     public final boolean compressAsOne; //这里只考虑支持AsOne这一种类型
 
-    TBeanRef(Node parent, String name, int idx, Constraint cons, TBean tBean, boolean compressAsOne) {
-        super(parent, name, idx, cons);
+    TBeanRef(Node parent, String name, int idx, TBean tBean, boolean compressAsOne) {
+        super(parent, name, idx);
         this.tBean = tBean;
         this.compressAsOne = compressAsOne;
     }
@@ -30,11 +30,6 @@ public class TBeanRef extends Type {
     @Override
     public int columnSpan() {
         return compressAsOne ? 1 : tBean.columnSpan();
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
     }
 
     @Override

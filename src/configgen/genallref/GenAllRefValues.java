@@ -59,7 +59,7 @@ public class GenAllRefValues extends Generator {
         ValueVisitor vs = new ValueVisitor() {
             private void vp(VPrimitive value) {
                 boolean has = false;
-                for (SRef sr : value.type.constraint.references) {
+                for (SRef sr : value.type.getConstraint().references) {
                     if (sr.refTable == refTable) {
                         has = true;
                         break;

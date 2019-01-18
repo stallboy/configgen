@@ -50,6 +50,7 @@
                 <fileset dir="${src}" includes="**/*Test.java"/>
             </batchtest>
         </junit>
+        <delete dir="${build.test}"/>
     </target>
 
 </project>

@@ -6,7 +6,7 @@
 
 * 通过配置外键，取值范围，使策划可以随时检测数据一致性
 * 通过生成代码，使程序方便访问类型化数据，外键引用和枚举得到一行，支持java,cSharp,lua
-* 支持多态bean，bean嵌套，可在一个单元格里，写任意复杂的bean结构数据，相当于让csv有了xml的灵活性
+* 支持多态bean，bean嵌套，可在一个单元格里写任意复杂的bean结构数据，相当于让csv有了xml的灵活性
 
 ## 快速开始
 * example/config 下是csv；config.xml 是配置文件；example/java, cs, lua目录下文件是gen.bat生成的代码文件。

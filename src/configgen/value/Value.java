@@ -8,10 +8,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class Value {
-    public final Type type;
+    protected final Type type;
 
     Value(Type type) {
         this.type = type;
+    }
+
+    public Type getType(){
+        return type;
     }
 
     public abstract void accept(ValueVisitor visitor);

@@ -80,8 +80,8 @@ public final class GenJavaData extends Generator {
 
         @Override
         public void visit(VMap value) {
-            output.writeInt(value.map.size());
-            value.map.forEach((k, v) -> {
+            output.writeInt(value.getMap().size());
+            value.getMap().forEach((k, v) -> {
                 k.accept(this);
                 v.accept(this);
             });
@@ -89,9 +89,9 @@ public final class GenJavaData extends Generator {
 
         @Override
         public void visit(VBean value) {
-            if (value.childDynamicVBean != null) {
-                output.writeStr(value.childDynamicVBean.beanType.name);
-                value.childDynamicVBean.getValues().forEach(v -> v.accept(this));
+            if (value.getChildDynamicVBean() != null) {
+                output.writeStr(value.getChildDynamicVBean().getTBean().name);
+                value.getChildDynamicVBean().getValues().forEach(v -> v.accept(this));
             } else {
                 value.getValues().forEach(v -> v.accept(this));
             }
@@ -101,7 +101,7 @@ public final class GenJavaData extends Generator {
     private void writeValue(VDb vDb, ConfigOutput output) throws IOException {
         int cnt = 0;
         for (VTable vTable : vDb.getVTables()) {
-            if (vTable.tableType.tableDefine.isEnumFull() && vTable.tableType.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
+            if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                 Logger.verbose("ignore write data" + vTable.name);
             } else {
                 cnt++;
@@ -109,7 +109,7 @@ public final class GenJavaData extends Generator {
         }
         output.writeInt(cnt);
         for (VTable vTable : vDb.getVTables()) {
-            if (vTable.tableType.tableDefine.isEnumFull() && vTable.tableType.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
+            if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                 continue;
             }
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

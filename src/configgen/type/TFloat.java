@@ -3,7 +3,6 @@ package configgen.type;
 import configgen.Node;
 
 public class TFloat extends TPrimitive {
-
     TFloat(Node parent, String name, int idx) {
         super(parent, name, idx);
     }

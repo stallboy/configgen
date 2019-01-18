@@ -11,14 +11,14 @@ import java.util.Map;
 
 public class TDb extends Node {
     private final Map<String, TBean> tBeans = new LinkedHashMap<>();
-    public final Map<String, TTable> tTables = new LinkedHashMap<>();
+    private final Map<String, TTable> tTables = new LinkedHashMap<>();
 
     public TDb(Db defineDb) {
         super(null, "tdb");
         for (Bean bean : defineDb.getBeans()) {
             try {
                 TBean tBean = new TBean(this, bean);
-                tBeans.put(bean.name, tBean);
+                tBeans.put(tBean.name, tBean);
             } catch (Throwable e) {
                 throw new AssertionError(bean.name + "，这个结构体类型构造出错", e);
             }
@@ -27,11 +27,27 @@ public class TDb extends Node {
         for (Table table : defineDb.tables.values()) {
             try {
                 TTable tTable = new TTable(this, table);
-                tTables.put(table.name, tTable);
+                tTables.put(tTable.name, tTable);
             } catch (Throwable e) {
                 throw new AssertionError(table.name + "，这个表类型构造出错", e);
             }
         }
+    }
+
+    public Collection<TBean> getTBeans() {
+        return tBeans.values();
+    }
+
+    public Collection<TTable> getTTables() {
+        return tTables.values();
+    }
+
+    public TBean getTBean(String beanName) {
+        return tBeans.get(beanName);
+    }
+
+    public TTable getTTable(String tableName) {
+        return tTables.get(tableName);
     }
 
     public void resolve() {
@@ -50,17 +66,5 @@ public class TDb extends Node {
                 throw new AssertionError(tTable.name + ",这个表类型解析出错", e);
             }
         }
-    }
-
-    public TBean getTBean(String beanName){
-        return tBeans.get(beanName);
-    }
-
-    public Collection<TBean> getTBeans() {
-        return tBeans.values();
-    }
-
-    public Collection<TTable> getTTables() {
-        return tTables.values();
     }
 }

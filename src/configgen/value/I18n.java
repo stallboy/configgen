@@ -67,7 +67,7 @@ public final class I18n {
         this.collector = collector;
     }
 
-    public void enterTable(String table) {
+    void enterTable(String table) {
         if (collector != null) {
             collector.enterTable(table);
         }
@@ -78,7 +78,7 @@ public final class I18n {
         curTable = map.get(table);
     }
 
-    public String enterText(String raw) {
+    String enterText(String raw) {
         if (collector == null && curTable == null) {
             return null;
         }

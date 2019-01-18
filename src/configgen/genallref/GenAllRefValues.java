@@ -50,7 +50,7 @@ public class GenAllRefValues extends Generator {
     public void generate(Context ctx) throws IOException {
         Set<String> allrefs = new TreeSet<>();
         VDb value = ctx.makeValue();
-        TTable refTable = value.getTDb().tTables.get(ref);
+        TTable refTable = value.getTDb().getTTable(ref);
         if (refTable == null) {
             System.out.println("ref " + ref + " not a table");
             return;
@@ -59,14 +59,14 @@ public class GenAllRefValues extends Generator {
         ValueVisitor vs = new ValueVisitor() {
             private void vp(VPrimitive value) {
                 boolean has = false;
-                for (SRef sr : value.type.getConstraint().references) {
+                for (SRef sr : value.getType().getConstraint().references) {
                     if (sr.refTable == refTable) {
                         has = true;
                         break;
                     }
                 }
                 if (has) {
-                    allrefs.add(value.raw.getData());
+                    allrefs.add(value.getRawString());
                 }
             }
 
@@ -102,7 +102,7 @@ public class GenAllRefValues extends Generator {
 
             @Override
             public void visit(VMap value) {
-                value.map.forEach((k, v) -> {
+                value.getMap().forEach((k, v) -> {
                     k.accept(this);
                     v.accept(this);
                 });

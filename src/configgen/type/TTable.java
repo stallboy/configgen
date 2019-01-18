@@ -11,32 +11,45 @@ import java.util.List;
 import java.util.Map;
 
 public class TTable extends Node {
-    public final Table tableDefine;
-    public final TBean tbean; //具体的column委派到TBean中
-
-    // 枚举列
-    private Type enumColumn;
-
+    private final Table tableDefine;
+    private final TBean tBean; //具体的column委派到TBean中
+    private Type enumColumn; // 枚举列
 
     //表可以有一个主键，多个唯一键
-    public final Map<String, Type> primaryKey = new LinkedHashMap<>();
-    public final List<Map<String, Type>> uniqueKeys = new ArrayList<>();
+    private final Map<String, Type> primaryKey = new LinkedHashMap<>();
+    private final List<Map<String, Type>> uniqueKeys = new ArrayList<>();
 
 
     public TTable(TDb parent, Table cfg) {
         super(parent, cfg.bean.name);
         this.tableDefine = cfg;
-        tbean = new TBean(this, cfg.bean);
+        tBean = new TBean(this, cfg.bean);
     }
 
-    public Type getEnumColumnType(){
+    public Table getTableDefine() {
+        return tableDefine;
+    }
+
+    public TBean getTBean() {
+        return tBean;
+    }
+
+    public Type getEnumColumnType() {
         return enumColumn;
     }
 
+    public Map<String, Type> getPrimaryKey() {
+        return primaryKey;
+    }
+
+    public List<Map<String, Type>> getUniqueKeys() {
+        return uniqueKeys;
+    }
+
     public void resolve() {
-        tbean.resolve();
+        tBean.resolve();
         if (tableDefine.enumType != Table.EnumType.None) {
-            enumColumn = tbean.columns.get(tableDefine.enumStr);
+            enumColumn = tBean.getColumnMap().get(tableDefine.enumStr);
             if (enumColumn == null) {
                 error("枚举列未找到", tableDefine.enumStr);
             } else {
@@ -62,7 +75,7 @@ public class TTable extends Node {
 
     private void resolveKey(String[] keys, Map<String, Type> res) {
         for (String k : keys) {
-            Type t = tbean.columns.get(k);
+            Type t = tBean.getColumnMap().get(k);
             if (t == null) {
                 error("外键列未找到", k);
             } else if (t.hasText()) {
@@ -73,4 +86,6 @@ public class TTable extends Node {
             require(keys.length == 1 || t instanceof TPrimitive, "外键类型不支持容器和Bean", k);
         }
     }
+
+
 }

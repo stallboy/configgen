@@ -3,7 +3,6 @@ package configgen.type;
 import configgen.Node;
 
 public class TInt extends TPrimitive {
-
     TInt(Node parent, String name, int idx) {
         super(parent, name, idx);
     }

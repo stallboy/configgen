@@ -174,9 +174,9 @@ public class GenLua extends Generator {
             definePkg(full, ps, context);
             context.add(full);
 
-            if (tbean.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
+            if (tbean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
                 ps.println("%s = {}", full);
-                for (TBean actionBean : tbean.childDynamicBeans.values()) {
+                for (TBean actionBean : tbean.getChildDynamicBeans()) {
                     //function mkcfg.action(typeName, refs, ...)
                     String fulln = fullName(actionBean);
                     definePkg(fulln, ps, context);
@@ -193,11 +193,11 @@ public class GenLua extends Generator {
     }
 
     private void generate_table(VTable vtable, Name name, CachedIndentPrinter ps, StringBuilder lineCache) {
-        TTable ttable = vtable.tableType;
-        TBean tbean = ttable.tbean;
+        TTable ttable = vtable.getTTable();
+        TBean tbean = ttable.getTBean();
 
         ps.println("local %s = require \"%s._cfgs\"", pkg, pkg);
-        if (ttable.tbean.hasSubBean()) {
+        if (ttable.getTBean().hasSubBean()) {
             ps.println("local Beans = %s._beans", pkg);
         }
         ps.println();
@@ -288,11 +288,11 @@ public class GenLua extends Generator {
 
             @Override
             public void visit(VMap value) {
-                int sz = value.map.size();
+                int sz = value.getMap().size();
                 int idx = 0;
 
                 res.append("{");
-                for (Map.Entry<Value, Value> entry : value.map.entrySet()) {
+                for (Map.Entry<Value, Value> entry : value.getMap().entrySet()) {
                     getLuaValueString(res, entry.getKey(), null, true);
                     res.append(" = ");
                     getLuaValueString(res, entry.getValue());
@@ -307,12 +307,12 @@ public class GenLua extends Generator {
             @Override
             public void visit(VBean value) {
                 VBean val = value;
-                if (value.beanType.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
-                    val = value.childDynamicVBean;
+                if (value.getTBean().getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
+                    val = value.getChildDynamicVBean();
                 }
                 String beanType = beanTypeStr;
                 if (beanType == null) {
-                    beanType = fullName(val.beanType);
+                    beanType = fullName(val.getTBean());
                 }
 
                 res.append(beanType).append("(");
@@ -337,8 +337,8 @@ public class GenLua extends Generator {
     private String getLuaUniqKeysString(TTable ttable) {
         StringBuilder sb = new StringBuilder();
         sb.append("{ ");
-        sb.append(getLuaOneUniqKeyString(ttable, ttable.primaryKey, true));
-        for (Map<String, Type> uniqueKey : ttable.uniqueKeys) {
+        sb.append(getLuaOneUniqKeyString(ttable, ttable.getPrimaryKey(), true));
+        for (Map<String, Type> uniqueKey : ttable.getUniqueKeys()) {
             sb.append(getLuaOneUniqKeyString(ttable, uniqueKey, false));
         }
         sb.append("}");
@@ -351,7 +351,7 @@ public class GenLua extends Generator {
 
         Iterator<String> it = keys.keySet().iterator();
         String key1 = it.next();
-        int keyidx1 = findFieldIdx(ttable.tbean, key1);
+        int keyidx1 = findFieldIdx(ttable.getTBean(), key1);
 
         boolean hasKeyIdx2 = false;
         int keyidx2 = 0;
@@ -361,7 +361,7 @@ public class GenLua extends Generator {
             }
             String key2 = it.next();
             hasKeyIdx2 = true;
-            keyidx2 = findFieldIdx(ttable.tbean, key2);
+            keyidx2 = findFieldIdx(ttable.getTBean(), key2);
         }
 
         if (hasKeyIdx2) {
@@ -372,11 +372,11 @@ public class GenLua extends Generator {
     }
 
     private String getLuaEnumIdxString(TTable ttable) {
-        switch (ttable.tableDefine.enumType) {
+        switch (ttable.getTableDefine().enumType) {
             case None:
                 return "nil";
             default:
-                return String.valueOf(findFieldIdx(ttable.tbean, ttable.tableDefine.enumStr));
+                return String.valueOf(findFieldIdx(ttable.getTBean(), ttable.getTableDefine().enumStr));
         }
     }
 
@@ -386,7 +386,7 @@ public class GenLua extends Generator {
         boolean hasRef = false;
         sb.append("{ ");
         int i = 0;
-        for (Type t : tbean.columns.values()) {
+        for (Type t : tbean.getColumns()) {
             i++;
             for (SRef r : t.getConstraint().references) {
                 if (t instanceof TMap) {
@@ -405,7 +405,7 @@ public class GenLua extends Generator {
             }
         }
 
-        for (TForeignKey mRef : tbean.mRefs) {
+        for (TForeignKey mRef : tbean.getMRefs()) {
             String refname = refName(mRef);
             String dsttable = fullName(mRef.refTable);
             String dstgetname = uniqueKeyGetByName(mRef.foreignKeyDefine.ref.cols);
@@ -441,11 +441,11 @@ public class GenLua extends Generator {
     private String getLuaFieldsString(TBean tbean) {
         StringBuilder sb = new StringBuilder();
 
-        int cnt = tbean.columns.size();
+        int cnt = tbean.getColumnMap().size();
         int i = 0;
-        for (String n : tbean.columns.keySet()) {
+        for (String n : tbean.getColumnMap().keySet()) {
             i++;
-            Column f = tbean.beanDefine.columns.get(n);
+            Column f = tbean.getBeanDefine().columns.get(n);
             String c = f.desc.isEmpty() ? "" : ", " + f.desc;
             if (i < cnt) {
                 sb.append("\n    \"").append(lower1(n)).append("\", -- ").append(f.type).append(c);
@@ -459,7 +459,7 @@ public class GenLua extends Generator {
 
     private int findFieldIdx(TBean tbean, String fieldName) {
         int i = 0;
-        for (String s : tbean.columns.keySet()) {
+        for (String s : tbean.getColumnMap().keySet()) {
             i++;
             if (s.equals(fieldName)) {
                 return i;
@@ -499,16 +499,16 @@ public class GenLua extends Generator {
     }
 
     private String fullName(TBean tbean) {
-        if (tbean.beanDefine.type == Bean.BeanType.Table)
+        if (tbean.getBeanDefine().type == Bean.BeanType.Table)
             return new Name(pkg, tbean.name).fullName;
-        else if (tbean.beanDefine.type == Bean.BeanType.ChildDynamicBean)
+        else if (tbean.getBeanDefine().type == Bean.BeanType.ChildDynamicBean)
             return "Beans." + (((TBean) tbean.parent)).name.toLowerCase() + "." + tbean.name.toLowerCase();
         else
             return "Beans." + tbean.name.toLowerCase();
     }
 
     private String fullName(TTable ttable) {
-        return fullName(ttable.tbean);
+        return fullName(ttable.getTBean());
     }
 
 }

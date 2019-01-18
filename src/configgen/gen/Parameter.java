@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class Parameter {
     private final String arg;
-    public final String type;
+    final String type;
     private final Map<String, String> params = new HashMap<>();
 
     public Parameter(String arg) {

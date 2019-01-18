@@ -3,7 +3,6 @@ package configgen.type;
 import configgen.Node;
 
 public class TBool extends TPrimitive {
-
     TBool(Node parent, String name, int idx) {
         super(parent, name, idx);
     }

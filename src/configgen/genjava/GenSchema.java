@@ -16,16 +16,16 @@ public final class GenSchema {
             root.addImp(tBean.name, parseBean(tBean));
         }
         for (VTable vTable : vdb.getVTables()) {
-            TTable tTable = vTable.tableType;
+            TTable tTable = vTable.getTTable();
 
-            if (tTable.tableDefine.isEnumFull()) {
+            if (tTable.getTableDefine().isEnumFull()) {
                 root.addImp(tTable.name, parseEnum(vTable));
-                if (!tTable.tableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr()) {
-                    root.addImp(tTable.name + "_Detail", parseBean(tTable.tbean));
+                if (!tTable.getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
+                    root.addImp(tTable.name + "_Detail", parseBean(tTable.getTBean()));
                 }
             } else {
-                root.addImp(tTable.name, parseBean(tTable.tbean));
-                if (tTable.tableDefine.isEnumPart()) {
+                root.addImp(tTable.name, parseBean(tTable.getTBean()));
+                if (tTable.getTableDefine().isEnumPart()) {
                     root.addImp(tTable.name + "_Entry", parseEnum(vTable));
                 }
             }
@@ -34,16 +34,16 @@ public final class GenSchema {
     }
 
     private static Schema parseEnum(VTable vTable) {
-        boolean isEnumPart = vTable.tableType.tableDefine.enumType == Table.EnumType.EnumPart;
-        boolean hasIntValue = !vTable.tableType.tableDefine.isEnumAsPrimaryKey();
+        boolean isEnumPart = vTable.getTTable().getTableDefine().enumType == Table.EnumType.EnumPart;
+        boolean hasIntValue = !vTable.getTTable().getTableDefine().isEnumAsPrimaryKey();
         SchemaEnum se = new SchemaEnum(isEnumPart, hasIntValue);
 
         if (hasIntValue) {
-            for (Map.Entry<String, Integer> stringIntegerEntry : vTable.enumName2IntegerValueMap.entrySet()) {
+            for (Map.Entry<String, Integer> stringIntegerEntry : vTable.getEnumName2IntegerValueMap().entrySet()) {
                 se.addValue(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
             }
         } else {
-            for (String enumName : vTable.enumNames) {
+            for (String enumName : vTable.getEnumNames()) {
                 se.addValue(enumName);
             }
         }
@@ -51,15 +51,15 @@ public final class GenSchema {
     }
 
     private static Schema parseBean(TBean tBean) {
-        if (tBean.beanDefine.type == Bean.BeanType.BaseDynamicBean) {
+        if (tBean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
             SchemaInterface si = new SchemaInterface();
-            for (TBean subBean : tBean.childDynamicBeans.values()) {
+            for (TBean subBean : tBean.getChildDynamicBeans()) {
                 si.addImp(subBean.name, parseBean(subBean));
             }
             return si;
         } else {
-            SchemaBean sb = new SchemaBean(tBean.beanDefine.type == Bean.BeanType.Table);
-            for (Map.Entry<String, Type> stringTypeEntry : tBean.columns.entrySet()) {
+            SchemaBean sb = new SchemaBean(tBean.getBeanDefine().type == Bean.BeanType.Table);
+            for (Map.Entry<String, Type> stringTypeEntry : tBean.getColumnMap().entrySet()) {
                 sb.addColumn(stringTypeEntry.getKey(), parseType(stringTypeEntry.getValue()));
             }
             return sb;

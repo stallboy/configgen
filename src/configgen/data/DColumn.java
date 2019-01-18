@@ -8,8 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public final class DColumn extends Node {
-    public final List<Integer> indexes = new ArrayList<>();
+final class DColumn extends Node {
+    final List<Integer> indexes = new ArrayList<>();
     final List<String> descs = new ArrayList<>();
 
     DColumn(DTable parent, String name) {
@@ -36,7 +36,7 @@ public final class DColumn extends Node {
 
     private Set<String> dataSet() {
         Set<String> r = new HashSet<>();
-        for (List<String> row : ((DTable) parent).recordList){
+        for (List<String> row : ((DTable) parent).getRecordList()){
             if (CSVParser.isEmptyRecord(row)){
                 continue;
             }
@@ -55,7 +55,7 @@ public final class DColumn extends Node {
 
     private Pair dataKeyValueSet() {
         Pair res = new Pair();
-        for (List<String> row : ((DTable) parent).recordList) {
+        for (List<String> row : ((DTable) parent).getRecordList()) {
             if (CSVParser.isEmptyRecord(row)){
                 continue;
             }

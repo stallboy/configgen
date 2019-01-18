@@ -50,8 +50,8 @@ class PackValueVisitor implements ValueVisitor {
 
     @Override
     public void visit(VMap value) {
-        addInt(value.map.size());
-        value.map.forEach((k, v) -> {
+        addInt(value.getMap().size());
+        value.getMap().forEach((k, v) -> {
             k.accept(this);
             v.accept(this);
         });
@@ -59,9 +59,9 @@ class PackValueVisitor implements ValueVisitor {
 
     @Override
     public void visit(VBean value) {
-        if (value.childDynamicVBean != null) {
-            addString(value.childDynamicVBean.beanType.name);
-            for (Value v : value.childDynamicVBean.getValues()) {
+        if (value.getChildDynamicVBean() != null) {
+            addString(value.getChildDynamicVBean().getTBean().name);
+            for (Value v : value.getChildDynamicVBean().getValues()) {
                 v.accept(this);
             }
         }else{
@@ -72,7 +72,7 @@ class PackValueVisitor implements ValueVisitor {
     }
 
     void addVTable(VTable vtable) {
-        addString(vtable.tableType.tbean.beanDefine.name);
+        addString(vtable.getTTable().getTBean().getBeanDefine().name);
         addInt(vtable.getVBeanList().size());
         for (VBean v : vtable.getVBeanList()) {
             v.accept(this);

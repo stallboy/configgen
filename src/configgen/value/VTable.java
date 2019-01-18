@@ -10,30 +10,25 @@ import configgen.util.CSVParser;
 import java.util.*;
 
 public class VTable extends Node {
-    public final TTable tableType;
+    private final TTable tTable;
     private List<VBean> vBeanList;
     final Set<Value> primaryKeyValueSet = new LinkedHashSet<>();
     final Map<String, Set<Value>> uniqueKeyValueSetMap = new LinkedHashMap<>();
 
-    public final Set<String> enumNames = new LinkedHashSet<>();
-    public final Map<String, Integer> enumName2IntegerValueMap = new LinkedHashMap<>();
-
-    public List<VBean> getVBeanList() {
-        return vBeanList;
-    }
-
+    private final Set<String> enumNames = new LinkedHashSet<>();
+    private final Map<String, Integer> enumName2IntegerValueMap = new LinkedHashMap<>();
 
     public VTable(VDb parent, TTable ttable, DTable dtable) {
         super(parent, ttable.name);
-        tableType = ttable;
+        tTable = ttable;
         parent.getI18n().enterTable(name);
         List<Integer> columnIndexes = new ArrayList<>();
-        ttable.tbean.columns.forEach((fn, type) -> columnIndexes.addAll(dtable.dcolumns.get(fn).indexes));
+        ttable.getTBean().getColumnMap().forEach((fn, type) -> columnIndexes.addAll(dtable.getColumnIndexes(fn)));
         require(columnIndexes.size() > 0);
 
-        vBeanList = new ArrayList<>(dtable.recordList.size());
+        vBeanList = new ArrayList<>(dtable.getRecordList().size());
         int row = 1;
-        for (List<String> rowData : dtable.recordList) {
+        for (List<String> rowData : dtable.getRecordList()) {
             row++; // 从2开始
             if (CSVParser.isEmptyRecord(rowData)) {
                 continue;
@@ -44,23 +39,23 @@ public class VTable extends Node {
                 cells.add(c);
             }
 
-            VBean vbean = new VBean(ttable.tbean, cells, false);
+            VBean vbean = new VBean(ttable.getTBean(), cells, false);
             vBeanList.add(vbean);
         }
 
         // 收集主键和唯一键
-        extractKeyValues(tableType.primaryKey.values(), primaryKeyValueSet);
-        for (Map<String, Type> uniqueKey : tableType.uniqueKeys) {
+        extractKeyValues(tTable.getPrimaryKey().values(), primaryKeyValueSet);
+        for (Map<String, Type> uniqueKey : tTable.getUniqueKeys()) {
             Set<Value> res = new HashSet<>();
             extractKeyValues(uniqueKey.values(), res);
             uniqueKeyValueSetMap.put(String.join(",", uniqueKey.keySet()), res);
         }
 
         // 收集枚举
-        if (tableType.tableDefine.isEnum()) {
+        if (tTable.getTableDefine().isEnum()) {
             Set<String> names = new HashSet<>();
             for (VBean vbean : vBeanList) {
-                Value v = vbean.getColumnValue(tableType.getEnumColumnType());
+                Value v = vbean.getColumnValue(tTable.getEnumColumnType());
                 VString vStr = (VString) v;
                 if (vStr == null) {
                     error("枚举必须是字符串");
@@ -70,13 +65,13 @@ public class VTable extends Node {
                 require(!e.contains(" "), "枚举值字符串不应该包含空格");
 
                 if (e.isEmpty()) {
-                    require(tableType.tableDefine.enumType == Table.EnumType.EnumPart, "全枚举不能有空格");
+                    require(tTable.getTableDefine().enumType == Table.EnumType.EnumPart, "全枚举不能有空格");
                 } else {
                     require(names.add(e.toUpperCase()), "枚举数据重复", e);
                     enumNames.add(e);
 
-                    if (!tableType.tableDefine.isEnumAsPrimaryKey()) { //必须是int，这里是java生成需要
-                        Type primaryKeyCol = tableType.primaryKey.values().iterator().next();
+                    if (!tTable.getTableDefine().isEnumAsPrimaryKey()) { //必须是int，这里是java生成需要
+                        Type primaryKeyCol = tTable.getPrimaryKey().values().iterator().next();
                         Value primaryV = vbean.getColumnValue(primaryKeyCol);
                         Integer iv = ((VInt) primaryV).value;
                         enumName2IntegerValueMap.put(e, iv);
@@ -84,6 +79,22 @@ public class VTable extends Node {
                 }
             }
         }
+    }
+
+    public TTable getTTable() {
+        return tTable;
+    }
+
+    public List<VBean> getVBeanList() {
+        return vBeanList;
+    }
+
+    public Set<String> getEnumNames() {
+        return enumNames;
+    }
+
+    public Map<String, Integer> getEnumName2IntegerValueMap() {
+        return enumName2IntegerValueMap;
     }
 
     private void extractKeyValues(Collection<Type> keys, Set<Value> keyValueSet) {
@@ -109,7 +120,7 @@ public class VTable extends Node {
         for (VBean vBean : vBeanList) {
             vBean.verifyConstraint();
         }
-        if (tableType.tableDefine.isPrimaryKeySeq) {
+        if (tTable.getTableDefine().isPrimaryKeySeq) {
             int seq = 1;
             for (Value value : primaryKeyValueSet) {
                 VInt v = (VInt) value;
@@ -122,6 +133,4 @@ public class VTable extends Node {
             }
         }
     }
-
-
 }

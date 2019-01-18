@@ -59,13 +59,17 @@ public class DDb extends Node {
     }
 
     public void autoCompleteDefine(Db defineDb, TDb typeDb) {
-        Map<String, TTable> old = new HashMap<>(typeDb.tTables);
+        Map<String, TTable> old = new HashMap<>();
+        for (TTable tTable : typeDb.getTTables()) {
+            old.put(tTable.name, tTable);
+        }
+
         defineDb.tables.clear();
         for (DTable dTable : dTables.values()) {
             TTable ttable = old.remove(dTable.name);
             Table tableDefine;
             if (ttable != null) {
-                tableDefine = ttable.tableDefine;
+                tableDefine = ttable.getTableDefine();
                 defineDb.tables.put(dTable.name, tableDefine);
             } else {
                 tableDefine = defineDb.newTable(dTable.name);

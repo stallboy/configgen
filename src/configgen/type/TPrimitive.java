@@ -3,7 +3,6 @@ package configgen.type;
 import configgen.Node;
 
 public abstract class TPrimitive extends Type {
-
     TPrimitive(Node parent, String name, int idx) {
         super(parent, name, idx);
     }

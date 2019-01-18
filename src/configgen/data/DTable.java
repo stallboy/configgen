@@ -12,8 +12,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class DTable extends Node {
-    public final Map<String, DColumn> dcolumns = new LinkedHashMap<>();
-    public final List<List<String>> recordList;
+    private final Map<String, DColumn> dcolumns = new LinkedHashMap<>();
+    private final List<List<String>> recordList;
     private final List<String> descLine;
     private final List<String> nameLine;
 
@@ -49,6 +49,14 @@ public class DTable extends Node {
         recordList = raw.subList(2, raw.size());
     }
 
+    public List<Integer> getColumnIndexes(String columnName){
+        return dcolumns.get(columnName).indexes;
+    }
+
+    public List<List<String>> getRecordList() {
+        return recordList;
+    }
+
     void autoCompleteDefine(Table table) {
         Bean bean = table.bean;
         Map<String, Column> old = new LinkedHashMap<>(bean.columns);
@@ -69,7 +77,7 @@ public class DTable extends Node {
 
     void parse(TTable ttable) {
         if (ttable != null) {
-            defined = ttable.tbean.columns;
+            defined = ttable.getTBean().getColumnMap();
         } else {
             defined = Collections.emptyMap();
         }

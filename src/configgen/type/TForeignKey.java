@@ -30,14 +30,14 @@ public class TForeignKey extends Node {
         thisTableKeys = new Type[foreignKeyDefine.keys.length];
         int i = 0;
         for (String key : foreignKeyDefine.keys) {
-            Type t = ((TBean) parent).columns.get(key);
+            Type t = ((TBean) parent).getColumnMap().get(key);
             require(null != t, "外键列不存在", key);
             thisTableKeys[i++] = t;
         }
     }
 
     private TTable resolveRef(Ref ref) {
-        TTable tt = ((TDb) root).tTables.get(ref.table);
+        TTable tt = ((TDb) root).getTTable(ref.table);
         require(tt != null, "外键表不存在", ref.table);
         return tt;
     }

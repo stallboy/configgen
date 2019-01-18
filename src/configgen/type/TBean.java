@@ -8,21 +8,21 @@ import configgen.define.KeyRange;
 import java.util.*;
 
 public class TBean extends Type {
-    public final Bean beanDefine;
+    private final Bean beanDefine;
 
     // 列
-    public final Map<String, Type> columns = new LinkedHashMap<>();
+    private final Map<String, Type> columns = new LinkedHashMap<>();
 
     // 可以有多个外键，foreignKeys包含所有外键信息。
     // 然后把单列外键分配到Type.constraints.references，多列外键分配到mRefs，
     // 索引到非unique key的表的外键分配到listRefs。
     private final List<TForeignKey> foreignKeys = new ArrayList<>();
-    public final List<TForeignKey> mRefs = new ArrayList<>();
-    public final List<TForeignKey> listRefs = new ArrayList<>();
+    private final List<TForeignKey> mRefs = new ArrayList<>();
+    private final List<TForeignKey> listRefs = new ArrayList<>();
 
     // 多态Bean基类包含这些子类定义
-    public TTable childDynamicBeanEnumRefTable;
-    public final Map<String, TBean> childDynamicBeans = new LinkedHashMap<>();
+    private TTable childDynamicBeanEnumRefTable;
+    private final Map<String, TBean> childDynamicBeans = new LinkedHashMap<>();
 
 
     public TBean(TDb parent, Bean bean) {
@@ -62,6 +62,39 @@ public class TBean extends Type {
         }
     }
 
+
+    public Bean getBeanDefine() {
+        return beanDefine;
+    }
+
+    public Map<String, Type> getColumnMap() {
+        return columns;
+    }
+
+    public Collection<Type> getColumns() {
+        return columns.values();
+    }
+
+    public List<TForeignKey> getMRefs() {
+        return mRefs;
+    }
+
+    public List<TForeignKey> getListRefs() {
+        return listRefs;
+    }
+
+    public TTable getChildDynamicBeanEnumRefTable() {
+        return childDynamicBeanEnumRefTable;
+    }
+
+    public Collection<TBean> getChildDynamicBeans() {
+        return childDynamicBeans.values();
+    }
+
+    public TBean getChildDynamicBeanByName(String name) {
+        return childDynamicBeans.get(name);
+    }
+
     @Override
     public String fullName() {
         if (parent instanceof TTable) {
@@ -71,9 +104,6 @@ public class TBean extends Type {
         }
     }
 
-    public Collection<Type> getColumns() {
-        return columns.values();
-    }
 
     private boolean _hasRef = false;
     private boolean _hasRefChecked = false;
@@ -208,7 +238,7 @@ public class TBean extends Type {
 
     public void resolve() {
         if (beanDefine.type == Bean.BeanType.BaseDynamicBean) {
-            childDynamicBeanEnumRefTable = ((TDb) root).tTables.get(beanDefine.childDynamicBeanEnumRef);
+            childDynamicBeanEnumRefTable = ((TDb) root).getTTable(beanDefine.childDynamicBeanEnumRef);
             require(childDynamicBeanEnumRefTable != null, "多态Bean的枚举表不存在", beanDefine.childDynamicBeanEnumRef);
             for (TBean tBean : childDynamicBeans.values()) {
                 tBean.resolve();
@@ -293,4 +323,5 @@ public class TBean extends Type {
             error("类型不支持", col.type);
         }
     }
+
 }

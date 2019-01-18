@@ -17,15 +17,15 @@ public class VDb extends Node {
         return current;
     }
 
-    private final TDb dbType;
+    private final TDb tDb;
     private final I18n i18n;
     private Map<String, VTable> vTables;
 
     public VDb(TDb tdb, DDb ddb, I18n i18n) {
         super(null, "value");
-        this.dbType = tdb;
+        this.tDb = tdb;
         this.i18n = i18n;
-        vTables = new LinkedHashMap<>(tdb.tTables.size());
+        vTables = new LinkedHashMap<>(tdb.getTTables().size());
         current = this;
         for (TTable tTable : tdb.getTTables()) {
             try {
@@ -48,7 +48,7 @@ public class VDb extends Node {
     }
 
     public TDb getTDb() {
-        return dbType;
+        return tDb;
     }
 
     public Collection<VTable> getVTables() {

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class VMap extends VComposite {
-    public final Map<Value, Value> map = new LinkedHashMap<>();
+    private final Map<Value, Value> map = new LinkedHashMap<>();
 
     VMap(TMap type, List<Cell> data, boolean compressAsOne) {
         super(type, data);
@@ -38,6 +38,10 @@ public class VMap extends VComposite {
             }
         }
     }
+    
+    public Map<Value, Value> getMap() {
+        return map;
+    }
 
     @Override
     public void accept(ValueVisitor visitor) {
@@ -61,5 +65,4 @@ public class VMap extends VComposite {
     public int hashCode() {
         return map.hashCode();
     }
-
 }

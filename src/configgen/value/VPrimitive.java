@@ -6,12 +6,16 @@ import configgen.type.TPrimitive;
 import java.util.List;
 
 public abstract class VPrimitive extends Value {
-    public final Cell raw;
+    final Cell raw;
 
     VPrimitive(TPrimitive type, List<Cell> data) {
         super(type);
         require(data.size() == 1);
         raw = data.get(0);
+    }
+
+    public String getRawString(){
+        return raw.getData();
     }
 
     public abstract boolean checkRange(Range range);

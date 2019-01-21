@@ -4,6 +4,7 @@ local Beans = cfg._beans
 local this = cfg.equip.jewelry
 
 local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, { 
+    { "RefLvlRank", false, cfg.equip.jewelryrandom, "get", 4 }, 
     { "RefType", false, cfg.equip.jewelrytype, "get", 5 }, 
     { "NullableRefSuitID", false, cfg.equip.jewelrysuit, "get", 6 }, 
     { "RefKeyAbility", false, cfg.equip.ability, "get", 7 }, }, 

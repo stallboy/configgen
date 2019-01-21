@@ -63,6 +63,17 @@ public class ConfigCodeSchema {
         }
         {
             SchemaBean s3 = new SchemaBean(false);
+            s3.addColumn("msg", SchemaPrimitive.SStr);
+            s2.addImp("Chat", s3);
+        }
+        {
+            SchemaBean s3 = new SchemaBean(false);
+            s3.addColumn("cond1", new SchemaRef("task.completecondition"));
+            s3.addColumn("cond2", new SchemaRef("task.completecondition"));
+            s2.addImp("ConditionAnd", s3);
+        }
+        {
+            SchemaBean s3 = new SchemaBean(false);
             s3.addColumn("itemid", SchemaPrimitive.SInt);
             s3.addColumn("count", SchemaPrimitive.SInt);
             s2.addImp("CollectItem", s3);
@@ -102,6 +113,7 @@ public class ConfigCodeSchema {
         s2.addColumn("LvlRank", new SchemaRef("LevelRank"));
         s2.addColumn("AttackRange", new SchemaRef("Range"));
         s2.addColumn("OtherRange", new SchemaList(new SchemaRef("Range")));
+        s2.addColumn("TestRange", new SchemaList(new SchemaRef("Range")));
         return s2;
     }
 
@@ -187,6 +199,8 @@ public class ConfigCodeSchema {
         s2.addValue("KillMonster", 1);
         s2.addValue("TalkNpc", 2);
         s2.addValue("CollectItem", 3);
+        s2.addValue("ConditionAnd", 4);
+        s2.addValue("Chat", 5);
         return s2;
     }
 

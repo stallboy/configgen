@@ -10,6 +10,7 @@ namespace Config.Equip
         public string Name { get; private set; } // 首饰名称
         public string IconFile { get; private set; } // 图标ID
         public Config.DataLevelrank LvlRank { get; private set; } // 首饰等级
+        public Config.Equip.DataJewelryrandom RefLvlRank { get; private set; }
         public string Type { get; private set; } // 首饰类型
         public Config.Equip.DataJewelrytype RefType { get; private set; }
         public int SuitID { get; private set; } // 套装ID（为0是没有不属于套装，首饰品级为4的首饰该参数为套装id，其余情况为0,引用JewelrySuit.csv）
@@ -65,7 +66,7 @@ namespace Config.Equip
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
             all = new Config.KeyedList<int, DataJewelry>();
-            for (var c = os.ReadSize(); c > 0; c--) {
+            for (var c = os.ReadInt32(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(self.ID, self);
             }
@@ -95,6 +96,8 @@ namespace Config.Equip
         internal void _resolve(Config.LoadErrors errors)
         {
             LvlRank._resolve(errors);
+            RefLvlRank = Config.Equip.DataJewelryrandom.Get(LvlRank);
+            if (RefLvlRank == null) errors.RefNull("equip.jewelry", ToString(), "LvlRank", LvlRank);
             RefType = Config.Equip.DataJewelrytype.Get(Type);
             if (RefType == null) errors.RefNull("equip.jewelry", ToString(), "Type", Type);
             NullableRefSuitID = Config.Equip.DataJewelrysuit.Get(SuitID);

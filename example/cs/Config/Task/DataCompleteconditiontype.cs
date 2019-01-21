@@ -9,6 +9,8 @@ namespace Config.Task
         public static DataCompleteconditiontype KillMonster { get; private set; }
         public static DataCompleteconditiontype TalkNpc { get; private set; }
         public static DataCompleteconditiontype CollectItem { get; private set; }
+        public static DataCompleteconditiontype ConditionAnd { get; private set; }
+        public static DataCompleteconditiontype Chat { get; private set; }
 
         public int Id { get; private set; } // 任务完成条件类型（id的范围为1-100）
         public string Name { get; private set; } // 程序用名字
@@ -58,7 +60,7 @@ namespace Config.Task
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
             all = new Config.KeyedList<int, DataCompleteconditiontype>();
-            for (var c = os.ReadSize(); c > 0; c--) {
+            for (var c = os.ReadInt32(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(self.Id, self);
                 if (self.Name.Trim().Length == 0)
@@ -80,6 +82,16 @@ namespace Config.Task
                             errors.EnumDup("task.completeconditiontype", self.ToString());
                         CollectItem = self;
                         break;
+                    case "ConditionAnd":
+                        if (ConditionAnd != null)
+                            errors.EnumDup("task.completeconditiontype", self.ToString());
+                        ConditionAnd = self;
+                        break;
+                    case "Chat":
+                        if (Chat != null)
+                            errors.EnumDup("task.completeconditiontype", self.ToString());
+                        Chat = self;
+                        break;
                     default:
                         errors.EnumDataAdd("task.completeconditiontype", self.ToString());
                         break;
@@ -91,6 +103,10 @@ namespace Config.Task
                 errors.EnumNull("task.completeconditiontype", "TalkNpc");
             if (CollectItem == null)
                 errors.EnumNull("task.completeconditiontype", "CollectItem");
+            if (ConditionAnd == null)
+                errors.EnumNull("task.completeconditiontype", "ConditionAnd");
+            if (Chat == null)
+                errors.EnumNull("task.completeconditiontype", "Chat");
         }
 
         internal static DataCompleteconditiontype _create(Config.Stream os)

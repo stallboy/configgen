@@ -12,6 +12,10 @@ public interface Completecondition {
                 return config.task.completecondition.KillMonster._create(input);
             case "TalkNpc":
                 return config.task.completecondition.TalkNpc._create(input);
+            case "Chat":
+                return config.task.completecondition.Chat._create(input);
+            case "ConditionAnd":
+                return config.task.completecondition.ConditionAnd._create(input);
             case "CollectItem":
                 return config.task.completecondition.CollectItem._create(input);
         }

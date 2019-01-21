@@ -9,6 +9,7 @@ namespace Config.Equip
         public Config.DataLevelrank LvlRank { get; private set; } // 等级
         public Config.DataRange AttackRange { get; private set; } // 最小攻击力
         public List<Config.DataRange> OtherRange { get; private set; } // 最小防御力
+        public List<Config.DataRange> TestRange { get; private set; } // 测试compressAsOne
 
         public override int GetHashCode()
         {
@@ -25,7 +26,7 @@ namespace Config.Equip
 
         public override string ToString()
         {
-            return "(" + LvlRank + "," + AttackRange + "," + CSV.ToString(OtherRange) + ")";
+            return "(" + LvlRank + "," + AttackRange + "," + CSV.ToString(OtherRange) + "," + CSV.ToString(TestRange) + ")";
         }
 
         static Config.KeyedList<Config.DataLevelrank, DataJewelryrandom> all = null;
@@ -55,7 +56,7 @@ namespace Config.Equip
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
             all = new Config.KeyedList<Config.DataLevelrank, DataJewelryrandom>();
-            for (var c = os.ReadSize(); c > 0; c--) {
+            for (var c = os.ReadInt32(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(self.LvlRank, self);
             }
@@ -72,8 +73,11 @@ namespace Config.Equip
             self.LvlRank = Config.DataLevelrank._create(os);
             self.AttackRange = Config.DataRange._create(os);
             self.OtherRange = new List<Config.DataRange>();
-            for (var c = (int)os.ReadSize(); c > 0; c--)
+            for (var c = os.ReadInt32(); c > 0; c--)
                 self.OtherRange.Add(Config.DataRange._create(os));
+            self.TestRange = new List<Config.DataRange>();
+            for (var c = os.ReadInt32(); c > 0; c--)
+                self.TestRange.Add(Config.DataRange._create(os));
             return self;
         }
 

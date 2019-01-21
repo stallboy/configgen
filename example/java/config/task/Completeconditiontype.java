@@ -3,7 +3,9 @@ package config.task;
 public enum Completeconditiontype {
     KILLMONSTER("KillMonster", 1),
     TALKNPC("TalkNpc", 2),
-    COLLECTITEM("CollectItem", 3);
+    COLLECTITEM("CollectItem", 3),
+    CONDITIONAND("ConditionAnd", 4),
+    CHAT("Chat", 5);
 
     private String name;
     private int value;

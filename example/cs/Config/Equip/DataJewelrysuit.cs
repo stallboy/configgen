@@ -61,7 +61,7 @@ namespace Config.Equip
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
             all = new Config.KeyedList<int, DataJewelrysuit>();
-            for (var c = os.ReadSize(); c > 0; c--) {
+            for (var c = os.ReadInt32(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(self.SuitID, self);
             }
@@ -79,7 +79,7 @@ namespace Config.Equip
             self.Ability3 = os.ReadInt32();
             self.Ability3Value = os.ReadInt32();
             self.SuitList = new List<int>();
-            for (var c = (int)os.ReadSize(); c > 0; c--)
+            for (var c = os.ReadInt32(); c > 0; c--)
                 self.SuitList.Add(os.ReadInt32());
             return self;
         }

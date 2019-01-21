@@ -5,6 +5,7 @@ public class Jewelry {
     private String name;
     private String iconFile;
     private config.LevelRank lvlRank;
+    private config.equip.Jewelryrandom RefLvlRank;
     private String type;
     private config.equip.Jewelrytype RefType;
     private int suitID;
@@ -59,6 +60,10 @@ public class Jewelry {
      */
     public config.LevelRank getLvlRank() {
         return lvlRank;
+    }
+
+    public config.equip.Jewelryrandom refLvlRank() {
+        return RefLvlRank;
     }
 
     /**
@@ -122,6 +127,8 @@ public class Jewelry {
 
     public void _resolve(config.ConfigMgr mgr) {
         lvlRank._resolve(mgr);
+        RefLvlRank = mgr.equip_jewelryrandom_All.get(lvlRank);
+        java.util.Objects.requireNonNull(RefLvlRank);
         RefType = config.equip.Jewelrytype.get(type);
         java.util.Objects.requireNonNull(RefType);
         NullableRefSuitID = mgr.equip_jewelrysuit_All.get(suitID);

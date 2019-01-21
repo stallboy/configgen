@@ -62,7 +62,7 @@ namespace Config.Equip
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
             all = new Config.KeyedList<int, DataAbility>();
-            for (var c = os.ReadSize(); c > 0; c--) {
+            for (var c = os.ReadInt32(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(self.Id, self);
                 if (self.Name.Trim().Length == 0)

@@ -61,7 +61,7 @@ namespace Config.Equip
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
             all = new Config.KeyedList<int, DataRank>();
-            for (var c = os.ReadSize(); c > 0; c--) {
+            for (var c = os.ReadInt32(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(self.RankID, self);
                 if (self.RankName.Trim().Length == 0)

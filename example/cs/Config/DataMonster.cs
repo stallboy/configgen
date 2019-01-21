@@ -54,7 +54,7 @@ namespace Config
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
             all = new Config.KeyedList<int, DataMonster>();
-            for (var c = os.ReadSize(); c > 0; c--) {
+            for (var c = os.ReadInt32(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(self.Id, self);
             }
@@ -65,7 +65,7 @@ namespace Config
             var self = new DataMonster();
             self.Id = os.ReadInt32();
             self.PosList = new List<Config.DataPosition>();
-            for (var c = (int)os.ReadSize(); c > 0; c--)
+            for (var c = os.ReadInt32(); c > 0; c--)
                 self.PosList.Add(Config.DataPosition._create(os));
             return self;
         }

@@ -30,6 +30,13 @@ Beans.task.completecondition.killmonster = action("KillMonster", {
 Beans.task.completecondition.talknpc = action("TalkNpc", nil, 
     "npcid"  -- int
     )
+Beans.task.completecondition.chat = action("Chat", nil, 
+    "msg"  -- string
+    )
+Beans.task.completecondition.conditionand = action("ConditionAnd", nil, 
+    "cond1", -- task.completecondition
+    "cond2"  -- task.completecondition
+    )
 Beans.task.completecondition.collectitem = action("CollectItem", nil, 
     "itemid", -- int
     "count"  -- int

@@ -81,7 +81,7 @@ namespace Config
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
             all = new Config.KeyedList<LootidItemidKey, DataLootitem>();
-            for (var c = os.ReadSize(); c > 0; c--) {
+            for (var c = os.ReadInt32(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(new LootidItemidKey(self.Lootid, self.Itemid), self);
             }

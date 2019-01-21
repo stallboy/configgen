@@ -3,3 +3,5 @@ id,name,
 1,KillMonster,杀怪
 2,TalkNpc,和npc对话
 3,CollectItem,收集物品
+4,ConditionAnd,组合节点
+5,Chat,聊天

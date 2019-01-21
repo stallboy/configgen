@@ -4,6 +4,7 @@ public class Jewelryrandom {
     private config.LevelRank lvlRank;
     private config.Range attackRange;
     private java.util.List<config.Range> otherRange = new java.util.ArrayList<>();
+    private java.util.List<config.Range> testRange = new java.util.ArrayList<>();
 
     private Jewelryrandom() {
     }
@@ -14,6 +15,9 @@ public class Jewelryrandom {
         self.attackRange = config.Range._create(input);
         for (int c = input.readInt(); c > 0; c--) {
             self.otherRange.add(config.Range._create(input));
+        }
+        for (int c = input.readInt(); c > 0; c--) {
+            self.testRange.add(config.Range._create(input));
         }
         return self;
     }
@@ -39,9 +43,16 @@ public class Jewelryrandom {
         return otherRange;
     }
 
+    /**
+     * 测试compressAsOne
+     */
+    public java.util.List<config.Range> getTestRange() {
+        return testRange;
+    }
+
     @Override
     public String toString() {
-        return "(" + lvlRank + "," + attackRange + "," + otherRange + ")";
+        return "(" + lvlRank + "," + attackRange + "," + otherRange + "," + testRange + ")";
     }
 
     public void _resolve(config.ConfigMgr mgr) {

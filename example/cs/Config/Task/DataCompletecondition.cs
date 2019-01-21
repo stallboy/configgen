@@ -17,6 +17,10 @@ public abstract class DataCompletecondition
                 return Config.Task.Completecondition.DataKillmonster._create(os);
             case "TalkNpc":
                 return Config.Task.Completecondition.DataTalknpc._create(os);
+            case "Chat":
+                return Config.Task.Completecondition.DataChat._create(os);
+            case "ConditionAnd":
+                return Config.Task.Completecondition.DataConditionand._create(os);
             case "CollectItem":
                 return Config.Task.Completecondition.DataCollectitem._create(os);
         }

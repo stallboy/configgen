@@ -57,7 +57,7 @@ namespace Config
         internal static void Initialize(Config.Stream os, Config.LoadErrors errors)
         {
             all = new Config.KeyedList<int, DataLoot>();
-            for (var c = os.ReadSize(); c > 0; c--) {
+            for (var c = os.ReadInt32(); c > 0; c--) {
                 var self = _create(os);
                 all.Add(self.Lootid, self);
             }
@@ -75,7 +75,7 @@ namespace Config
             self.Ename = os.ReadString();
             self.Name = os.ReadString();
             self.ChanceList = new List<int>();
-            for (var c = (int)os.ReadSize(); c > 0; c--)
+            for (var c = os.ReadInt32(); c > 0; c--)
                 self.ChanceList.Add(os.ReadInt32());
             return self;
         }

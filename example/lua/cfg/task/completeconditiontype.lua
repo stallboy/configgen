@@ -10,5 +10,7 @@ local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, 2, nil,
 mk(1, "KillMonster")
 mk(2, "TalkNpc")
 mk(3, "CollectItem")
+mk(4, "ConditionAnd")
+mk(5, "Chat")
 
 return this

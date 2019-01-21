@@ -22,7 +22,9 @@ public class TForeignKey extends Node {
     }
 
     public void resolve() {
-        refTable = resolveRef(foreignKeyDefine.ref);
+        if (foreignKeyDefine.ref != null){
+            refTable = resolveRef(foreignKeyDefine.ref);
+        }
         if (foreignKeyDefine.mapKeyRef != null) {
             mapKeyRefTable = resolveRef(foreignKeyDefine.mapKeyRef);
         }

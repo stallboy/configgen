@@ -30,13 +30,18 @@ public class ForeignKey extends Node {
     }
 
     private void init(Element self) {
-        ref = new Ref(self.getAttribute("ref"));
-        if (self.hasAttribute("refType")) {
-            refType = RefType.valueOf(self.getAttribute("refType").toUpperCase());
+        String refstr = self.getAttribute("ref");
+        if (!refstr.isEmpty()) {
+            ref = new Ref(refstr);
+            if (self.hasAttribute("refType")) {
+                refType = RefType.valueOf(self.getAttribute("refType").toUpperCase());
+            } else {
+                refType = RefType.NORMAL;
+            }
         } else {
-            refType = RefType.NORMAL;
+            ref = null;
         }
-        String keyref = self.getAttribute("keyRef");
+        String keyref = self.getAttribute("keyRef"); // lua生成会直接忽略这种情况
         if (keyref.isEmpty()) {
             mapKeyRef = null;
         } else {
@@ -54,7 +59,7 @@ public class ForeignKey extends Node {
 
     boolean invalid() {
         Db db = (Db) root;
-        return !(ref.valid(db) && (mapKeyRef == null || mapKeyRef.valid(db)));
+        return !((ref == null || ref.valid(db)) && (mapKeyRef == null || mapKeyRef.valid(db)));
     }
 
     void save(Element parent) {
@@ -65,10 +70,13 @@ public class ForeignKey extends Node {
     }
 
     void update(Element self) {
-        self.setAttribute("ref", ref.toString());
-        if (refType != RefType.NORMAL)
-            self.setAttribute("refType", refType.toString());
-        if (mapKeyRef != null)
+        if (ref != null) {
+            self.setAttribute("ref", ref.toString());
+            if (refType != RefType.NORMAL)
+                self.setAttribute("refType", refType.toString());
+        }
+        if (mapKeyRef != null) {
             self.setAttribute("keyRef", mapKeyRef.toString());
+        }
     }
 }

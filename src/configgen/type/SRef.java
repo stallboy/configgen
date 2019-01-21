@@ -19,7 +19,11 @@ public class SRef {
     public SRef(TForeignKey fk) {
         name = fk.name;
         refTable = fk.refTable;
-        refCols = fk.foreignKeyDefine.ref.cols;
+        if (fk.foreignKeyDefine.ref != null) {
+            refCols = fk.foreignKeyDefine.ref.cols;
+        }else{
+            refCols = null;
+        }
         refNullable = fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE;
 
         mapKeyRefTable = fk.mapKeyRefTable;

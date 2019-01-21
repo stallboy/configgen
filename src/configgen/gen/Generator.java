@@ -28,8 +28,8 @@ public abstract class Generator {
         return new CachedIndentPrinter(file, encoding);
     }
 
-    protected static CachedIndentPrinter createCode(File file, String encoding, StringBuilder dst, StringBuilder tmp) {
-        return new CachedIndentPrinter(file, encoding, dst, tmp);
+    protected static CachedIndentPrinter createCode(File file, String encoding, StringBuilder dst, StringBuilder cache, StringBuilder tmp) {
+        return new CachedIndentPrinter(file, encoding, dst, cache, tmp);
     }
 
     protected static ZipOutputStream createZip(File file) {

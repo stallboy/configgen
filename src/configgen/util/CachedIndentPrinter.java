@@ -9,21 +9,25 @@ public class CachedIndentPrinter implements Closeable {
     private Path path;
     private String encoding;
     private StringBuilder dst;
+    private StringBuilder cache;
     private StringBuilder tmp;
     private int indent;
+    private boolean usingCache;
 
     public CachedIndentPrinter(File file, String encoding) {
         this.path = file.toPath().toAbsolutePath().normalize();
         this.encoding = encoding;
-        this.dst = new StringBuilder(1024*2048);
+        this.dst = new StringBuilder(1024 * 2048);
+        this.cache = new StringBuilder(512 * 1024);
         this.tmp = new StringBuilder(128);
         dst.setLength(0);
     }
 
-    public CachedIndentPrinter(File file, String encoding, StringBuilder dst, StringBuilder tmp) {
+    public CachedIndentPrinter(File file, String encoding, StringBuilder dst, StringBuilder cache, StringBuilder tmp) {
         this.path = file.toPath().toAbsolutePath().normalize();
         this.encoding = encoding;
         this.dst = dst;
+        this.cache = cache;
         this.tmp = tmp;
         dst.setLength(0);
     }
@@ -42,6 +46,19 @@ public class CachedIndentPrinter implements Closeable {
         if (indent < 0) {
             throw new IllegalArgumentException("indent < 0");
         }
+    }
+
+    public void enableCache() {
+        usingCache = true;
+        cache.setLength(0);
+    }
+
+    public void disableCache() {
+        usingCache = false;
+    }
+
+    public void printCache() {
+        dst.append(cache);
     }
 
     public void println() {
@@ -82,13 +99,14 @@ public class CachedIndentPrinter implements Closeable {
 
 
     private void printlnn(int n, String fmt, Object... args) {
+        StringBuilder to = usingCache ? cache : dst;
         indent += n;
         if (args.length > 0) {
             tmp.setLength(0);
             prefix(tmp, fmt);
-            dst.append(String.format(tmp.toString(), args));
+            to.append(String.format(tmp.toString(), args));
         } else {
-            prefix(dst, fmt);
+            prefix(to, fmt);
         }
         indent -= n;
     }

@@ -54,23 +54,26 @@ public class GenLua extends Generator {
 
 
         StringBuilder fileDst = new StringBuilder(512 * 1024); //优化gc alloc
+        StringBuilder cache = new StringBuilder(512 * 1024);
         StringBuilder tmp = new StringBuilder(128);
-        try (CachedIndentPrinter ps = createCode(new File(dstDir, "_cfgs.lua"), encoding, fileDst, tmp)) {
+        try (CachedIndentPrinter ps = createCode(new File(dstDir, "_cfgs.lua"), encoding, fileDst, cache, tmp)) {
             generate_cfgs(ps);
         }
         if (preload) {
-            try (CachedIndentPrinter ps = createCode(new File(dstDir, "_loads.lua"), encoding, fileDst, tmp)) {
+            try (CachedIndentPrinter ps = createCode(new File(dstDir, "_loads.lua"), encoding, fileDst, cache, tmp)) {
                 generate_loads(ps);
             }
         }
-        try (CachedIndentPrinter ps = createCode(new File(dstDir, "_beans.lua"), encoding, fileDst, tmp)) {
+        try (CachedIndentPrinter ps = createCode(new File(dstDir, "_beans.lua"), encoding, fileDst, cache, tmp)) {
             generate_beans(ps);
         }
 
         StringBuilder lineCache = new StringBuilder(256);
+        solver = new NameConflictSolver(pkg);
         for (VTable v : value.getVTables()) {
             Name name = new Name(pkg, v.name);
-            try (CachedIndentPrinter ps = createCode(dstDir.toPath().resolve(name.path).toFile(), encoding, fileDst, tmp)) {
+            solver.clear();
+            try (CachedIndentPrinter ps = createCode(dstDir.toPath().resolve(name.path).toFile(), encoding, fileDst, cache, tmp)) {
                 generate_table(v, name, ps, lineCache);
             }
         }
@@ -210,19 +213,79 @@ public class GenLua extends Generator {
         ps.println("local mk = %s._mk.table(this, %s, %s, %s, %s\n    )", pkg, getLuaUniqKeysString(ttable), getLuaEnumIdxString(ttable), getLuaRefsString(tbean), getLuaFieldsString(tbean));
         ps.println();
 
+
+
+        ps.enableCache();
         for (VBean vBean : vtable.getVBeanList()) {
             lineCache.setLength(0);
             getLuaValueString(lineCache, vBean, "mk", false);
             ps.println(lineCache.toString());
         }
+        ps.disableCache();
 
+        if (!solver.usedFullNameToBriefNames.isEmpty()){
+            for (Map.Entry<String, String> entry : solver.usedFullNameToBriefNames.entrySet()) {
+                ps.println("local %s = %s", entry.getValue(), entry.getKey());
+            }
+            ps.println();
+        }
+
+        ps.printCache();
         ps.println();
         ps.println("return this");
     }
 
-    private void getLuaValueString(StringBuilder res, Value thisValue) {
-        getLuaValueString(res, thisValue, null, false);
+    private NameConflictSolver solver;
+
+    private static class NameConflictSolver {
+        final Map<String, String> usedFullNameToBriefNames = new HashMap<>();
+        private final Set<String> forbidBriefNames = new HashSet<>();
+        private final Set<String> usedBriefNames = new HashSet<>();
+
+        NameConflictSolver(String pkg) {
+            forbidBriefNames.add(pkg);
+            forbidBriefNames.add("Beans");
+            forbidBriefNames.add("this");
+            forbidBriefNames.add("mk");
+        }
+
+        void clear(){
+            usedBriefNames.clear();
+            usedFullNameToBriefNames.clear();
+        }
+
+        String findBriefName(String fullName) {
+            String brief = usedFullNameToBriefNames.get(fullName);
+            if (brief != null){
+                return brief;
+            }
+
+            String[] seps = fullName.split("\\.");
+            String tryName = null;
+            for (int i = seps.length - 1; i >= 0; i--) {
+                if (tryName == null){
+                    tryName = seps[i];
+                }else{
+                    tryName = seps[i] + "_" + tryName;
+                }
+
+                if (forbidBriefNames.contains(tryName)){
+                    continue;
+                }
+
+                if (usedBriefNames.contains(tryName)){
+                    continue;
+                }
+
+                usedBriefNames.add(tryName);
+                usedFullNameToBriefNames.put(fullName, tryName);
+                return tryName;
+            }
+
+            throw new RuntimeException("竟然找不到个不重复的名字，我选择死亡");
+        }
     }
+
 
     private void getLuaValueString(StringBuilder res, Value thisValue, String beanTypeStr, boolean asKey) {
         thisValue.accept(new ValueVisitor() {
@@ -277,7 +340,7 @@ public class GenLua extends Generator {
                 int idx = 0;
                 res.append("{");
                 for (Value eleValue : value.getList()) {
-                    getLuaValueString(res, eleValue);
+                    getLuaValueString(res, eleValue, null, false);
                     idx++;
                     if (idx != sz) {
                         res.append(", ");
@@ -295,7 +358,7 @@ public class GenLua extends Generator {
                 for (Map.Entry<Value, Value> entry : value.getMap().entrySet()) {
                     getLuaValueString(res, entry.getKey(), null, true);
                     res.append(" = ");
-                    getLuaValueString(res, entry.getValue());
+                    getLuaValueString(res, entry.getValue(), null, false);
                     idx++;
                     if (idx != sz) {
                         res.append(", ");
@@ -312,7 +375,7 @@ public class GenLua extends Generator {
                 }
                 String beanType = beanTypeStr;
                 if (beanType == null) {
-                    beanType = fullName(val.getTBean());
+                    beanType = solver.findBriefName(fullName(val.getTBean()));
                 }
 
                 res.append(beanType).append("(");
@@ -320,7 +383,7 @@ public class GenLua extends Generator {
                 int sz = val.getValues().size();
                 int idx = 0;
                 for (Value fieldValue : val.getValues()) {
-                    getLuaValueString(res, fieldValue);
+                    getLuaValueString(res, fieldValue, null, false);
                     idx++;
                     if (idx != sz) {
                         res.append(", ");

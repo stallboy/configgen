@@ -14,7 +14,10 @@ import configgen.util.CachedFiles;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public final class Main {
     private static void usage(String reason) {
@@ -30,6 +33,7 @@ public final class Main {
         System.out.println("    -i18ncrlfaslf 把字符串里的\\r\\n 替换为 \\n，默认是false");
 
         System.out.println("    -binaryToText 后可接2个参数（java data的file，table名称-用startsWith匹配），打印table的定义和数据");
+        System.out.println("    -search       后可接多个数字，找到匹配的数据");
 
         System.out.println("    -verify       检查配表约束");
         System.out.println("    -v[1]         输出一些额外信息,1是额外gc测试内存");
@@ -47,8 +51,6 @@ public final class Main {
         GenCs.register();
         GenPack.register();
 
-        String binaryToTextFile = null;
-        String match = null;
         String datadir = null;
         String xml = null;
         String encoding = "GBK";
@@ -58,15 +60,14 @@ public final class Main {
         boolean verify = false;
         List<Generator> generators = new ArrayList<>();
 
+
+        String binaryToTextFile = null;
+        String match = null;
+
+        Set<Integer> searchIntegers = null;
+
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {
-                case "-binaryToText":
-                    binaryToTextFile = args[++i];
-                    if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
-                        match = args[++i];
-                    }
-                    break;
-
                 case "-datadir":
                     datadir = args[++i];
                     break;
@@ -104,6 +105,20 @@ public final class Main {
                         usage("");
                     generators.add(generator);
                     break;
+
+                case "-binaryToText":
+                    binaryToTextFile = args[++i];
+                    if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+                        match = args[++i];
+                    }
+                    break;
+                case "-search":
+                    searchIntegers = new HashSet<>();
+                    while (i+1 < args.length && !args[i+1].startsWith("-")) {
+                        searchIntegers.add(Integer.parseInt(args[++i]));
+                    }
+                    break;
+
                 default:
                     usage("unknown args " + args[i]);
                     break;
@@ -125,6 +140,12 @@ public final class Main {
 
         Logger.mm(String.format("start total memory %dm", Runtime.getRuntime().maxMemory() / 1024 / 1024));
         Context ctx = new Context(dataDir, xmlFile, encoding, i18nfile, i18nencoding, i18ncrlfaslf);
+
+        if (searchIntegers != null){
+            ValueSearcher.searchValues(ctx.makeValue(), searchIntegers);
+            return;
+        }
+
         if (verify) {
             Logger.verbose("-----start verify");
             ctx.makeValue();
@@ -139,5 +160,6 @@ public final class Main {
         CachedFiles.finalExit();
         Logger.mm("end");
     }
+
 
 }

@@ -29,7 +29,7 @@ public class Node {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return fullName();
     }
 

@@ -1,17 +1,15 @@
 package configgen.gencs;
 
 import configgen.Logger;
-import configgen.util.CachedFileOutputStream;
-import configgen.util.DomUtils;
 import configgen.gen.*;
 import configgen.util.CachedFiles;
+import configgen.util.DomUtils;
 import configgen.value.VDb;
 import org.w3c.dom.Element;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -85,7 +83,7 @@ public class GenPack extends Generator {
         }
 
 
-        try (OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(dstDir, "entry.txt")), StandardCharsets.UTF_8)) {
+        try (OutputStreamWriter writer = createUtf8Writer(new File(dstDir, "entry.txt"))) {
             writer.write(String.join(",", packs.keySet()));
         }
 

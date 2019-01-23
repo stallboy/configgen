@@ -7,7 +7,7 @@ import configgen.gencs.GenPack;
 import configgen.genjava.BinaryToText;
 import configgen.genjava.GenJavaCode;
 import configgen.genjava.GenJavaData;
-import configgen.genlua.GenI18n;
+import configgen.geni18n.GenI18n;
 import configgen.genlua.GenLua;
 import configgen.util.CachedFiles;
 
@@ -36,7 +36,9 @@ public final class Main {
         System.out.println("    -search       后可接多个数字，找到匹配的数据");
 
         System.out.println("    -verify       检查配表约束");
+        System.out.println("    -dump         打印内部树结构");
         System.out.println("    -v[1]         输出一些额外信息,1是额外gc测试内存");
+
         Generators.getAllProviders().forEach((k, v) -> System.out.println("    -gen          " + k + "," + v.usage()));
 
         Runtime.getRuntime().exit(1);
@@ -60,6 +62,7 @@ public final class Main {
         boolean verify = false;
         List<Generator> generators = new ArrayList<>();
 
+        boolean dump = false;
 
         String binaryToTextFile = null;
         String match = null;
@@ -106,6 +109,10 @@ public final class Main {
                     generators.add(generator);
                     break;
 
+                case "-dump":
+                    dump = true;
+                    break;
+
                 case "-binaryToText":
                     binaryToTextFile = args[++i];
                     if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
@@ -114,7 +121,7 @@ public final class Main {
                     break;
                 case "-search":
                     searchIntegers = new HashSet<>();
-                    while (i+1 < args.length && !args[i+1].startsWith("-")) {
+                    while (i + 1 < args.length && !args[i + 1].startsWith("-")) {
                         searchIntegers.add(Integer.parseInt(args[++i]));
                     }
                     break;
@@ -141,7 +148,11 @@ public final class Main {
         Logger.mm(String.format("start total memory %dm", Runtime.getRuntime().maxMemory() / 1024 / 1024));
         Context ctx = new Context(dataDir, xmlFile, encoding, i18nfile, i18nencoding, i18ncrlfaslf);
 
-        if (searchIntegers != null){
+        if (dump) {
+            ctx.dump();
+        }
+
+        if (searchIntegers != null) {
             ValueSearcher.searchValues(ctx.makeValue(), searchIntegers);
             return;
         }

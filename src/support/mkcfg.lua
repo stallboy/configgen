@@ -7,11 +7,23 @@ local require = require
 local mkcfg = {}
 
 --- refs { {refname, islist, dsttable, dstgetname, keyidx1, keyidx2}, }
-local function mkbean(refs, fields)
+local function mkbean(refs, textFields, fields)
     local get = {}
     for i, f in ipairs(fields) do
-        get[f] = function(t)
-            return t[i]
+        if textFields and textFields[f] then
+            --- 重写取field方法，增加一间接层
+            get[f] = function(t)
+                local v = mkcfg.i18n[t[i]]
+                if v then
+                    return v
+                else
+                    return ""
+                end
+            end
+        else
+            get[f] = function(t)
+                return t[i]
+            end
         end
     end
 
@@ -61,8 +73,12 @@ function mkcfg.copy(dst, bean)
 end
 
 function mkcfg.bean(refs, ...)
+    return mkcfg.i18n_bean(refs, nil, ...)
+end
+
+function mkcfg.i18n_bean(refs, textFields, ...)
     local fields = { ... }
-    local get = mkbean(refs, fields)
+    local get = mkbean(refs, textFields, fields)
 
     local I = {}
     I.__index = function(t, k)
@@ -82,8 +98,12 @@ function mkcfg.bean(refs, ...)
 end
 
 function mkcfg.action(typeName, refs, ...)
+    return mkcfg.i18n_action(typeName, refs, nil, ...)
+end
+
+function mkcfg.i18n_action(typeName, refs, textFields, ...)
     local fields = { ... }
-    local get = mkbean(refs, fields)
+    local get = mkbean(refs, textFields, fields)
 
     local I = {}
     I.type = function()
@@ -115,7 +135,6 @@ function mkcfg.action(typeName, refs, ...)
     return mk
 end
 
-
 local table2required = {}
 mkcfg._table2required = table2required
 
@@ -137,10 +156,14 @@ function mkcfg.pretable(modname)
     return v
 end
 
---- uniqkeys : {{allname, getname, keyidx1, keyidx2}, }
 function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
+    mkcfg.i18n_table(self, uniqkeys, enumidx, refs, nil, ...)
+end
+
+--- uniqkeys : {{allname, getname, keyidx1, keyidx2}, }
+function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
     local fields = { ... }
-    local get = mkbean(refs, fields)
+    local get = mkbean(refs, textFields, fields)
     for _, uk in ipairs(uniqkeys) do
         local allname, getname, _, k2 = unpack(uk)
         local map = {}
@@ -167,10 +190,9 @@ function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
     end
 
     local mk
-    local uk = uniqkeys[1]
-    if enumidx == nil and #uniqkeys == 1 and uk[4] == nil then
+    if enumidx == nil and #uniqkeys == 1 and uniqkeys[1][4] == nil then
         --- 优化
-        local allname, _, k1 = unpack(uk)
+        local allname, _, k1 = unpack(uniqkeys[1])
         local all = self[allname]
         mk = function(...)
             local v = { ... }

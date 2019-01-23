@@ -1,4 +1,4 @@
-package configgen.genlua;
+package configgen.geni18n;
 
 import configgen.gen.*;
 import configgen.util.CSVWriter;
@@ -31,8 +31,6 @@ public final class GenI18n extends Generator implements I18n.Collector {
         encoding = parameter.get("encoding", "GBK");
         parameter.end();
     }
-
-
 
     @Override
     public void generate(Context ctx) {
@@ -67,7 +65,7 @@ public final class GenI18n extends Generator implements I18n.Collector {
 
     @Override
     public void enterText(String original, String text) {
-        if (lastTextMap == null){
+        if (lastTextMap == null) {
             lastTextMap = new LinkedHashMap<>();
             table2TextMap.put(lastTable, lastTextMap);
         }

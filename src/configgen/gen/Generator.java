@@ -5,6 +5,8 @@ import configgen.util.CachedIndentPrinter;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.ZipOutputStream;
@@ -36,15 +38,19 @@ public abstract class Generator {
         return new ZipOutputStream(new CheckedOutputStream(new CachedFileOutputStream(file), new CRC32()));
     }
 
-    protected static String upper1(String value) {
+    protected static OutputStreamWriter createUtf8Writer(File file) {
+        return new OutputStreamWriter(new CachedFileOutputStream(file), StandardCharsets.UTF_8);
+    }
+
+    public static String upper1(String value) {
         return value.substring(0, 1).toUpperCase() + value.substring(1);
     }
 
-    protected static String upper1Only(String value) {
+    public static String upper1Only(String value) {
         return value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
     }
 
-    protected static String lower1(String value) {
+    public static String lower1(String value) {
         return value.substring(0, 1).toLowerCase() + value.substring(1);
     }
 }

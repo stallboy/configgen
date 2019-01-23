@@ -3,13 +3,11 @@ package configgen.genallref;
 import configgen.gen.*;
 import configgen.type.SRef;
 import configgen.type.TTable;
-import configgen.util.CachedFileOutputStream;
 import configgen.value.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -110,9 +108,7 @@ public class GenAllRefValues extends Generator {
 
             @Override
             public void visit(VBean value) {
-                value.getValues().forEach((v) -> {
-                    v.accept(this);
-                });
+                value.getValues().forEach((v) -> v.accept(this));
             }
         };
 
@@ -124,7 +120,7 @@ public class GenAllRefValues extends Generator {
             }
         }
 
-        try (OutputStreamWriter writer = new OutputStreamWriter(new CachedFileOutputStream(new File(out)), StandardCharsets.UTF_8)) {
+        try (OutputStreamWriter writer = createUtf8Writer(new File(out))) {
             writer.write(String.join("\r\n", allrefs));
         }
     }

@@ -9,6 +9,11 @@ public class CachedFileOutputStream extends ByteArrayOutputStream {
     private Path path;
 
     public CachedFileOutputStream(File file) {
+        this(file, 512);
+    }
+
+    public CachedFileOutputStream(File file, int size) {
+        super(size);
         path = file.toPath().toAbsolutePath().normalize();
     }
 

@@ -11,7 +11,7 @@ import java.util.Set;
 final class GuessHelper {
 
     static String getColumnName(String name){
-        int i = name.indexOf('@'); //这个是兼容之前版本
+        int i = name.indexOf('@'); //为了是兼容之前版本
         if (i != -1) {
             return name.substring(0, i);
         }else{

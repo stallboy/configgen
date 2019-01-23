@@ -2,6 +2,7 @@ package configgen.genjava;
 
 import configgen.Logger;
 import configgen.gen.*;
+import configgen.util.CachedFileOutputStream;
 import configgen.value.*;
 
 import java.io.*;
@@ -33,7 +34,7 @@ public final class GenJavaData extends Generator {
     @Override
     public void generate(Context ctx) throws IOException {
         VDb value = ctx.makeValue();
-        try (ConfigOutput output = new ConfigOutput(new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file))))) {
+        try (ConfigOutput output = new ConfigOutput(new DataOutputStream(new CachedFileOutputStream(file, 2048 * 1024)))) {
             Schema schema = GenSchema.parse(value);
             schema.write(output);
             writeValue(value, output);
@@ -97,7 +98,7 @@ public final class GenJavaData extends Generator {
             }
         }
     }
-    
+
     private void writeValue(VDb vDb, ConfigOutput output) throws IOException {
         int cnt = 0;
         for (VTable vTable : vDb.getVTables()) {

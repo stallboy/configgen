@@ -56,6 +56,15 @@ public class Context {
         return makeValue(null);
     }
 
+    void dump() {
+        System.out.println("---define");
+        define.dump(System.out);
+        System.out.println("---data");
+        data.dump(System.out);
+        System.out.println("---type");
+        type.dump(System.out);
+    }
+
     public VDb makeValue(String own) {
         if (lastValue != null) {
             if (Objects.equals(own, lastValueOwn)) {

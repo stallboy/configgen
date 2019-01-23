@@ -4,7 +4,7 @@ import configgen.Node;
 
 public abstract class Type extends Node {
     private Constraint constraint = new Constraint();
-    private final int columnIndex;
+    private final int columnIndex; // 从0开始
 
     Type(Node parent, String name, int columnIdx) {
         super(parent, name);

@@ -2,6 +2,7 @@ package configgen.value;
 
 import configgen.util.CSVParser;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -22,12 +23,16 @@ public final class I18n {
 
     private Collector collector;
 
+    public I18n(){
+    }
+
     public I18n(String file, String encoding, boolean crlfaslf) {
-        if (file == null) {
-            return;
-        }
+        this(Paths.get(file), encoding, crlfaslf);
+    }
+
+    public I18n(Path path, String encoding, boolean crlfaslf) {
         map = new HashMap<>();
-        List<List<String>> rows = CSVParser.readFromFile(Paths.get(file), encoding);
+        List<List<String>> rows = CSVParser.readFromFile(path, encoding);
         List<String> row0 = rows.get(0);
         if (row0 == null) {
             throw new IllegalArgumentException("国际化i18n文件为空");
@@ -55,6 +60,7 @@ public final class I18n {
         }
     }
 
+
     private String normalizeRaw(String raw) {
         if (isCRLFAsLF) {
             return raw.replaceAll("\r\n", "\n");
@@ -67,7 +73,7 @@ public final class I18n {
         this.collector = collector;
     }
 
-    void enterTable(String table) {
+    public void enterTable(String table) {
         if (collector != null) {
             collector.enterTable(table);
         }
@@ -78,7 +84,7 @@ public final class I18n {
         curTable = map.get(table);
     }
 
-    String enterText(String raw) {
+    public String enterText(String raw) {
         if (collector == null && curTable == null) {
             return null;
         }

@@ -5,12 +5,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-class BriefNameFinder {
-    final Map<String, String> usedFullNameToBriefNames = new HashMap<>();
+class FullToBrief {
+    private final Map<String, String> usedFullNameToBriefNames = new HashMap<>();
     private final Set<String> forbidBriefNames = new HashSet<>();
     private final Set<String> usedBriefNames = new HashSet<>();
 
-    BriefNameFinder(String pkg) {
+    FullToBrief(String pkg) {
         forbidBriefNames.add(pkg);
         forbidBriefNames.add("Beans");
         forbidBriefNames.add("this");
@@ -22,7 +22,11 @@ class BriefNameFinder {
         usedFullNameToBriefNames.clear();
     }
 
-    String findBriefName(String fullName) {
+    Map<String, String> getAll() {
+        return usedFullNameToBriefNames;
+    }
+
+    String toBrief(String fullName) {
         String brief = usedFullNameToBriefNames.get(fullName);
         if (brief != null) {
             return brief;

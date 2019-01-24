@@ -41,7 +41,11 @@ public class Context {
         type.resolve();
         Logger.mm("type");
 
-        i18n = new I18n(i18nFile, i18nEncoding, crlfaslf);
+        if (i18nFile == null) {
+            i18n = new I18n();
+        } else {
+            i18n = new I18n(i18nFile, i18nEncoding, crlfaslf);
+        }
     }
 
     public Path getDataDir() {

@@ -23,7 +23,7 @@ public class GenLua extends Generator {
 
             @Override
             public String usage() {
-                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false    add own:x if need";
+                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,lang_switch_dir:null    add own:x if need";
             }
         });
     }
@@ -33,8 +33,10 @@ public class GenLua extends Generator {
     private final String encoding;
     private final String own;
     private final boolean preload;
+    private final boolean lang_switch;
+    private final String lang_switch_dir;
     private VDb value;
-    private BriefNameFinder finder;
+    private FullToBrief toBrief;
 
 
     private GenLua(Parameter parameter) {
@@ -43,13 +45,23 @@ public class GenLua extends Generator {
         pkg = parameter.getNotEmpty("pkg", "cfg");
         encoding = parameter.get("encoding", "UTF-8");
         own = parameter.get("own", null);
+        // 默认是不一开始就全部加载配置，而是用到的时候再加载
         preload = Boolean.parseBoolean(parameter.get("preload", "false"));
+        // 默认不支持游戏内多语言切换
+        lang_switch_dir = parameter.get("lang_switch_dir", null);
+        lang_switch = lang_switch_dir != null;
         parameter.end();
     }
 
     @Override
     public void generate(Context ctx) throws IOException {
         Name.setPackageName(pkg);
+        toBrief = new FullToBrief(pkg);
+        ValueStr.setToBrief(toBrief);
+        ValueStr.setIsLangSwitch(lang_switch);
+        if (lang_switch) {
+            LangSwitch.setLangI18nDir(Paths.get(lang_switch_dir));
+        }
 
         File dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
         value = ctx.makeValue(own);
@@ -70,15 +82,34 @@ public class GenLua extends Generator {
         }
 
         StringBuilder lineCache = new StringBuilder(256);
-        finder = new BriefNameFinder(pkg);
+
         for (VTable v : value.getVTables()) {
-            finder.clear();
-            try (CachedIndentPrinter ps = createCode(dstDir.toPath().resolve(Name.tablePath(v.name)).toFile(), encoding, fileDst, cache, tmp)) {
+            toBrief.clear();
+            try (CachedIndentPrinter ps = createCode(new File(dstDir, Name.tablePath(v.name)), encoding, fileDst, cache, tmp)) {
                 generate_table(v, ps, lineCache);
             }
         }
 
+        if (lang_switch) {
+            for (Map.Entry<String, LangSwitch.Lang> stringLangEntry : LangSwitch.langMap.entrySet()) {
+                List<String> idToStr = stringLangEntry.getValue().idToStr;
+                try (CachedIndentPrinter ps = createCode(new File(dstDir, stringLangEntry.getKey() + ".lua"), encoding, fileDst, cache, tmp)) {
+                    generate_lang(ps, idToStr, lineCache);
+                }
+            }
+        }
+
         CachedFiles.keepMetaAndDeleteOtherFiles(dstDir);
+    }
+
+    private void generate_lang(CachedIndentPrinter ps, List<String> idToStr, StringBuilder lineCache) {
+        ps.println("return {");
+        for (String str : idToStr) {
+            lineCache.setLength(0);
+            ValueStr.getLuaString(lineCache, str);
+            ps.println1(lineCache + ",");
+        }
+        ps.println("}");
     }
 
 
@@ -95,7 +126,7 @@ public class GenLua extends Generator {
         Set<String> context = new HashSet<>();
         context.add(pkg);
         for (TTable c : value.getTDb().getTTables()) {
-            String full = configgen.genlua.Name.fullName(c);
+            String full = Name.fullName(c);
             definePkg(full, ps, context);
             if (preload) {
                 ps.println("%s = {}", full);
@@ -123,7 +154,7 @@ public class GenLua extends Generator {
         ps.println("local require = require");
         ps.println();
         for (TTable c : value.getTDb().getTTables()) {
-            ps.println("require \"%s\"", configgen.genlua.Name.fullName(c));
+            ps.println("require \"%s\"", Name.fullName(c));
         }
         ps.println();
     }
@@ -143,22 +174,26 @@ public class GenLua extends Generator {
         Set<String> context = new HashSet<>();
         context.add("Beans");
         for (TBean tbean : value.getTDb().getTBeans()) {
-            String full = configgen.genlua.Name.fullName(tbean);
+            String full = Name.fullName(tbean);
             definePkg(full, ps, context);
             context.add(full);
 
             if (tbean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
                 ps.println("%s = {}", full);
                 for (TBean actionBean : tbean.getChildDynamicBeans()) {
-                    //function mkcfg.action(typeName, refs, ...)
-                    String fulln = configgen.genlua.Name.fullName(actionBean);
+                    // function mkcfg.action(typeName, refs, ...)
+                    String fulln = Name.fullName(actionBean);
                     definePkg(fulln, ps, context);
                     context.add(fulln);
-                    ps.println("%s = action(\"%s\", %s, %s\n    )", fulln, actionBean.name, TypeStr.getLuaRefsString(actionBean), TypeStr.getLuaFieldsString(actionBean));
+                    ps.println("%s = action(\"%s\", %s, %s\n    )", fulln, actionBean.name,
+                            TypeStr.getLuaRefsString(actionBean),
+                            TypeStr.getLuaFieldsString(actionBean));
                 }
             } else {
-                //function mkcfg.bean(refs, ...)
-                ps.println("%s = bean(%s, %s\n    )", full, TypeStr.getLuaRefsString(tbean), TypeStr.getLuaFieldsString(tbean));
+                // function mkcfg.bean(refs, ...)
+                ps.println("%s = bean(%s, %s\n    )", full,
+                        TypeStr.getLuaRefsString(tbean),
+                        TypeStr.getLuaFieldsString(tbean));
             }
         }
         ps.println();
@@ -179,26 +214,35 @@ public class GenLua extends Generator {
         ps.println("local this = %s", Name.fullName(vtable.getTTable()));
         ps.println();
 
-        //function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
-        ps.println("local mk = %s._mk.table(this, %s, %s, %s, %s\n    )", pkg, TypeStr.getLuaUniqKeysString(ttable), TypeStr.getLuaEnumIdxString(ttable), TypeStr.getLuaRefsString(tbean), TypeStr.getLuaFieldsString(tbean));
+        // function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
+        ps.println("local mk = %s._mk.table(this, %s, %s, %s, %s\n    )", pkg,
+                TypeStr.getLuaUniqKeysString(ttable),
+                TypeStr.getLuaEnumIdxString(ttable),
+                TypeStr.getLuaRefsString(tbean),
+                TypeStr.getLuaFieldsString(tbean));
         ps.println();
 
-
+        // 先打印数据到cache，同时收集用到的引用
         ps.enableCache();
+        if (lang_switch) {
+            LangSwitch.enterTable(ttable.name);
+        }
         for (VBean vBean : vtable.getVBeanList()) {
             lineCache.setLength(0);
-            ValueStr.getLuaValueString(lineCache, vBean, finder, "mk", false);
+            ValueStr.getLuaValueString(lineCache, vBean, "mk", false);
             ps.println(lineCache.toString());
         }
         ps.disableCache();
 
-        if (!finder.usedFullNameToBriefNames.isEmpty()) {
-            for (Map.Entry<String, String> entry : finder.usedFullNameToBriefNames.entrySet()) {
+        // 对收集到的引用local化，lua执行应该会快点
+        if (!toBrief.getAll().isEmpty()) {
+            for (Map.Entry<String, String> entry : toBrief.getAll().entrySet()) {
                 ps.println("local %s = %s", entry.getValue(), entry.getKey());
             }
             ps.println();
         }
 
+        // 再打印cache
         ps.printCache();
         ps.println();
         ps.println("return this");

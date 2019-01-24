@@ -10,8 +10,30 @@ import java.util.Set;
 
 class ValueStr {
     private static Set<String> keywords = new HashSet<>(Arrays.asList("break", "goto", "do", "end", "for", "in", "repeat", "util", "while", "if", "then", "elseif", "function", "local", "nil", "true", "false"));
+    private static FullToBrief toBrief;
+    private static boolean isLangSwitch;
 
-    static void getLuaValueString(StringBuilder res, Value thisValue, BriefNameFinder finder, String beanTypeStr, boolean asKey) {
+    static void setToBrief(FullToBrief to) {
+        toBrief = to;
+    }
+
+    static void setIsLangSwitch(boolean lang_witch) {
+        isLangSwitch = lang_witch;
+    }
+
+    static void getLuaString(StringBuilder res, String value) {
+        String val = toLuaStringLiteral(value);
+        res.append("\"").append(val).append("\"");
+    }
+
+    private static String toLuaStringLiteral(String value) {
+        String val = value.replace("\r\n", "\\n");
+        val = val.replace("\n", "\\n");
+        val = val.replace("\"", "\\\"");
+        return val;
+    }
+
+    static void getLuaValueString(StringBuilder res, Value thisValue, String beanTypeStr, boolean asKey) {
         thisValue.accept(new ValueVisitor() {
 
             private void add(String val) {
@@ -44,9 +66,13 @@ class ValueStr {
 
             @Override
             public void visit(VString value) {
-                String val = value.value.replace("\r\n", "\\n");
-                val = val.replace("\n", "\\n");
-                val = val.replace("\"", "\\\"");
+                if (isLangSwitch && !asKey && value.getType().hasText()) { // text字段仅用于asValue，不能用于asKey
+                    int id = LangSwitch.enterText(value.value) + 1;
+                    res.append(id);
+                    return;
+                }
+
+                String val = toLuaStringLiteral(value.value);
                 if (asKey) {
                     if (keywords.contains(val) || val.contains("-") || val.contains("=") || val.contains(",")) {
                         res.append("[\"").append(val).append("\"]");
@@ -64,7 +90,7 @@ class ValueStr {
                 int idx = 0;
                 res.append("{");
                 for (Value eleValue : value.getList()) {
-                    getLuaValueString(res, eleValue, finder, null, false);
+                    getLuaValueString(res, eleValue, null, false);
                     idx++;
                     if (idx != sz) {
                         res.append(", ");
@@ -80,9 +106,9 @@ class ValueStr {
 
                 res.append("{");
                 for (Map.Entry<Value, Value> entry : value.getMap().entrySet()) {
-                    getLuaValueString(res, entry.getKey(), finder, null, true);
+                    getLuaValueString(res, entry.getKey(), null, true);
                     res.append(" = ");
-                    getLuaValueString(res, entry.getValue(), finder, null, false);
+                    getLuaValueString(res, entry.getValue(), null, false);
                     idx++;
                     if (idx != sz) {
                         res.append(", ");
@@ -99,7 +125,7 @@ class ValueStr {
                 }
                 String beanType = beanTypeStr;
                 if (beanType == null) {
-                    beanType = finder.findBriefName(Name.fullName(val.getTBean()));
+                    beanType = toBrief.toBrief(Name.fullName(val.getTBean()));
                 }
 
                 res.append(beanType).append("(");
@@ -107,7 +133,7 @@ class ValueStr {
                 int sz = val.getValues().size();
                 int idx = 0;
                 for (Value fieldValue : val.getValues()) {
-                    getLuaValueString(res, fieldValue, finder, null, false);
+                    getLuaValueString(res, fieldValue, null, false);
                     idx++;
                     if (idx != sz) {
                         res.append(", ");

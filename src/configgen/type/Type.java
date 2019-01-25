@@ -19,6 +19,10 @@ public abstract class Type extends Node {
         return columnIndex;
     }
 
+    public String getColumnName() {
+        return name;
+    }
+
     void setConstraint(Constraint cons) {
         constraint = cons;
     }

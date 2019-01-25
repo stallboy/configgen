@@ -5,6 +5,7 @@ local unpack = unpack
 local require = require
 
 local mkcfg = {}
+mkcfg.i18n = {}
 
 --- refs { {refname, islist, dsttable, dstgetname, keyidx1, keyidx2}, }
 local function mkbean(refs, textFields, fields)

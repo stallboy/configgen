@@ -2,14 +2,19 @@ package configgen.genlua;
 
 import configgen.define.Bean;
 import configgen.gen.*;
-import configgen.type.*;
+import configgen.type.TBean;
+import configgen.type.TTable;
 import configgen.util.CachedFiles;
 import configgen.util.CachedIndentPrinter;
-import configgen.value.*;
+import configgen.value.VBean;
+import configgen.value.VDb;
+import configgen.value.VTable;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.nio.file.Path;
+
 import java.util.*;
 
 public class GenLua extends Generator {
@@ -63,7 +68,8 @@ public class GenLua extends Generator {
             LangSwitch.setLangI18nDir(Paths.get(lang_switch_dir));
         }
 
-        File dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
+        Path dstDirPath = Paths.get(dir).resolve(pkg.replace('.', '/'));
+        File dstDir = dstDirPath.toFile();
         value = ctx.makeValue(own);
 
         StringBuilder fileDst = new StringBuilder(512 * 1024); //优化gc alloc
@@ -97,7 +103,10 @@ public class GenLua extends Generator {
                     generate_lang(ps, idToStr, lineCache);
                 }
             }
+            copyFile(dstDirPath, "mkcfg.lua", encoding);
         }
+
+
 
         CachedFiles.keepMetaAndDeleteOtherFiles(dstDir);
     }
@@ -117,11 +126,32 @@ public class GenLua extends Generator {
         ps.println("local %s = {}", pkg);
         ps.println();
 
-        ps.println("%s._mk = require \"common.mkcfg\"", pkg);
+        String mkcfgFrom = "common";
+        if (lang_switch){
+            mkcfgFrom = pkg;
+        }
+        ps.println("%s._mk = require \"%s.mkcfg\"", pkg, mkcfgFrom);
         if (!preload) {
             ps.println("local pre = %s._mk.pretable", pkg);
         }
         ps.println();
+
+        if (lang_switch){
+            ps.println("%s._last_lang = nil", pkg);
+            ps.println("function %s._set_lang(lang)", pkg);
+            ps.println1("if %s._last_lang == lang then", pkg);
+            ps.println2("return");
+            ps.println1("end");
+
+            ps.println1("if %s._last_lang then", pkg);
+            ps.println2("package.loaded[\"%s.\" .. %s._last_lang] = nil", pkg, pkg);
+            ps.println1("end");
+
+            ps.println1("%s._last_lang = lang", pkg);
+            ps.println1("%s._mk.i18n = require(\"%s.\" .. lang)", pkg, pkg);
+            ps.println("end");
+            ps.println();
+        }
 
         Set<String> context = new HashSet<>();
         context.add(pkg);
@@ -169,6 +199,11 @@ public class GenLua extends Generator {
         ps.println();
         ps.println("local bean = %s._mk.bean", pkg);
         ps.println("local action = %s._mk.action", pkg);
+
+        if (lang_switch) {
+            ps.println("local i18n_bean = %s._mk.i18n_bean", pkg);
+            ps.println("local i18n_action = %s._mk.i18n_action", pkg);
+        }
         ps.println();
 
         Set<String> context = new HashSet<>();
@@ -185,14 +220,33 @@ public class GenLua extends Generator {
                     String fulln = Name.fullName(actionBean);
                     definePkg(fulln, ps, context);
                     context.add(fulln);
-                    ps.println("%s = action(\"%s\", %s, %s\n    )", fulln, actionBean.name,
+                    String func = "action";
+                    String textFieldsStr = "";
+                    if (lang_switch) {
+                        textFieldsStr = TypeStr.getLuaTextFieldsString(actionBean);
+                        if (!textFieldsStr.isEmpty()) {
+                            func = "i18n_action";
+                        }
+                    }
+
+                    ps.println("%s = %s(\"%s\", %s, %s%s\n    )", fulln, func, actionBean.name,
                             TypeStr.getLuaRefsString(actionBean),
+                            textFieldsStr,
                             TypeStr.getLuaFieldsString(actionBean));
                 }
             } else {
-                // function mkcfg.bean(refs, ...)
-                ps.println("%s = bean(%s, %s\n    )", full,
+                String func = "bean";
+                String textFieldsStr = "";
+                if (lang_switch) {
+                    textFieldsStr = TypeStr.getLuaTextFieldsString(tbean);
+                    if (!textFieldsStr.isEmpty()) {
+                        func = "i18n_bean";
+                    }
+                }
+
+                ps.println("%s = %s(%s, %s%s\n    )", full, func,
                         TypeStr.getLuaRefsString(tbean),
+                        textFieldsStr,
                         TypeStr.getLuaFieldsString(tbean));
             }
         }
@@ -214,11 +268,21 @@ public class GenLua extends Generator {
         ps.println("local this = %s", Name.fullName(vtable.getTTable()));
         ps.println();
 
+        String func = "table";
+        String textFieldsStr = "";
+        if (lang_switch) {
+            textFieldsStr = TypeStr.getLuaTextFieldsString(tbean);
+            if (!textFieldsStr.isEmpty()) {
+                func = "i18n_table";
+            }
+        }
+
         // function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
-        ps.println("local mk = %s._mk.table(this, %s, %s, %s, %s\n    )", pkg,
+        ps.println("local mk = %s._mk.%s(this, %s, %s, %s, %s%s\n    )", pkg, func,
                 TypeStr.getLuaUniqKeysString(ttable),
                 TypeStr.getLuaEnumIdxString(ttable),
                 TypeStr.getLuaRefsString(tbean),
+                textFieldsStr,
                 TypeStr.getLuaFieldsString(tbean));
         ps.println();
 

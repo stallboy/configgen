@@ -11,17 +11,18 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class LangSwitch {
-
     static class Lang {
         I18n i18n;
         List<String> idToStr = new ArrayList<>();
 
         Lang(Path p) {
             i18n = new I18n(p, "UTF-8", true);
+            idToStr.add(""); //这个是第一个，重用
         }
 
         Lang() {
             i18n = new I18n();
+            idToStr.add("");
         }
     }
 
@@ -45,12 +46,19 @@ public class LangSwitch {
     }
 
     public static int enterText(String raw) {
+        if (raw.isEmpty()) {
+            return 0;
+        }
+
         for (Lang lang : langMap.values()) {
             String t = lang.i18n.enterText(raw);
+            if (t == null) {
+                t = raw;
+            }
             lang.idToStr.add(t);
         }
         next++;
-        return next - 1;
+        return next;
     }
 
 }

@@ -4,8 +4,11 @@ import configgen.define.Column;
 import configgen.gen.Generator;
 import configgen.type.*;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 class TypeStr {
 
@@ -131,5 +134,21 @@ class TypeStr {
         }
 
         return sb.toString();
+    }
+
+
+    static String getLuaTextFieldsString(TBean tbean) {
+        List<String> texts = new ArrayList<>();
+        for (Type col : tbean.getColumns()) {
+            if (col instanceof TString && col.hasText()) {
+                texts.add(col.getColumnName());
+            }
+        }
+
+        if (texts.isEmpty()) {
+            return "";
+        }
+
+        return "{ " + texts.stream().map(t -> t + " = true").collect(Collectors.joining(", ")) + " },";
     }
 }

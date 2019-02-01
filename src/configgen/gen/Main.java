@@ -5,7 +5,7 @@ import configgen.genallref.GenAllRefValues;
 import configgen.gencs.GenCs;
 import configgen.gencs.GenPack;
 import configgen.genjava.BinaryToText;
-import configgen.genjava.GenJavaCode;
+import configgen.genjava.code.GenJavaCode;
 import configgen.genjava.GenJavaData;
 import configgen.geni18n.GenI18n;
 import configgen.genlua.GenLua;

@@ -1,13 +1,27 @@
-package configgen.genjava;
+package configgen.genjava.code;
 
+import configgen.genjava.*;
 import configgen.util.CachedIndentPrinter;
+import configgen.value.VDb;
 
 import java.util.Map;
 
-public final class GenJavaCodeSchema {
+final class GenConfigCodeSchema {
 
+    static void generate(VDb vdb, CachedIndentPrinter ps) {
+        ps.println("package " + Name.codeTopPkg + ";");
+        ps.println();
+        ps.println("import configgen.genjava.*;");
+        ps.println();
 
-    public static void print(SchemaInterface schemaInterface, CachedIndentPrinter ip) {
+        ps.println("public class ConfigCodeSchema {");
+        ps.println();
+
+        print(GenSchema.parse(vdb), ps);
+        ps.println("}");
+    }
+
+    private static void print(SchemaInterface schemaInterface, CachedIndentPrinter ip) {
         {
             ip.println1("public static Schema getCodeSchema() {");
             ip.inc();

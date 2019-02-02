@@ -31,6 +31,7 @@ public final class Main {
         System.out.println("    -i18nfile     国际化需要的文件，如果不用国际化，就不要配置");
         System.out.println("    -i18nencoding 国际化需要的文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
         System.out.println("    -i18ncrlfaslf 把字符串里的\\r\\n 替换为 \\n，默认是false");
+        System.out.println("    -langSwitchDir 国际化并且客户端可随时切换语言");
 
         System.out.println("    -binaryToText 后可接2个参数（java data的file，table名称-用startsWith匹配），打印table的定义和数据");
         System.out.println("    -search       后可接多个数字，找到匹配的数据");
@@ -56,9 +57,14 @@ public final class Main {
         String datadir = null;
         String xml = null;
         String encoding = "GBK";
+
         String i18nfile = null;
         String i18nencoding = "GBK";
         boolean i18ncrlfaslf = false;
+
+        String langSwitchDir = null;
+
+
         boolean verify = false;
         List<Generator> generators = new ArrayList<>();
 
@@ -89,6 +95,10 @@ public final class Main {
                     break;
                 case "-i18ncrlfaslf":
                     i18ncrlfaslf = true;
+                    break;
+
+                case "-langSwitchDir":
+                    langSwitchDir = args[++i];
                     break;
 
                 case "-verify":
@@ -142,11 +152,17 @@ public final class Main {
             return;
         }
 
+        if (i18nfile != null && langSwitchDir != null) {
+            usage("-不能同时配置i18nfile和langSwitchDir");
+        }
+
         Path dataDir = Paths.get(datadir);
         File xmlFile = xml != null ? new File(xml) : dataDir.resolve("config.xml").toFile();
 
         Logger.mm(String.format("start total memory %dm", Runtime.getRuntime().maxMemory() / 1024 / 1024));
-        Context ctx = new Context(dataDir, xmlFile, encoding, i18nfile, i18nencoding, i18ncrlfaslf);
+        Context ctx = new Context(dataDir, xmlFile, encoding);
+        ctx.setI18nOrLangSwitch(i18nfile, langSwitchDir, i18nencoding, i18ncrlfaslf);
+
 
         if (dump) {
             ctx.dump();

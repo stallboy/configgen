@@ -149,6 +149,6 @@ class TypeStr {
             return "";
         }
 
-        return "{ " + texts.stream().map(t -> t + " = true").collect(Collectors.joining(", ")) + " },";
+        return "\n    { " + texts.stream().map(t -> t + " = true").collect(Collectors.joining(", ")) + " },";
     }
 }

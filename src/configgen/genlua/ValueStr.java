@@ -1,6 +1,7 @@
 package configgen.genlua;
 
 import configgen.define.Bean;
+import configgen.gen.LangSwitch;
 import configgen.value.*;
 
 import java.util.Arrays;
@@ -11,14 +12,14 @@ import java.util.Set;
 class ValueStr {
     private static Set<String> keywords = new HashSet<>(Arrays.asList("break", "goto", "do", "end", "for", "in", "repeat", "util", "while", "if", "then", "elseif", "function", "local", "nil", "true", "false"));
     private static FullToBrief toBrief;
-    private static boolean isLangSwitch;
+    private static LangSwitch langSwitch;
 
     static void setToBrief(FullToBrief to) {
         toBrief = to;
     }
 
-    static void setIsLangSwitch(boolean lang_witch) {
-        isLangSwitch = lang_witch;
+    static void setLangSwitch(LangSwitch lang) {
+        langSwitch = lang;
     }
 
     static void getLuaString(StringBuilder res, String value) {
@@ -66,8 +67,8 @@ class ValueStr {
 
             @Override
             public void visit(VString value) {
-                if (isLangSwitch && !asKey && value.getType().hasText()) { // text字段仅用于asValue，不能用于asKey
-                    int id = LangSwitch.enterText(value.value) + 1;
+                if (langSwitch != null && !asKey && value.getType().hasText()) { // text字段仅用于asValue，不能用于asKey
+                    int id = langSwitch.enterText(value.value) + 1;
                     res.append(id);
                     return;
                 }

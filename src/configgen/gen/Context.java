@@ -16,12 +16,13 @@ public class Context {
     private final Db define;
     private final TDb type;
     private final DDb data;
-    private final I18n i18n;
+    private I18n i18n = new I18n();
+    private LangSwitch langSwitch = null;
 
     private VDb lastValue;
     private String lastValueOwn;
 
-    Context(Path dataDir, File xmlFile, String encoding, String i18nFile, String i18nEncoding, boolean crlfaslf) {
+    Context(Path dataDir, File xmlFile, String encoding) {
         this.dataDir = dataDir;
         Logger.mm("start");
         define = new Db(xmlFile);
@@ -40,12 +41,18 @@ public class Context {
         type = new TDb(define);
         type.resolve();
         Logger.mm("type");
+    }
 
-        if (i18nFile == null) {
-            i18n = new I18n();
-        } else {
+    void setI18nOrLangSwitch(String i18nFile, String langSwitchDir, String i18nEncoding, boolean crlfaslf){
+        if (i18nFile != null) {
             i18n = new I18n(i18nFile, i18nEncoding, crlfaslf);
+        }else if (langSwitchDir != null){
+            langSwitch = new LangSwitch(langSwitchDir, i18nEncoding, crlfaslf);
         }
+    }
+
+    public LangSwitch getLangSwitch(){
+        return langSwitch;
     }
 
     public Path getDataDir() {

@@ -38,11 +38,11 @@ public class GenLua extends Generator {
     private final String encoding;
     private final String own;
     private final boolean preload;
-    private final boolean lang_switch;
-    private final String lang_switch_dir;
     private VDb value;
     private FullToBrief toBrief;
 
+    private boolean isLangSwitch;
+    private LangSwitch langSwitch;
 
     private GenLua(Parameter parameter) {
         super(parameter);
@@ -52,9 +52,7 @@ public class GenLua extends Generator {
         own = parameter.get("own", null);
         // 默认是不一开始就全部加载配置，而是用到的时候再加载
         preload = Boolean.parseBoolean(parameter.get("preload", "false"));
-        // 默认不支持游戏内多语言切换
-        lang_switch_dir = parameter.get("lang_switch_dir", null);
-        lang_switch = lang_switch_dir != null;
+
         parameter.end();
     }
 
@@ -63,10 +61,9 @@ public class GenLua extends Generator {
         Name.setPackageName(pkg);
         toBrief = new FullToBrief(pkg);
         ValueStr.setToBrief(toBrief);
-        ValueStr.setIsLangSwitch(lang_switch);
-        if (lang_switch) {
-            LangSwitch.setLangI18nDir(Paths.get(lang_switch_dir));
-        }
+        langSwitch = ctx.getLangSwitch();
+        isLangSwitch = langSwitch != null;
+        ValueStr.setLangSwitch(langSwitch);
 
         Path dstDirPath = Paths.get(dir).resolve(pkg.replace('.', '/'));
         File dstDir = dstDirPath.toFile();
@@ -96,16 +93,15 @@ public class GenLua extends Generator {
             }
         }
 
-        if (lang_switch) {
-            for (Map.Entry<String, LangSwitch.Lang> stringLangEntry : LangSwitch.langMap.entrySet()) {
-                List<String> idToStr = stringLangEntry.getValue().idToStr;
-                try (CachedIndentPrinter ps = createCode(new File(dstDir, stringLangEntry.getKey() + ".lua"), encoding, fileDst, cache, tmp)) {
+        if (ctx.getLangSwitch() != null) {
+            for (LangSwitch.Lang lang : ctx.getLangSwitch().getAllLangInfo()) {
+                List<String> idToStr = lang.getStrList();
+                try (CachedIndentPrinter ps = createCode(new File(dstDir, lang.getLang() + ".lua"), encoding, fileDst, cache, tmp)) {
                     generate_lang(ps, idToStr, lineCache);
                 }
             }
             copyFile(dstDirPath, "mkcfg.lua", encoding);
         }
-
 
 
         CachedFiles.keepMetaAndDeleteOtherFiles(dstDir);
@@ -127,7 +123,7 @@ public class GenLua extends Generator {
         ps.println();
 
         String mkcfgFrom = "common";
-        if (lang_switch){
+        if (isLangSwitch) {
             mkcfgFrom = pkg;
         }
         ps.println("%s._mk = require \"%s.mkcfg\"", pkg, mkcfgFrom);
@@ -136,7 +132,7 @@ public class GenLua extends Generator {
         }
         ps.println();
 
-        if (lang_switch){
+        if (isLangSwitch) {
             ps.println("%s._last_lang = nil", pkg);
             ps.println("function %s._set_lang(lang)", pkg);
             ps.println1("if %s._last_lang == lang then", pkg);
@@ -200,7 +196,7 @@ public class GenLua extends Generator {
         ps.println("local bean = %s._mk.bean", pkg);
         ps.println("local action = %s._mk.action", pkg);
 
-        if (lang_switch) {
+        if (isLangSwitch) {
             ps.println("local i18n_bean = %s._mk.i18n_bean", pkg);
             ps.println("local i18n_action = %s._mk.i18n_action", pkg);
         }
@@ -222,7 +218,7 @@ public class GenLua extends Generator {
                     context.add(fulln);
                     String func = "action";
                     String textFieldsStr = "";
-                    if (lang_switch) {
+                    if (isLangSwitch) {
                         textFieldsStr = TypeStr.getLuaTextFieldsString(actionBean);
                         if (!textFieldsStr.isEmpty()) {
                             func = "i18n_action";
@@ -237,7 +233,7 @@ public class GenLua extends Generator {
             } else {
                 String func = "bean";
                 String textFieldsStr = "";
-                if (lang_switch) {
+                if (isLangSwitch) {
                     textFieldsStr = TypeStr.getLuaTextFieldsString(tbean);
                     if (!textFieldsStr.isEmpty()) {
                         func = "i18n_bean";
@@ -270,7 +266,7 @@ public class GenLua extends Generator {
 
         String func = "table";
         String textFieldsStr = "";
-        if (lang_switch) {
+        if (isLangSwitch) {
             textFieldsStr = TypeStr.getLuaTextFieldsString(tbean);
             if (!textFieldsStr.isEmpty()) {
                 func = "i18n_table";
@@ -288,8 +284,8 @@ public class GenLua extends Generator {
 
         // 先打印数据到cache，同时收集用到的引用
         ps.enableCache();
-        if (lang_switch) {
-            LangSwitch.enterTable(ttable.name);
+        if (isLangSwitch) {
+            langSwitch.enterTable(ttable.name);
         }
         for (VBean vBean : vtable.getVBeanList()) {
             lineCache.setLength(0);

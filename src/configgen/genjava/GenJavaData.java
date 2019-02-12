@@ -35,17 +35,19 @@ public final class GenJavaData extends Generator {
     public void generate(Context ctx) throws IOException {
         VDb value = ctx.makeValue();
         try (ConfigOutput output = new ConfigOutput(new DataOutputStream(new CachedFileOutputStream(file, 2048 * 1024)))) {
-            Schema schema = GenSchema.parse(value);
+            Schema schema = SchemaParser.parse(value, ctx.getLangSwitch());
             schema.write(output);
-            writeValue(value, output);
+            writeValue(value, ctx.getLangSwitch(), output);
         }
     }
 
     private static class SimpleValueVisitor implements ValueVisitor {
         private final ConfigOutput output;
+        private final LangSwitch ls;
 
-        SimpleValueVisitor(ConfigOutput output) {
+        SimpleValueVisitor(ConfigOutput output, LangSwitch ls) {
             this.output = output;
+            this.ls = ls;
         }
 
         @Override
@@ -70,13 +72,22 @@ public final class GenJavaData extends Generator {
 
         @Override
         public void visit(VString value) {
-            output.writeStr(value.value);
+            if (value.getType().hasText() && ls != null) { //这里全部写进去，作为一个Text的Bean
+                String[] i18nStrings = ls.findAllLangText(value.value);
+                for (String i18nStr : i18nStrings) {
+                    output.writeStr(i18nStr);
+                }
+            } else {
+                output.writeStr(value.value);
+            }
         }
 
         @Override
         public void visit(VList value) {
             output.writeInt(value.getList().size());
-            value.getList().forEach(v -> v.accept(this));
+            for (Value v : value.getList()) {
+                v.accept(this);
+            }
         }
 
         @Override
@@ -92,14 +103,18 @@ public final class GenJavaData extends Generator {
         public void visit(VBean value) {
             if (value.getChildDynamicVBean() != null) {
                 output.writeStr(value.getChildDynamicVBean().getTBean().name);
-                value.getChildDynamicVBean().getValues().forEach(v -> v.accept(this));
+                for (Value v : value.getChildDynamicVBean().getValues()) {
+                    v.accept(this);
+                }
             } else {
-                value.getValues().forEach(v -> v.accept(this));
+                for (Value v : value.getValues()) {
+                    v.accept(this);
+                }
             }
         }
     }
 
-    private void writeValue(VDb vDb, ConfigOutput output) throws IOException {
+    private void writeValue(VDb vDb, LangSwitch ls, ConfigOutput output) throws IOException {
         int cnt = 0;
         for (VTable vTable : vDb.getVTables()) {
             if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
@@ -113,18 +128,20 @@ public final class GenJavaData extends Generator {
             if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                 continue;
             }
+
+            ls.enterTable(vTable.name);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             try (ConfigOutput otherOutput = new ConfigOutput(new DataOutputStream(byteArrayOutputStream))) {
-                ValueVisitor visitor = new SimpleValueVisitor(otherOutput);
+                ValueVisitor visitor = new SimpleValueVisitor(otherOutput, ls);
                 otherOutput.writeInt(vTable.getVBeanList().size());
-                vTable.getVBeanList().forEach(v -> v.accept(visitor));
+                for (VBean v : vTable.getVBeanList()) {
+                    v.accept(visitor);
+                }
                 byte[] bytes = byteArrayOutputStream.toByteArray();
                 output.writeStr(vTable.name);
                 output.writeInt(bytes.length);
                 output.write(bytes, 0, bytes.length);
             }
         }
-
     }
-
 }

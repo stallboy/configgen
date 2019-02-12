@@ -79,7 +79,7 @@ public class TTable extends Node {
             if (t == null) {
                 error("外键列未找到", k);
             } else if (t.hasText()) {
-                Logger.verbose(fullName() + "的" + k + "有国际化字符串");
+                Logger.log(fullName() + "的" + k + "有国际化字符串，langSwitch时是不允许的");
             }
 
             require(null == res.put(k, t), "外键列重复", k);

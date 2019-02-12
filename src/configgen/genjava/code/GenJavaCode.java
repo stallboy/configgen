@@ -24,7 +24,7 @@ public class GenJavaCode extends Generator {
 
             @Override
             public String usage() {
-                return "dir:config,pkg:config,encoding:UTF-8    cooperate with -gen zip";
+                return "dir:config,pkg:config,encoding:UTF-8";
             }
         });
     }
@@ -50,6 +50,8 @@ public class GenJavaCode extends Generator {
 
         Name.codeTopPkg = pkg;
         GenBeanClassTablePart.mapsInMgr.clear();
+        boolean isLangSwitch = ctx.getLangSwitch() != null;
+        TypeStr.isLangSwitch = isLangSwitch; //辅助Text的类型声明和创建
 
         for (TBean tbean : value.getTDb().getTBeans()) {
             generateBeanClass(tbean);
@@ -62,6 +64,12 @@ public class GenJavaCode extends Generator {
             generateTableClass(vtable);
         }
 
+        if (isLangSwitch) { //生成Text这个Bean
+            try (CachedIndentPrinter ps = createCode(new File(dstDir, "Text.java"), encoding)) {
+                GenText.generate(ctx.getLangSwitch(), ps);
+            }
+        }
+
         try (CachedIndentPrinter ps = createCode(new File(dstDir, "ConfigMgr.java"), encoding)) {
             GenConfigMgr.generate(ps);
         }
@@ -71,7 +79,7 @@ public class GenJavaCode extends Generator {
         }
 
         try (CachedIndentPrinter ps = createCode(new File(dstDir, "ConfigCodeSchema.java"), encoding)) {
-            GenConfigCodeSchema.generate(value, ps);
+            GenConfigCodeSchema.generate(value, ctx.getLangSwitch(), ps); //Text作为一个SchemaBean
         }
 
         CachedFiles.deleteOtherFiles(dstDir);

@@ -2,16 +2,20 @@ package configgen.genjava;
 
 import configgen.define.Bean;
 import configgen.define.Table;
+import configgen.gen.LangSwitch;
 import configgen.type.*;
 import configgen.value.VDb;
 import configgen.value.VTable;
 
 import java.util.Map;
 
-public final class GenSchema {
+public final class SchemaParser {
 
-    public static SchemaInterface parse(VDb vdb) {
+    public static SchemaInterface parse(VDb vdb, LangSwitch langSwitch) {
         SchemaInterface root = new SchemaInterface();
+        if (langSwitch != null) {
+            root.addImp("Text", parseLangSwitch(langSwitch)); //这里国际化的字段当作一个Bean
+        }
         for (TBean tBean : vdb.getTDb().getTBeans()) {
             root.addImp(tBean.name, parseBean(tBean));
         }
@@ -31,6 +35,14 @@ public final class GenSchema {
             }
         }
         return root;
+    }
+
+    private static Schema parseLangSwitch(LangSwitch ls) {
+        SchemaBean sb = new SchemaBean(false);
+        for (LangSwitch.Lang lang : ls.getAllLangInfo()) {
+            sb.addColumn(lang.getLang(), SchemaPrimitive.SStr);
+        }
+        return sb;
     }
 
     private static Schema parseEnum(VTable vTable) {

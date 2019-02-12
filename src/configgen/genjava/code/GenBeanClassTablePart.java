@@ -108,7 +108,7 @@ class GenBeanClassTablePart {
 
         ps.println2("@Override");
         ps.println2("public boolean equals(Object other) {");
-        ps.println3("if (null == other || !(other instanceof " + keyClassName + "))");
+        ps.println3("if (!(other instanceof " + keyClassName + "))");
         ps.println4("return false;");
         ps.println3(keyClassName + " o = (" + keyClassName + ") other;");
         ps.println3("return " + MethodStr.equals(keys) + ";");

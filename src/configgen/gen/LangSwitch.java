@@ -37,6 +37,7 @@ public class LangSwitch {
 
 
     LangSwitch(String path, String encoding, boolean crlfaslf) {
+        langMap.put("zh_cn", new Lang("zh_cn", new I18n())); //原始csv里是中文
         try {
             Files.list(Paths.get(path)).forEach(langFilePath -> {
                 String langFileName = langFilePath.getFileName().toString();
@@ -49,7 +50,7 @@ public class LangSwitch {
             throw new RuntimeException(e);
         }
 
-        langMap.put("zh-cn", new Lang("zh-cn", new I18n())); //原始csv里是中文
+
         int langCnt = langMap.size();
         tmp = new String[langCnt];
 

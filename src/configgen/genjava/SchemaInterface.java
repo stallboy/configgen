@@ -13,18 +13,18 @@ public class SchemaInterface implements Schema {
         for (int i = 0; i < size; i++) {
             String name = input.readStr();
             Schema imp = Schema.create(input);
-            Schema old = implementations.put(name, imp);
-            if (old != null) {
-                throw new IllegalStateException("implementation duplicate " + name);
-            }
+            addImp(name, imp);
         }
     }
 
     public SchemaInterface() {
     }
 
-    public void addImp(String name, Schema schema){
-        implementations.put(name, schema);
+    public void addImp(String name, Schema schema) {
+        Schema old = implementations.put(name, schema);
+        if (old != null) {
+            throw new IllegalStateException("implementation duplicate " + name);
+        }
     }
 
     @Override
@@ -34,13 +34,13 @@ public class SchemaInterface implements Schema {
         }
         SchemaInterface si = (SchemaInterface) other;
         if (implementations.size() > si.implementations.size()) {
-            throw new SchemaCompatibleException( "size not compatible with data err, code=" + implementations.size() + ", data=" + si.implementations.size());
+            throw new SchemaCompatibleException("size not compatible with data err, code=" + implementations.size() + ", data=" + si.implementations.size());
         }
         for (Map.Entry<String, Schema> entry : implementations.entrySet()) {
             Schema t1 = entry.getValue();
             Schema t2 = si.implementations.get(entry.getKey());
             if (!t1.compatible(t2)) {
-                throw new SchemaCompatibleException( entry.getKey() + " bean/table not compatible with data err");
+                throw new SchemaCompatibleException(entry.getKey() + " bean/table not compatible with data err");
             }
         }
         return true;

@@ -1,5 +1,6 @@
 package configgen.genjava.code;
 
+import configgen.gen.LangSwitch;
 import configgen.genjava.*;
 import configgen.util.CachedIndentPrinter;
 import configgen.value.VDb;
@@ -8,7 +9,7 @@ import java.util.Map;
 
 final class GenConfigCodeSchema {
 
-    static void generate(VDb vdb, CachedIndentPrinter ps) {
+    static void generate(VDb vdb, LangSwitch ls, CachedIndentPrinter ps) {
         ps.println("package " + Name.codeTopPkg + ";");
         ps.println();
         ps.println("import configgen.genjava.*;");
@@ -17,7 +18,7 @@ final class GenConfigCodeSchema {
         ps.println("public class ConfigCodeSchema {");
         ps.println();
 
-        print(GenSchema.parse(vdb), ps);
+        print(SchemaParser.parse(vdb, ls), ps);
         ps.println("}");
     }
 

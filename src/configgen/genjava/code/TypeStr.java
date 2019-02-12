@@ -4,6 +4,8 @@ import configgen.type.*;
 
 class TypeStr {
 
+    static boolean isLangSwitch = false;
+
     static String type(Type t) {
         return _type(t, false);
     }
@@ -36,7 +38,11 @@ class TypeStr {
 
             @Override
             public String visit(TString type) {
-                return "String";
+                if (type.hasText() && isLangSwitch) {
+                    return Name.codeTopPkg + ".Text";
+                } else {
+                    return "String";
+                }
             }
 
             @Override
@@ -134,7 +140,11 @@ class TypeStr {
 
             @Override
             public String visit(TString type) {
-                return "input.readStr()";
+                if (type.hasText() && isLangSwitch) {
+                    return Name.codeTopPkg + ".Text._create(input)";
+                } else {
+                    return "input.readStr()";
+                }
             }
 
             @Override

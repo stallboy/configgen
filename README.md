@@ -75,23 +75,31 @@
 
 *   为什么支持enum，enumPart？
 
-      当有一个knowledge，客户端，服务器，策划都要了解的时候，放到csv里。程序也不用写魔数了。
-      有时候允许部分设置是很方便的，比如掉落表，一般用id索引，但有些行如果能配置enum导出引用，则程序会方便的多。
-      所以enum在实现上，java中如果部分enum则用静态成员，如果全部enum则生成enum；c#中生成为一个静态成员。
+      当有一个知识策划，程序都要了解的时候，放到csv里。程序也不用写魔数了。
+      有时候允许部分设置是很方便的，比如掉落表，一般用id索引，但有些行如果能配置enumPart导出引用，则程序会方便的多。
+      在实现上，java中如果enumPart则用静态成员，如果enum则生成枚举类；
 
 *   为什么要支持nullableRef？
 
       java，c#的引用可以为null，是个设计错误，默认引用可为null妨碍了类型状态的最小化。
       这里约定ref是必须有引用的，nullableRef是可为null的，生成代码时用前缀ref，nullableRef来做区别，逻辑使用refXx就不用检测是否为null了。
       
-      元格中不填的话默认为false,0,""，所以不要用0作为一行的id。
+      csv单元格中不填的话默认为false,0,""，所以不要用0作为一行的id。
       如果有nullableRef请不要填0，请用留空。否则程序会检测报错
       
 *   嵌套Bean支持，多态Bean支持？
 
-      可以通过ref,nullableRef,listRef间接嵌套，可以直接嵌套任意层。
-      通过在Bean下定义多个Bean支持多态 比如CompleteTaskCond，有Level 5, KillMonster 1001 3这样的多态Bean。
-      同时支持递归嵌套Bean，比如可增加CondAnd 有2个条件，这两个又都是CompleteTaskCond，配置为CondAnd Level(5) KillMonster(1001,3)
+      可以直接嵌套任意层
+
+      可以通过ref,nullableRef,listRef间接嵌套，listRef特别利于把逻辑上有很多列的表（包含list<一个Bean>）
+      展开到另一个表中变成很多行（每个行代表一个Bean）
+      
+      可以在Bean下定义多个子Bean支持多态 比如CompleteTaskCond，有Level 5, KillMonster 1001 3这样的2个子Bean。
+      则这个Bean所占列数是所有子Bean占列数的最大值。
+      
+      如果一个column的bean是出现无法计算列数的循环嵌套，则必须配置compressAsOne
+      比如CompleteTaskCond有子Bean：CondAnd 有2个column条件cond1，cond2，是CompleteTaskCond，则这两个column需要配置为compressAsOne
+      具体配置例子：CondAnd Level(5) KillMonster(1001,3)
 
 *   国际化策略？
 

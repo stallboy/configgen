@@ -69,14 +69,9 @@
 
 ## 其他
 
-*   有哪些注意事项？
-
-      单元格中不填的话默认为false,0,""，所以不要用0作为一行的id。
-      如果有nullableRef请不要填0，请用留空。否则程序会检测报错
-
 *   为什么使用csv？
 
-      比xml简洁，可被版本管理系统diff，可用excel编辑。如果要用excel高级功能，请策划使用excel原始格式，导出csv
+      比xml简洁，可被版本管理系统diff，可用excel编辑。
 
 *   为什么支持enum，enumPart？
 
@@ -89,6 +84,9 @@
       java，c#的引用可以为null，是个设计错误，默认引用可为null妨碍了类型状态的最小化。
       这里约定ref是必须有引用的，nullableRef是可为null的，生成代码时用前缀ref，nullableRef来做区别，逻辑使用refXx就不用检测是否为null了。
       
+      元格中不填的话默认为false,0,""，所以不要用0作为一行的id。
+      如果有nullableRef请不要填0，请用留空。否则程序会检测报错
+      
 *   嵌套Bean支持，多态Bean支持？
 
       可以通过ref,nullableRef,listRef间接嵌套，可以直接嵌套任意层。
@@ -99,7 +97,5 @@
 
       对于需要国际化的字段，把类型从原来的string修改为text，使用-gen i18n 会提取标记为text类型的所有数据到../i18n/i18n-config.csv
       然后在这个csv里翻译，之后再次gen时使用 -i18nfile ../i18n/i18n-config.csv 参数，这样生成文件会直接包含国际化文本
-
-*   另一个可变列模式配置生成
       
-      https://github.com/pirunxi/cfggen
+      客户端支持多国语言实时切换，服务器可支持多国语言的玩家同一个服务器。使用-langSwitchDir

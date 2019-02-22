@@ -49,7 +49,7 @@ public class DTable extends Node {
         recordList = raw.subList(2, raw.size());
     }
 
-    public List<Integer> getColumnIndexes(String columnName){
+    public List<Integer> getColumnIndexes(String columnName) {
         return dcolumns.get(columnName).indexes;
     }
 
@@ -73,6 +73,10 @@ public class DTable extends Node {
         });
 
         old.forEach((k, f) -> Logger.verbose("delete column " + f.fullName()));
+
+        if (table.primaryKey.length == 0) {
+            table.primaryKey = new String[]{table.bean.columns.keySet().iterator().next()};
+        }
     }
 
     void parse(TTable ttable) {

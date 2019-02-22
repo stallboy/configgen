@@ -109,11 +109,16 @@
         <column desc="程序用名字" name="name" type="string"/>
     </table>
     <table name="task.task" primaryKey="taskid">
-        <column desc="任务完成条件类型（id的范围为1-100）" name="taskid" type="int"/>
+        <column desc="任务完成条件类型（id的范围为1-100）" name="taskid"
+            ref="task.taskextraexp" refType="NULLABLE" type="int"/>
         <column desc="程序用名字" name="name" type="string"/>
         <column desc="注释" name="desc" type="string"/>
         <column name="nexttask" type="int"/>
         <column name="completecondition" type="task.completecondition"/>
         <column name="exp" type="int"/>
+    </table>
+    <table name="task.taskextraexp" primaryKey="taskid">
+        <column desc="任务完成条件类型（id的范围为1-100）" name="taskid" type="int"/>
+        <column desc="额外奖励经验" name="extraexp" type="int"/>
     </table>
 </db>

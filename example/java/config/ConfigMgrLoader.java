@@ -5,7 +5,7 @@ public class ConfigMgrLoader {
     public static ConfigMgr load(configgen.genjava.ConfigInput input) {
         ConfigMgr mgr = new ConfigMgr();
         int c = input.readInt();
-        if (c < 9) {
+        if (c < 10) {
             throw new IllegalArgumentException();
         }
         for (int i = 0; i < c; i++) {
@@ -38,6 +38,9 @@ public class ConfigMgrLoader {
                     break;
                 case "task.task":
                     config.task.Task._createAll(mgr, input);
+                    break;
+                case "task.taskextraexp":
+                    config.task.Taskextraexp._createAll(mgr, input);
                     break;
                 default:
                     input.skipBytes(tableSize);

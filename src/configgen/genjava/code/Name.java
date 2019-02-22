@@ -26,7 +26,14 @@ public class Name {
         if (keys.size() > 1)
             return keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b) + "Key";
         else
-            return TypeStr.boxType(keys.values().iterator().next());
+            try {
+                return TypeStr.boxType(keys.values().iterator().next());
+            }catch(Exception e){
+                System.out.println(e);
+                return null;
+
+            }
+
     }
 
     static String multiKeyClassName(String[] keys) {

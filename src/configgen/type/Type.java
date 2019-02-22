@@ -5,10 +5,19 @@ import configgen.Node;
 public abstract class Type extends Node {
     private Constraint constraint = new Constraint();
     private final int columnIndex; // 从0开始
+    private boolean IsPrimitiveAndIsTableKey;
 
     Type(Node parent, String name, int columnIdx) {
         super(parent, name);
         columnIndex = columnIdx;
+    }
+
+    void setPrimitiveAndTableKey() {
+        IsPrimitiveAndIsTableKey = true;
+    }
+
+    public boolean isPrimitiveAndTableKey() {
+        return IsPrimitiveAndIsTableKey;
     }
 
     public Constraint getConstraint() {

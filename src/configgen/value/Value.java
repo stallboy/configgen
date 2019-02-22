@@ -14,13 +14,13 @@ public abstract class Value {
         this.type = type;
     }
 
-    public Type getType(){
+    public Type getType() {
         return type;
     }
 
     public abstract void accept(ValueVisitor visitor);
 
-    public abstract void verifyConstraint();
+    public abstract void verifyConstraint(); //约束分两种，一是Ref，一是Range
 
     public abstract boolean isCellEmpty();
 
@@ -35,7 +35,15 @@ public abstract class Value {
                     VTable vtable = VDb.getCurrent().getVTable(sref.refTable.name);
                     sref.cache = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
                 }
-                require(sref.cache.contains(this), "外键未找到", sref.refTable);
+                if (type.isPrimitiveAndTableKey()) {
+                    if (sref.refNullable) {
+                        //主键，并且nullableRef，--->则可以格子中有值，但ref不到
+                    } else {
+                        require(sref.cache.contains(this), "外键未找到", sref.refTable);
+                    }
+                } else { //非主键，格子中有值，--->则就算配置为nullableRef也不行
+                    require(sref.cache.contains(this), "外键未找到", sref.refTable);
+                }
             }
         }
     }

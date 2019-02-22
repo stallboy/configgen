@@ -31,7 +31,7 @@ public class Context {
         //define.dump(System.out);
         TDb defineType = new TDb(define);
         defineType.resolve();
-        //type.dump(System.out);
+        //defineType.dump(System.out);
 
         data = new DDb(dataDir, encoding);
         Logger.mm("data");
@@ -40,6 +40,7 @@ public class Context {
 
         type = new TDb(define);
         type.resolve();
+        //type.dump(System.out);
         Logger.mm("type");
     }
 

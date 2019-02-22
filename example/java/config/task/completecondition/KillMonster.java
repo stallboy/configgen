@@ -44,7 +44,7 @@ public class KillMonster implements config.task.Completecondition {
 
     @Override
     public boolean equals(Object other) {
-        if (null == other || !(other instanceof KillMonster))
+        if (!(other instanceof KillMonster))
             return false;
         KillMonster o = (KillMonster) other;
         return monsterid == o.monsterid && count == o.count;

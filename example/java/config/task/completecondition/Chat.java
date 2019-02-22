@@ -32,7 +32,7 @@ public class Chat implements config.task.Completecondition {
 
     @Override
     public boolean equals(Object other) {
-        if (null == other || !(other instanceof Chat))
+        if (!(other instanceof Chat))
             return false;
         Chat o = (Chat) other;
         return msg.equals(o.msg);

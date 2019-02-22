@@ -45,7 +45,7 @@ public class LevelRank {
 
     @Override
     public boolean equals(Object other) {
-        if (null == other || !(other instanceof LevelRank))
+        if (!(other instanceof LevelRank))
             return false;
         LevelRank o = (LevelRank) other;
         return level == o.level && rank == o.rank;

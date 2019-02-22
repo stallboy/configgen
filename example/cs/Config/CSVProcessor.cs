@@ -22,6 +22,7 @@ namespace Config
                 "signin",
                 "task.completeconditiontype",
                 "task.task",
+                "task.taskextraexp",
             };
             for(;;)
             {
@@ -77,6 +78,10 @@ namespace Config
                     case "task.task":
                         configNulls.Remove(csv);
                         Config.Task.DataTask.Initialize(os, Errors);
+                        break;
+                    case "task.taskextraexp":
+                        configNulls.Remove(csv);
+                        Config.Task.DataTaskextraexp.Initialize(os, Errors);
                         break;
                     default:
                         Errors.ConfigDataAdd(csv);

@@ -76,7 +76,7 @@ public class Lootitem {
 
         @Override
         public boolean equals(Object other) {
-            if (null == other || !(other instanceof LootidItemidKey))
+            if (!(other instanceof LootidItemidKey))
                 return false;
             LootidItemidKey o = (LootidItemidKey) other;
             return lootid == o.lootid && itemid == o.itemid;

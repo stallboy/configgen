@@ -11,13 +11,11 @@ public class ConfigMgr {
         mgr = newMgr;
     }
 
-
     public final java.util.Map<Integer, config.equip.Jewelry> equip_jewelry_All = new java.util.LinkedHashMap<>();
 
     public final java.util.Map<config.LevelRank, config.equip.Jewelryrandom> equip_jewelryrandom_All = new java.util.LinkedHashMap<>();
 
     public final java.util.Map<Integer, config.equip.Jewelrysuit> equip_jewelrysuit_All = new java.util.LinkedHashMap<>();
-
 
     public final java.util.Map<Integer, config.equip.Rank_Detail> equip_rank_All = new java.util.LinkedHashMap<>();
 
@@ -29,7 +27,8 @@ public class ConfigMgr {
 
     public final java.util.Map<Integer, config.Signin> signin_All = new java.util.LinkedHashMap<>();
 
-
     public final java.util.Map<Integer, config.task.Task> task_task_All = new java.util.LinkedHashMap<>();
+
+    public final java.util.Map<Integer, config.task.Taskextraexp> task_taskextraexp_All = new java.util.LinkedHashMap<>();
 
 }

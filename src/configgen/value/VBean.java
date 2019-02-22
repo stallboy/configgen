@@ -89,15 +89,21 @@ public class VBean extends VComposite {
 
     @Override
     public void verifyConstraint() {
+        //检验真正子bean的约束
         if (childDynamicVBean != null) {
             childDynamicVBean.verifyConstraint();
             return;
         }
 
+        //检验自己整体的Ref
         verifyRefs();
+
+        //检验单个成员的约束
         for (Value value : values) {
             value.verifyConstraint();
         }
+
+        //检验多个成员的Ref
         for (TForeignKey fk : tBean.getMRefs()) {
             if (isCellEmpty()) {
                 require(fk.foreignKeyDefine.refType == ForeignKey.RefType.NULLABLE, "空数据，外键必须nullable", fk.foreignKeyDefine);

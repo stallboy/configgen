@@ -32,7 +32,7 @@ public class TalkNpc implements config.task.Completecondition {
 
     @Override
     public boolean equals(Object other) {
-        if (null == other || !(other instanceof TalkNpc))
+        if (!(other instanceof TalkNpc))
             return false;
         TalkNpc o = (TalkNpc) other;
         return npcid == o.npcid;

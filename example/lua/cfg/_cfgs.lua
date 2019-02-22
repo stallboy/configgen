@@ -17,5 +17,6 @@ cfg.signin = pre("cfg.signin")
 cfg.task = {}
 cfg.task.completeconditiontype = pre("cfg.task.completeconditiontype")
 cfg.task.task = pre("cfg.task.task")
+cfg.task.taskextraexp = pre("cfg.task.taskextraexp")
 
 return cfg

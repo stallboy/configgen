@@ -77,13 +77,33 @@ public class TTable extends Node {
         for (String k : keys) {
             Type t = tBean.getColumnMap().get(k);
             if (t == null) {
-                error("外键列未找到", k);
-            } else if (t.hasText()) {
+                error("唯一键或主键列未找到", k);
+                return;
+            }
+
+            if (t.hasText()) {
                 Logger.log(fullName() + "的" + k + "有国际化字符串，langSwitch时是不允许的");
             }
 
-            require(null == res.put(k, t), "外键列重复", k);
-            require(keys.length == 1 || t instanceof TPrimitive, "外键类型不支持容器和Bean", k);
+            require(null == res.put(k, t), "唯一键或主键列重复", k);
+
+            if (t instanceof TList || t instanceof TMap) {
+                error("唯一键或主键类型不支持List，Map", k);
+            } else if (t instanceof TBean) {
+                if (keys.length != 1) {
+                    error("唯一键或主键类型如果是Bean，则必须只有1个", k);
+                }
+                TBean tbean = (TBean) t;
+                for (Type column : tbean.getColumns()) {
+                    if (!(column instanceof TPrimitive)) {
+                        error("唯一键或主键类型如果是Bean，则Bean里必须只包含基本类型吧，为简单期间", k);
+                    }
+                }
+            } else {
+                if (keys.length == 1) {
+                    t.setPrimitiveAndTableKey();
+                }
+            }
         }
     }
 

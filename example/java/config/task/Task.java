@@ -2,6 +2,7 @@ package config.task;
 
 public class Task {
     private int taskid;
+    private config.task.Taskextraexp NullableRefTaskid;
     private String name;
     private String desc;
     private int nexttask;
@@ -27,6 +28,10 @@ public class Task {
      */
     public int getTaskid() {
         return taskid;
+    }
+
+    public config.task.Taskextraexp nullableRefTaskid() {
+        return NullableRefTaskid;
     }
 
     /**
@@ -61,6 +66,7 @@ public class Task {
     }
 
     public void _resolve(config.ConfigMgr mgr) {
+        NullableRefTaskid = mgr.task_taskextraexp_All.get(taskid);
         completecondition._resolve(mgr);
     }
 

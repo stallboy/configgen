@@ -23,6 +23,7 @@ public class ConfigCodeSchema {
         schema.addImp("signin", signin());
         schema.addImp("task.completeconditiontype", task_completeconditiontype());
         schema.addImp("task.task", task_task());
+        schema.addImp("task.taskextraexp", task_taskextraexp());
         return schema;
     }
 
@@ -212,6 +213,13 @@ public class ConfigCodeSchema {
         s2.addColumn("nexttask", SchemaPrimitive.SInt);
         s2.addColumn("completecondition", new SchemaRef("task.completecondition"));
         s2.addColumn("exp", SchemaPrimitive.SInt);
+        return s2;
+    }
+
+    private static Schema task_taskextraexp() {
+        SchemaBean s2 = new SchemaBean(true);
+        s2.addColumn("taskid", SchemaPrimitive.SInt);
+        s2.addColumn("extraexp", SchemaPrimitive.SInt);
         return s2;
     }
 

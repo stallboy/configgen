@@ -43,11 +43,11 @@ public final class GenJavaData extends Generator {
 
     private static class SimpleValueVisitor implements ValueVisitor {
         private final ConfigOutput output;
-        private final LangSwitch ls;
+        private final LangSwitch nullableLS;
 
-        SimpleValueVisitor(ConfigOutput output, LangSwitch ls) {
+        SimpleValueVisitor(ConfigOutput output, LangSwitch nullableLS) {
             this.output = output;
-            this.ls = ls;
+            this.nullableLS = nullableLS;
         }
 
         @Override
@@ -72,8 +72,8 @@ public final class GenJavaData extends Generator {
 
         @Override
         public void visit(VString value) {
-            if (value.getType().hasText() && ls != null) { //这里全部写进去，作为一个Text的Bean
-                String[] i18nStrings = ls.findAllLangText(value.value);
+            if (value.getType().hasText() && nullableLS != null) { //这里全部写进去，作为一个Text的Bean
+                String[] i18nStrings = nullableLS.findAllLangText(value.value);
                 for (String i18nStr : i18nStrings) {
                     output.writeStr(i18nStr);
                 }
@@ -114,7 +114,7 @@ public final class GenJavaData extends Generator {
         }
     }
 
-    private void writeValue(VDb vDb, LangSwitch ls, ConfigOutput output) throws IOException {
+    private void writeValue(VDb vDb, LangSwitch nullableLS, ConfigOutput output) throws IOException {
         int cnt = 0;
         for (VTable vTable : vDb.getVTables()) {
             if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
@@ -129,10 +129,12 @@ public final class GenJavaData extends Generator {
                 continue;
             }
 
-            ls.enterTable(vTable.name);
+            if (nullableLS != null) {
+                nullableLS.enterTable(vTable.name);
+            }
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             try (ConfigOutput otherOutput = new ConfigOutput(new DataOutputStream(byteArrayOutputStream))) {
-                ValueVisitor visitor = new SimpleValueVisitor(otherOutput, ls);
+                ValueVisitor visitor = new SimpleValueVisitor(otherOutput, nullableLS);
                 otherOutput.writeInt(vTable.getVBeanList().size());
                 for (VBean v : vTable.getVBeanList()) {
                     v.accept(visitor);

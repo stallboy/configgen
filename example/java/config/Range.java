@@ -40,7 +40,7 @@ public class Range {
 
     @Override
     public boolean equals(Object other) {
-        if (null == other || !(other instanceof Range))
+        if (!(other instanceof Range))
             return false;
         Range o = (Range) other;
         return min == o.min && max == o.max;

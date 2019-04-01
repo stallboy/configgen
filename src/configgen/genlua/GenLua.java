@@ -28,7 +28,7 @@ public class GenLua extends Generator {
 
             @Override
             public String usage() {
-                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,lang_switch_dir:null    add own:x if need";
+                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false   add own:x if need";
             }
         });
     }

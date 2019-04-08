@@ -141,7 +141,7 @@ class TypeStr {
         List<String> texts = new ArrayList<>();
         for (Type col : tbean.getColumns()) {
             if (col instanceof TString && col.hasText()) {
-                texts.add(col.getColumnName());
+                texts.add(Generator.lower1(col.getColumnName()));
             }
         }
 

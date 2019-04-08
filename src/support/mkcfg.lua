@@ -158,7 +158,7 @@ function mkcfg.pretable(modname)
 end
 
 function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
-    mkcfg.i18n_table(self, uniqkeys, enumidx, refs, nil, ...)
+    return mkcfg.i18n_table(self, uniqkeys, enumidx, refs, nil, ...)
 end
 
 --- uniqkeys : {{allname, getname, keyidx1, keyidx2}, }

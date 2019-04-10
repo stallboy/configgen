@@ -2,6 +2,7 @@ package configgen.value;
 
 import configgen.Node;
 import configgen.data.DDb;
+import configgen.gen.Context;
 import configgen.type.TDb;
 import configgen.type.TTable;
 
@@ -18,13 +19,13 @@ public class VDb extends Node {
     }
 
     private final TDb tDb;
-    private final I18n i18n;
+    private final Context ctx;
     private Map<String, VTable> vTables;
 
-    public VDb(TDb tdb, DDb ddb, I18n i18n) {
+    public VDb(TDb tdb, DDb ddb, Context ctx) {
         super(null, "value");
         this.tDb = tdb;
-        this.i18n = i18n;
+        this.ctx = ctx;
         vTables = new LinkedHashMap<>(tdb.getTTables().size());
         current = this;
         for (TTable tTable : tdb.getTTables()) {
@@ -63,7 +64,7 @@ public class VDb extends Node {
         return vTables.get(tableName);
     }
 
-    I18n getI18n() {
-        return i18n;
+    Context getCtx() {
+        return ctx;
     }
 }

@@ -4,7 +4,6 @@ import configgen.Logger;
 import configgen.data.DDb;
 import configgen.define.Db;
 import configgen.type.TDb;
-import configgen.value.I18n;
 import configgen.value.VDb;
 
 import java.io.File;
@@ -16,6 +15,7 @@ public class Context {
     private final Db define;
     private final TDb type;
     private final DDb data;
+    private boolean _isI18n = false;
     private I18n i18n = new I18n();
     private LangSwitch langSwitch = null;
 
@@ -46,6 +46,7 @@ public class Context {
 
     void setI18nOrLangSwitch(String i18nFile, String langSwitchDir, String i18nEncoding, boolean crlfaslf){
         if (i18nFile != null) {
+            _isI18n = true;
             i18n = new I18n(i18nFile, i18nEncoding, crlfaslf);
         }else if (langSwitchDir != null){
             langSwitch = new LangSwitch(langSwitchDir, i18nEncoding, crlfaslf);
@@ -58,6 +59,10 @@ public class Context {
 
     public Path getDataDir() {
         return dataDir;
+    }
+
+    public boolean isI18n(){
+        return _isI18n;
     }
 
     public I18n getI18n() {
@@ -103,7 +108,7 @@ public class Context {
     }
 
     private VDb make(TDb myType) {
-        VDb value = new VDb(myType, data, i18n);
+        VDb value = new VDb(myType, data, this);
         Logger.mm("value");
         value.verifyConstraint();
         return value;

@@ -1,7 +1,5 @@
 package configgen.gen;
 
-import configgen.value.I18n;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;

@@ -1,4 +1,4 @@
-package configgen.value;
+package configgen.gen;
 
 import configgen.util.CSVParser;
 
@@ -84,6 +84,7 @@ public final class I18n {
         curTable = map.get(table);
     }
 
+    // 没找到或是原字符串是空字符串，则返回null
     public String enterText(String raw) {
         if (collector == null && curTable == null) {
             return null;

@@ -2,7 +2,7 @@ package configgen.geni18n;
 
 import configgen.gen.*;
 import configgen.util.CSVWriter;
-import configgen.value.I18n;
+import configgen.gen.I18n;
 
 import java.io.File;
 import java.util.*;

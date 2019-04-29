@@ -1,12 +1,12 @@
 package configgen.genlua;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 class FullToBrief {
-    private final Map<String, String> usedFullNameToBriefNames = new HashMap<>();
+    private final Map<String, String> usedFullNameToBriefNames = new TreeMap<>(); //用TreeMap使得生成代码确定
     private final Set<String> forbidBriefNames = new HashSet<>();
     private final Set<String> usedBriefNames = new HashSet<>();
 

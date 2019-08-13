@@ -28,7 +28,7 @@ public class GenLua extends Generator {
 
             @Override
             public String usage() {
-                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false   add own:x if need";
+                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false   add own:x if need  add emmylua:true if need ";
             }
         });
     }
@@ -37,6 +37,7 @@ public class GenLua extends Generator {
     private final String pkg;
     private final String encoding;
     private final String own;
+    private final boolean useEmmyLua;
     private final boolean preload;
     private VDb value;
     private FullToBrief toBrief;
@@ -50,6 +51,8 @@ public class GenLua extends Generator {
         pkg = parameter.getNotEmpty("pkg", "cfg");
         encoding = parameter.get("encoding", "UTF-8");
         own = parameter.get("own", null);
+        //是否生成EmmyLua相关的注解
+        useEmmyLua = Boolean.parseBoolean(parameter.get("emmylua", "false"));
         // 默认是不一开始就全部加载配置，而是用到的时候再加载
         preload = Boolean.parseBoolean(parameter.get("preload", "false"));
 
@@ -161,19 +164,87 @@ public class GenLua extends Generator {
             }
             context.add(full);
         }
+
+        if(useEmmyLua){
+            context.clear();
+            context.add(pkg);
+            generate_emmylua(ps, value.getTDb().getTTables(), context ,3);
+        }
+
         ps.println();
         ps.println("return %s", pkg);
     }
+
+    private void generate_emmylua(CachedIndentPrinter ps, Collection<TTable> tables, Set<String> context ,int lastIndent) {
+        String lastUpperPkg = "";
+        Queue<TTable> subCfgQueue = new LinkedList<TTable>();
+        for (TTable c : tables) {
+            String full = Name.fullName(c);
+            String[] nameSplits = full.split("\\.");
+            int splitLenth = nameSplits.length;
+            String lastName = nameSplits[splitLenth - 1];
+            if(lastIndent < splitLenth){
+                //如果是更深一层的文件夹，先进队列
+                subCfgQueue.add(c);
+                continue;
+            }
+            String curUpperPkg = nameSplits[splitLenth - 2];
+            //如果上层的文件夹发生了变化，那么检测队列是否有之前预存的，把这些配置解析了
+            if(!subCfgQueue.isEmpty()&& !curUpperPkg.equals(lastUpperPkg) ){
+                //先把下层在上层的入口给输出了
+                String upperPkg2 = "";
+                for (TTable tableInQueue : subCfgQueue) {
+                    String fullName2 = Name.fullName(tableInQueue);
+                    String[] nameSplits2 = fullName2.split("\\.");
+                    int splitLenth2 = nameSplits2.length;
+                    String curUpperPkg2 = nameSplits2[splitLenth2 - 2];
+                    if (!upperPkg2.equals(curUpperPkg2)) {
+                        int lastNameLenth = nameSplits2[splitLenth2 - 1].length();
+                        ps.println("---@field %s %s", curUpperPkg2, fullName2.substring(0, fullName2.length() - lastNameLenth - 1));
+                    }
+                    upperPkg2 = curUpperPkg2;
+                }
+
+                //然后再递归输出之前缓存的内容
+                generate_emmylua(ps, subCfgQueue, context, lastIndent + 1);
+                subCfgQueue.clear();
+            }
+            lastIndent = splitLenth;
+            lastUpperPkg = curUpperPkg;
+
+            definePkgEmmyLua(full, ps, context);
+            if (!preload) {
+                ps.println("---@field %s %s", lastName, full);
+            }
+            context.add(full);
+        }
+    }
+
 
     private void definePkg(String beanName, CachedIndentPrinter ps, Set<String> context) {
         List<String> seps = Arrays.asList(beanName.split("\\."));
         for (int i = 0; i < seps.size() - 1; i++) {
             String pkg = String.join(".", seps.subList(0, i + 1));
             if (context.add(pkg)) {
+                if(useEmmyLua){
+                        ps.println("---@type %s",pkg);
+                }
                 ps.println(pkg + " = {}");
             }
         }
     }
+
+    private void definePkgEmmyLua(String beanName, CachedIndentPrinter ps, Set<String> context) {
+        List<String> seps = Arrays.asList(beanName.split("\\."));
+        for (int i = 0; i < seps.size() - 1; i++) {
+            String pkg = String.join(".", seps.subList(0, i + 1));
+            if (context.add(pkg)) {
+                ps.println();
+                ps.println("---@class %s", pkg);
+            }
+        }
+    }
+
 
 
     private void generate_loads(CachedIndentPrinter ps) {
@@ -260,8 +331,15 @@ public class GenLua extends Generator {
         }
         ps.println();
 
+        String fullName = Name.fullName(vtable.getTTable());
+        if(useEmmyLua){
+            ps.println("---@class %s", fullName);
+            ps.println(TypeStr.getLuaFieldsStringEmmyLua(tbean) + "---@field get function");
+            ps.println("---@field all table<any,%s>",fullName);
+            ps.println(TypeStr.getLuaRefsStringEmmyLua(tbean));
+        }
 
-        ps.println("local this = %s", Name.fullName(vtable.getTTable()));
+        ps.println("local this = %s", fullName);
         ps.println();
 
         String func = "table";

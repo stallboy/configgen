@@ -136,6 +136,69 @@ class TypeStr {
         return sb.toString();
     }
 
+    static String getLuaFieldsStringEmmyLua(TBean tbean) {
+        StringBuilder sb = new StringBuilder();
+        int cnt = tbean.getColumnMap().size();
+        int i = 0;
+        for (String n : tbean.getColumnMap().keySet()) {
+            i++;
+            Column f = tbean.getBeanDefine().columns.get(n);
+            String c = f.desc.isEmpty() ? "" : ", " + f.desc;
+            sb.append("---@field ").append(Generator.lower1(n)).append(" ").append(typeToLuaType(f.type)).append(" ").append(c).append("\n");
+        }
+        return sb.toString();
+    }
+
+    static String getLuaRefsStringEmmyLua (TBean tbean) {
+        StringBuilder sb = new StringBuilder();
+        boolean hasRef = false;
+        int i = 0;
+        for (Type t : tbean.getColumns()) {
+            i++;
+            for (SRef r : t.getConstraint().references) {
+                if (t instanceof TMap) {
+                    System.out.println("map sref not suppport, bean=" + tbean.name);
+                    break;
+                }
+                String refname = Name.refName(r);
+                String dsttable = Name.fullName(r.refTable);
+                String dstgetname = Name.uniqueKeyGetByName(r.refCols);
+                if(t instanceof TList){
+                    sb.append("---@field ");
+                    sb.append(String.format("%s table<number,%s>",refname,dsttable)); //refname, islist, dsttable, dstgetname, i));
+                    sb.append("\n");
+                }else{
+                    sb.append("---@field ");
+                    sb.append(String.format("%s %s",refname,dsttable)); //refname, islist, dsttable, dstgetname, i));
+                    sb.append("\n");
+                }
+                hasRef = true;
+            }
+        }
+        //没处理外键的相关生成
+        //忽略ListRef
+        if (hasRef) {
+            return sb.toString();
+        } else {
+            return "";
+        }
+    }
+
+    private static String typeToLuaType(String type){
+        if(type.equals("int")||type.equals("long")||type.equals("float")){
+            return "number";
+        }
+        if(type.equals("bool")){
+            return "boolean";
+        }
+        if(type.startsWith("list")){//list,int,4
+            String[] split = type.split(",");
+            return String.format("table<number,%s>",typeToLuaType(split[1]));
+        }
+        if(type.equals("string")||type.equals("text"))
+            return type;
+        return "any";
+    }
 
     static String getLuaTextFieldsString(TBean tbean) {
         List<String> texts = new ArrayList<>();

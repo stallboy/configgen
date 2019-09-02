@@ -232,7 +232,7 @@ class GenBeanClass {
         for (TForeignKey l : tbean.getListRefs()) {
             BeanName refn = new BeanName(l.refTable.getTBean());
             boolean isUseFor = l.refTable.getTableDefine().isEnumFull();
-            if (isUseFor) { // 这个保证不去_Detail里取引用
+            if (isUseFor) { // 鐢ㄤ簬淇濊瘉寮曠敤鍒癬Detail绫诲瀷鐨勬椂寮曠敤瑙ｆ瀽鐢熸垚姝ｇ‘
                 ps.println2("for (%s v : %s.values()) {", refn.fullName, refn.fullName);
             } else {
                 ps.println2("mgr.%sAll.values().forEach( v -> {", refn.containerPrefix);

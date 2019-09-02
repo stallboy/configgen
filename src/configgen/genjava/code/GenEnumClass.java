@@ -5,6 +5,7 @@ import configgen.gen.Generator;
 import configgen.type.SRef;
 import configgen.type.TBean;
 import configgen.type.TForeignKey;
+import configgen.type.Type;
 import configgen.util.CachedIndentPrinter;
 import configgen.value.VTable;
 
@@ -103,7 +104,9 @@ class GenEnumClass {
             ps.println();
 
             TBean tbean = vtable.getTTable().getTBean();
-            tbean.getColumnMap().forEach((n, t) -> {
+            for (Map.Entry<String, Type> entry : tbean.getColumnMap().entrySet()) {
+                String n = entry.getKey();
+                Type t = entry.getValue();
                 Column f = tbean.getBeanDefine().columns.get(n);
                 if (!f.desc.isEmpty()) {
                     ps.println1("/**");
@@ -127,7 +130,7 @@ class GenEnumClass {
                     ps.println1("}");
                     ps.println();
                 }
-            });
+            }
 
             for (TForeignKey m : tbean.getMRefs()) {
                 ps.println1("public " + Name.refType(m) + " " + Generator.lower1(Name.refName(m)) + "() {");

@@ -3,6 +3,7 @@ package configgen.genjava.code;
 import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.define.ForeignKey;
+import configgen.define.Table;
 import configgen.gen.Generator;
 import configgen.type.*;
 import configgen.util.CachedIndentPrinter;
@@ -231,11 +232,17 @@ class GenBeanClass {
 
         for (TForeignKey l : tbean.getListRefs()) {
             BeanName refn = new BeanName(l.refTable.getTBean());
-            boolean isUseFor = l.refTable.getTableDefine().isEnumFull();
-            if (isUseFor) { // 用于保证引用到_Detail类型的时引用解析生成正确
+            Table refTableDefine = l.refTable.getTableDefine();
+            boolean has_OnlyEnum = refTableDefine.isEnumFull() && refTableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr();
+            boolean has_Enum_Detail = refTableDefine.isEnumFull() && !refTableDefine.isEnumHasOnlyPrimaryKeyAndEnumStr();
+            if (has_OnlyEnum) {
                 ps.println2("for (%s v : %s.values()) {", refn.fullName, refn.fullName);
+            } else if (has_Enum_Detail) {
+                ps.println2("for (%s vv : %s.values()) {", refn.fullName, refn.fullName);
+                String primK = l.refTable.getTableDefine().primaryKey[0];
+                ps.println3("%s v = mgr.%sAll.get(vv.get%s());", refn.fullName + "_Detail", refn.containerPrefix, Generator.upper1(primK));
             } else {
-                ps.println2("mgr.%sAll.values().forEach( v -> {", refn.containerPrefix);
+                ps.println2("mgr.%sAll.values().forEach( v -> {", refn.containerPrefix); // 为了跟之前兼容
             }
 
             List<String> eqs = new ArrayList<>();
@@ -245,10 +252,15 @@ class GenBeanClass {
                 eqs.add(MethodStr.equal("v.get" + Generator.upper1(rk) + "()", Generator.lower1(k), tbean.getColumnMap().get(k)));
             }
             ps.println3("if (" + String.join(" && ", eqs) + ")");
-            ps.println4(Name.refName(l) + ".add(v);");
-            if (isUseFor) {
+
+            if (has_OnlyEnum) {
+                ps.println4(Name.refName(l) + ".add(v);");
+                ps.println2("}");
+            } else if (has_Enum_Detail) {
+                ps.println4(Name.refName(l) + ".add(vv);");
                 ps.println2("}");
             } else {
+                ps.println4(Name.refName(l) + ".add(v);");
                 ps.println2("});");
             }
         }

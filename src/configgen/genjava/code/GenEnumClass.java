@@ -130,14 +130,14 @@ class GenEnumClass {
             });
 
             for (TForeignKey m : tbean.getMRefs()) {
-                ps.println1("public " + Name.fullName(m.refTable) + " " + Generator.lower1(Name.refName(m)) + "() {");
+                ps.println1("public " + Name.refType(m) + " " + Generator.lower1(Name.refName(m)) + "() {");
                 ps.println2("return ref()." + Generator.lower1(Name.refName(m)) + "();");
                 ps.println1("}");
                 ps.println();
             }
 
             for (TForeignKey l : tbean.getListRefs()) {
-                ps.println1("public " + Name.listRefFullName(tbean, l) + " " + Generator.lower1(Name.refName(l)) + "() {");
+                ps.println1("public " + Name.refTypeForList(l) + " " + Generator.lower1(Name.refName(l)) + "() {");
                 ps.println2("return ref()." + Generator.lower1(Name.refName(l)) + "();");
                 ps.println1("}");
                 ps.println();

@@ -10,7 +10,7 @@ class GenBaseDynamicBeanInterface {
         ps.println();
         ps.println("public interface %s {", name.className);
         ps.inc();
-        ps.println("%s type();", Name.fullName(tbean.getChildDynamicBeanEnumRefTable()));
+        ps.println("%s type();", Name.refType(tbean.getChildDynamicBeanEnumRefTable()));
         ps.println();
 
         if (tbean.hasRef()) {

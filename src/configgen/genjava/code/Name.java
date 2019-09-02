@@ -28,10 +28,8 @@ public class Name {
         else
             try {
                 return TypeStr.boxType(keys.values().iterator().next());
-            }catch(Exception e){
-                System.out.println(e);
+            } catch (Exception e) {
                 return null;
-
             }
 
     }
@@ -40,27 +38,9 @@ public class Name {
         return Stream.of(keys).map(Generator::upper1).reduce("", (a, b) -> a + b) + "Key";
     }
 
-    private static String fullName(TBean tbean, TForeignKey tfk) {
-        String name = fullName(tfk.refTable);
-        if (tfk.foreignKeyDefine.keys.length == 1) {
-            String k = tfk.foreignKeyDefine.keys[0];
-            Type tt = tbean.getColumnMap().get(k);
-            if (tt instanceof TList) {
-                return "java.util.List<" + name + ">";
-            } else if (tt instanceof TMap) {
-                //TODO
-                return "";
-            }
-        }
-        return name;
-    }
 
     static String fullName(TBean tbean) {
         return new BeanName(tbean).fullName;
-    }
-
-    static String fullName(TTable ttable) {
-        return fullName(ttable.getTBean());
     }
 
     static String tableDataFullName(TTable ttable) {
@@ -71,21 +51,40 @@ public class Name {
         return fn;
     }
 
-    static String listRefFullName(TBean tbean, TForeignKey tfk) {
-        return "java.util.List<" + fullName(tbean, tfk) + ">";
+
+    static String refType(TTable ttable) {
+        return new BeanName(ttable.getTBean()).fullName;
+    }
+
+
+    static String refType(TForeignKey fk) {
+        return refType(fk.refTable);
+    }
+
+    static String refType(SRef ref) {
+        return refType(ref.refTable);
     }
 
     static String refType(Type t, SRef ref) {
         if (t instanceof TList) {
-            return "java.util.List<" + fullName(ref.refTable) + ">";
+            return "java.util.List<" + refType(ref.refTable) + ">";
         } else if (t instanceof TMap) {
             return "java.util.Map<"
-                    + (ref.mapKeyRefTable != null ? fullName(ref.mapKeyRefTable) : TypeStr.boxType(((TMap) t).key)) + ", "
-                    + (ref.refTable != null ? fullName(ref.refTable) : TypeStr.boxType(((TMap) t).value)) + ">";
+                    + (ref.mapKeyRefTable != null ? refTypeForMapKey(ref) : TypeStr.boxType(((TMap) t).key)) + ", "
+                    + (ref.refTable != null ? refType(ref) : TypeStr.boxType(((TMap) t).value)) + ">";
         } else {
-            return fullName(ref.refTable);
+            return refType(ref);
         }
     }
+
+    static String refTypeForMapKey(SRef ref) {
+        return refType(ref.mapKeyRefTable);
+    }
+
+    static String refTypeForList(TForeignKey fk) {
+        return "java.util.List<" + refType(fk.refTable) + ">";
+    }
+
 
     static String refName(SRef sr) {
         return (sr.refNullable ? "NullableRef" : "Ref") + Generator.upper1(sr.name);
@@ -111,4 +110,6 @@ public class Name {
             return "";
         }
     }
+
+
 }

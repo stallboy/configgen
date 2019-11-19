@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 class TypeStr {
 
@@ -204,8 +203,10 @@ class TypeStr {
         List<String> texts = new ArrayList<>();
         for (Type col : tbean.getColumns()) {
             if (col.hasText()) {
-                if (col instanceof TString || (col instanceof TList && ((TList) col).value instanceof TString)) {
-                    texts.add(Generator.lower1(col.getColumnName()));
+                if (col instanceof TString) {
+                    texts.add(Generator.lower1(col.getColumnName()) + " = true");
+                } else if (col instanceof TList && ((TList) col).value instanceof TString) {
+                    texts.add(Generator.lower1(col.getColumnName()) + " = 2");
                 }
             }
         }
@@ -214,6 +215,6 @@ class TypeStr {
             return "";
         }
 
-        return "\n    { " + texts.stream().map(t -> t + " = true").collect(Collectors.joining(", ")) + " },";
+        return "\n    { " + String.join(", ", texts) + " },";
     }
 }

@@ -13,8 +13,14 @@ public class TMap extends Type {
         super(parent, name, idx);
         this.key = resolveType("key", idx, key, false);
         require(Objects.nonNull(this.key), "map的Key类型不存在", key);
+        if (this.key instanceof TString){
+            require(!this.key.hasText(), "map的Key类型不能是Text");
+        }
         this.value = resolveType("value", idx, value, false);
         require(Objects.nonNull(this.value), "map的Value类型不存在", value);
+        if (this.value instanceof TString){
+            require(!this.value.hasText(), "map的Value类型不能是Text");
+        }
         this.count = count;
     }
 

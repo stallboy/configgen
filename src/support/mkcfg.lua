@@ -12,13 +12,29 @@ local function mkbean(refs, textFields, fields)
     local get = {}
     for i, f in ipairs(fields) do
         if textFields and textFields[f] then
-            --- 重写取field方法，增加一间接层
-            get[f] = function(t)
-                local v = mkcfg.i18n[t[i]]
-                if v then
-                    return v
-                else
-                    return ""
+            --- 重写取field方法，增加一间接层, 支持2种类型，<1>true表示是text，<2>2表示是list,text
+            local is_list = textFields[f] == 2
+            if is_list then
+                get[f] = function(t)
+                    local res = {}
+                    for _, ele in ipairs(t[i]) do
+                        local v = mkcfg.i18n[ele]
+                        if v then
+                            res[#res + 1] = v
+                        else
+                            res[#res + 1] = ""
+                        end
+                    end
+                    return res
+                end
+            else
+                get[f] = function(t)
+                    local v = mkcfg.i18n[t[i]]
+                    if v then
+                        return v
+                    else
+                        return ""
+                    end
                 end
             end
         else

@@ -149,7 +149,7 @@ class TypeStr {
         return sb.toString();
     }
 
-    static String getLuaRefsStringEmmyLua (TBean tbean) {
+    static String getLuaRefsStringEmmyLua(TBean tbean) {
         StringBuilder sb = new StringBuilder();
         boolean hasRef = false;
         int i = 0;
@@ -163,13 +163,13 @@ class TypeStr {
                 String refname = Name.refName(r);
                 String dsttable = Name.fullName(r.refTable);
                 String dstgetname = Name.uniqueKeyGetByName(r.refCols);
-                if(t instanceof TList){
+                if (t instanceof TList) {
                     sb.append("---@field ");
-                    sb.append(String.format("%s table<number,%s>",refname,dsttable)); //refname, islist, dsttable, dstgetname, i));
+                    sb.append(String.format("%s table<number,%s>", refname, dsttable)); //refname, islist, dsttable, dstgetname, i));
                     sb.append("\n");
-                }else{
+                } else {
                     sb.append("---@field ");
-                    sb.append(String.format("%s %s",refname,dsttable)); //refname, islist, dsttable, dstgetname, i));
+                    sb.append(String.format("%s %s", refname, dsttable)); //refname, islist, dsttable, dstgetname, i));
                     sb.append("\n");
                 }
                 hasRef = true;
@@ -184,18 +184,18 @@ class TypeStr {
         }
     }
 
-    private static String typeToLuaType(String type){
-        if(type.equals("int")||type.equals("long")||type.equals("float")){
+    private static String typeToLuaType(String type) {
+        if (type.equals("int") || type.equals("long") || type.equals("float")) {
             return "number";
         }
-        if(type.equals("bool")){
+        if (type.equals("bool")) {
             return "boolean";
         }
-        if(type.startsWith("list")){//list,int,4
+        if (type.startsWith("list")) {//list,int,4
             String[] split = type.split(",");
-            return String.format("table<number,%s>",typeToLuaType(split[1]));
+            return String.format("table<number,%s>", typeToLuaType(split[1]));
         }
-        if(type.equals("string")||type.equals("text"))
+        if (type.equals("string") || type.equals("text"))
             return type;
         return "any";
     }
@@ -203,8 +203,10 @@ class TypeStr {
     static String getLuaTextFieldsString(TBean tbean) {
         List<String> texts = new ArrayList<>();
         for (Type col : tbean.getColumns()) {
-            if (col instanceof TString && col.hasText()) {
-                texts.add(Generator.lower1(col.getColumnName()));
+            if (col.hasText()) {
+                if (col instanceof TString || (col instanceof TList && ((TList) col).value instanceof TString)) {
+                    texts.add(Generator.lower1(col.getColumnName()));
+                }
             }
         }
 

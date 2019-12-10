@@ -1,5 +1,6 @@
 package configgen.genlua;
 
+import configgen.Logger;
 import configgen.define.Bean;
 import configgen.gen.*;
 import configgen.type.TBean;
@@ -28,7 +29,7 @@ public class GenLua extends Generator {
 
             @Override
             public String usage() {
-                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false   add own:x if need  add emmylua:true if need ";
+                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,sharedemptytable:false   add own:x if need  add emmylua:true if need ";
             }
         });
     }
@@ -39,6 +40,7 @@ public class GenLua extends Generator {
     private final String own;
     private final boolean useEmmyLua;
     private final boolean preload;
+    private final boolean sharedEmptyTable;
     private AllValue value;
     private FullToBrief toBrief;
 
@@ -56,13 +58,15 @@ public class GenLua extends Generator {
         // 默认是不一开始就全部加载配置，而是用到的时候再加载
         preload = Boolean.parseBoolean(parameter.get("preload", "false"));
 
+        sharedEmptyTable = Boolean.parseBoolean(parameter.get("sharedemptytable", "false"));
+
         parameter.end();
     }
 
     @Override
     public void generate(Context ctx) throws IOException {
         Name.setPackageName(pkg);
-        toBrief = new FullToBrief(pkg);
+        toBrief = new FullToBrief(pkg, sharedEmptyTable);
         ValueStr.setToBrief(toBrief);
         langSwitch = ctx.getLangSwitch();
         isLangSwitch = langSwitch != null;
@@ -95,6 +99,8 @@ public class GenLua extends Generator {
                 generate_table(v, ps, lineCache);
             }
         }
+
+        Logger.log(String.format("共享的空table个数:%d", toBrief.getAllEmptyTableUsedCount()));
 
         if (ctx.getLangSwitch() != null) {
             for (LangSwitch.Lang lang : ctx.getLangSwitch().getAllLangInfo()) {
@@ -165,17 +171,17 @@ public class GenLua extends Generator {
             context.add(full);
         }
 
-        if(useEmmyLua){
+        if (useEmmyLua) {
             context.clear();
             context.add(pkg);
-            generate_emmylua(ps, value.getTDb().getTTables(), context ,3);
+            generate_emmylua(ps, value.getTDb().getTTables(), context, 3);
         }
 
         ps.println();
         ps.println("return %s", pkg);
     }
 
-    private void generate_emmylua(CachedIndentPrinter ps, Collection<TTable> tables, Set<String> context ,int lastIndent) {
+    private void generate_emmylua(CachedIndentPrinter ps, Collection<TTable> tables, Set<String> context, int lastIndent) {
         String lastUpperPkg = "";
         Queue<TTable> subCfgQueue = new LinkedList<>();
         for (TTable c : tables) {
@@ -183,14 +189,14 @@ public class GenLua extends Generator {
             String[] nameSplits = full.split("\\.");
             int splitLenth = nameSplits.length;
             String lastName = nameSplits[splitLenth - 1];
-            if(lastIndent < splitLenth){
+            if (lastIndent < splitLenth) {
                 //如果是更深一层的文件夹，先进队列
                 subCfgQueue.add(c);
                 continue;
             }
             String curUpperPkg = nameSplits[splitLenth - 2];
             //如果上层的文件夹发生了变化，那么检测队列是否有之前预存的，把这些配置解析了
-            if(!subCfgQueue.isEmpty()&& !curUpperPkg.equals(lastUpperPkg) ){
+            if (!subCfgQueue.isEmpty() && !curUpperPkg.equals(lastUpperPkg)) {
                 //先把下层在上层的入口给输出了
                 String upperPkg2 = "";
                 for (TTable tableInQueue : subCfgQueue) {
@@ -226,8 +232,8 @@ public class GenLua extends Generator {
         for (int i = 0; i < seps.size() - 1; i++) {
             String pkg = String.join(".", seps.subList(0, i + 1));
             if (context.add(pkg)) {
-                if(useEmmyLua){
-                        ps.println("---@type %s",pkg);
+                if (useEmmyLua) {
+                    ps.println("---@type %s", pkg);
                 }
                 ps.println(pkg + " = {}");
             }
@@ -244,7 +250,6 @@ public class GenLua extends Generator {
             }
         }
     }
-
 
 
     private void generate_loads(CachedIndentPrinter ps) {
@@ -296,13 +301,13 @@ public class GenLua extends Generator {
                         }
                     }
 
-                    if (actionBean.getColumns().isEmpty()){
+                    if (actionBean.getColumns().isEmpty()) {
                         //这里来个优化，加上()直接生成实例，而不是类，注意生成数据时对应不加()
                         ps.println("%s = %s(\"%s\", %s, %s%s)()", fulln, func, actionBean.name,
                                 TypeStr.getLuaRefsString(actionBean),
                                 textFieldsStr,
                                 TypeStr.getLuaFieldsString(actionBean));
-                    }else {
+                    } else {
                         ps.println("%s = %s(\"%s\", %s, %s%s\n    )", fulln, func, actionBean.name,
                                 TypeStr.getLuaRefsString(actionBean),
                                 textFieldsStr,
@@ -325,7 +330,7 @@ public class GenLua extends Generator {
                             TypeStr.getLuaRefsString(tbean),
                             textFieldsStr,
                             TypeStr.getLuaFieldsString(tbean));
-                }else{
+                } else {
                     ps.println("%s = %s(%s, %s%s\n    )", full, func,
                             TypeStr.getLuaRefsString(tbean),
                             textFieldsStr,
@@ -349,10 +354,10 @@ public class GenLua extends Generator {
         ps.println();
 
         String fullName = Name.fullName(vtable.getTTable());
-        if(useEmmyLua){
+        if (useEmmyLua) {
             ps.println("---@class %s", fullName);
             ps.println(TypeStr.getLuaFieldsStringEmmyLua(tbean) + "---@field get function");
-            ps.println("---@field all table<any,%s>",fullName);
+            ps.println("---@field all table<any,%s>", fullName);
             ps.println(TypeStr.getLuaRefsStringEmmyLua(tbean));
         }
 
@@ -390,6 +395,10 @@ public class GenLua extends Generator {
         ps.disableCache();
 
         // 对收集到的引用local化，lua执行应该会快点
+        if (sharedEmptyTable && toBrief.isEmptyTableUsed()) {
+            ps.println("local E = %s._mk.E", pkg);
+        }
+
         if (!toBrief.getAll().isEmpty()) {
             for (Map.Entry<String, String> entry : toBrief.getAll().entrySet()) {
                 ps.println("local %s = %s", entry.getValue(), entry.getKey());

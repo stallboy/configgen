@@ -10,20 +10,53 @@ class FullToBrief {
     private final Set<String> forbidBriefNames = new HashSet<>();
     private final Set<String> usedBriefNames = new HashSet<>();
 
-    FullToBrief(String pkg) {
+
+    private int allEmptyTableUsedCount = 0;
+    private boolean emptyTableUsed = false;
+    private String emptyTableStr;
+
+    FullToBrief(String pkg, boolean _sharedEmptyTable) {
+        if (_sharedEmptyTable) {
+            emptyTableStr = "E";
+        } else {
+            emptyTableStr = "{}";
+        }
+
         forbidBriefNames.add(pkg);
         forbidBriefNames.add("Beans");
+        forbidBriefNames.add("E"); //用于表示emptyTable
         forbidBriefNames.add("this");
         forbidBriefNames.add("mk");
     }
 
+    ////////////////////////////////////////////per generator
+    int getAllEmptyTableUsedCount() {
+        return allEmptyTableUsedCount;
+    }
+
+    String getEmptyTableStr() {
+        return emptyTableStr;
+    }
+
+
+    ////////////////////////////////////////////per file
     void clear() {
         usedBriefNames.clear();
         usedFullNameToBriefNames.clear();
+        emptyTableUsed = false;
+    }
+
+    boolean isEmptyTableUsed() {
+        return emptyTableUsed;
     }
 
     Map<String, String> getAll() {
         return usedFullNameToBriefNames;
+    }
+
+    void useEmptyTable() {
+        emptyTableUsed = true;
+        allEmptyTableUsedCount++;
     }
 
     String toBrief(String fullName) {

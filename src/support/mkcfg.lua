@@ -7,6 +7,9 @@ local require = require
 local mkcfg = {}
 mkcfg.i18n = {}
 
+mkcfg.E = {} --- emptyTable，为减少内存占用，所有生成的配置数据共享这个，代码别改哦
+
+
 --- refs { {refname, islist, dsttable, dstgetname, keyidx1, keyidx2}, }
 local function mkbean(refs, textFields, fields)
     local get = {}

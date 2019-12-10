@@ -88,34 +88,43 @@ class ValueStr {
             @Override
             public void visit(VList value) {
                 int sz = value.getList().size();
-                int idx = 0;
-                res.append("{");
-                for (Value eleValue : value.getList()) {
-                    getLuaValueString(res, eleValue, null, false);
-                    idx++;
-                    if (idx != sz) {
-                        res.append(", ");
+                if (sz == 0) { //优化，避免重复创建空table
+                    toBrief.useEmptyTable();
+                    res.append(toBrief.getEmptyTableStr());
+                } else {
+                    int idx = 0;
+                    res.append("{");
+                    for (Value eleValue : value.getList()) {
+                        getLuaValueString(res, eleValue, null, false);
+                        idx++;
+                        if (idx != sz) {
+                            res.append(", ");
+                        }
                     }
+                    res.append("}");
                 }
-                res.append("}");
             }
 
             @Override
             public void visit(VMap value) {
                 int sz = value.getMap().size();
-                int idx = 0;
-
-                res.append("{");
-                for (Map.Entry<Value, Value> entry : value.getMap().entrySet()) {
-                    getLuaValueString(res, entry.getKey(), null, true);
-                    res.append(" = ");
-                    getLuaValueString(res, entry.getValue(), null, false);
-                    idx++;
-                    if (idx != sz) {
-                        res.append(", ");
+                if (sz == 0) { //优化，避免重复创建空table
+                    toBrief.useEmptyTable();
+                    res.append(toBrief.getEmptyTableStr());
+                } else {
+                    int idx = 0;
+                    res.append("{");
+                    for (Map.Entry<Value, Value> entry : value.getMap().entrySet()) {
+                        getLuaValueString(res, entry.getKey(), null, true);
+                        res.append(" = ");
+                        getLuaValueString(res, entry.getValue(), null, false);
+                        idx++;
+                        if (idx != sz) {
+                            res.append(", ");
+                        }
                     }
+                    res.append("}");
                 }
-                res.append("}");
             }
 
             @Override

@@ -2,7 +2,7 @@ package configgen.type;
 
 import configgen.Node;
 import configgen.define.Bean;
-import configgen.define.Db;
+import configgen.define.AllDefine;
 import configgen.define.Table;
 
 import java.util.Collection;
@@ -13,9 +13,9 @@ public class TDb extends Node {
     private final Map<String, TBean> tBeans = new LinkedHashMap<>();
     private final Map<String, TTable> tTables = new LinkedHashMap<>();
 
-    public TDb(Db defineDb) {
+    public TDb(AllDefine allDefine) {
         super(null, "tdb");
-        for (Bean bean : defineDb.getBeans()) {
+        for (Bean bean : allDefine.getBeans()) {
             try {
                 TBean tBean = new TBean(this, bean);
                 tBeans.put(tBean.name, tBean);
@@ -24,7 +24,7 @@ public class TDb extends Node {
             }
         }
 
-        for (Table table : defineDb.tables.values()) {
+        for (Table table : allDefine.tables.values()) {
             try {
                 TTable tTable = new TTable(this, table);
                 tTables.put(tTable.name, tTable);

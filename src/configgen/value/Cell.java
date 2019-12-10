@@ -1,5 +1,11 @@
 package configgen.value;
 
+import configgen.util.ListParser;
+import configgen.util.NestListParser;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 public final class Cell {
     final int row;
     final int col;
@@ -11,7 +17,7 @@ public final class Cell {
         this.data = data;
     }
 
-    public String getData(){
+    public String getData() {
         return data;
     }
 
@@ -30,4 +36,22 @@ public final class Cell {
         else
             return r;
     }
+
+
+    public static List<Cells.Cell> parseFunc(Cells.Cell dat) {
+        return NestListParser.parseFunction(dat.data).stream().
+                map(s -> new Cells.Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+    }
+
+    public static List<Cells.Cell> parseNestList(Cells.Cell dat) {
+        return NestListParser.parseNestList(dat.data).stream().
+                map(s -> new Cells.Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+    }
+
+    public static List<Cells.Cell> parseList(Cells.Cell dat, char separator) {
+        return ListParser.parseList(dat.data, separator).stream().
+                map(s -> new Cells.Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+    }
+
+
 }

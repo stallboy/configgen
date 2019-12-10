@@ -303,10 +303,7 @@ public class GenLua extends Generator {
 
                     if (actionBean.getColumns().isEmpty()) {
                         //这里来个优化，加上()直接生成实例，而不是类，注意生成数据时对应不加()
-                        ps.println("%s = %s(\"%s\", %s, %s%s)()", fulln, func, actionBean.name,
-                                TypeStr.getLuaRefsString(actionBean),
-                                textFieldsStr,
-                                TypeStr.getLuaFieldsString(actionBean));
+                        ps.println("%s = %s(\"%s\")()", fulln, func, actionBean.name);
                     } else {
                         ps.println("%s = %s(\"%s\", %s, %s%s\n    )", fulln, func, actionBean.name,
                                 TypeStr.getLuaRefsString(actionBean),
@@ -326,10 +323,7 @@ public class GenLua extends Generator {
 
                 if (tbean.getColumns().isEmpty()) {
                     //这里来个优化，加上()直接生成实例，而不是类，注意生成数据时对应不加()
-                    ps.println("%s = %s(%s, %s%s)()", full, func,
-                            TypeStr.getLuaRefsString(tbean),
-                            textFieldsStr,
-                            TypeStr.getLuaFieldsString(tbean));
+                    ps.println("%s = %s()()", full, func);
                 } else {
                     ps.println("%s = %s(%s, %s%s\n    )", full, func,
                             TypeStr.getLuaRefsString(tbean),

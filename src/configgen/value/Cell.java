@@ -37,21 +37,4 @@ public final class Cell {
             return r;
     }
 
-
-    public static List<Cells.Cell> parseFunc(Cells.Cell dat) {
-        return NestListParser.parseFunction(dat.data).stream().
-                map(s -> new Cells.Cell(dat.row, dat.col, s)).collect(Collectors.toList());
-    }
-
-    public static List<Cells.Cell> parseNestList(Cells.Cell dat) {
-        return NestListParser.parseNestList(dat.data).stream().
-                map(s -> new Cells.Cell(dat.row, dat.col, s)).collect(Collectors.toList());
-    }
-
-    public static List<Cells.Cell> parseList(Cells.Cell dat, char separator) {
-        return ListParser.parseList(dat.data, separator).stream().
-                map(s -> new Cells.Cell(dat.row, dat.col, s)).collect(Collectors.toList());
-    }
-
-
 }

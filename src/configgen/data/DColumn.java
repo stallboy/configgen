@@ -1,6 +1,7 @@
 package configgen.data;
 
 import configgen.Node;
+import configgen.type.Type;
 import configgen.util.CSVParser;
 
 import java.util.ArrayList;
@@ -11,6 +12,16 @@ import java.util.Set;
 final class DColumn extends Node {
     final List<Integer> indexes = new ArrayList<>();
     final List<String> descs = new ArrayList<>();
+
+    private Type columnType;
+
+    public Type getColumnType() {
+        return columnType;
+    }
+
+    void setColumnType(Type columnType) {
+        this.columnType = columnType;
+    }
 
     DColumn(DTable parent, String name) {
         super(parent, name);
@@ -36,8 +47,8 @@ final class DColumn extends Node {
 
     private Set<String> dataSet() {
         Set<String> r = new HashSet<>();
-        for (List<String> row : ((DTable) parent).getRecordList()){
-            if (CSVParser.isEmptyRecord(row)){
+        for (List<String> row : ((DTable) parent).getRecordList()) {
+            if (CSVParser.isEmptyRecord(row)) {
                 continue;
             }
 
@@ -48,6 +59,7 @@ final class DColumn extends Node {
         return r;
     }
 
+
     private static class Pair {
         final Set<String> key = new HashSet<>();
         final Set<String> value = new HashSet<>();
@@ -56,7 +68,7 @@ final class DColumn extends Node {
     private Pair dataKeyValueSet() {
         Pair res = new Pair();
         for (List<String> row : ((DTable) parent).getRecordList()) {
-            if (CSVParser.isEmptyRecord(row)){
+            if (CSVParser.isEmptyRecord(row)) {
                 continue;
             }
 

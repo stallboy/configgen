@@ -3,63 +3,73 @@ package configgen.value;
 import configgen.define.Bean;
 import configgen.define.ForeignKey;
 import configgen.type.TBean;
+import configgen.type.TBeanRef;
 import configgen.type.TForeignKey;
 import configgen.type.Type;
-import configgen.util.ListParser;
-import configgen.util.NestListParser;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class VBean extends VComposite {
     private final TBean tBean;
     private List<Value> values;
     private final VBean childDynamicVBean;
 
-    VBean(TBean tbean, List<Cell> data, boolean compressAsOne) {
-        super(tbean, data);
+    VBean(TBean tbean, AData<TBean> adata) {
+        super(tbean, adata.cells);
         tBean = tbean;
+        require(adata.fullType.getBeanDefine().type == tBean.getBeanDefine().type, "类型应该一致");
 
+        // 把compress的展开
         List<Cell> parsed;
-        if (compressAsOne) {
-            require(data.size() == 1, "compressAsOne应该只占一格");
-            Cell dat = data.get(0);
+        if (adata.isCompressAsOne()) { //这个要先与compress检测，让这个推荐配置可以覆盖旧的情况
+            require(adata.cells.size() == 1, "compressAsOne应该只占一格");
+            Cell dat = adata.cells.get(0);
             if (tBean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
-                parsed = NestListParser.parseFunction(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+                parsed = Cells.parseFunc(dat);
             } else {
-                parsed = NestListParser.parseNestList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+                parsed = Cells.parseNestList(dat);
             }
-        } else if (tBean.getBeanDefine().compress) {
-            require(data.size() == 1, "compress的Bean应该只占一格");
-            Cell dat = data.get(0);
-            parsed = ListParser.parseList(dat.data, tBean.getBeanDefine().compressSeparator).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
 
-        } else if (tBean.getBeanDefine().type == Bean.BeanType.ChildDynamicBean) {
-            require(data.size() >= tBean.columnSpan(), "动态子Bean占格子数要<=基类Bean计算的格子数");
-            parsed = data.subList(0, tBean.columnSpan());
+        } else if (adata.fullType.getBeanDefine().compress) { //向后兼容，之后尽量用compressAsOne
+            require(adata.cells.size() == 1,
+                    "compress的Bean应只占一格, （Bean定义时可指明是否要压缩成一格，后来修改设计为对column配置compressAsOne属性，更灵活）");
+            Cell dat = adata.cells.get(0);
+            parsed = Cells.parseList(dat, tBean.getBeanDefine().compressSeparator);
 
         } else {
-            require(data.size() == tBean.columnSpan(), "列宽度应该等于", tBean.columnSpan());
-            parsed = data;
+            require(adata.cells.size() == adata.fullType.columnSpan(), "列宽度应一致");
+            require(adata.cells.size() >= tBean.columnSpan(), "列宽度不小于", tBean.columnSpan());
+            parsed = adata.cells;
         }
+
 
         if (tBean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
             String childDynamicBeanName = parsed.get(0).data;
+            TBean fullChildTBean = adata.fullType.getChildDynamicBeanByName(childDynamicBeanName);
+            require(Objects.nonNull(fullChildTBean), "子Bean不存在", childDynamicBeanName);
+            require(fullChildTBean.columnSpan() <= parsed.size() - 1, "数据子Bean大小应该小于", childDynamicBeanName);
+            // 提取子Bean
+            List<Cell> childCells = parsed.subList(1, fullChildTBean.columnSpan() + 1);
+            AData<TBean> childAData = new AData<>(childCells, fullChildTBean, adata.isCompressAsOne());
             TBean childTBean = tBean.getChildDynamicBeanByName(childDynamicBeanName);
             require(Objects.nonNull(childTBean), "子Bean不存在", childDynamicBeanName);
-            childDynamicVBean = new VBean(childTBean, parsed.subList(1, parsed.size()), compressAsOne);
-            values = new ArrayList<>();
+            childDynamicVBean = new VBean(childTBean, childAData);
+            values = Collections.emptyList();
+
         } else {
             childDynamicVBean = null;
             values = new ArrayList<>(tBean.getColumnMap().size());
             int s = 0;
-            for (Type t : tBean.getColumns()) {
-                int span = compressAsOne ? 1 : t.columnSpan();
-                Value v = Value.create(t, parsed.subList(s, s + span), compressAsOne);
-                values.add(v);
+            for (Type columnFullType : adata.fullType.getColumns()) {
+                int span = adata.isCompressAsOne() ? 1 : columnFullType.columnSpan();
+                Type columnSelected = tBean.getColumn(columnFullType.name);
+                if (columnSelected != null) {
+                    // 提取单个field
+                    AData<?> columnAData = new AData<>(parsed.subList(s, s + span), columnFullType, adata.isCompressAsOne());
+                    Value v = Values.create(columnSelected, columnAData);
+                    values.add(v);
+                }
+
                 s += span;
             }
         }
@@ -115,7 +125,7 @@ public class VBean extends VComposite {
                 VList keyValue = new VList(vs);
 
                 if (fk.cache == null) {
-                    VTable vtable = VDb.getCurrent().getVTable(fk.refTable.name);
+                    VTable vtable = AllValue.getCurrent().getVTable(fk.refTable.name);
                     fk.cache = fk.foreignKeyDefine.ref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", fk.foreignKeyDefine.ref.cols));
                 }
                 require(fk.cache.contains(keyValue), "外键未找到", fk.refTable, keyValue);

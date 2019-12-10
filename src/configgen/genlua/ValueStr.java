@@ -129,18 +129,23 @@ class ValueStr {
                     beanType = toBrief.toBrief(Name.fullName(val.getTBean()));
                 }
 
-                res.append(beanType).append("(");
+                res.append(beanType);
 
+                // 这里来个优化，如果没有参数不加()，因为beanType其实直接就是个实例
                 int sz = val.getValues().size();
-                int idx = 0;
-                for (Value fieldValue : val.getValues()) {
-                    getLuaValueString(res, fieldValue, null, false);
-                    idx++;
-                    if (idx != sz) {
-                        res.append(", ");
+                if (sz > 0) {
+                    res.append("(");
+                    int idx = 0;
+                    for (Value fieldValue : val.getValues()) {
+                        getLuaValueString(res, fieldValue, null, false);
+                        idx++;
+                        if (idx != sz) {
+                            res.append(", ");
+                        }
                     }
+                    res.append(")");
                 }
-                res.append(")");
+
             }
         });
     }

@@ -25,7 +25,7 @@ public class TBean extends Type {
     private final Map<String, TBean> childDynamicBeans = new LinkedHashMap<>();
 
 
-    public TBean(TDb parent, Bean bean) {
+    public TBean(AllType parent, Bean bean) {
         super(parent, bean.name, -1);
         beanDefine = bean;
         if (beanDefine.type == Bean.BeanType.NormalBean) {
@@ -65,6 +65,10 @@ public class TBean extends Type {
 
     public Bean getBeanDefine() {
         return beanDefine;
+    }
+
+    public Type getColumn(String col) {
+        return columns.get(col);
     }
 
     public Map<String, Type> getColumnMap() {
@@ -238,7 +242,7 @@ public class TBean extends Type {
 
     public void resolve() {
         if (beanDefine.type == Bean.BeanType.BaseDynamicBean) {
-            childDynamicBeanEnumRefTable = ((TDb) root).getTTable(beanDefine.childDynamicBeanEnumRef);
+            childDynamicBeanEnumRefTable = ((AllType) root).getTTable(beanDefine.childDynamicBeanEnumRef);
             require(childDynamicBeanEnumRefTable != null, "多态Bean的枚举表不存在", beanDefine.childDynamicBeanEnumRef);
             for (TBean tBean : childDynamicBeans.values()) {
                 tBean.resolve();
@@ -255,7 +259,7 @@ public class TBean extends Type {
                 resolveColumnConstraint(columnType, column);
             }
 
-            require(columns.size() > 0, "Bean列数不能为0");
+//            require(columns.size() > 0, "Bean列数不能为0");
             for (TForeignKey fk : foreignKeys) {
                 if (fk.foreignKeyDefine.refType == ForeignKey.RefType.LIST)
                     listRefs.add(fk);

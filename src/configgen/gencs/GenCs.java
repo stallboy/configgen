@@ -7,7 +7,7 @@ import configgen.gen.*;
 import configgen.type.*;
 import configgen.util.CachedFiles;
 import configgen.util.CachedIndentPrinter;
-import configgen.value.VDb;
+import configgen.value.AllValue;
 import configgen.value.VTable;
 
 import java.io.*;
@@ -41,7 +41,7 @@ public class GenCs extends Generator {
     private final String prefix;
     private final String own;
     private File dstDir;
-    private VDb value;
+    private AllValue value;
 
     private GenCs(Parameter parameter) {
         super(parameter);

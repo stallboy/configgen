@@ -63,7 +63,7 @@ public abstract class Type extends Node {
             case "text":
                 return new TString(this, columnName, columnIdx, TString.Subtype.TEXT);
             default:
-                TBean bean = ((TDb) root).getTBean(type);
+                TBean bean = ((AllType) root).getTBean(type);
                 if (bean != null) {
                     return new TBeanRef(this, columnName, columnIdx, bean, compressAsOne);
                 } else {

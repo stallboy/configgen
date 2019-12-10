@@ -1,12 +1,12 @@
 package configgen.genjava.code;
 
 import configgen.util.CachedIndentPrinter;
-import configgen.value.VDb;
+import configgen.value.AllValue;
 import configgen.value.VTable;
 
 class GenConfigMgrLoader {
 
-    static void generate(VDb vdb, CachedIndentPrinter ps) {
+    static void generate(AllValue vdb, CachedIndentPrinter ps) {
         ps.println("package %s;", Name.codeTopPkg);
         ps.println();
 

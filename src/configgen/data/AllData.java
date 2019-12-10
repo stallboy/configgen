@@ -2,12 +2,13 @@ package configgen.data;
 
 import configgen.Logger;
 import configgen.Node;
-import configgen.define.Db;
+import configgen.define.AllDefine;
 import configgen.define.Table;
-import configgen.type.TDb;
+import configgen.type.AllType;
 import configgen.type.TTable;
 import configgen.util.CSVParser;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -18,21 +19,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DDb extends Node {
+public class AllData extends Node {
     private final Path dataDir;
     private final Map<String, DTable> dTables = new HashMap<>();
 
-    public DDb(Path _dataDir, String dataEncoding) {
-        super(null, "ddb");
+    private AllDefine fullDefine;
+    private AllType fullType;
+
+
+    public AllData(Path _dataDir, String dataEncoding) {
+        super(null, "AllData");
         dataDir = _dataDir;
-
-
-//        System.gc();
-//        Logger.mm("--");
-//        List<List<String>> allLines = CSV.readFromFile(dataDir.resolve("filter\\fullwordfilter.csv"), dataEncoding);
-//        System.gc();
-//        Logger.mm("==");
-//        System.exit(1);
 
         try {
             Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
@@ -44,7 +41,7 @@ public class DDb extends Node {
                         String configName = String.join(".", p.split("[\\\\/]")).toLowerCase();
                         List<List<String>> allLines = CSVParser.readFromFile(file, dataEncoding);
 //                        Logger.mm(file.toString());
-                        dTables.put(configName, new DTable(DDb.this, configName, allLines));
+                        dTables.put(configName, new DTable(AllData.this, configName, allLines));
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -54,25 +51,57 @@ public class DDb extends Node {
         }
     }
 
-    public DTable getDTable(String tableName){
+    public Path getDataDir() {
+        return dataDir;
+    }
+
+    public DTable getDTable(String tableName) {
         return dTables.get(tableName);
     }
 
-    public void autoCompleteDefine(Db defineDb, TDb typeDb) {
+    public AllDefine getFullDefine() {
+        return fullDefine;
+    }
+
+    public AllType getFullType() {
+        return fullType;
+    }
+
+
+    public void refineDefineAndType(File xmlFile, String encoding) {
+        fullDefine = new AllDefine(xmlFile);
+        Logger.mm("define");
+
+        AllType firstTryType = new AllType(fullDefine);
+        firstTryType.resolve();
+
+        autoCompleteDefine(fullDefine, firstTryType);
+        fullDefine.save(xmlFile, encoding);
+
+        fullType = new AllType(fullDefine);
+        fullType.resolve();
+        Logger.mm("type");
+
+        for (DTable table : dTables.values()) {
+            table.setTableType(fullType.getTTable(table.name));
+        }
+    }
+
+    private void autoCompleteDefine(AllDefine allDefine, AllType allType) {
         Map<String, TTable> old = new HashMap<>();
-        for (TTable tTable : typeDb.getTTables()) {
+        for (TTable tTable : allType.getTTables()) {
             old.put(tTable.name, tTable);
         }
 
-        defineDb.tables.clear();
+        allDefine.tables.clear();
         for (DTable dTable : dTables.values()) {
             TTable ttable = old.remove(dTable.name);
             Table tableDefine;
             if (ttable != null) {
                 tableDefine = ttable.getTableDefine();
-                defineDb.tables.put(dTable.name, tableDefine);
+                allDefine.tables.put(dTable.name, tableDefine);
             } else {
-                tableDefine = defineDb.newTable(dTable.name);
+                tableDefine = allDefine.newTable(dTable.name);
                 Logger.verbose("new table " + tableDefine.fullName());
             }
 
@@ -86,4 +115,6 @@ public class DDb extends Node {
 
         old.forEach((k, cfg) -> Logger.verbose("delete table " + cfg.fullName()));
     }
+
+
 }

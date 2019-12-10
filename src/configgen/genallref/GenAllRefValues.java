@@ -47,7 +47,7 @@ public class GenAllRefValues extends Generator {
     @Override
     public void generate(Context ctx) throws IOException {
         Set<String> allrefs = new TreeSet<>();
-        VDb value = ctx.makeValue();
+        AllValue value = ctx.makeValue();
         TTable refTable = value.getTDb().getTTable(ref);
         if (refTable == null) {
             System.out.println("ref " + ref + " not a table");

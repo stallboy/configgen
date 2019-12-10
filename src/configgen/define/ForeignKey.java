@@ -58,8 +58,8 @@ public class ForeignKey extends Node {
     }
 
     boolean invalid() {
-        Db db = (Db) root;
-        return !((ref == null || ref.valid(db)) && (mapKeyRef == null || mapKeyRef.valid(db)));
+        AllDefine allDefine = (AllDefine) root;
+        return !((ref == null || ref.valid(allDefine)) && (mapKeyRef == null || mapKeyRef.valid(allDefine)));
     }
 
     void save(Element parent) {

@@ -20,7 +20,7 @@ public class TTable extends Node {
     private final List<Map<String, Type>> uniqueKeys = new ArrayList<>();
 
 
-    public TTable(TDb parent, Table cfg) {
+    public TTable(AllType parent, Table cfg) {
         super(parent, cfg.bean.name);
         this.tableDefine = cfg;
         tBean = new TBean(this, cfg.bean);

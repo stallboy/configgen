@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="GBK"?>
-<db>
+<allDefine>
     <bean name="LevelRank">
         <column desc="等级" name="Level" type="int"/>
         <column desc="品质" name="Rank" ref="equip.rank" type="int"/>
@@ -121,4 +121,4 @@
         <column desc="任务完成条件类型（id的范围为1-100）" name="taskid" type="int"/>
         <column desc="额外奖励经验" name="extraexp" type="int"/>
     </table>
-</db>
+</allDefine>

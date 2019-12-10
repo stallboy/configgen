@@ -7,9 +7,9 @@ import java.util.List;
 public abstract class VComposite extends Value {
     private final List<Cell> cells;
 
-    VComposite(Type type, List<Cell> data) {
+    VComposite(Type type, List<Cell> _cells) {
         super(type);
-        cells = data;
+        cells = _cells;
     }
 
     @Override
@@ -38,6 +38,4 @@ public abstract class VComposite extends Value {
         }
         return "";
     }
-
-
 }

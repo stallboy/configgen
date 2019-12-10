@@ -7,7 +7,7 @@ import java.util.Set;
 
 class ValueSearcher {
 
-    static void searchValues(VDb vDb, Set<Integer> searchIntegers) {
+    static void searchValues(AllValue allValue, Set<Integer> searchIntegers) {
         ValueVisitor vv = new ValueVisitor() {
             @Override
             public void visit(VBool value) {
@@ -61,7 +61,7 @@ class ValueSearcher {
             }
         };
 
-        for (VTable vTable : vDb.getVTables()) {
+        for (VTable vTable : allValue.getVTables()) {
             for (VBean vBean : vTable.getVBeanList()) {
                 vBean.accept(vv);
             }

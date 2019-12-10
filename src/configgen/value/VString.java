@@ -15,9 +15,9 @@ public class VString extends VPrimitive {
             value = raw.data;
         } else {
             String originalValue = raw.data;
-            String v = VDb.getCurrent().getCtx().getI18n().enterText(originalValue);
+            String v = AllValue.getCurrent().getCtx().getI18n().enterText(originalValue);
             value = v != null ? v : originalValue;
-            if ( VDb.getCurrent().getCtx().isI18n() && v == null && !originalValue.isEmpty() ){
+            if ( AllValue.getCurrent().getCtx().isI18n() && v == null && !originalValue.isEmpty() ){
                 System.out.println("未找到 " + type.fullName() + ": " + originalValue);
             }
         }

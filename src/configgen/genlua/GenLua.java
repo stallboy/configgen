@@ -7,7 +7,7 @@ import configgen.type.TTable;
 import configgen.util.CachedFiles;
 import configgen.util.CachedIndentPrinter;
 import configgen.value.VBean;
-import configgen.value.VDb;
+import configgen.value.AllValue;
 import configgen.value.VTable;
 
 import java.io.File;
@@ -39,7 +39,7 @@ public class GenLua extends Generator {
     private final String own;
     private final boolean useEmmyLua;
     private final boolean preload;
-    private VDb value;
+    private AllValue value;
     private FullToBrief toBrief;
 
     private boolean isLangSwitch;
@@ -177,7 +177,7 @@ public class GenLua extends Generator {
 
     private void generate_emmylua(CachedIndentPrinter ps, Collection<TTable> tables, Set<String> context ,int lastIndent) {
         String lastUpperPkg = "";
-        Queue<TTable> subCfgQueue = new LinkedList<TTable>();
+        Queue<TTable> subCfgQueue = new LinkedList<>();
         for (TTable c : tables) {
             String full = Name.fullName(c);
             String[] nameSplits = full.split("\\.");
@@ -296,10 +296,18 @@ public class GenLua extends Generator {
                         }
                     }
 
-                    ps.println("%s = %s(\"%s\", %s, %s%s\n    )", fulln, func, actionBean.name,
-                            TypeStr.getLuaRefsString(actionBean),
-                            textFieldsStr,
-                            TypeStr.getLuaFieldsString(actionBean));
+                    if (actionBean.getColumns().isEmpty()){
+                        //这里来个优化，加上()直接生成实例，而不是类，注意生成数据时对应不加()
+                        ps.println("%s = %s(\"%s\", %s, %s%s)()", fulln, func, actionBean.name,
+                                TypeStr.getLuaRefsString(actionBean),
+                                textFieldsStr,
+                                TypeStr.getLuaFieldsString(actionBean));
+                    }else {
+                        ps.println("%s = %s(\"%s\", %s, %s%s\n    )", fulln, func, actionBean.name,
+                                TypeStr.getLuaRefsString(actionBean),
+                                textFieldsStr,
+                                TypeStr.getLuaFieldsString(actionBean));
+                    }
                 }
             } else {
                 String func = "bean";
@@ -311,10 +319,19 @@ public class GenLua extends Generator {
                     }
                 }
 
-                ps.println("%s = %s(%s, %s%s\n    )", full, func,
-                        TypeStr.getLuaRefsString(tbean),
-                        textFieldsStr,
-                        TypeStr.getLuaFieldsString(tbean));
+                if (tbean.getColumns().isEmpty()) {
+                    //这里来个优化，加上()直接生成实例，而不是类，注意生成数据时对应不加()
+                    ps.println("%s = %s(%s, %s%s)()", full, func,
+                            TypeStr.getLuaRefsString(tbean),
+                            textFieldsStr,
+                            TypeStr.getLuaFieldsString(tbean));
+                }else{
+                    ps.println("%s = %s(%s, %s%s\n    )", full, func,
+                            TypeStr.getLuaRefsString(tbean),
+                            textFieldsStr,
+                            TypeStr.getLuaFieldsString(tbean));
+                }
+
             }
         }
         ps.println();

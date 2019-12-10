@@ -4,7 +4,7 @@ import configgen.Logger;
 import configgen.Node;
 import configgen.define.Bean;
 import configgen.define.Column;
-import configgen.define.Db;
+import configgen.define.AllDefine;
 import configgen.define.Table;
 import configgen.type.*;
 
@@ -30,11 +30,27 @@ public class DTable extends Node {
     private String B;
     private List<Integer> ABSpan;
 
+
     private enum State {
         NORM, MAYBE_LIST_OR_MAP, LIST, MAYBE_MAP, MAYBE_MAP2, MAP
     }
 
-    DTable(DDb parent, String name, List<List<String>> raw) {
+    private TTable tableType;
+
+    public TTable getTableType() {
+        return tableType;
+    }
+
+    void setTableType(TTable tableType) {
+        this.tableType = tableType;
+
+        for (DColumn col : dcolumns.values()) {
+            col.setColumnType(tableType.getTBean().getColumn(col.name));
+        }
+    }
+
+
+    DTable(AllData parent, String name, List<List<String>> raw) {
         super(parent, name);
         if (raw.size() < 2) {
             System.out.println(fullName() + " 数据行数小于2");
@@ -49,8 +65,12 @@ public class DTable extends Node {
         recordList = raw.subList(2, raw.size());
     }
 
-    public List<Integer> getColumnIndexes(String columnName) {
-        return dcolumns.get(columnName).indexes;
+    public List<Integer> getAllColumnIndexes() {
+        List<Integer> indexes = new ArrayList<>();
+        for (DColumn col : dcolumns.values()) {
+            indexes.addAll(col.indexes);
+        }
+        return indexes;
     }
 
     public List<List<String>> getRecordList() {
@@ -64,7 +84,7 @@ public class DTable extends Node {
         dcolumns.forEach((n, col) -> {
             Column f = old.remove(n);
             if (f == null) {
-                f = ((Db) table.parent).newColumn(table, n, col.guessType(), col.desc());
+                f = ((AllDefine) table.parent).newColumn(table, n, col.guessType(), col.desc());
                 Logger.verbose("new column " + f.fullName());
             } else {
                 bean.columns.put(f.name, f);

@@ -12,6 +12,7 @@ public class NestListParserTest {
 
     @Test
     public void parseNestList() {
+        t1("a", "a");
         t1("a,b", "a", "b");
         t1("QingGong(10,(13300100,13300200)), RanSe(30,3)", "QingGong(10,(13300100,13300200))", "RanSe(30,3)");
         t1("QingGong(10, (13300100, 13300200)) , RanSe(30,3) ", "QingGong(10, (13300100, 13300200))", "RanSe(30,3)");
@@ -58,6 +59,7 @@ public class NestListParserTest {
 
     @Test
     public void parseFunction() {
+//        t2("a", "a", "");
         t2("a(b,c)", "a", "b,c");
         t2("abc(b,c,d(e,f))", "abc", "b,c,d(e,f)");
         //assertThrows(Throwable.class, () -> NestListParser.parseFunction("a,b,c"));

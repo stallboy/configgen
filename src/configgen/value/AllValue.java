@@ -11,10 +11,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class VDb extends Node {
-    private static VDb current; //约定一次处理一个，减少内存占用
+public class AllValue extends Node {
+    private static AllValue current; //约定一次处理一个，减少内存占用
 
-    static VDb getCurrent() {
+    static AllValue getCurrent() {
         return current;
     }
 
@@ -22,7 +22,7 @@ public class VDb extends Node {
     private final Context ctx;
     private Map<String, VTable> vTables;
 
-    public VDb(AllType tdb, AllData ddb, Context ctx) {
+    public AllValue(AllType tdb, AllData fullData, Context ctx) {
         super(null, "value");
         this.allType = tdb;
         this.ctx = ctx;
@@ -30,7 +30,7 @@ public class VDb extends Node {
         current = this;
         for (TTable tTable : tdb.getTTables()) {
             try {
-                VTable vt = new VTable(this, tTable, ddb.getDTable(tTable.name));
+                VTable vt = new VTable(this, tTable, fullData.getDTable(tTable.name));
                 vTables.put(tTable.name, vt);
             } catch (Throwable e) {
                 throw new AssertionError(tTable.name + ",这个表数据构造出错", e);

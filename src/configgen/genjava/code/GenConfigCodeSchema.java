@@ -3,13 +3,13 @@ package configgen.genjava.code;
 import configgen.gen.LangSwitch;
 import configgen.genjava.*;
 import configgen.util.CachedIndentPrinter;
-import configgen.value.VDb;
+import configgen.value.AllValue;
 
 import java.util.Map;
 
 final class GenConfigCodeSchema {
 
-    static void generate(VDb vdb, LangSwitch ls, CachedIndentPrinter ps) {
+    static void generate(AllValue vdb, LangSwitch ls, CachedIndentPrinter ps) {
         ps.println("package " + Name.codeTopPkg + ";");
         ps.println();
         ps.println("import configgen.genjava.*;");

@@ -35,6 +35,8 @@ public final class Main {
 
         System.out.println("    -binaryToText 后可接2个参数（java data的file，table名称-用startsWith匹配），打印table的定义和数据");
         System.out.println("    -search       后可接多个数字，找到匹配的数据");
+        System.out.println("    -compatibleForOwn   原来在table里配置了own='x'后，如果此table下没有column配置own='x'，则默认所有column都被选择，现在去掉此约定，必须显示配置column的own，这个命令用来做兼容性转换");
+
 
         System.out.println("    -verify       检查配表约束");
         System.out.println("    -dump         打印内部树结构");
@@ -72,6 +74,7 @@ public final class Main {
 
         String binaryToTextFile = null;
         String match = null;
+        boolean compatibleForOwn = false;
 
         Set<Integer> searchIntegers = null;
 
@@ -135,6 +138,9 @@ public final class Main {
                         searchIntegers.add(Integer.parseInt(args[++i]));
                     }
                     break;
+                case "-compatibleForOwn":
+                    compatibleForOwn = true;
+                    break;
 
                 default:
                     usage("unknown args " + args[i]);
@@ -147,6 +153,15 @@ public final class Main {
             return;
         }
 
+        if (compatibleForOwn) {
+            if (xml != null){
+                CompatibleForOwn.makeCompatible(new File(xml), encoding);
+            }else{
+                usage("-compatibleForOwn 需要配置-xml");
+            }
+            return;
+        }
+
         if (datadir == null) {
             usage("-datadir 未配置");
             return;
@@ -154,6 +169,7 @@ public final class Main {
 
         if (i18nfile != null && langSwitchDir != null) {
             usage("-不能同时配置i18nfile和langSwitchDir");
+            return;
         }
 
         Path dataDir = Paths.get(datadir);

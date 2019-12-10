@@ -4,14 +4,14 @@ import configgen.define.Bean;
 import configgen.define.Table;
 import configgen.gen.LangSwitch;
 import configgen.type.*;
-import configgen.value.VDb;
+import configgen.value.AllValue;
 import configgen.value.VTable;
 
 import java.util.Map;
 
 public final class SchemaParser {
 
-    public static SchemaInterface parse(VDb vdb, LangSwitch langSwitch) {
+    public static SchemaInterface parse(AllValue vdb, LangSwitch langSwitch) {
         SchemaInterface root = new SchemaInterface();
         if (langSwitch != null) {
             root.addImp("Text", parseLangSwitch(langSwitch)); //这里国际化的字段当作一个Bean

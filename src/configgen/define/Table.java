@@ -23,7 +23,7 @@ public class Table extends Node {
 
     public final Map<String, UniqueKey> uniqueKeys = new LinkedHashMap<>();
 
-    Table(Db parent, Element self) {
+    Table(AllDefine parent, Element self) {
         super(parent, self.getAttribute("name"));
         DomUtils.permitAttributes(self, "name", "own", "enum", "enumPart", "primaryKey", "isPrimaryKeySeq");
         DomUtils.permitElements(self, "column", "foreignKey", "range", "uniqueKey");
@@ -88,7 +88,7 @@ public class Table extends Node {
         return false;
     }
 
-    Table(Db parent, String name) {
+    Table(AllDefine parent, String name) {
         super(parent, name);
         bean = new Bean(this, name);
         enumType = EnumType.None;
@@ -97,7 +97,7 @@ public class Table extends Node {
         isPrimaryKeySeq = false;
     }
 
-    private Table(Db _parent, Table original) {
+    private Table(AllDefine _parent, Table original) {
         super(_parent, original.name);
         enumType = original.enumType;
         enumStr = original.enumStr;
@@ -106,7 +106,7 @@ public class Table extends Node {
     }
 
 
-    Table extract(Db _parent, String own) {
+    Table extract(AllDefine _parent, String own) {
         Table part = new Table(_parent, this);
         part.bean = bean.extract(part, own);
         if (part.bean == null)

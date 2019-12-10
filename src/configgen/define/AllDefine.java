@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class Db extends Node {
+public class AllDefine extends Node {
     private final Map<String, Bean> beans = new TreeMap<>();
     public final Map<String, Table> tables = new TreeMap<>();
 
@@ -18,12 +18,12 @@ public class Db extends Node {
         return beans.values();
     }
 
-    public Db(File file) {
+    public AllDefine(File file) {
         this(file.exists() ? DomUtils.rootElement(file) : null);
     }
 
-    private Db(Element self) {
-        super(null, "db");
+    private AllDefine(Element self) {
+        super(null, "AllDefine");
         if (self != null) {
             DomUtils.permitAttributes(self);
             DomUtils.permitElements(self, "bean", "table");
@@ -41,8 +41,8 @@ public class Db extends Node {
         }
     }
 
-    private Db(String own) {
-        super(null, "db(" + own + ")");
+    private AllDefine(String own) {
+        super(null, "AllDefine(" + own + ")");
     }
 
 
@@ -58,8 +58,8 @@ public class Db extends Node {
         return c;
     }
 
-    public Db extract(String own) {
-        Db part = new Db(own);
+    public AllDefine extract(String own) {
+        AllDefine part = new AllDefine(own);
         for (Bean bean : beans.values()) {
             try {
                 Bean pb = bean.extract(part, own);

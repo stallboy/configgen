@@ -2,38 +2,41 @@ package configgen.value;
 
 import configgen.define.Column;
 import configgen.type.TList;
-import configgen.util.ListParser;
-import configgen.util.NestListParser;
+import configgen.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class VList extends VComposite {
     private ArrayList<Value> list;
 
-    VList(TList type, List<Cell> data, boolean compressAsOne) {
-        super(type, data);
+    VList(TList type, AData<TList> adata) {
+        super(type, adata.cells);
 
         List<Cell> parsed;
-        if (compressAsOne || type.compressType == Column.CompressType.AsOne) {
-            require(data.size() == 1);
-            Cell dat = data.get(0);
-            parsed = NestListParser.parseNestList(dat.data).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
-        } else if (type.compressType == Column.CompressType.UseSeparator) {
-            require(data.size() == 1);
-            Cell dat = data.get(0);
-            parsed = ListParser.parseList(dat.data, type.compressSeparator).stream().map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+        if (adata.isCompressAsOne() || type.compressType == Column.CompressType.AsOne) {
+            require(adata.cells.size() == 1);
+            Cell dat = adata.cells.get(0);
+            parsed = Cells.parseNestList(dat);
+
+        } else if (type.compressType == Column.CompressType.UseSeparator) { //为了兼容之前的设计
+            require(adata.cells.size() == 1);
+            Cell dat = adata.cells.get(0);
+            parsed = Cells.parseList(dat, type.compressSeparator);
+
         } else {
-            require(data.size() == type.columnSpan());
-            parsed = data;
+            require(adata.cells.size() == adata.fullType.columnSpan());
+            parsed = adata.cells;
         }
 
         list = new ArrayList<>();
-        int vc = compressAsOne ? 1 : type.value.columnSpan();  // 注意这里compressAsOne的自上而下一直传递的特性
+        int vc = adata.isCompressAsOne() ? 1 :
+                adata.fullType.value.columnSpan();  // 注意这里compressAsOne的自上而下一直传递的特性
+
         for (int s = 0; s < parsed.size(); s += vc) {
-            if (!parsed.get(s).data.isEmpty()) { //first as a null clue, see code generator
-                list.add(Value.create(type.value, parsed.subList(s, s + vc), compressAsOne));
+            if (!parsed.get(s).data.isEmpty()) { //第一个单元作为是否还有item的标记
+                AData<?> itemAData = new AData<>(parsed.subList(s, s + vc), adata.fullType.value, adata.isCompressAsOne());
+                list.add(Values.create(type.value, itemAData));
             } else {
                 for (Cell dc : parsed.subList(s, s + vc)) {
                     require(dc.data.isEmpty(), "list的item第一个为空格后，之后必须也都是空格", dc);

@@ -33,7 +33,7 @@ public final class GenJavaData extends Generator {
 
     @Override
     public void generate(Context ctx) throws IOException {
-        VDb value = ctx.makeValue();
+        AllValue value = ctx.makeValue();
         try (ConfigOutput output = new ConfigOutput(new DataOutputStream(new CachedFileOutputStream(file, 2048 * 1024)))) {
             Schema schema = SchemaParser.parse(value, ctx.getLangSwitch());
             schema.write(output);
@@ -114,9 +114,9 @@ public final class GenJavaData extends Generator {
         }
     }
 
-    private void writeValue(VDb vDb, LangSwitch nullableLS, ConfigOutput output) throws IOException {
+    private void writeValue(AllValue allValue, LangSwitch nullableLS, ConfigOutput output) throws IOException {
         int cnt = 0;
-        for (VTable vTable : vDb.getVTables()) {
+        for (VTable vTable : allValue.getVTables()) {
             if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                 Logger.verbose("ignore write data" + vTable.name);
             } else {
@@ -124,7 +124,7 @@ public final class GenJavaData extends Generator {
             }
         }
         output.writeInt(cnt);
-        for (VTable vTable : vDb.getVTables()) {
+        for (VTable vTable : allValue.getVTables()) {
             if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                 continue;
             }

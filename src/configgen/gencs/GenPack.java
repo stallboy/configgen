@@ -4,7 +4,7 @@ import configgen.Logger;
 import configgen.gen.*;
 import configgen.util.CachedFiles;
 import configgen.util.DomUtils;
-import configgen.value.VDb;
+import configgen.value.AllValue;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -50,7 +50,7 @@ public class GenPack extends Generator {
 
     @Override
     public void generate(Context ctx) throws IOException {
-        VDb value = ctx.makeValue(own);
+        AllValue value = ctx.makeValue(own);
         Map<String, Set<String>> packs = new HashMap<>();
 
         if (packAll != 0) {
@@ -90,7 +90,7 @@ public class GenPack extends Generator {
         CachedFiles.keepMetaAndDeleteOtherFiles(dstDir);
     }
 
-    private void parsePack(Map<String, Set<String>> packs, File packXmlFile, VDb value) {
+    private void parsePack(Map<String, Set<String>> packs, File packXmlFile, AllValue value) {
         Set<String> source = new HashSet<>(value.getTableNames());
         Set<String> picked = new HashSet<>();
 

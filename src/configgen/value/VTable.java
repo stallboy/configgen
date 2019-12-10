@@ -3,6 +3,7 @@ package configgen.value;
 import configgen.Node;
 import configgen.data.DTable;
 import configgen.define.Table;
+import configgen.type.TBean;
 import configgen.type.TTable;
 import configgen.type.Type;
 import configgen.util.CSVParser;
@@ -18,28 +19,29 @@ public class VTable extends Node {
     private final Set<String> enumNames = new LinkedHashSet<>();
     private final Map<String, Integer> enumName2IntegerValueMap = new LinkedHashMap<>();
 
-    public VTable(VDb parent, TTable ttable, DTable dtable) {
+    public VTable(AllValue parent, TTable ttable, DTable tableData) {
         super(parent, ttable.name);
         tTable = ttable;
         parent.getCtx().getI18n().enterTable(name);
-        List<Integer> columnIndexes = new ArrayList<>();
-        ttable.getTBean().getColumnMap().forEach((fn, type) -> columnIndexes.addAll(dtable.getColumnIndexes(fn)));
-        require(columnIndexes.size() > 0);
+        List<Integer> allColumnIndexes = tableData.getAllColumnIndexes();
+        require(allColumnIndexes.size() > 0);
 
-        vBeanList = new ArrayList<>(dtable.getRecordList().size());
+        vBeanList = new ArrayList<>(tableData.getRecordList().size());
         int row = 1;
-        for (List<String> rowData : dtable.getRecordList()) {
+        for (List<String> rowData : tableData.getRecordList()) {
             row++; // 从2开始
             if (CSVParser.isEmptyRecord(rowData)) {
                 continue;
             }
-            List<Cell> cells = new ArrayList<>(columnIndexes.size());
-            for (Integer columnIndex : columnIndexes) {
+
+            // 转换为AData
+            List<Cell> cells = new ArrayList<>(allColumnIndexes.size());
+            for (Integer columnIndex : allColumnIndexes) {
                 Cell c = new Cell(row, columnIndex, rowData.get(columnIndex));
                 cells.add(c);
             }
-
-            VBean vbean = new VBean(ttable.getTBean(), cells, false);
+            AData<TBean> adata = new AData<>(cells, tableData.getTableType().getTBean(), false);
+            VBean vbean = new VBean(ttable.getTBean(), adata);
             vBeanList.add(vbean);
         }
 

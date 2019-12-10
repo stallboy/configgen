@@ -20,7 +20,7 @@ public class Column extends Node {
 
     public String desc;
     public final String type;
-    private final String own;
+    public String own;
 
 
     public final CompressType compressType;

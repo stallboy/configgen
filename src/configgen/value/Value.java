@@ -32,7 +32,7 @@ public abstract class Value {
                 require(sref.refNullable, "有空格子，则外键必须是nullable的", sref.refTable);
             } else {
                 if (sref.cache == null) {
-                    VTable vtable = VDb.getCurrent().getVTable(sref.refTable.name);
+                    VTable vtable = AllValue.getCurrent().getVTable(sref.refTable.name);
                     sref.cache = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
                 }
                 if (type.isPrimitiveAndTableKey()) {
@@ -63,52 +63,4 @@ public abstract class Value {
         return Arrays.stream(args).map(Objects::toString).collect(Collectors.joining(","));
     }
 
-    public static Value create(Type t, List<Cell> data, boolean compressAsOne) {
-        return t.accept(new TypeVisitorT<Value>() {
-            @Override
-            public Value visit(TBool type) {
-                return new VBool(type, data);
-            }
-
-            @Override
-            public Value visit(TInt type) {
-                return new VInt(type, data);
-            }
-
-            @Override
-            public Value visit(TLong type) {
-                return new VLong(type, data);
-            }
-
-            @Override
-            public Value visit(TFloat type) {
-                return new VFloat(type, data);
-            }
-
-            @Override
-            public Value visit(TString type) {
-                return new VString(type, data);
-            }
-
-            @Override
-            public Value visit(TList type) {
-                return new VList(type, data, compressAsOne);
-            }
-
-            @Override
-            public Value visit(TMap type) {
-                return new VMap(type, data, compressAsOne);
-            }
-
-            @Override
-            public Value visit(TBean type) {
-                throw new AssertionError("不该通过Value.create创建TBean的Value");
-            }
-
-            @Override
-            public Value visit(TBeanRef type) {
-                return new VBean(type.tBean, data, compressAsOne || type.compressAsOne);
-            }
-        });
-    }
 }

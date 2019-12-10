@@ -9,12 +9,12 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class TDb extends Node {
+public class AllType extends Node {
     private final Map<String, TBean> tBeans = new LinkedHashMap<>();
     private final Map<String, TTable> tTables = new LinkedHashMap<>();
 
-    public TDb(AllDefine allDefine) {
-        super(null, "tdb");
+    public AllType(AllDefine allDefine) {
+        super(null, "AllType");
         for (Bean bean : allDefine.getBeans()) {
             try {
                 TBean tBean = new TBean(this, bean);

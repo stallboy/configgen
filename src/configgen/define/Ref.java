@@ -29,8 +29,8 @@ public class Ref {
         return table + "," + String.join(",", cols);
     }
 
-    boolean valid(Db db) {
-        Table t = db.tables.get(table);
+    boolean valid(AllDefine allDefine) {
+        Table t = allDefine.tables.get(table);
         return t != null && t.bean.columns.keySet().containsAll(Arrays.asList(cols));
     }
 

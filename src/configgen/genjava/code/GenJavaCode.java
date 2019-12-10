@@ -6,7 +6,7 @@ import configgen.gen.*;
 import configgen.type.TBean;
 import configgen.util.CachedFiles;
 import configgen.util.CachedIndentPrinter;
-import configgen.value.VDb;
+import configgen.value.AllValue;
 import configgen.value.VTable;
 
 import java.io.File;
@@ -45,7 +45,7 @@ public class GenJavaCode extends Generator {
 
     @Override
     public void generate(Context ctx) throws IOException {
-        VDb value = ctx.makeValue();
+        AllValue value = ctx.makeValue();
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
 
         Name.codeTopPkg = pkg;

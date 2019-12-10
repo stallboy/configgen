@@ -1,7 +1,6 @@
 package configgen.define;
 
 import configgen.Node;
-import configgen.type.TTable;
 import configgen.util.DomUtils;
 import org.w3c.dom.Element;
 
@@ -16,7 +15,7 @@ public class Bean extends Node {
     }
 
     public final BeanType type;
-    private final String own;
+    public final String own;
 
     //对应Column.CompressType.UseSeparator,之后建议column配置用AsOne，这里就不需要了。
     public final boolean compress;
@@ -31,7 +30,7 @@ public class Bean extends Node {
     public final Map<String, Bean> childDynamicBeans = new LinkedHashMap<>();
 
 
-    Bean(Db _parent, Element self) {
+    Bean(AllDefine _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
 
@@ -73,6 +72,7 @@ public class Bean extends Node {
     private Bean(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
+        require(_parent.type == BeanType.BaseDynamicBean, "不允许ChildDynamicBean又有ChildDynamicBean");
         type = BeanType.ChildDynamicBean;
         compress = false;
         childDynamicBeanEnumRef = "";
@@ -132,22 +132,24 @@ public class Bean extends Node {
         if (type == BeanType.BaseDynamicBean) {
             if (!own.contains(_own))
                 return null;
+            // 对于多态Bean,只用在基类上配置own，不需要在每个子Bean上都配置own
             childDynamicBeans.forEach((name, actionBean) -> {
-                Bean bn = actionBean.extract(part, "_do_not_set_own_on_action_");
-                if (bn != null)
-                    part.childDynamicBeans.put(name, bn);
+                Bean bn = actionBean.extract(part, _own);
+                part.childDynamicBeans.put(name, bn);
             });
         } else {
+            // 标记了own的列 提取出来
             columns.forEach((name, c) -> {
                 Column pc = c.extract(part, _own);
-                if (pc != null)
+                if (pc != null) {
                     part.columns.put(name, pc);
+                }
             });
-            if (part.columns.isEmpty() && (own.contains(_own) || type == BeanType.ChildDynamicBean)) {
-                columns.forEach((name, f) -> part.columns.put(name, new Column(part, f)));
-            }
-            if (part.columns.isEmpty())
+
+            // ChildDynamicBean一旦需要，就算没有列，其实也隐含了枚举字符串，所以要包含上
+            if (part.columns.isEmpty() && type != BeanType.ChildDynamicBean) {
                 return null;
+            }
 
             ranges.forEach((n, r) -> {
                 if (part.columns.containsKey(n))

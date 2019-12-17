@@ -29,7 +29,7 @@ public class GenLua extends Generator {
 
             @Override
             public String usage() {
-                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,shared:false   add own:x if need  add emmylua:true if need ";
+                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,shared:false,packbool:false   add own:x if need  add emmylua:true if need ";
             }
         });
     }
@@ -41,6 +41,7 @@ public class GenLua extends Generator {
     private final boolean useEmmyLua;
     private final boolean preload;
     private final boolean useShared;
+    private final boolean packBool;
     private AllValue value;
 
     private boolean isLangSwitch;
@@ -58,18 +59,19 @@ public class GenLua extends Generator {
         preload = Boolean.parseBoolean(parameter.get("preload", "false"));
 
         useShared = Boolean.parseBoolean(parameter.get("shared", "false"));
-
+        packBool = Boolean.parseBoolean(parameter.get("packbool", "false"));
         parameter.end();
     }
 
     @Override
     public void generate(Context ctx) throws IOException {
         Name.setPackageName(pkg);
+        TypeStr.setPackBool(packBool);
         ValueContext.init(pkg, useShared);
+        ValueStringify.init(ctx.getLangSwitch(), packBool);
 
         langSwitch = ctx.getLangSwitch();
         isLangSwitch = langSwitch != null;
-        ValueStringify.setLangSwitch(langSwitch);
 
         Path dstDirPath = Paths.get(dir).resolve(pkg.replace('.', '/'));
         File dstDir = dstDirPath.toFile();
@@ -98,7 +100,7 @@ public class GenLua extends Generator {
             }
         }
 
-        Logger.log(String.format("共享的空table个数:%d, 共享table节省个数:%d", ValueContext.getAllEmptyTableUseCount(), ValueContext.getAllSharedTableReduceCount()));
+        Logger.log(String.format("共享空table个数:%d, 共享table节省个数:%d", ValueContext.getAllEmptyTableUseCount(), ValueContext.getAllSharedTableReduceCount()));
 
         if (ctx.getLangSwitch() != null) {
             for (LangSwitch.Lang lang : ctx.getLangSwitch().getAllLangInfo()) {

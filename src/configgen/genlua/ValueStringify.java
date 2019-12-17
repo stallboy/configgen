@@ -4,10 +4,7 @@ import configgen.define.Bean;
 import configgen.gen.LangSwitch;
 import configgen.value.*;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ValueStringify implements ValueVisitor {
 
@@ -15,9 +12,11 @@ public class ValueStringify implements ValueVisitor {
             "break", "goto", "do", "end", "for", "in", "repeat", "util", "while",
             "if", "then", "elseif", "function", "local", "nil", "true", "false"));
     private static LangSwitch langSwitch;
+    private static boolean packBool;
 
-    public static void setLangSwitch(LangSwitch lang) {
+    public static void init(LangSwitch lang, boolean pack) {
         langSwitch = lang;
+        packBool = pack;
     }
 
     public static void getLuaString(StringBuilder res, String value) {
@@ -191,17 +190,47 @@ public class ValueStringify implements ValueVisitor {
             res.append(vstr);
 
         } else {
+
             res.append(beanType);
             int sz = val.getValues().size();
             if (sz > 0) { // 这里来个优化，如果没有参数不加()，因为beanType其实直接就是个实例
                 res.append("(");
                 int idx = 0;
+                boolean meetBool = false;
+                boolean doPack = packBool && (val.getTBean().getBoolFieldCount() > 1);
                 for (Value fieldValue : val.getValues()) {
-                    fieldValue.accept(notKey);
-                    idx++;
-                    if (idx != sz) {
-                        res.append(", ");
+                    if (doPack && fieldValue instanceof VBool) { //从第一个遇到的bool开始搞
+                        if (!meetBool) {
+                            meetBool = true;
+
+                            BitSet bs = new BitSet();
+                            int cnt = 0;
+                            for (Value fv : val.getValues()) {
+                                if (fv instanceof VBool) {
+                                    VBool fbv = (VBool) fv;
+                                    bs.set(cnt);
+                                    cnt++;
+                                }
+                            }
+                            idx += cnt;
+
+                            long v = bs.toLongArray()[0];
+                            res.append("0x").append(Long.toHexString(v));
+                            if (idx != sz) {
+                                res.append(", ");
+                            }
+
+
+                        }
+                    } else {
+                        idx++;
+                        fieldValue.accept(notKey);
+                        if (idx != sz) {
+                            res.append(", ");
+                        }
                     }
+
+
                 }
                 res.append(")");
             }

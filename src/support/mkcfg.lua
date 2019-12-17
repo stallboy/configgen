@@ -5,6 +5,10 @@ local unpack = unpack
 local require = require
 
 local mkcfg = {}
+mkcfg.btest = function(v, bit)
+    return true  --- TODO
+end
+
 mkcfg.i18n = {}
 
 mkcfg.E = {} --- emptyTable，为减少内存占用，所有生成的配置数据共享这个，代码别改哦
@@ -40,9 +44,17 @@ local function mkbean(refs, textFields, fields)
                     end
                 end
             end
-        else
-            get[f] = function(t)
-                return t[i]
+        else --- not in textFields
+            if type(f) == 'table' then
+                for i, ele in ipairs(f) do
+                    get[f] = function(t)
+                        return mkcfg.btest(t[i], i)
+                    end
+                end
+            else
+                get[f] = function(t)
+                    return t[i]
+                end
             end
         end
     end

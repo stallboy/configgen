@@ -328,4 +328,14 @@ public class TBean extends Type {
         }
     }
 
+    public int getBoolFieldCount() {
+        int cnt = 0;
+        for (Type value : columns.values()) {
+            if (value instanceof TBool) {
+                cnt++;
+            }
+        }
+        return cnt;
+    }
+
 }

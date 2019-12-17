@@ -3,6 +3,7 @@ package configgen.genlua;
 import configgen.define.Column;
 import configgen.gen.Generator;
 import configgen.type.*;
+import configgen.value.VBool;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,6 +11,12 @@ import java.util.List;
 import java.util.Map;
 
 class TypeStr {
+
+    private static boolean packBool = false;
+
+    static void setPackBool(boolean pack) {
+        packBool = pack;
+    }
 
     // uniqkeys : {{allname=, getname=, keyidx1=, keyidx2=}, }
     static String getLuaUniqKeysString(TTable ttable) {
@@ -121,15 +128,54 @@ class TypeStr {
 
         int cnt = tbean.getColumnMap().size();
         int i = 0;
-        for (String n : tbean.getColumnMap().keySet()) {
-            i++;
-            Column f = tbean.getBeanDefine().columns.get(n);
-            String c = f.desc.isEmpty() ? "" : ", " + f.desc;
-            if (i < cnt) {
-                sb.append("\n    \"").append(Generator.lower1(n)).append("\", -- ").append(f.type).append(c);
-            } else {
-                sb.append("\n    \"").append(Generator.lower1(n)).append("\"  -- ").append(f.type).append(c);
+
+        boolean doPack = packBool;
+        if (packBool) {
+            int boolCnt = tbean.getBoolFieldCount();
+            if (boolCnt >= 50) {
+                throw new RuntimeException("现在不支持pack多余50个bool字段的bean");
             }
+
+            if (boolCnt < 2) {
+                doPack = false;
+            }
+        }
+        boolean meetBool = false;
+
+        for (Map.Entry<String, Type> entry : tbean.getColumnMap().entrySet()) {
+            String n = entry.getKey();
+            Type t = entry.getValue();
+
+            if (doPack && t instanceof TBool) { //从第一个遇到的bool开始搞
+                if (!meetBool) {
+                    meetBool = true;
+
+                    sb.append("\n    {");
+                    for (Map.Entry<String, Type> be : tbean.getColumnMap().entrySet()) {
+                        String bn = be.getKey();
+                        Type bt = be.getValue();
+                        if (bt instanceof TBool) {
+                            i++;
+                            Column f = tbean.getBeanDefine().columns.get(bn);
+                            String c = f.desc.isEmpty() ? "" : ", " + f.desc;
+                            sb.append("\n    \"").append(Generator.lower1(bn)).append("\", -- ").append(f.type).append(c);
+                        }
+                    }
+
+                    sb.append("\n    },");
+                }
+
+            } else { //正常的
+                i++;
+                Column f = tbean.getBeanDefine().columns.get(n);
+                String c = f.desc.isEmpty() ? "" : ", " + f.desc;
+                if (i < cnt) {
+                    sb.append("\n    \"").append(Generator.lower1(n)).append("\", -- ").append(f.type).append(c);
+                } else {
+                    sb.append("\n    \"").append(Generator.lower1(n)).append("\"  -- ").append(f.type).append(c);
+                }
+            }
+
         }
 
         return sb.toString();

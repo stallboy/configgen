@@ -17,7 +17,8 @@ public class VTable extends Node {
     final Map<String, Set<Value>> uniqueKeyValueSetMap = new LinkedHashMap<>();
 
     private final Set<String> enumNames = new LinkedHashSet<>();
-    private final Map<String, Integer> enumName2IntegerValueMap = new LinkedHashMap<>();
+    private final Map<String, Integer> enumNameToIntegerValueMap = new LinkedHashMap<>();
+
 
     public VTable(AllValue parent, TTable ttable, DTable tableData) {
         super(parent, ttable.name);
@@ -76,7 +77,7 @@ public class VTable extends Node {
                         Type primaryKeyCol = tTable.getPrimaryKey().values().iterator().next();
                         Value primaryV = vbean.getColumnValue(primaryKeyCol);
                         Integer iv = ((VInt) primaryV).value;
-                        enumName2IntegerValueMap.put(e, iv);
+                        enumNameToIntegerValueMap.put(e, iv);
                     }
                 }
             }
@@ -95,8 +96,8 @@ public class VTable extends Node {
         return enumNames;
     }
 
-    public Map<String, Integer> getEnumName2IntegerValueMap() {
-        return enumName2IntegerValueMap;
+    public Map<String, Integer> getEnumNameToIntegerValueMap() {
+        return enumNameToIntegerValueMap;
     }
 
     private void extractKeyValues(Collection<Type> keys, Set<Value> keyValueSet) {
@@ -135,4 +136,6 @@ public class VTable extends Node {
             }
         }
     }
+
+
 }

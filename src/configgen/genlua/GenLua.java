@@ -29,7 +29,7 @@ public class GenLua extends Generator {
 
             @Override
             public String usage() {
-                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,sharedemptytable:false   add own:x if need  add emmylua:true if need ";
+                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,shared:false   add own:x if need  add emmylua:true if need ";
             }
         });
     }
@@ -40,9 +40,8 @@ public class GenLua extends Generator {
     private final String own;
     private final boolean useEmmyLua;
     private final boolean preload;
-    private final boolean sharedEmptyTable;
+    private final boolean useShared;
     private AllValue value;
-    private FullToBrief toBrief;
 
     private boolean isLangSwitch;
     private LangSwitch langSwitch;
@@ -58,7 +57,7 @@ public class GenLua extends Generator {
         // 默认是不一开始就全部加载配置，而是用到的时候再加载
         preload = Boolean.parseBoolean(parameter.get("preload", "false"));
 
-        sharedEmptyTable = Boolean.parseBoolean(parameter.get("sharedemptytable", "false"));
+        useShared = Boolean.parseBoolean(parameter.get("shared", "false"));
 
         parameter.end();
     }
@@ -66,11 +65,11 @@ public class GenLua extends Generator {
     @Override
     public void generate(Context ctx) throws IOException {
         Name.setPackageName(pkg);
-        toBrief = new FullToBrief(pkg, sharedEmptyTable);
-        ValueStr.setToBrief(toBrief);
+        ValueContext.init(pkg, useShared);
+
         langSwitch = ctx.getLangSwitch();
         isLangSwitch = langSwitch != null;
-        ValueStr.setLangSwitch(langSwitch);
+        ValueStringify.setLangSwitch(langSwitch);
 
         Path dstDirPath = Paths.get(dir).resolve(pkg.replace('.', '/'));
         File dstDir = dstDirPath.toFile();
@@ -94,13 +93,12 @@ public class GenLua extends Generator {
         StringBuilder lineCache = new StringBuilder(256);
 
         for (VTable v : value.getVTables()) {
-            toBrief.clear();
             try (CachedIndentPrinter ps = createCode(new File(dstDir, Name.tablePath(v.name)), encoding, fileDst, cache, tmp)) {
                 generate_table(v, ps, lineCache);
             }
         }
 
-        Logger.log(String.format("共享的空table个数:%d", toBrief.getAllEmptyTableUsedCount()));
+        Logger.log(String.format("共享的空table个数:%d", ValueContext.getAllEmptyTableUseCount()));
 
         if (ctx.getLangSwitch() != null) {
             for (LangSwitch.Lang lang : ctx.getLangSwitch().getAllLangInfo()) {
@@ -120,7 +118,7 @@ public class GenLua extends Generator {
         ps.println("return {");
         for (String str : idToStr) {
             lineCache.setLength(0);
-            ValueStr.getLuaString(lineCache, str);
+            ValueStringify.getLuaString(lineCache, str);
             ps.println1(lineCache + ",");
         }
         ps.println("}");
@@ -381,21 +379,33 @@ public class GenLua extends Generator {
         if (isLangSwitch) {
             langSwitch.enterTable(ttable.name);
         }
+
+        ValueContext ctx = new ValueContext(vtable);
+        ctx.stringifySharedCompositeValues();
+
+        ValueStringify stringify = new ValueStringify(lineCache, ctx, "mk");
         for (VBean vBean : vtable.getVBeanList()) {
             lineCache.setLength(0);
-            ValueStr.getLuaValueString(lineCache, vBean, "mk", false);
+            vBean.accept(stringify);
             ps.println(lineCache.toString());
         }
         ps.disableCache();
 
-        // 对收集到的引用local化，lua执行应该会快点
-        if (sharedEmptyTable && toBrief.isEmptyTableUsed()) {
+
+        if (useShared && ctx.getEmptyTableUseCount() > 0) { // 共享空表
             ps.println("local E = %s._mk.E", pkg);
         }
 
-        if (!toBrief.getAll().isEmpty()) {
-            for (Map.Entry<String, String> entry : toBrief.getAll().entrySet()) {
+        if (!ctx.getFullNameToBriefNameMap().isEmpty()) { // 对收集到的引用local化，lua执行应该会快点
+            for (Map.Entry<String, String> entry : ctx.getFullNameToBriefNameMap().entrySet()) {
                 ps.println("local %s = %s", entry.getValue(), entry.getKey());
+            }
+            ps.println();
+        }
+
+        if (useShared && ctx.getSharedCompositeStrs().size() > 0) { // 共享相同的表
+            for (ValueContext.VCompositeStr vstr : ctx.getSharedCompositeStrs()) {
+                ps.println("local %s = %s", vstr.getBriefName(), vstr.getValueStr());
             }
             ps.println();
         }

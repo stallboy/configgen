@@ -51,7 +51,7 @@ public final class SchemaParser {
         SchemaEnum se = new SchemaEnum(isEnumPart, hasIntValue);
 
         if (hasIntValue) {
-            for (Map.Entry<String, Integer> stringIntegerEntry : vTable.getEnumName2IntegerValueMap().entrySet()) {
+            for (Map.Entry<String, Integer> stringIntegerEntry : vTable.getEnumNameToIntegerValueMap().entrySet()) {
                 se.addValue(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
             }
         } else {

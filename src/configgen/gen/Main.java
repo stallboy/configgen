@@ -75,6 +75,7 @@ public final class Main {
         String binaryToTextFile = null;
         String match = null;
         boolean compatibleForOwn = false;
+        boolean analyze = false;
 
         Set<Integer> searchIntegers = null;
 
@@ -141,6 +142,9 @@ public final class Main {
                 case "-compatibleForOwn":
                     compatibleForOwn = true;
                     break;
+                case "-analyze":
+                    analyze = true;
+                    break;
 
                 default:
                     usage("unknown args " + args[i]);
@@ -154,9 +158,9 @@ public final class Main {
         }
 
         if (compatibleForOwn) {
-            if (xml != null){
+            if (xml != null) {
                 CompatibleForOwn.makeCompatible(new File(xml), encoding);
-            }else{
+            } else {
                 usage("-compatibleForOwn 需要配置-xml");
             }
             return;
@@ -179,9 +183,13 @@ public final class Main {
         Context ctx = new Context(dataDir, xmlFile, encoding);
         ctx.setI18nOrLangSwitch(i18nfile, langSwitchDir, i18nencoding, i18ncrlfaslf);
 
-
         if (dump) {
             ctx.dump();
+        }
+
+        if (analyze) {
+            Analyzer.analyze(ctx);
+            return;
         }
 
         if (searchIntegers != null) {

@@ -26,6 +26,14 @@ public class Context {
         fullData.refineDefineAndType(xmlFile, encoding);
     }
 
+    public Path getDataDir() {
+        return fullData.getDataDir();
+    }
+
+    public AllData getFullData() {
+        return fullData;
+    }
+
     void setI18nOrLangSwitch(String i18nFile, String langSwitchDir, String i18nEncoding, boolean crlfaslf) {
         if (i18nFile != null) {
             _isI18n = true;
@@ -35,12 +43,13 @@ public class Context {
         }
     }
 
-    public LangSwitch getLangSwitch() {
-        return langSwitch;
+    void dump() {
+        fullData.getFullDefine().dump(System.out);
+        fullData.getFullType().dump(System.out);
     }
 
-    public Path getDataDir() {
-        return fullData.getDataDir();
+    public LangSwitch getLangSwitch() {
+        return langSwitch;
     }
 
     public boolean isI18n() {
@@ -55,10 +64,6 @@ public class Context {
         return makeValue(null);
     }
 
-    void dump() {
-        fullData.getFullDefine().dump(System.out);
-        fullData.getFullType().dump(System.out);
-    }
 
     public AllValue makeValue(String own) {
         if (lastValue != null) {

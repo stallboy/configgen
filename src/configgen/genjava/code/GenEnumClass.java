@@ -48,9 +48,9 @@ class GenEnumClass {
 //            ps.println();
 
         } else {
-            int len = vtable.getEnumName2IntegerValueMap().size();
+            int len = vtable.getEnumNameToIntegerValueMap().size();
             int c = 0;
-            for (Map.Entry<String, Integer> entry : vtable.getEnumName2IntegerValueMap().entrySet()) {
+            for (Map.Entry<String, Integer> entry : vtable.getEnumNameToIntegerValueMap().entrySet()) {
                 String enumName = entry.getKey();
                 int value = entry.getValue();
                 c++;

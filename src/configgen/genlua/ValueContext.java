@@ -19,6 +19,7 @@ public class ValueContext {
         }
         forbidBriefNames.add(pkg);
         forbidBriefNames.add("Beans");
+        forbidBriefNames.add("A"); //用于表示共享Table
         forbidBriefNames.add("E"); //用于表示emptyTable
         forbidBriefNames.add("this");
         forbidBriefNames.add("mk");
@@ -42,7 +43,7 @@ public class ValueContext {
         private String briefName;
 
         public VCompositeStr(int i) {
-            briefName = String.format("A%d", i);
+            briefName = String.format("A[%d]", i);
         }
 
         public void setValueStr(String value) {

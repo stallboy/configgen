@@ -404,8 +404,9 @@ public class GenLua extends Generator {
         }
 
         if (useShared && ctx.getSharedCompositeStrs().size() > 0) { // 共享相同的表
+            ps.println("local A = {}");
             for (ValueContext.VCompositeStr vstr : ctx.getSharedCompositeStrs()) {
-                ps.println("local %s = %s", vstr.getBriefName(), vstr.getValueStr());
+                ps.println("%s = %s", vstr.getBriefName(), vstr.getValueStr());
             }
             ps.println();
         }

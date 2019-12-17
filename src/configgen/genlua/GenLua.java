@@ -98,7 +98,7 @@ public class GenLua extends Generator {
             }
         }
 
-        Logger.log(String.format("共享的空table个数:%d", ValueContext.getAllEmptyTableUseCount()));
+        Logger.log(String.format("共享的空table个数:%d, 共享table节省个数:%d", ValueContext.getAllEmptyTableUseCount(), ValueContext.getAllSharedTableReduceCount()));
 
         if (ctx.getLangSwitch() != null) {
             for (LangSwitch.Lang lang : ctx.getLangSwitch().getAllLangInfo()) {

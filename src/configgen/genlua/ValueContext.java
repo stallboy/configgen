@@ -7,6 +7,7 @@ import java.util.*;
 public class ValueContext {
     private static final Set<String> forbidBriefNames = new HashSet<>();
     private static int allEmptyTableUseCount = 0;
+    private static int allSharedTableReduceCount = 0;
     private static boolean useShared;
     private static String emptyTableStr;
 
@@ -25,10 +26,6 @@ public class ValueContext {
         forbidBriefNames.add("mk");
     }
 
-    public static boolean isUseShared() {
-        return useShared;
-    }
-
     public static int getAllEmptyTableUseCount() {
         return allEmptyTableUseCount;
     }
@@ -37,9 +34,13 @@ public class ValueContext {
         return emptyTableStr;
     }
 
+    public static int getAllSharedTableReduceCount() {
+        return allSharedTableReduceCount;
+    }
+
 
     public static class VCompositeStr {
-        private String valueStr;
+        private String valueStr = null;
         private String briefName;
 
         public VCompositeStr(int i) {
@@ -70,24 +71,27 @@ public class ValueContext {
 
     public ValueContext(VTable vTable) {
         if (useShared) {
-            VCompositeCollector col = new VCompositeCollector();
-            for (VBean vBean : vTable.getVBeanList()) {
-                vBean.accept(col);
-            }
+            ValueShared shared = new ValueShared(vTable);
+            shared.iterateShared();
+            List<ValueSharedLayer> layers = shared.getLayers();
 
-            int i = 0;
-            for (VCompositeCollector.VCompositeCnt vc : col.getCompositeValueToCnt().values()) {
-                if (vc.getCnt() > 1) {
-                    i++;
-                    sharedCompositeValues.put(vc.getFirst(), new VCompositeStr(i));
+            int idx = 0;
+            for (int i = layers.size() - 1; i >= 0; i--) {
+                ValueSharedLayer layer = layers.get(i);
+                for (ValueSharedLayer.VCompositeCnt vc : layer.getCompositeValueToCnt().values()) {
+                    if (vc.getCnt() > 1) {
+                        idx++;
+                        allSharedTableReduceCount += vc.getCnt() - 1;
+                        sharedCompositeValues.put(vc.getFirst(), new VCompositeStr(idx));
+                    }
                 }
             }
+
         }
     }
 
     public void stringifySharedCompositeValues() {
         if (useShared) {
-            useShared = false;
 
             for (Map.Entry<VComposite, VCompositeStr> entry : sharedCompositeValues.entrySet()) {
                 StringBuilder sb = new StringBuilder();
@@ -95,7 +99,6 @@ public class ValueContext {
                 entry.getValue().setValueStr(sb.toString());
             }
 
-            useShared = true;
         }
     }
 
@@ -112,8 +115,16 @@ public class ValueContext {
     }
 
 
-    public VCompositeStr getSharedVCompositeStr(VComposite v) {
-        return sharedCompositeValues.get(v);
+    public String getSharedVCompositeBriefName(VComposite v) {
+        VCompositeStr vstr = sharedCompositeValues.get(v);
+        if (vstr != null) {
+            if (vstr.getValueStr() != null) {
+                return vstr.getBriefName();
+            } else { //这个用于stringifySharedCompositeValues
+                return null;
+            }
+        }
+        return null;
     }
 
     void useEmptyTable() {

@@ -120,7 +120,7 @@ public class ValueStringify implements ValueVisitor {
             res.append(ValueContext.getEmptyTableStr());
 
         } else {
-            String vstr = getSharedCompositeBreifName(value);
+            String vstr = getSharedCompositeBriefName(value);
             if (vstr != null) { //优化，重用相同的table
                 res.append(vstr);
 
@@ -139,12 +139,9 @@ public class ValueStringify implements ValueVisitor {
         }
     }
 
-    private String getSharedCompositeBreifName(VComposite value) {
-        if (ValueContext.isUseShared() && value.isShared()) {
-            ValueContext.VCompositeStr vstr = ctx.getSharedVCompositeStr(value);
-            if (vstr != null) { //优化，重用相同的table
-                return vstr.getBriefName();
-            }
+    private String getSharedCompositeBriefName(VComposite value) {
+        if (value.isShared()) {
+            return ctx.getSharedVCompositeBriefName(value); //优化，重用相同的table
         }
         return null;
     }
@@ -157,7 +154,7 @@ public class ValueStringify implements ValueVisitor {
             res.append(ValueContext.getEmptyTableStr());
 
         } else {
-            String vstr = getSharedCompositeBreifName(value);
+            String vstr = getSharedCompositeBriefName(value);
             if (vstr != null) { //优化，重用相同的table
                 res.append(vstr);
 
@@ -189,7 +186,7 @@ public class ValueStringify implements ValueVisitor {
             beanType = ctx.getBriefName(Name.fullName(val.getTBean()));
         }
 
-        String vstr = getSharedCompositeBreifName(value);
+        String vstr = getSharedCompositeBriefName(value);
         if (vstr != null) { //优化，重用相同的table
             res.append(vstr);
 

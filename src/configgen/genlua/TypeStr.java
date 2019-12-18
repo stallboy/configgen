@@ -161,8 +161,11 @@ class TypeStr {
                             sb.append("\n    \"").append(Generator.lower1(bn)).append("\", -- ").append(f.type).append(c);
                         }
                     }
-
-                    sb.append("\n    },");
+                    if (i < cnt) {
+                        sb.append("\n    },");
+                    } else {
+                        sb.append("\n    }");
+                    }
                 }
 
             } else { //正常的

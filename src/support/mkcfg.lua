@@ -5,7 +5,8 @@ local unpack = unpack
 local require = require
 
 local mkcfg = {}
-mkcfg.btest = function(v, bit)
+
+local btest = function(v, bit)
     return true  --- TODO
 end
 
@@ -47,8 +48,8 @@ local function mkbean(refs, textFields, fields)
         else --- not in textFields
             if type(f) == 'table' then
                 for i, ele in ipairs(f) do
-                    get[f] = function(t)
-                        return mkcfg.btest(t[i], i)
+                    get[ele] = function(t)
+                        return btest(t[i], i)
                     end
                 end
             else

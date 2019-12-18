@@ -208,13 +208,19 @@ public class ValueStringify implements ValueVisitor {
                             for (Value fv : val.getValues()) {
                                 if (fv instanceof VBool) {
                                     VBool fbv = (VBool) fv;
-                                    bs.set(cnt);
+                                    if (fbv.value) {
+                                        bs.set(cnt);
+                                    }
                                     cnt++;
                                 }
                             }
                             idx += cnt;
+                            ctx.useNumberToPackBool(cnt - 1);
 
-                            long v = bs.toLongArray()[0];
+                            long v = 0;
+                            if (bs.length() > 0) {
+                                v = bs.toLongArray()[0];
+                            }
                             res.append("0x").append(Long.toHexString(v));
                             if (idx != sz) {
                                 res.append(", ");

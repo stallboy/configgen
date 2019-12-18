@@ -8,6 +8,7 @@ public class ValueContext {
     private static final Set<String> forbidBriefNames = new HashSet<>();
     private static int allEmptyTableUseCount = 0;
     private static int allSharedTableReduceCount = 0;
+    private static int allPackBoolReduceCount = 0;
     private static boolean useShared;
     private static String emptyTableStr;
 
@@ -38,6 +39,9 @@ public class ValueContext {
         return allSharedTableReduceCount;
     }
 
+    public static int getAllPackBoolReduceCount() {
+        return allPackBoolReduceCount;
+    }
 
     public static class VCompositeStr {
         private String valueStr = null;
@@ -130,6 +134,10 @@ public class ValueContext {
     void useEmptyTable() {
         emptyTableUseCount++;
         allEmptyTableUseCount++;
+    }
+
+    void useNumberToPackBool(int reduce){
+        allPackBoolReduceCount += reduce;
     }
 
     String getBriefName(String fullName) {

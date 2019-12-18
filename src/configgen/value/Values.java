@@ -2,7 +2,7 @@ package configgen.value;
 
 import configgen.type.*;
 
-@SuppressWarnings("ALL")
+@SuppressWarnings("unchecked")
 public class Values {
     public static Value create(Type t, AData<?> adata) {
         return t.accept(new TypeVisitorT<Value>() {

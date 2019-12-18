@@ -100,7 +100,7 @@ public class GenLua extends Generator {
             }
         }
 
-        Logger.log(String.format("共享空table个数:%d, 共享table节省个数:%d，压缩bool为数字节省个数:%d",
+        Logger.log(String.format("可共享空table个数:%d, 共享table节省个数:%d，压缩bool为数字节省个数:%d",
                 ValueContext.getAllEmptyTableUseCount(),
                 ValueContext.getAllSharedTableReduceCount(),
                 ValueContext.getAllPackBoolReduceCount()));

@@ -3,7 +3,6 @@ package configgen.genlua;
 import configgen.define.Column;
 import configgen.gen.Generator;
 import configgen.type.*;
-import configgen.value.VBool;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -36,7 +35,7 @@ class TypeStr {
 
         Iterator<Type> it = keys.values().iterator();
         Type key1 = it.next();
-        int keyidx1 = key1.getColumnIndex() + 1;
+        int keyidx1 = findColumnIndex(key1, ttable.getTBean());
 
         boolean hasKeyIdx2 = false;
         int keyidx2 = 0;
@@ -46,7 +45,7 @@ class TypeStr {
             }
             Type key2 = it.next();
             hasKeyIdx2 = true;
-            keyidx2 = key2.getColumnIndex() + 1;
+            keyidx2 = findColumnIndex(key2, ttable.getTBean());
         }
 
         if (hasKeyIdx2) {
@@ -56,12 +55,54 @@ class TypeStr {
         }
     }
 
+    private static int findColumnIndex(Type t, TBean bean) {
+        boolean doPack = isDoPackBool(bean);
+        if (doPack) {
+            boolean meetBool = false;
+            int cnt = 0;
+            for (Type column : bean.getColumns()) {
+                if (column instanceof TBool) {
+                    if (t.getColumnIndex() == column.getColumnIndex()) {
+                        throw new RuntimeException("现在不支持packbool的同时，bool引用到起到表");
+                    }
+                    if (!meetBool) {
+                        meetBool = true;
+                        cnt++;
+                    }
+                } else {
+                    cnt++;
+                    if (t.getColumnIndex() == column.getColumnIndex()) {
+                        return cnt;
+                    }
+                }
+            }
+            throw new IllegalStateException("不该发生");
+        } else {
+            return t.getColumnIndex() + 1;
+        }
+    }
+
+    private static boolean isDoPackBool(TBean tbean) {
+        boolean doPack = packBool;
+        if (packBool) {
+            int boolCnt = tbean.getBoolFieldCount();
+            if (boolCnt >= 50) {
+                throw new RuntimeException("现在不支持pack多余50个bool字段的bean");
+            }
+
+            if (boolCnt < 2) {
+                doPack = false;
+            }
+        }
+        return doPack;
+    }
+
     static String getLuaEnumIdxString(TTable ttable) {
         Type enumCol = ttable.getEnumColumnType();
         if (enumCol == null) {
             return "nil";
         } else {
-            return String.valueOf(enumCol.getColumnIndex() + 1);
+            return String.valueOf(findColumnIndex(enumCol, ttable.getTBean()));
         }
     }
 
@@ -70,9 +111,8 @@ class TypeStr {
         StringBuilder sb = new StringBuilder();
         boolean hasRef = false;
         sb.append("{ ");
-        int i = 0;
+
         for (Type t : tbean.getColumns()) {
-            i++;
             for (SRef r : t.getConstraint().references) {
                 if (t instanceof TMap) {
                     System.out.println("map sref not suppport, bean=" + tbean.name);
@@ -85,7 +125,8 @@ class TypeStr {
                 if (t instanceof TList) {
                     islist = "true";
                 }
-                sb.append(String.format("\n    { \"%s\", %s, %s, \"%s\", %d }, ", refname, islist, dsttable, dstgetname, i));
+                int idx = findColumnIndex(t, tbean);
+                sb.append(String.format("\n    { \"%s\", %s, %s, \"%s\", %d }, ", refname, islist, dsttable, dstgetname, idx));
                 hasRef = true;
             }
         }
@@ -95,7 +136,7 @@ class TypeStr {
             String dsttable = Name.fullName(mRef.refTable);
             String dstgetname = Name.uniqueKeyGetByName(mRef.foreignKeyDefine.ref.cols);
 
-            int keyidx1 = mRef.thisTableKeys[0].getColumnIndex() + 1;
+            int keyidx1 = findColumnIndex(mRef.thisTableKeys[0], tbean);
 
             boolean hasKeyIdx2 = false;
             int keyidx2 = 0;
@@ -104,7 +145,7 @@ class TypeStr {
                     throw new RuntimeException("keys length != 2 " + tbean.name);
                 }
                 hasKeyIdx2 = true;
-                keyidx2 = mRef.thisTableKeys[1].getColumnIndex() + 1;
+                keyidx2 = findColumnIndex(mRef.thisTableKeys[1], tbean);
             }
             if (hasKeyIdx2) {
                 sb.append(String.format("\n    { \"%s\", false, %s, \"%s\", %d, %d }, ", refname, dsttable, dstgetname, keyidx1, keyidx2));
@@ -129,17 +170,7 @@ class TypeStr {
         int cnt = tbean.getColumnMap().size();
         int i = 0;
 
-        boolean doPack = packBool;
-        if (packBool) {
-            int boolCnt = tbean.getBoolFieldCount();
-            if (boolCnt >= 50) {
-                throw new RuntimeException("现在不支持pack多余50个bool字段的bean");
-            }
-
-            if (boolCnt < 2) {
-                doPack = false;
-            }
-        }
+        boolean doPack = isDoPackBool(tbean);
         boolean meetBool = false;
 
         for (Map.Entry<String, Type> entry : tbean.getColumnMap().entrySet()) {
@@ -186,10 +217,7 @@ class TypeStr {
 
     static String getLuaFieldsStringEmmyLua(TBean tbean) {
         StringBuilder sb = new StringBuilder();
-        int cnt = tbean.getColumnMap().size();
-        int i = 0;
         for (String n : tbean.getColumnMap().keySet()) {
-            i++;
             Column f = tbean.getBeanDefine().columns.get(n);
             String c = f.desc.isEmpty() ? "" : ", " + f.desc;
             sb.append("---@field ").append(Generator.lower1(n)).append(" ").append(typeToLuaType(f.type)).append(" ").append(c).append("\n");
@@ -200,9 +228,8 @@ class TypeStr {
     static String getLuaRefsStringEmmyLua(TBean tbean) {
         StringBuilder sb = new StringBuilder();
         boolean hasRef = false;
-        int i = 0;
+
         for (Type t : tbean.getColumns()) {
-            i++;
             for (SRef r : t.getConstraint().references) {
                 if (t instanceof TMap) {
                     System.out.println("map sref not suppport, bean=" + tbean.name);
@@ -210,7 +237,7 @@ class TypeStr {
                 }
                 String refname = Name.refName(r);
                 String dsttable = Name.fullName(r.refTable);
-                String dstgetname = Name.uniqueKeyGetByName(r.refCols);
+//                String dstgetname = Name.uniqueKeyGetByName(r.refCols);
                 if (t instanceof TList) {
                     sb.append("---@field ");
                     sb.append(String.format("%s table<number,%s>", refname, dsttable)); //refname, islist, dsttable, dstgetname, i));

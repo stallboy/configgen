@@ -27,6 +27,19 @@ public class Parameter {
         return v != null ? v : def;
     }
 
+    public boolean has(String key) {
+        if (params.containsKey(key)) {
+            String v = params.remove(key);
+            if (v != null) {
+                return Boolean.parseBoolean(v);
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
     public String getNotEmpty(String key, String def) {
         String v = params.remove(key);
         if (v != null && v.isEmpty()) {

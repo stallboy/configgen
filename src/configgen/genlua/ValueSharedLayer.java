@@ -5,30 +5,30 @@ import configgen.value.*;
 import java.util.*;
 
 public class ValueSharedLayer implements ValueVisitor {
-    static public class VCompositeCnt {
+    static class VCompositeCnt {
         int cnt;
         VComposite first;
         private boolean traversed = false;
 
-        public VCompositeCnt(VComposite first) {
+        VCompositeCnt(VComposite first) {
             this.first = first;
             cnt = 1;
         }
 
-        public int getCnt() {
+        int getCnt() {
             return cnt;
         }
 
-        public VComposite getFirst() {
+        VComposite getFirst() {
             return first;
         }
 
-        public boolean isTraversed() {
+        boolean isTraversed() {
             return traversed;
         }
 
-        public void setTraversed(boolean traversed) {
-            this.traversed = traversed;
+        void setTraversed() {
+            this.traversed = true;
         }
     }
 
@@ -37,7 +37,7 @@ public class ValueSharedLayer implements ValueVisitor {
     private boolean isCurr;
     private ValueSharedLayer next;
 
-    public ValueSharedLayer(ValueShared shared) {
+    ValueSharedLayer(ValueShared shared) {
         this.shared = shared;
         compositeValueToCnt = new LinkedHashMap<>();
         isCurr = true;
@@ -51,7 +51,7 @@ public class ValueSharedLayer implements ValueVisitor {
         next = null;
     }
 
-    public Map<VComposite, VCompositeCnt> getCompositeValueToCnt() {
+    Map<VComposite, VCompositeCnt> getCompositeValueToCnt() {
         return compositeValueToCnt;
     }
 
@@ -69,7 +69,7 @@ public class ValueSharedLayer implements ValueVisitor {
                 oldInPreviousLayer.first.setShared();
                 v.setShared();
 
-            }else{
+            } else {
                 compositeValueToCnt.put(v, new VCompositeCnt(v));
             }
 

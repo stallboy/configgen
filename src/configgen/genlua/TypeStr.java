@@ -11,47 +11,48 @@ import java.util.Map;
 
 class TypeStr {
 
-    private static boolean packBool = false;
-
-    static void setPackBool(boolean pack) {
-        packBool = pack;
-    }
 
     // uniqkeys : {{allname=, getname=, keyidx1=, keyidx2=}, }
-    static String getLuaUniqKeysString(TTable ttable) {
+    static String getLuaUniqKeysString(Ctx ctx) {
+        TTable ttable = ctx.getVTable().getTTable();
         StringBuilder sb = new StringBuilder();
         sb.append("{ ");
-        sb.append(getLuaOneUniqKeyString(ttable, ttable.getPrimaryKey(), true));
+        sb.append(getLuaOneUniqKeyString(ctx, ttable.getPrimaryKey(), true));
         for (Map<String, Type> uniqueKey : ttable.getUniqueKeys()) {
-            sb.append(getLuaOneUniqKeyString(ttable, uniqueKey, false));
+            sb.append(getLuaOneUniqKeyString(ctx, uniqueKey, false));
         }
         sb.append("}");
         return sb.toString();
     }
 
-    private static String getLuaOneUniqKeyString(TTable ttable, Map<String, Type> keys, boolean isPrimaryKey) {
+    private static String getLuaOneUniqKeyString(Ctx ctx, Map<String, Type> keys, boolean isPrimaryKey) {
         String allname = isPrimaryKey ? "all" : Name.uniqueKeyMapName(keys);
         String getname = isPrimaryKey ? "get" : Name.uniqueKeyGetByName(keys);
 
+        TTable ttable = ctx.getVTable().getTTable();
         Iterator<Type> it = keys.values().iterator();
         Type key1 = it.next();
-        int keyidx1 = findColumnIndex(key1, ttable.getTBean());
+        String keystr1 = getColumnStrOrIndex(key1, ttable.getTBean(), ctx.getCtxColumnStore().isUseColumnStore());
 
-        boolean hasKeyIdx2 = false;
-        int keyidx2 = 0;
         if (keys.size() > 1) {
             if (keys.size() != 2) {
                 throw new RuntimeException("uniqkeys size != 2 " + ttable.name);
             }
             Type key2 = it.next();
-            hasKeyIdx2 = true;
-            keyidx2 = findColumnIndex(key2, ttable.getTBean());
-        }
+            String keystr2 = getColumnStrOrIndex(key2, ttable.getTBean(), ctx.getCtxColumnStore().isUseColumnStore());
 
-        if (hasKeyIdx2) {
-            return String.format("{ \"%s\", \"%s\", %d, %d }, ", allname, getname, keyidx1, keyidx2);
+            return String.format("{ '%s', '%s', %s, %s }, ", allname, getname, keystr1, keystr2);
         } else {
-            return String.format("{ \"%s\", \"%s\", %d }, ", allname, getname, keyidx1);
+            return String.format("{ '%s', '%s', %s }, ", allname, getname, keystr1);
+        }
+    }
+
+    private static String getColumnStrOrIndex(Type t, TBean bean, boolean isUseColumnStore) {
+        if (isUseColumnStore) {
+            return String.format("'%s'", Generator.lower1(t.name));
+        } else {
+            int idx = findColumnIndex(t, bean);
+            return String.valueOf(idx);
         }
     }
 
@@ -83,8 +84,8 @@ class TypeStr {
     }
 
     private static boolean isDoPackBool(TBean tbean) {
-        boolean doPack = packBool;
-        if (packBool) {
+        boolean doPack = AContext.getInstance().isPack();
+        if (doPack) {
             int boolCnt = tbean.getBoolFieldCount();
             if (boolCnt >= 50) {
                 throw new RuntimeException("现在不支持pack多余50个bool字段的bean");
@@ -97,17 +98,19 @@ class TypeStr {
         return doPack;
     }
 
-    static String getLuaEnumIdxString(TTable ttable) {
+    static String getLuaEnumString(Ctx ctx) {
+        TTable ttable = ctx.getVTable().getTTable();
         Type enumCol = ttable.getEnumColumnType();
+
         if (enumCol == null) {
             return "nil";
         } else {
-            return String.valueOf(findColumnIndex(enumCol, ttable.getTBean()));
+            return getColumnStrOrIndex(enumCol, ttable.getTBean(), ctx.getCtxColumnStore().isUseColumnStore());
         }
     }
 
     // refs { {refname, islist, dsttable, dstgetname, keyidx1, keyidx2}, }
-    static String getLuaRefsString(TBean tbean) {
+    static String getLuaRefsString(TBean tbean, boolean isUseColumnStore) {
         StringBuilder sb = new StringBuilder();
         boolean hasRef = false;
         sb.append("{ ");
@@ -125,8 +128,8 @@ class TypeStr {
                 if (t instanceof TList) {
                     islist = "true";
                 }
-                int idx = findColumnIndex(t, tbean);
-                sb.append(String.format("\n    { \"%s\", %s, %s, \"%s\", %d }, ", refname, islist, dsttable, dstgetname, idx));
+                String idx = getColumnStrOrIndex(t, tbean, isUseColumnStore);
+                sb.append(String.format("\n    { '%s', %s, %s, '%s', %s }, ", refname, islist, dsttable, dstgetname, idx));
                 hasRef = true;
             }
         }
@@ -136,22 +139,20 @@ class TypeStr {
             String dsttable = Name.fullName(mRef.refTable);
             String dstgetname = Name.uniqueKeyGetByName(mRef.foreignKeyDefine.ref.cols);
 
-            int keyidx1 = findColumnIndex(mRef.thisTableKeys[0], tbean);
+            String keyidx1 = getColumnStrOrIndex(mRef.thisTableKeys[0], tbean, isUseColumnStore);
 
             boolean hasKeyIdx2 = false;
-            int keyidx2 = 0;
+
             if (mRef.thisTableKeys.length > 1) {
                 if (mRef.thisTableKeys.length != 2) {
                     throw new RuntimeException("keys length != 2 " + tbean.name);
                 }
-                hasKeyIdx2 = true;
-                keyidx2 = findColumnIndex(mRef.thisTableKeys[1], tbean);
-            }
-            if (hasKeyIdx2) {
-                sb.append(String.format("\n    { \"%s\", false, %s, \"%s\", %d, %d }, ", refname, dsttable, dstgetname, keyidx1, keyidx2));
+                String keyidx2 = getColumnStrOrIndex(mRef.thisTableKeys[1], tbean, isUseColumnStore);
+                sb.append(String.format("\n    { '%s', false, %s, '%s', %s, %s }, ", refname, dsttable, dstgetname, keyidx1, keyidx2));
             } else {
-                sb.append(String.format("\n    { \"%s\", false, %s, \"%s\", %d }, ", refname, dsttable, dstgetname, keyidx1));
+                sb.append(String.format("\n    { '%s', false, %s, '%s', %s }, ", refname, dsttable, dstgetname, keyidx1));
             }
+
             hasRef = true;
         }
         sb.append("}");
@@ -164,13 +165,17 @@ class TypeStr {
         }
     }
 
-    static String getLuaFieldsString(TBean tbean) {
+    static String getLuaFieldsString(TBean tbean, Ctx ctx) {
         StringBuilder sb = new StringBuilder();
 
         int cnt = tbean.getColumnMap().size();
         int i = 0;
 
-        boolean doPack = isDoPackBool(tbean);
+        boolean useColumnStore = false;
+        if (ctx != null) {
+            useColumnStore = ctx.getCtxColumnStore().isUseColumnStore();
+        }
+        boolean doPack = (!useColumnStore) && isDoPackBool(tbean);
         boolean meetBool = false;
 
         for (Map.Entry<String, Type> entry : tbean.getColumnMap().entrySet()) {
@@ -189,7 +194,7 @@ class TypeStr {
                             i++;
                             Column f = tbean.getBeanDefine().columns.get(bn);
                             String c = f.desc.isEmpty() ? "" : ", " + f.desc;
-                            sb.append("\n    \"").append(Generator.lower1(bn)).append("\", -- ").append(f.type).append(c);
+                            sb.append("\n    '").append(Generator.lower1(bn)).append("', -- ").append(f.type).append(c);
                         }
                     }
                     if (i < cnt) {
@@ -201,13 +206,26 @@ class TypeStr {
 
             } else { //正常的
                 i++;
+                String fieldName = String.format("'%s'", Generator.lower1(n));
+                if (useColumnStore) {
+                    PackInfo packInfo = ctx.getCtxColumnStore().getPackInfo(t.getColumnIndex());
+                    if (packInfo != null) {
+                        boolean isInt = t instanceof TInt;
+                        if (isInt) {
+                            fieldName = String.format("{%s, true, %d}", fieldName, packInfo.getBitLen());
+                        } else {
+                            fieldName = String.format("{%s, false}", fieldName);
+                        }
+                    }
+                }
                 Column f = tbean.getBeanDefine().columns.get(n);
                 String c = f.desc.isEmpty() ? "" : ", " + f.desc;
+                sb.append("\n    ").append(fieldName);
+
                 if (i < cnt) {
-                    sb.append("\n    \"").append(Generator.lower1(n)).append("\", -- ").append(f.type).append(c);
-                } else {
-                    sb.append("\n    \"").append(Generator.lower1(n)).append("\"  -- ").append(f.type).append(c);
+                    sb.append(",");
                 }
+                sb.append(" -- ").append(f.type).append(c);
             }
 
         }

@@ -9,16 +9,6 @@ import java.util.stream.Stream;
 
 public class Name {
 
-    private static String pkgPrefix = "";
-
-    static void setPackageName(String pkgName) {
-        if (pkgName.length() == 0) {
-            pkgPrefix = pkgName;
-        } else {
-            pkgPrefix = pkgName + ".";
-        }
-    }
-
     static String uniqueKeyGetByName(Map<String, Type> keys) {
         return "getBy" + keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b);
     }
@@ -51,7 +41,7 @@ public class Name {
 
     static String fullName(TBean tbean) {
         if (tbean.getBeanDefine().type == Bean.BeanType.Table) {
-            return pkgPrefix + tbean.name.toLowerCase();
+            return AContext.getInstance().getPkgPrefixStr() + tbean.name.toLowerCase();
         } else if (tbean.getBeanDefine().type == Bean.BeanType.ChildDynamicBean) {
             return "Beans." + (((TBean) tbean.parent)).name.toLowerCase() + "." + tbean.name.toLowerCase();
         } else {

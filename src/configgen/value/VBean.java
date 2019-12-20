@@ -83,7 +83,7 @@ public class VBean extends VComposite {
         return childDynamicVBean;
     }
 
-    public Collection<Value> getValues() {
+    public List<Value> getValues() {
         return values;
     }
 

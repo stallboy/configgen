@@ -1,6 +1,7 @@
 package configgen.gen;
 
 import configgen.data.AllData;
+import configgen.data.DTable;
 import configgen.define.AllDefine;
 import configgen.type.*;
 import configgen.value.AllValue;
@@ -15,6 +16,18 @@ public class Analyzer {
         AllDefine ownDefine = ctx.getFullData().getFullDefine().extract("client");
         AllType ownType = new AllType(ownDefine);
         ownType.resolve();
+
+        int columnStoreCnt = 0;
+        for (TTable tTable : ownType.getTTables()) {
+            DTable dTable = ctx.getFullData().getDTable(tTable.name);
+            int dSize = dTable.getRecordList().size();
+            int cSize = tTable.getTBean().getColumns().size();
+            if (dSize - cSize > 100) {
+                columnStoreCnt++;
+                System.out.printf("%s: column=%d, data=%d\n", dTable.name, cSize, dSize);
+            }
+        }
+        System.out.printf("共可用列存储数为%d\n", columnStoreCnt);
 
         List<TBean> beans = new ArrayList<>();
         for (TTable tTable : ownType.getTTables()) {

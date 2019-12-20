@@ -1,21 +1,18 @@
 package configgen.genlua;
 
-import configgen.Logger;
 import configgen.define.Bean;
 import configgen.gen.*;
 import configgen.type.TBean;
 import configgen.type.TTable;
+import configgen.type.Type;
 import configgen.util.CachedFiles;
 import configgen.util.CachedIndentPrinter;
-import configgen.value.VBean;
-import configgen.value.AllValue;
-import configgen.value.VTable;
+import configgen.value.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.nio.file.Path;
-
+import java.nio.file.Paths;
 import java.util.*;
 
 public class GenLua extends Generator {
@@ -29,7 +26,7 @@ public class GenLua extends Generator {
 
             @Override
             public String usage() {
-                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,shared:false,packbool:false   add own:x if need  add emmylua:true if need ";
+                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,shared:false,packbool:false,col:false   add own:x if need  add emmylua:true if need ";
             }
         });
     }
@@ -42,6 +39,7 @@ public class GenLua extends Generator {
     private final boolean preload;
     private final boolean useShared;
     private final boolean packBool;
+    private final boolean tryColumnMode;
     private AllValue value;
 
     private boolean isLangSwitch;
@@ -53,22 +51,18 @@ public class GenLua extends Generator {
         pkg = parameter.getNotEmpty("pkg", "cfg");
         encoding = parameter.get("encoding", "UTF-8");
         own = parameter.get("own", null);
-        //是否生成EmmyLua相关的注解
-        useEmmyLua = Boolean.parseBoolean(parameter.get("emmylua", "false"));
-        // 默认是不一开始就全部加载配置，而是用到的时候再加载
-        preload = Boolean.parseBoolean(parameter.get("preload", "false"));
 
-        useShared = Boolean.parseBoolean(parameter.get("shared", "false"));
-        packBool = Boolean.parseBoolean(parameter.get("packbool", "false"));
+        useEmmyLua = parameter.has("emmylua"); //是否生成EmmyLua相关的注解
+        preload = parameter.has("preload"); // 默认是不一开始就全部加载配置，而是用到的时候再加载
+        useShared = parameter.has("shared");
+        packBool = parameter.has("packbool");
+        tryColumnMode = parameter.has("col");
         parameter.end();
     }
 
     @Override
     public void generate(Context ctx) throws IOException {
-        Name.setPackageName(pkg);
-        TypeStr.setPackBool(packBool);
-        ValueContext.init(pkg, useShared);
-        ValueStringify.init(ctx.getLangSwitch(), packBool);
+        AContext.getInstance().init(pkg, ctx.getLangSwitch(), useShared, tryColumnMode, packBool);
 
         langSwitch = ctx.getLangSwitch();
         isLangSwitch = langSwitch != null;
@@ -100,10 +94,7 @@ public class GenLua extends Generator {
             }
         }
 
-        Logger.log(String.format("可共享空table个数:%d, 共享table节省个数:%d，压缩bool为数字节省个数:%d",
-                ValueContext.getAllEmptyTableUseCount(),
-                ValueContext.getAllSharedTableReduceCount(),
-                ValueContext.getAllPackBoolReduceCount()));
+        AContext.getInstance().getStatistics().print();
 
         if (ctx.getLangSwitch() != null) {
             for (LangSwitch.Lang lang : ctx.getLangSwitch().getAllLangInfo()) {
@@ -309,9 +300,9 @@ public class GenLua extends Generator {
                         ps.println("%s = %s(\"%s\")()", fulln, func, actionBean.name);
                     } else {
                         ps.println("%s = %s(\"%s\", %s, %s%s\n    )", fulln, func, actionBean.name,
-                                TypeStr.getLuaRefsString(actionBean),
+                                TypeStr.getLuaRefsString(actionBean, false),
                                 textFieldsStr,
-                                TypeStr.getLuaFieldsString(actionBean));
+                                TypeStr.getLuaFieldsString(actionBean, null));
                     }
                 }
             } else {
@@ -329,9 +320,9 @@ public class GenLua extends Generator {
                     ps.println("%s = %s()()", full, func);
                 } else {
                     ps.println("%s = %s(%s, %s%s\n    )", full, func,
-                            TypeStr.getLuaRefsString(tbean),
+                            TypeStr.getLuaRefsString(tbean, false),
                             textFieldsStr,
-                            TypeStr.getLuaFieldsString(tbean));
+                            TypeStr.getLuaFieldsString(tbean, null));
                 }
 
             }
@@ -361,6 +352,17 @@ public class GenLua extends Generator {
         ps.println("local this = %s", fullName);
         ps.println();
 
+
+        Ctx ctx = new Ctx(vtable);
+        if (useShared) {
+            ctx.parseShared();
+        }
+
+        if (tryColumnMode) {
+            ctx.parseColumnStore();
+        }
+
+
         String func = "table";
         String textFieldsStr = "";
         if (isLangSwitch) {
@@ -369,15 +371,19 @@ public class GenLua extends Generator {
                 func = "i18n_table";
             }
         }
+        if (ctx.getCtxColumnStore().isUseColumnStore()) {
+            func = func + "c";
+        }
 
         // function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
         ps.println("local mk = %s._mk.%s(this, %s, %s, %s, %s%s\n    )", pkg, func,
-                TypeStr.getLuaUniqKeysString(ttable),
-                TypeStr.getLuaEnumIdxString(ttable),
-                TypeStr.getLuaRefsString(tbean),
+                TypeStr.getLuaUniqKeysString(ctx),
+                TypeStr.getLuaEnumString(ctx),
+                TypeStr.getLuaRefsString(tbean, ctx.getCtxColumnStore().isUseColumnStore()),
                 textFieldsStr,
-                TypeStr.getLuaFieldsString(tbean));
+                TypeStr.getLuaFieldsString(tbean, ctx));
         ps.println();
+
 
         // 先打印数据到cache，同时收集用到的引用
         ps.enableCache();
@@ -385,33 +391,87 @@ public class GenLua extends Generator {
             langSwitch.enterTable(ttable.name);
         }
 
-        ValueContext ctx = new ValueContext(vtable);
-        ctx.stringifySharedCompositeValues();
 
-        ValueStringify stringify = new ValueStringify(lineCache, ctx, "mk");
-        for (VBean vBean : vtable.getVBeanList()) {
-            lineCache.setLength(0);
-            vBean.accept(stringify);
-            ps.println(lineCache.toString());
+        if (ctx.getCtxColumnStore().isUseColumnStore()) {
+            ///////////////////////////////////// 使用列模式
+            int columnSize = ttable.getTBean().getColumns().size();
+            int dataSize = vtable.getVBeanList().size();
+
+            ps.println("mk(%d, {", dataSize);
+            int ci = 0;
+            for (Type column : ttable.getTBean().getColumns()) { //　一列一列来
+
+                lineCache.setLength(0);
+                lineCache.append("{");
+
+                PackInfo packInfo = ctx.getCtxColumnStore().getPackInfo(column.getColumnIndex());
+                if (packInfo != null) { //这些字段压缩
+                    for (VBean vBean : vtable.getVBeanList()) {
+                        Value val = vBean.getValues().get(ci);
+                        if (val instanceof VBool) {
+                            boolean v = ((VBool) val).value;
+                            packInfo.addBool(v);
+                        } else {
+                            int v = ((VInt) val).value;
+                            packInfo.addInt(v);
+                        }
+                    }
+                    packInfo.packTo(lineCache);
+
+                } else { //这些正常
+                    ValueStringify stringify = new ValueStringify(lineCache, ctx, null);
+                    int di = 0;
+                    for (VBean vBean : vtable.getVBeanList()) {
+                        Value val = vBean.getValues().get(ci);
+                        val.accept(stringify);
+                        di++;
+                        if (di < dataSize) {
+                            lineCache.append(", ");
+                        }
+                    }
+                }
+
+
+                lineCache.append("}");
+                ci++;
+                if (ci < columnSize) {
+                    lineCache.append(",");
+                }
+
+                ps.println(lineCache.toString());
+
+            }
+            ps.println("})");
+
+
+        } else {
+            ///////////////////////////////////// 正常模式
+            ValueStringify stringify = new ValueStringify(lineCache, ctx, "mk");
+            for (VBean vBean : vtable.getVBeanList()) {
+                lineCache.setLength(0);
+                vBean.accept(stringify);
+                ps.println(lineCache.toString());
+            }
         }
+
         ps.disableCache();
 
 
-        if (useShared && ctx.getEmptyTableUseCount() > 0) { // 共享空表
-            ps.println("local E = %s._mk.E", pkg);
-        }
-
-        if (!ctx.getFullNameToBriefNameMap().isEmpty()) { // 对收集到的引用local化，lua执行应该会快点
-            for (Map.Entry<String, String> entry : ctx.getFullNameToBriefNameMap().entrySet()) {
+        if (!ctx.getCtxName().getLocalNameMap().isEmpty()) { // 对收集到的引用local化，lua执行应该会快点
+            for (Map.Entry<String, String> entry : ctx.getCtxName().getLocalNameMap().entrySet()) {
                 ps.println("local %s = %s", entry.getValue(), entry.getKey());
             }
             ps.println();
         }
 
-        if (useShared && ctx.getSharedCompositeStrs().size() > 0) { // 共享相同的表
+        if (useShared && ctx.getCtxShared().getEmptyTableUseCount() > 0) { // 共享空表
+            ps.println("local E = %s._mk.E", pkg);
+        }
+
+        if (useShared && ctx.getCtxShared().getSharedList().size() > 0) { // 共享相同的表
             ps.println("local A = {}");
-            for (ValueContext.VCompositeStr vstr : ctx.getSharedCompositeStrs()) {
-                ps.println("%s = %s", vstr.getBriefName(), vstr.getValueStr());
+            for (CtxShared.VCompositeStr vstr : ctx.getCtxShared().getSharedList()) {
+                ps.println("%s = %s", vstr.getName(), vstr.getValueStr());
             }
             ps.println();
         }

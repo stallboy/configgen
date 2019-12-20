@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,10 @@ public class AllData extends Node {
 
     public DTable getDTable(String tableName) {
         return dTables.get(tableName);
+    }
+
+    public Collection<DTable> getDTables(){
+        return dTables.values();
     }
 
     public AllDefine getFullDefine() {

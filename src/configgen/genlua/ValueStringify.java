@@ -1,25 +1,18 @@
 package configgen.genlua;
 
 import configgen.define.Bean;
-import configgen.gen.LangSwitch;
 import configgen.value.*;
 
 import java.util.*;
 
-public class ValueStringify implements ValueVisitor {
+class ValueStringify implements ValueVisitor {
 
     private static Set<String> keywords = new HashSet<>(Arrays.asList(
             "break", "goto", "do", "end", "for", "in", "repeat", "util", "while",
             "if", "then", "elseif", "function", "local", "nil", "true", "false"));
-    private static LangSwitch langSwitch;
-    private static boolean packBool;
 
-    public static void init(LangSwitch lang, boolean pack) {
-        langSwitch = lang;
-        packBool = pack;
-    }
 
-    public static void getLuaString(StringBuilder res, String value) {
+    static void getLuaString(StringBuilder res, String value) {
         String val = toLuaStringLiteral(value);
         res.append("\"").append(val).append("\"");
     }
@@ -34,14 +27,14 @@ public class ValueStringify implements ValueVisitor {
     //////////////////////////////////////////// per vtable
 
     private StringBuilder res;
-    private ValueContext ctx;
+    private Ctx ctx;
     private String beanTypeStr;
     private boolean isKey;
 
     private ValueStringify key;
     private ValueStringify notKey;
 
-    public ValueStringify(StringBuilder res, ValueContext ctx, String beanTypeStr) {
+    ValueStringify(StringBuilder res, Ctx ctx, String beanTypeStr) {
         this.res = res;
         this.ctx = ctx;
         this.beanTypeStr = beanTypeStr;
@@ -55,7 +48,7 @@ public class ValueStringify implements ValueVisitor {
         notKey.notKey = notKey;
     }
 
-    private ValueStringify(StringBuilder res, ValueContext ctx, boolean isKey) {
+    private ValueStringify(StringBuilder res, Ctx ctx, boolean isKey) {
         this.res = res;
         this.ctx = ctx;
         this.beanTypeStr = null;
@@ -93,8 +86,8 @@ public class ValueStringify implements ValueVisitor {
 
     @Override
     public void visit(VString value) {
-        if (langSwitch != null && !isKey && value.getType().hasText()) { // text字段仅用于asValue，不能用于asKey
-            int id = langSwitch.enterText(value.value) + 1;
+        if (AContext.getInstance().getLangSwitch() != null && !isKey && value.getType().hasText()) { // text字段仅用于asValue，不能用于asKey
+            int id = AContext.getInstance().getLangSwitch().enterText(value.value) + 1;
             res.append(id);
             return;
         }
@@ -107,7 +100,7 @@ public class ValueStringify implements ValueVisitor {
                 res.append(val);
             }
         } else {
-            res.append("\"").append(val).append("\"");
+            res.append("'").append(val).append("'");
         }
     }
 
@@ -115,8 +108,7 @@ public class ValueStringify implements ValueVisitor {
     public void visit(VList value) {
         int sz = value.getList().size();
         if (sz == 0) { //优化，避免重复创建空table
-            ctx.useEmptyTable();
-            res.append(ValueContext.getEmptyTableStr());
+            res.append(ctx.getCtxShared().getEmptyTableName());
 
         } else {
             String vstr = getSharedCompositeBriefName(value);
@@ -140,7 +132,7 @@ public class ValueStringify implements ValueVisitor {
 
     private String getSharedCompositeBriefName(VComposite value) {
         if (value.isShared()) {
-            return ctx.getSharedVCompositeBriefName(value); //优化，重用相同的table
+            return ctx.getCtxShared().getSharedName(value); //优化，重用相同的table
         }
         return null;
     }
@@ -149,8 +141,7 @@ public class ValueStringify implements ValueVisitor {
     public void visit(VMap value) {
         int sz = value.getMap().size();
         if (sz == 0) { //优化，避免重复创建空table
-            ctx.useEmptyTable();
-            res.append(ValueContext.getEmptyTableStr());
+            res.append(ctx.getCtxShared().getEmptyTableName());
 
         } else {
             String vstr = getSharedCompositeBriefName(value);
@@ -182,7 +173,7 @@ public class ValueStringify implements ValueVisitor {
         }
         String beanType = beanTypeStr;
         if (beanType == null) {
-            beanType = ctx.getBriefName(Name.fullName(val.getTBean()));
+            beanType = ctx.getCtxName().getLocalName(Name.fullName(val.getTBean()));
         }
 
         String vstr = getSharedCompositeBriefName(value);
@@ -197,7 +188,7 @@ public class ValueStringify implements ValueVisitor {
                 res.append("(");
                 int idx = 0;
                 boolean meetBool = false;
-                boolean doPack = packBool && (val.getTBean().getBoolFieldCount() > 1);
+                boolean doPack = AContext.getInstance().isPack() && (val.getTBean().getBoolFieldCount() > 1);
                 for (Value fieldValue : val.getValues()) {
                     if (doPack && fieldValue instanceof VBool) { //从第一个遇到的bool开始搞
                         if (!meetBool) {
@@ -215,7 +206,7 @@ public class ValueStringify implements ValueVisitor {
                                 }
                             }
                             idx += cnt;
-                            ctx.useNumberToPackBool(cnt - 1);
+                            AContext.getInstance().getStatistics().usePackBool(cnt - 1);
 
                             long v = 0;
                             if (bs.length() > 0) {

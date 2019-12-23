@@ -19,31 +19,17 @@ import java.util.zip.ZipOutputStream;
 
 public class GenPack extends Generator {
 
-    public static void register() {
-        Generators.addProvider("pack", new GeneratorProvider() {
-            @Override
-            public Generator create(Parameter parameter) {
-                return new GenPack(parameter);
-            }
-
-            @Override
-            public String usage() {
-                return "dir:cfg    default ,xml:pack.xml, if not exist pack.xml, pack to all.zip";
-            }
-        });
-    }
-
     private final File dstDir;
     private final String xml;
     private final String own;
-    private final int packAll;
+    private final boolean packAll;
 
-    private GenPack(Parameter parameter) {
+    public GenPack(Parameter parameter) {
         super(parameter);
-        dstDir = new File(parameter.getNotEmpty("dir", "cfg"));
-        xml = parameter.get("xml", null);
-        packAll = Integer.parseInt(parameter.get("packall", "0"));
-        own = parameter.get("own", null);
+        dstDir = new File(parameter.get("dir", "cfg", "目录"));
+        xml = parameter.get("xml", null, "描述分包策略的xml文件");
+        packAll = parameter.has("packall", "是否全部打成一个包,这样不需要配置xml");
+        own = parameter.get("own", null, "提取部分配置");
 
         parameter.end();
     }
@@ -53,7 +39,7 @@ public class GenPack extends Generator {
         AllValue value = ctx.makeValue(own);
         Map<String, Set<String>> packs = new HashMap<>();
 
-        if (packAll != 0) {
+        if (packAll) {
             packs.put("all", value.getTableNames());
         } else {
             File packXmlFile = xml != null ? new File(xml) : ctx.getDataDir().resolve("pack.xml").toFile();

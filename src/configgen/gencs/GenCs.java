@@ -21,20 +21,6 @@ import java.util.stream.Stream;
 
 public class GenCs extends Generator {
 
-    public static void register() {
-        Generators.addProvider("cs", new GeneratorProvider() {
-            @Override
-            public Generator create(Parameter parameter) {
-                return new GenCs(parameter);
-            }
-
-            @Override
-            public String usage() {
-                return "dir:Config,pkg:Config,encoding:GBK,prefix:Data    add ,own:x if need, cooperate with -gen bin, -gen pack";
-            }
-        });
-    }
-
     private final String dir;
     private final String pkg;
     private final String encoding;
@@ -43,13 +29,13 @@ public class GenCs extends Generator {
     private File dstDir;
     private AllValue value;
 
-    private GenCs(Parameter parameter) {
+    public GenCs(Parameter parameter) {
         super(parameter);
-        dir = parameter.get("dir", "Config");
-        pkg = parameter.getNotEmpty("pkg", "Config");
-        encoding = parameter.get("encoding", "GBK");
-        prefix = parameter.get("prefix", "Data");
-        own = parameter.get("own", null);
+        dir = parameter.get("dir", "Config", "目录");
+        pkg = parameter.get("pkg", "Config", "包名");
+        encoding = parameter.get("encoding", "GBK", "生成文件的编码");
+        prefix = parameter.get("prefix", "Data", "生成类的前缀");
+        own = parameter.get("own", null, "提取部分配置");
         parameter.end();
     }
 
@@ -547,11 +533,11 @@ public class GenCs extends Generator {
     }
 
     private String equals(Map<String, Type> fs) {
-        return fs.entrySet().stream().map(e -> upper1(e.getKey()) + ".Equals(o." + upper1((e.getKey())) + ")").collect(Collectors.joining(" && "));
+        return fs.keySet().stream().map(type -> upper1(type) + ".Equals(o." + upper1((type)) + ")").collect(Collectors.joining(" && "));
     }
 
     private String hashCodes(Map<String, Type> fs) {
-        return fs.entrySet().stream().map(e -> upper1(e.getKey()) + ".GetHashCode()").collect(Collectors.joining(" + "));
+        return fs.keySet().stream().map(type -> upper1(type) + ".GetHashCode()").collect(Collectors.joining(" + "));
     }
 
     private String toStrings(Map<String, Type> fs) {
@@ -718,7 +704,7 @@ public class GenCs extends Generator {
     private void genCSVProcessor() throws IOException {
         try (CachedIndentPrinter ps = createCode(new File(dstDir, "CSVProcessor.cs"), encoding)) {
             ps.println("using System.Collections.Generic;");
-            if (!pkg.equals("Config")){
+            if (!pkg.equals("Config")) {
                 ps.println("using Config;");
             }
             ps.println();

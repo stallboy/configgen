@@ -7,7 +7,7 @@ public class Generators {
     private static final Map<String, GeneratorProvider> providers = new LinkedHashMap<>();
 
     public static Generator create(String arg) {
-        Parameter parameter = new Parameter(arg);
+        Argument parameter = new Argument(arg);
         GeneratorProvider provider = providers.get(parameter.type);
         if (provider == null) {
             System.err.println(parameter.type + " not support");
@@ -16,13 +16,11 @@ public class Generators {
         return provider.create(parameter);
     }
 
-    public static void addProvider(String name, GeneratorProvider provider) {
+    static void addProvider(String name, GeneratorProvider provider) {
         providers.put(name, provider);
     }
 
     static Map<String, GeneratorProvider> getAllProviders() {
         return providers;
     }
-
-
 }

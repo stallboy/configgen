@@ -26,6 +26,7 @@ public abstract class Generator {
             throw new AssertionError(getClass().getSimpleName() + ": " + String.join(",", str));
     }
 
+
     protected static CachedIndentPrinter createCode(File file, String encoding) {
         return new CachedIndentPrinter(file, encoding);
     }

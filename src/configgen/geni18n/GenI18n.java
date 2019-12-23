@@ -8,27 +8,14 @@ import java.io.File;
 import java.util.*;
 
 public final class GenI18n extends Generator implements I18n.Collector {
-    public static void register() {
-        Generators.addProvider("i18n", new GeneratorProvider() {
-            @Override
-            public Generator create(Parameter parameter) {
-                return new GenI18n(parameter);
-            }
-
-            @Override
-            public String usage() {
-                return "file:../i18n/i18n-config.csv,encoding:GBK";
-            }
-        });
-    }
 
     private File file;
     private String encoding;
 
-    private GenI18n(Parameter parameter) {
+    public GenI18n(Parameter parameter) {
         super(parameter);
-        file = new File(parameter.get("file", "../i18n/i18n-config.csv"));
-        encoding = parameter.get("encoding", "GBK");
+        file = new File(parameter.get("file", "../i18n/i18n-config.csv", "生成文件"));
+        encoding = parameter.get("encoding", "GBK", "生成文件的编码");
         parameter.end();
     }
 

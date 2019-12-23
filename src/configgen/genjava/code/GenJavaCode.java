@@ -14,31 +14,16 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 public class GenJavaCode extends Generator {
-
-    public static void register() {
-        Generators.addProvider("java", new GeneratorProvider() {
-            @Override
-            public Generator create(Parameter parameter) {
-                return new GenJavaCode(parameter);
-            }
-
-            @Override
-            public String usage() {
-                return "dir:config,pkg:config,encoding:UTF-8";
-            }
-        });
-    }
-
     private File dstDir;
     private final String dir;
     private final String pkg;
     private final String encoding;
 
-    private GenJavaCode(Parameter parameter) {
+    public GenJavaCode(Parameter parameter) {
         super(parameter);
-        dir = parameter.get("dir", "config");
-        pkg = parameter.getNotEmpty("pkg", "config");
-        encoding = parameter.get("encoding", "UTF-8");
+        dir = parameter.get("dir", "config", "目录");
+        pkg = parameter.get("pkg", "config", "包名");
+        encoding = parameter.get("encoding", "UTF-8", "生成代码文件的编码");
 
         parameter.end();
     }

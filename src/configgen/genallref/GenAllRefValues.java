@@ -15,32 +15,18 @@ import java.util.TreeSet;
 
 public class GenAllRefValues extends Generator {
 
-    public static void register() {
-        Generators.addProvider("allrefvalues", new GeneratorProvider() {
-            @Override
-            public Generator create(Parameter parameter) {
-                return new GenAllRefValues(parameter);
-            }
-
-            @Override
-            public String usage() {
-                return "ref:assets,out:refassets.csv default ignores is empty";
-            }
-        });
-    }
-
     private final String ref;
     private final Set<String> ignores = new HashSet<>();
     private final String out;
 
-    private GenAllRefValues(Parameter parameter) {
+    public GenAllRefValues(Parameter parameter) {
         super(parameter);
-        ref = parameter.get("ref", "assets");
-        String ignoreStr = parameter.get("ignores", null);
+        ref = parameter.get("ref", "assets", "目标表名");
+        String ignoreStr = parameter.get("ignores", null, "忽略这些表");
         if (ignoreStr != null) {
             Collections.addAll(ignores, ignoreStr.split(","));
         }
-        out = parameter.get("out", "refassets.csv");
+        out = parameter.get("out", "refassets.csv", "生成文件");
         parameter.end();
     }
 

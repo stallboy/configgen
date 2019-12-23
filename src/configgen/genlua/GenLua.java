@@ -17,20 +17,6 @@ import java.util.*;
 
 public class GenLua extends Generator {
 
-    public static void register() {
-        Generators.addProvider("lua", new GeneratorProvider() {
-            @Override
-            public Generator create(Parameter parameter) {
-                return new GenLua(parameter);
-            }
-
-            @Override
-            public String usage() {
-                return "dir:.,pkg:cfg,encoding:UTF-8,preload:false,shared:false,packbool:false,col:false   add own:x if need  add emmylua:true if need ";
-            }
-        });
-    }
-
     private final String dir;
     private final String pkg;
     private final String encoding;
@@ -45,18 +31,19 @@ public class GenLua extends Generator {
     private boolean isLangSwitch;
     private LangSwitch langSwitch;
 
-    private GenLua(Parameter parameter) {
+    public GenLua(Parameter parameter) {
         super(parameter);
-        dir = parameter.get("dir", ".");
-        pkg = parameter.getNotEmpty("pkg", "cfg");
-        encoding = parameter.get("encoding", "UTF-8");
-        own = parameter.get("own", null);
+        dir = parameter.get("dir", ".", "生成代码所在目录");
+        pkg = parameter.get("pkg", "cfg", "模块名称");
+        encoding = parameter.get("encoding", "UTF-8", "编码");
+        own = parameter.get("own", null, "提取部分配置");
 
-        useEmmyLua = parameter.has("emmylua"); //是否生成EmmyLua相关的注解
-        preload = parameter.has("preload"); // 默认是不一开始就全部加载配置，而是用到的时候再加载
-        useShared = parameter.has("shared");
-        packBool = parameter.has("packbool");
-        tryColumnMode = parameter.has("col");
+        useEmmyLua = parameter.has("emmylua", "是否生成EmmyLua相关的注解");
+        preload = parameter.has("preload", "是否一开始就全部加载配置，默认用到的时候再加载");
+        useShared = parameter.has("shared", "是否提取公共table");
+        packBool = parameter.has("packbool", "是否要把同一个结构里的多个bool压缩成一个int");
+        tryColumnMode = parameter.has("col", "是否尝试列模式,如果开启将压缩同一列的bool和不超过26bit的整数\n" +
+                "            默认-Dgenlua.column_min_row=100,-Dgenlua.column_min_save=100");
         parameter.end();
     }
 

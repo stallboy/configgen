@@ -24,37 +24,57 @@ public final class Main {
         System.err.println(reason);
 
         System.out.println("Usage: java -jar configgen.jar [options]");
+        System.out.println();
+        System.out.println("----配置表信息--------------------------------------");
         System.out.println("    -datadir      配表所在目录");
         System.out.println("    -xml          配表结构文件，默认是config.xml");
         System.out.println("    -encoding     配表和配表结构文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
 
+        System.out.println();
+        System.out.println("----国际化支持--------------------------------------");
+
         System.out.println("    -i18nfile     国际化需要的文件，如果不用国际化，就不要配置");
         System.out.println("    -i18nencoding 国际化需要的文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
         System.out.println("    -i18ncrlfaslf 把字符串里的\\r\\n 替换为 \\n，默认是false");
-        System.out.println("    -langSwitchDir 国际化并且客户端可随时切换语言");
 
+        System.out.println();
+        System.out.println("----可切换语言的国际化支持--------------------------------------");
+        System.out.println("    -langSwitchDir 国际化并且可随时切换语言");
+
+        System.out.println();
+        System.out.println("----小工具--------------------------------------");
         System.out.println("    -binaryToText 后可接2个参数（java data的file，table名称-用startsWith匹配），打印table的定义和数据");
         System.out.println("    -search       后可接多个数字，找到匹配的数据");
         System.out.println("    -compatibleForOwn   原来在table里配置了own='x'后，如果此table下没有column配置own='x'，则默认所有column都被选择，现在去掉此约定，必须显示配置column的own，这个命令用来做兼容性转换");
-
-
         System.out.println("    -verify       检查配表约束");
         System.out.println("    -dump         打印内部树结构");
         System.out.println("    -v[1]         输出一些额外信息,1是额外gc测试内存");
 
-        Generators.getAllProviders().forEach((k, v) -> System.out.println("    -gen          " + k + "," + v.usage()));
+        System.out.println();
+        System.out.println("----以下gen参数之间由,分割,参数名和参数取值之间由=或:分割--------------------------------------");
+        Generators.getAllProviders().forEach((k, v) -> {
+                    System.out.printf("    -gen %s\n", k);
+                    Usage usage = new Usage();
+                    v.create(usage);
+                    usage.print();
+                }
+        );
+
 
         Runtime.getRuntime().exit(1);
     }
 
     public static void main(String[] args) throws Exception {
-        GenJavaCode.register();
-        GenJavaData.register();
-        GenLua.register();
-        GenI18n.register();
-        GenAllRefValues.register();
-        GenCs.register();
-        GenPack.register();
+        Generators.addProvider("java", GenJavaCode::new);
+        Generators.addProvider("javadata", GenJavaData::new);
+
+        Generators.addProvider("lua", GenLua::new);
+        Generators.addProvider("cs", GenCs::new);
+        Generators.addProvider("pack", GenPack::new);
+
+        Generators.addProvider("i18n", GenI18n::new);
+        Generators.addProvider("allrefvalues", GenAllRefValues::new);
+
 
         String datadir = null;
         String xml = null;
@@ -205,7 +225,6 @@ public final class Main {
         for (Generator generator : generators) {
             Logger.verbose("-----generate " + generator.parameter);
             generator.generate(ctx);
-            Logger.mm("generate " + generator.parameter.type);
         }
 
         CachedFiles.finalExit();

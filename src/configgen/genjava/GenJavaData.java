@@ -8,26 +8,11 @@ import configgen.value.*;
 import java.io.*;
 
 public final class GenJavaData extends Generator {
-
-    public static void register() {
-        Generators.addProvider("javadata", new GeneratorProvider() {
-            @Override
-            public Generator create(Parameter parameter) {
-                return new GenJavaData(parameter);
-            }
-
-            @Override
-            public String usage() {
-                return "file:config.data";
-            }
-        });
-    }
-
     private final File file;
 
-    private GenJavaData(Parameter parameter) {
+    public GenJavaData(Parameter parameter) {
         super(parameter);
-        file = new File(parameter.getNotEmpty("file", "config.data"));
+        file = new File(parameter.get("file", "config.data", "文件名"));
         parameter.end();
     }
 

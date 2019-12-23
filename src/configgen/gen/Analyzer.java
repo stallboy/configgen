@@ -1,18 +1,16 @@
 package configgen.gen;
 
-import configgen.data.AllData;
 import configgen.data.DTable;
 import configgen.define.AllDefine;
 import configgen.type.*;
-import configgen.value.AllValue;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Analyzer {
+class Analyzer {
 
 
-    public static void analyze(Context ctx) {
+    static void analyze(Context ctx) {
         AllDefine ownDefine = ctx.getFullData().getFullDefine().extract("client");
         AllType ownType = new AllType(ownDefine);
         ownType.resolve();

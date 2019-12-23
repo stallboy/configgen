@@ -3,7 +3,6 @@ package configgen.value;
 import configgen.define.Bean;
 import configgen.define.ForeignKey;
 import configgen.type.TBean;
-import configgen.type.TBeanRef;
 import configgen.type.TForeignKey;
 import configgen.type.Type;
 
@@ -21,7 +20,7 @@ public class VBean extends VComposite {
 
         // 把compress的展开
         List<Cell> parsed;
-        if (adata.isCompressAsOne()) { //这个要先与compress检测，让这个推荐配置可以覆盖旧的情况
+        if (adata.compressAsOne) { //这个要先与compress检测，让这个推荐配置可以覆盖旧的情况
             require(adata.cells.size() == 1, "compressAsOne应该只占一格");
             Cell dat = adata.cells.get(0);
             if (tBean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
@@ -47,10 +46,11 @@ public class VBean extends VComposite {
             String childDynamicBeanName = parsed.get(0).data;
             TBean fullChildTBean = adata.fullType.getChildDynamicBeanByName(childDynamicBeanName);
             require(Objects.nonNull(fullChildTBean), "子Bean不存在", childDynamicBeanName);
-            require(fullChildTBean.columnSpan() <= parsed.size() - 1, "数据子Bean大小应该小于", childDynamicBeanName);
+            int fullChildColumnSpan =  adata.compressAsOne ? 1 : fullChildTBean.columnSpan();
+            require(fullChildColumnSpan <= parsed.size() - 1, "数据子Bean大小应该小于", childDynamicBeanName);
             // 提取子Bean
-            List<Cell> childCells = parsed.subList(1, fullChildTBean.columnSpan() + 1);
-            AData<TBean> childAData = new AData<>(childCells, fullChildTBean, adata.isCompressAsOne());
+            List<Cell> childCells = parsed.subList(1, fullChildColumnSpan + 1);
+            AData<TBean> childAData = new AData<>(childCells, fullChildTBean, adata.compressAsOne );
             TBean childTBean = tBean.getChildDynamicBeanByName(childDynamicBeanName);
             require(Objects.nonNull(childTBean), "子Bean不存在", childDynamicBeanName);
             childDynamicVBean = new VBean(childTBean, childAData);
@@ -61,12 +61,11 @@ public class VBean extends VComposite {
             values = new ArrayList<>(tBean.getColumnMap().size());
             int s = 0;
             for (Type columnFullType : adata.fullType.getColumns()) {
-                int span = adata.isCompressAsOne() ? 1 : columnFullType.columnSpan();
+                int span = adata.compressAsOne ? 1 : columnFullType.columnSpan();
                 Type columnSelected = tBean.getColumn(columnFullType.name);
                 if (columnSelected != null) {
                     // 提取单个field
-                    AData<?> columnAData = new AData<>(parsed.subList(s, s + span), columnFullType, adata.isCompressAsOne());
-                    Value v = Values.create(columnSelected, columnAData);
+                    Value v = Values.create(columnSelected, parsed.subList(s, s + span), columnFullType, adata.compressAsOne);
                     values.add(v);
                 }
 

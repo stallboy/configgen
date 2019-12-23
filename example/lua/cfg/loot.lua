@@ -2,11 +2,11 @@ local cfg = require "cfg._cfgs"
 
 local this = cfg.loot
 
-local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
-    "lootid", -- int, 序号
-    "ename", -- string
-    "name", -- string, 名字
-    "chanceList"  -- list,int,7, 掉落0件物品的概率
+local mk = cfg._mk.table(this, { { 'all', 'get', 1 }, }, nil, nil, 
+    'lootid', -- int, 序号
+    'ename', -- string
+    'name', -- string, 名字
+    'chanceList' -- list,int,7, 掉落0件物品的概率
     )
 
 mk(1, "", "测试掉落", {100, 200, 200, 200, 200, 50, 50})

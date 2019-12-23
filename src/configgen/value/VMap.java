@@ -1,12 +1,10 @@
 package configgen.value;
 
 import configgen.type.TMap;
-import configgen.util.NestListParser;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class VMap extends VComposite {
     private final Map<Value, Value> map = new LinkedHashMap<>();
@@ -15,7 +13,7 @@ public class VMap extends VComposite {
         super(type, adata.cells);
 
         List<Cell> parsed;
-        if (adata.isCompressAsOne()) {
+        if (adata.compressAsOne) { //虽然TMap不支持配置Compress,但被上层用compressAsOne时还是支持了.
             require(adata.cells.size() == 1);
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseNestList(dat);
@@ -25,15 +23,14 @@ public class VMap extends VComposite {
             parsed = adata.cells;
         }
 
-        int kc = adata.isCompressAsOne() ? 1 : adata.fullType.key.columnSpan();
-        int vc = adata.isCompressAsOne() ? 1 : adata.fullType.value.columnSpan();
+        int kc = adata.compressAsOne ? 1 : adata.fullType.key.columnSpan();
+        int vc = adata.compressAsOne ? 1 : adata.fullType.value.columnSpan();
         for (int s = 0; s < parsed.size(); s += kc + vc) {
             if (!parsed.get(s).data.isEmpty()) { //第一个单元作为是否还有key-value对的标记
-                AData<?> keyAData = new AData<>(parsed.subList(s, s + kc), adata.fullType.key, adata.isCompressAsOne());
-                Value key = Values.create(type.key, keyAData);
-
-                AData<?> valueAData = new AData<>(parsed.subList(s + kc, s + kc + vc), adata.fullType.value, adata.isCompressAsOne());
-                Value value = Values.create(type.value, valueAData);
+                Value key = Values.create(type.key, parsed.subList(s, s + kc),
+                        adata.fullType.key, adata.compressAsOne);
+                Value value = Values.create(type.value, parsed.subList(s + kc, s + kc + vc),
+                        adata.fullType.value, adata.compressAsOne);
                 Value old = map.put(key, value);
 
                 require(null == old, "字典key重复");

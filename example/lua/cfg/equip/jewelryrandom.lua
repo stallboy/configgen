@@ -3,11 +3,11 @@ local Beans = cfg._beans
 
 local this = cfg.equip.jewelryrandom
 
-local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
-    "lvlRank", -- LevelRank, 等级
-    "attackRange", -- Range, 最小攻击力
-    "otherRange", -- list,Range,4, 最小防御力
-    "testRange"  -- list,Range, 测试compressAsOne
+local mk = cfg._mk.table(this, { { 'all', 'get', 1 }, }, nil, nil, 
+    'lvlRank', -- LevelRank, 等级
+    'attackRange', -- Range, 最小攻击力
+    'otherRange', -- list,Range,4, 最小防御力
+    'testRange' -- list,Range, 测试compressAsOne
     )
 
 local levelrank = Beans.levelrank

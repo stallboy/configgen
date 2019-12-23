@@ -17,7 +17,4 @@ class AData<T extends Type> {
         this.compressAsOne = compressAsOne;
     }
 
-    boolean isCompressAsOne() {
-        return compressAsOne;
-    }
 }

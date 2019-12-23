@@ -3,9 +3,9 @@ local Beans = cfg._beans
 
 local this = cfg.monster
 
-local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
-    "id", -- int, id
-    "posList"  -- list,Position
+local mk = cfg._mk.table(this, { { 'all', 'get', 1 }, }, nil, nil, 
+    'id', -- int, id
+    'posList' -- list,Position
     )
 
 local position = Beans.position

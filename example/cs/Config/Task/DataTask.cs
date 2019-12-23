@@ -7,6 +7,7 @@ namespace Config.Task
     public partial class DataTask
     {
         public int Taskid { get; private set; } // 任务完成条件类型（id的范围为1-100）
+        public Config.Task.DataTaskextraexp NullableRefTaskid { get; private set; }
         public string Name { get; private set; } // 程序用名字
         public string Desc { get; private set; } // 注释
         public int Nexttask { get; private set; }
@@ -83,6 +84,7 @@ namespace Config.Task
 
         internal void _resolve(Config.LoadErrors errors)
         {
+            NullableRefTaskid = Config.Task.DataTaskextraexp.Get(Taskid);
             Completecondition._resolve(errors);
 	    }
 

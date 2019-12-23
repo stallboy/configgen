@@ -2,7 +2,6 @@ package configgen.value;
 
 import configgen.define.Column;
 import configgen.type.TList;
-import configgen.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,8 @@ public class VList extends VComposite {
         super(type, adata.cells);
 
         List<Cell> parsed;
-        if (adata.isCompressAsOne() || type.compressType == Column.CompressType.AsOne) {
+        boolean compressAsOne = adata.compressAsOne || type.compressType == Column.CompressType.AsOne;
+        if (compressAsOne) {
             require(adata.cells.size() == 1);
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseNestList(dat);
@@ -30,13 +30,13 @@ public class VList extends VComposite {
         }
 
         list = new ArrayList<>();
-        int vc = adata.isCompressAsOne() ? 1 :
+        int vc = compressAsOne ? 1 :
                 adata.fullType.value.columnSpan();  // 注意这里compressAsOne的自上而下一直传递的特性
 
         for (int s = 0; s < parsed.size(); s += vc) {
             if (!parsed.get(s).data.isEmpty()) { //第一个单元作为是否还有item的标记
-                AData<?> itemAData = new AData<>(parsed.subList(s, s + vc), adata.fullType.value, adata.isCompressAsOne());
-                list.add(Values.create(type.value, itemAData));
+                list.add(Values.create(type.value, parsed.subList(s, s + vc),
+                        adata.fullType.value, compressAsOne));
             } else {
                 for (Cell dc : parsed.subList(s, s + vc)) {
                     require(dc.data.isEmpty(), "list的item第一个为空格后，之后必须也都是空格", dc);

@@ -3,20 +3,21 @@ local Beans = cfg._beans
 
 local this = cfg.task.task
 
-local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
-    "taskid", -- int, 任务完成条件类型（id的范围为1-100）
-    "name", -- string, 程序用名字
-    "desc", -- string, 注释
-    "nexttask", -- int
-    "completecondition", -- task.completecondition
-    "exp"  -- int
+local mk = cfg._mk.table(this, { { 'all', 'get', 1 }, }, nil, { 
+    { 'NullableRefTaskid', false, cfg.task.taskextraexp, 'get', 1 }, }, 
+    'taskid', -- int, 任务完成条件类型（id的范围为1-100）
+    'name', -- string, 程序用名字
+    'desc', -- string, 注释
+    'nexttask', -- int
+    'completecondition', -- task.completecondition
+    'exp' -- int
     )
 
-local talknpc = Beans.task.completecondition.talknpc
-local conditionand = Beans.task.completecondition.conditionand
-local collectitem = Beans.task.completecondition.collectitem
 local chat = Beans.task.completecondition.chat
+local collectitem = Beans.task.completecondition.collectitem
+local conditionand = Beans.task.completecondition.conditionand
 local killmonster = Beans.task.completecondition.killmonster
+local talknpc = Beans.task.completecondition.talknpc
 
 mk(1, "杀个怪", "杀怪", 2, killmonster(1, 3), 1000)
 mk(2, "和npc对话", "和npc对话", 3, talknpc(1), 2000)

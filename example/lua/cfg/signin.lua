@@ -2,12 +2,12 @@ local cfg = require "cfg._cfgs"
 
 local this = cfg.signin
 
-local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
-    "id", -- int, 礼包ID
-    "item2countMap", -- map,int,int,5, 普通奖励
-    "vipitem2vipcountMap", -- map,int,int,2, vip奖励
-    "viplevel", -- int, 领取vip奖励的最低等级
-    "iconFile"  -- string, 礼包图标
+local mk = cfg._mk.table(this, { { 'all', 'get', 1 }, }, nil, nil, 
+    'id', -- int, 礼包ID
+    'item2countMap', -- map,int,int,5, 普通奖励
+    'vipitem2vipcountMap', -- map,int,int,2, vip奖励
+    'viplevel', -- int, 领取vip奖励的最低等级
+    'iconFile' -- string, 礼包图标
     )
 
 mk(1, {[10001] = 1}, {}, 0, "texture/t_i10005.bundle")

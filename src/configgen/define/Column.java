@@ -63,7 +63,7 @@ public class Column extends Node {
         compressType = CompressType.NoCompress;
     }
 
-    Column(Bean _parent, Column original) {
+    private Column(Bean _parent, Column original) {
         super(_parent, original.name);
         desc = original.desc;
         type = original.type;

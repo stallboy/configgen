@@ -2,43 +2,44 @@ package configgen.value;
 
 import configgen.type.*;
 
-@SuppressWarnings("unchecked")
+import java.util.List;
+
 public class Values {
-    public static Value create(Type t, AData<?> adata) {
+    public static Value create(Type t, List<Cell> cells, Type fullType, boolean compressAsOne) {
         return t.accept(new TypeVisitorT<Value>() {
             @Override
             public Value visit(TBool type) {
-                return new VBool(type, adata.cells);
+                return new VBool(type, cells);
             }
 
             @Override
             public Value visit(TInt type) {
-                return new VInt(type, adata.cells);
+                return new VInt(type, cells);
             }
 
             @Override
             public Value visit(TLong type) {
-                return new VLong(type, adata.cells);
+                return new VLong(type, cells);
             }
 
             @Override
             public Value visit(TFloat type) {
-                return new VFloat(type, adata.cells);
+                return new VFloat(type, cells);
             }
 
             @Override
             public Value visit(TString type) {
-                return new VString(type, adata.cells);
+                return new VString(type, cells);
             }
 
             @Override
             public Value visit(TList type) {
-                return new VList(type, (AData<TList>) adata);
+                return new VList(type, new AData<>(cells, (TList) fullType, compressAsOne));
             }
 
             @Override
             public Value visit(TMap type) {
-                return new VMap(type, (AData<TMap>) adata);
+                return new VMap(type, new AData<>(cells, (TMap) fullType, compressAsOne));
             }
 
             @Override
@@ -48,7 +49,7 @@ public class Values {
 
             @Override
             public Value visit(TBeanRef type) {
-                AData<TBean> newAData = new AData<>(adata.cells, ((TBeanRef) adata.fullType).tBean, adata.isCompressAsOne());
+                AData<TBean> newAData = new AData<>(cells, ((TBeanRef) fullType).tBean, compressAsOne || type.compressAsOne);
                 return new VBean(type.tBean, newAData);
             }
         });

@@ -2,16 +2,16 @@ local cfg = require "cfg._cfgs"
 
 local this = cfg.equip.jewelrysuit
 
-local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, nil, 
-    "suitID", -- int, 饰品套装ID
-    "name", -- text, 策划用名字
-    "ability1", -- int, 套装属性类型1（装备套装中的两件时增加的属性）
-    "ability1Value", -- int, 套装属性1
-    "ability2", -- int, 套装属性类型2（装备套装中的三件时增加的属性）
-    "ability2Value", -- int, 套装属性2
-    "ability3", -- int, 套装属性类型3（装备套装中的四件时增加的属性）
-    "ability3Value", -- int, 套装属性3
-    "suitList"  -- list,int,4, 部件1
+local mk = cfg._mk.table(this, { { 'all', 'get', 1 }, }, nil, nil, 
+    'suitID', -- int, 饰品套装ID
+    'name', -- text, 策划用名字
+    'ability1', -- int, 套装属性类型1（装备套装中的两件时增加的属性）
+    'ability1Value', -- int, 套装属性1
+    'ability2', -- int, 套装属性类型2（装备套装中的三件时增加的属性）
+    'ability2Value', -- int, 套装属性2
+    'ability3', -- int, 套装属性类型3（装备套装中的四件时增加的属性）
+    'ability3Value', -- int, 套装属性3
+    'suitList' -- list,int,4, 部件1
     )
 
 mk(1, "20级橙色套装", 3, 750, 2, 40, 6, 222, {10, 35, 60, 85})

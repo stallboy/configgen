@@ -30,6 +30,7 @@ public class GenLua extends Generator {
 
     private boolean isLangSwitch;
     private LangSwitch langSwitch;
+    private boolean noStr;
 
     public GenLua(Parameter parameter) {
         super(parameter);
@@ -44,12 +45,13 @@ public class GenLua extends Generator {
         packBool = parameter.has("packbool", "是否要把同一个结构里的多个bool压缩成一个int");
         tryColumnMode = parameter.has("col", "是否尝试列模式,如果开启将压缩同一列的bool和不超过26bit的整数\n" +
                 "            默认-Dgenlua.column_min_row=100,-Dgenlua.column_min_save=100");
+        noStr = parameter.has("nostr", "!!!只用来测试字符串占用内存大小");
         parameter.end();
     }
 
     @Override
     public void generate(Context ctx) throws IOException {
-        AContext.getInstance().init(pkg, ctx.getLangSwitch(), useShared, tryColumnMode, packBool);
+        AContext.getInstance().init(pkg, ctx.getLangSwitch(), useShared, tryColumnMode, packBool, noStr);
 
         langSwitch = ctx.getLangSwitch();
         isLangSwitch = langSwitch != null;

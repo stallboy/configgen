@@ -3,21 +3,21 @@ local Beans = cfg._beans
 
 local this = cfg.equip.jewelry
 
-local mk = cfg._mk.table(this, { { "all", "get", 1 }, }, nil, { 
-    { "RefLvlRank", false, cfg.equip.jewelryrandom, "get", 4 }, 
-    { "RefType", false, cfg.equip.jewelrytype, "get", 5 }, 
-    { "NullableRefSuitID", false, cfg.equip.jewelrysuit, "get", 6 }, 
-    { "RefKeyAbility", false, cfg.equip.ability, "get", 7 }, }, 
-    "iD", -- int, 首饰ID
-    "name", -- string, 首饰名称
-    "iconFile", -- string, 图标ID
-    "lvlRank", -- LevelRank, 首饰等级
-    "type", -- string, 首饰类型
-    "suitID", -- int, 套装ID（为0是没有不属于套装，首饰品级为4的首饰该参数为套装id，其余情况为0,引用JewelrySuit.csv）
-    "keyAbility", -- int, 关键属性类型
-    "keyAbilityValue", -- int, 关键属性数值
-    "salePrice", -- int, 售卖价格
-    "description"  -- string, 描述,根据Lvl和Rank来随机3个属性，第一个属性由Lvl,Rank行随机，剩下2个由Lvl和小于Rank的行里随机。Rank最小的时候都从Lvl，Rank里随机。
+local mk = cfg._mk.table(this, { { 'all', 'get', 1 }, }, nil, { 
+    { 'RefLvlRank', false, cfg.equip.jewelryrandom, 'get', 4 }, 
+    { 'RefType', false, cfg.equip.jewelrytype, 'get', 5 }, 
+    { 'NullableRefSuitID', false, cfg.equip.jewelrysuit, 'get', 6 }, 
+    { 'RefKeyAbility', false, cfg.equip.ability, 'get', 7 }, }, 
+    'iD', -- int, 首饰ID
+    'name', -- string, 首饰名称
+    'iconFile', -- string, 图标ID
+    'lvlRank', -- LevelRank, 首饰等级
+    'type', -- string, 首饰类型
+    'suitID', -- int, 套装ID（为0是没有不属于套装，首饰品级为4的首饰该参数为套装id，其余情况为0,引用JewelrySuit.csv）
+    'keyAbility', -- int, 关键属性类型
+    'keyAbilityValue', -- int, 关键属性数值
+    'salePrice', -- int, 售卖价格
+    'description' -- string, 描述,根据Lvl和Rank来随机3个属性，第一个属性由Lvl,Rank行随机，剩下2个由Lvl和小于Rank的行里随机。Rank最小的时候都从Lvl，Rank里随机。
     )
 
 local levelrank = Beans.levelrank

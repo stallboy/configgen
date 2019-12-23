@@ -21,22 +21,24 @@ class CtxColumnStore {
         return columnIdxToPackInfos.get(columnIdx);
     }
 
-    void parseColumnStore(Ctx ctx) {
-        VTable vTable = ctx.getVTable();
+    private static int MIN_ROW = 100;
+    private static int MIN_SAVE = 100;
 
-        int minRowCnt = 100;
+    static {
         String min_row = System.getProperty("genlua.column_min_row");
         if (min_row != null) {
-            minRowCnt = Integer.parseInt(min_row);
+            MIN_ROW = Integer.parseInt(min_row);
         }
 
-        int minSaveCnt = 100;
         String min_save = System.getProperty("genlua.column_min_save");
         if (min_save != null) {
-            minSaveCnt = Integer.parseInt(min_save);
+            MIN_SAVE = Integer.parseInt(min_save);
         }
+    }
 
-        if ((vTable.getVBeanList().size() - vTable.getTTable().getTBean().getColumns().size()) < minRowCnt) {
+    void parseColumnStore(Ctx ctx) {
+        VTable vTable = ctx.getVTable();
+        if ((vTable.getVBeanList().size() - vTable.getTTable().getTBean().getColumns().size()) < MIN_ROW) {
             useColumnStore = false;
             return;
         }
@@ -65,7 +67,7 @@ class CtxColumnStore {
             }
         }
 
-        if (can_save_cnt < minSaveCnt) {
+        if (can_save_cnt < MIN_SAVE) {
             useColumnStore = false;
             return;
         }

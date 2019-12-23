@@ -100,7 +100,8 @@ class ValueStringify implements ValueVisitor {
                 res.append(val);
             }
         } else {
-            res.append("\"").append(val).append("\"");
+            res.append("''");
+//            res.append("\"").append(val).append("\"");
         }
     }
 

@@ -6,11 +6,11 @@ local require = require
 
 local mkcfg = {}
 
-local btest = function(v, bit)
+local btest = function(v, bit) ---bit 从0开始到52
     return true  -- TODO
 end
 
-local bint = function(v, bitlow, bithigh)
+local bint = function(v, bitLow, bitCount) --- bitLow从0, bitCount最大26, bitLow+bitCount最大53
     return v -- TODO
 end
 
@@ -53,7 +53,7 @@ local function mkbean(refs, textFields, fields)
             if type(f) == 'table' then
                 for k, ele in ipairs(f) do
                     get[ele] = function(t)
-                        return btest(t[i], k)
+                        return btest(t[i], k-1)
                     end
                 end
             else
@@ -62,11 +62,6 @@ local function mkbean(refs, textFields, fields)
                 end
             end
         end
-    end
-
-    get.Fields = function()
-        --- fields都小写，refs开头是Ref，NullableRef所以起名Fields不会重复
-        return fields
     end
 
     if refs then
@@ -268,24 +263,28 @@ local function mkbeanc(self, refs, textFields, fields)
     local get = {}
     for i, f in ipairs(fields) do
         if textFields and textFields[f] then
-            --- 重写取field方法，增加一间接层, 支持2种类型，<1>true表示是text，<2>2表示是list,text
+            -- 重写取field方法，增加一间接层, 支持2种类型，<1>true表示是text，<2>2表示是list,text
             local is_list = textFields[f] == 2
             if is_list then
                 get[f] = function(t)
+                    local row_idx = t[1]
+                    local val = self.rawall[i][row_idx]
                     local res = {}
-                    for _, ele in ipairs(t[i]) do
+                    for ei, ele in ipairs(val) do
                         local v = mkcfg.i18n[ele]
                         if v then
-                            res[#res + 1] = v
+                            res[ei] = v
                         else
-                            res[#res + 1] = ""
+                            res[ei] = ""
                         end
                     end
                     return res
                 end
             else
                 get[f] = function(t)
-                    local v = mkcfg.i18n[t[i]] --TODO
+                    local row_idx = t[1]
+                    local val = self.rawall[i][row_idx]
+                    local v = mkcfg.i18n[val]
                     if v then
                         return v
                     else
@@ -294,8 +293,9 @@ local function mkbeanc(self, refs, textFields, fields)
                 end
             end
         else
-            --- not in textFields
+            -- 不是国际化字段
             if type(f) == 'table' then
+                -- 有压缩哦
                 local fn = f[1]
                 local isInt = f[2]
                 local bitLen = 1

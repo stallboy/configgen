@@ -10,6 +10,14 @@ class CtxName {
     private final Set<String> locals = new HashSet<>();
     private final Map<String, String> fullNameToLocals = new TreeMap<>(); //用TreeMap使得生成代码确定
 
+    private static int MAX_LOCAL = 128;
+
+    static {
+        String max_local = System.getProperty("genlua.max_local");
+        if (max_local != null) {
+            MAX_LOCAL = Integer.parseInt(max_local);
+        }
+    }
 
     Map<String, String> getLocalNameMap() {
         return fullNameToLocals;
@@ -19,6 +27,13 @@ class CtxName {
         String loc = fullNameToLocals.get(fullName);
         if (loc != null) {
             return loc;
+        }
+
+        // 因为lua有local变量总共250个左右的限制,这里限制128给其他留一点;luajit没这个限制
+        // 参考https://zhuanlan.zhihu.com/p/31732401
+        // https://stackoverflow.com/questions/38952744/lua-ellipsis-expression-limited-at-248
+        if (fullNameToLocals.size() > MAX_LOCAL) {
+            return fullName;
         }
 
         String[] seps = fullName.split("\\.");
@@ -43,6 +58,6 @@ class CtxName {
             return tryName;
         }
 
-        throw new RuntimeException("竟然找不到个不重复的名字，我选择死亡");
+        return fullName;
     }
 }

@@ -453,6 +453,7 @@ public class GenLua extends Generator {
 
         if (useShared && ctx.getCtxShared().getEmptyTableUseCount() > 0) { // 共享空表
             ps.println("local E = %s._mk.E", pkg);
+            ps.println();
         }
 
         if (useShared && ctx.getCtxShared().getSharedList().size() > 0) { // 共享相同的表

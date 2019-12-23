@@ -8,10 +8,10 @@ import configgen.define.Table;
 
 import java.io.File;
 
-public class CompatibleForOwn {
+class CompatibleForOwn {
 
 
-    public static void makeCompatible(File xmlFile, String encoding) {
+    static void makeCompatible(File xmlFile, String encoding) {
         AllDefine fullDefine = new AllDefine(xmlFile);
         Logger.mm("define");
 

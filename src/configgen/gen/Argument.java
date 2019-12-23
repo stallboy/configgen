@@ -3,7 +3,7 @@ package configgen.gen;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Argument implements Parameter {
+class Argument implements Parameter {
     private final String arg;
     final String type;
     private final Map<String, String> params = new HashMap<>();

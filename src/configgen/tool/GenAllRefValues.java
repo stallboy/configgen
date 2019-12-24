@@ -1,4 +1,4 @@
-package configgen.genallref;
+package configgen.tool;
 
 import configgen.gen.*;
 import configgen.type.SRef;

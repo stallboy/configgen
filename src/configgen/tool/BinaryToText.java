@@ -1,4 +1,6 @@
-package configgen.genjava;
+package configgen.tool;
+
+import configgen.genjava.*;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;

@@ -1,4 +1,4 @@
-package configgen.geni18n;
+package configgen.tool;
 
 import configgen.gen.*;
 import configgen.util.CSVWriter;

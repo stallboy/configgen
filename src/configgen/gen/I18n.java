@@ -23,14 +23,14 @@ public final class I18n {
 
     private Collector collector;
 
-    public I18n(){
+    I18n() {
     }
 
-    public I18n(String file, String encoding, boolean crlfaslf) {
+    I18n(String file, String encoding, boolean crlfaslf) {
         this(Paths.get(file), encoding, crlfaslf);
     }
 
-    public I18n(Path path, String encoding, boolean crlfaslf) {
+    I18n(Path path, String encoding, boolean crlfaslf) {
         map = new HashMap<>();
         List<List<String>> rows = CSVParser.readFromFile(path, encoding);
         List<String> row0 = rows.get(0);

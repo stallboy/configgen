@@ -1,13 +1,13 @@
-package configgen.gen;
+package configgen.tool;
 
 import configgen.value.*;
 
 import java.util.Map;
 import java.util.Set;
 
-class ValueSearcher {
+public class ValueSearcher {
 
-    static void searchValues(AllValue allValue, Set<Integer> searchIntegers) {
+    public static void searchValues(AllValue allValue, Set<Integer> searchIntegers) {
         ValueVisitor vv = new ValueVisitor() {
             @Override
             public void visit(VBool value) {

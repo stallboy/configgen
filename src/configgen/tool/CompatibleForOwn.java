@@ -1,4 +1,4 @@
-package configgen.gen;
+package configgen.tool;
 
 import configgen.Logger;
 import configgen.define.AllDefine;
@@ -8,10 +8,10 @@ import configgen.define.Table;
 
 import java.io.File;
 
-class CompatibleForOwn {
+public class CompatibleForOwn {
 
 
-    static void makeCompatible(File xmlFile, String encoding) {
+    public static void makeCompatible(File xmlFile, String encoding) {
         AllDefine fullDefine = new AllDefine(xmlFile);
         Logger.mm("define");
 

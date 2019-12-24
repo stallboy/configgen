@@ -17,3 +17,4 @@ print((y - x) / 1024)
 --share,pack           102.7M        68.4M
 --share,pack,col       78.4M         54.2M
 --share,pack,col,nostr 59.8M         40.0M  -- 这个nostr是测试字符串占空间大小
+--生成javadata,全部是48.7M, client是29.8M;luajit最后压缩成54.2,是javadata的1.8倍

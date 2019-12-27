@@ -312,7 +312,7 @@ local function mkbeanc(self, refs, textFields, fields)
                         local packed = self.rawall[i][idx + 1]
                         local idx_in_packed = row_idx - idx * countPerOne
 
-                        return bint(packed, idx_in_packed, countPerOne)
+                        return bint(packed, idx_in_packed, bitLen)
                     end
                 else
                     get[fn] = function(t)

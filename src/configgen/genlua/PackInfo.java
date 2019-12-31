@@ -57,7 +57,7 @@ class PackInfo {
         int idx = 0;
         int cnt = result.size();
         for (Long v : result) {
-            res.append("0x").append(Long.toHexString(v));
+            res.append(v);
             idx++;
             if (idx < cnt) {
                 res.append(",");

@@ -23,7 +23,8 @@ class AContext {
     private String emptyTableStr;
     private final Set<String> forbidLocalNames = new HashSet<>(Arrays.asList("Beans", "this", "mk",
             "A", //表示共享Table
-            "E"  //表示emptyTable
+            "E", //表示emptyTable
+            "R"  //表示为共享Table的一个包装方法
     ));
 
     private AStat statistics;
@@ -84,7 +85,6 @@ class AContext {
     String getPkgPrefixStr() {
         return pkgPrefixStr;
     }
-
 
     AStat getStatistics() {
         return statistics;

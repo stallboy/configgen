@@ -17,6 +17,9 @@ end
 mkcfg.i18n = {}
 
 mkcfg.E = {} --- emptyTable，为减少内存占用，所有生成的配置数据共享这个，代码别改哦
+mkcfg.R = function (v) --- ReadOnly
+    return v -- Note: 可设置__newindex进行检测
+end
 
 --- refs { {refname, islist, dsttable, dstgetname, keyidx1, keyidx2}, }
 local function mkbean(refs, textFields, fields)

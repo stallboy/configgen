@@ -66,7 +66,7 @@ class CtxShared {
         if (vstr != null) {
             if (vstr.getValueStr() != null) {
                 return vstr.getName();
-            } else { //这个用于stringifySharedCompositeValues
+            } else { //这个用于 parseShared里收集生成代码
                 return null;
             }
         }

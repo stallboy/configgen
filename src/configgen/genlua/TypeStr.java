@@ -141,8 +141,6 @@ class TypeStr {
 
             String keyidx1 = getColumnStrOrIndex(mRef.thisTableKeys[0], tbean, isUseColumnStore);
 
-            boolean hasKeyIdx2 = false;
-
             if (mRef.thisTableKeys.length > 1) {
                 if (mRef.thisTableKeys.length != 2) {
                     throw new RuntimeException("keys length != 2 " + tbean.name);

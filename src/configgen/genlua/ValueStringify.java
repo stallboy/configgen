@@ -120,8 +120,8 @@ class ValueStringify implements ValueVisitor {
                 res.append(vstr);
 
             } else {
-                int idx = 0;
                 res.append("{");
+                int idx = 0;
                 for (Value eleValue : value.getList()) {
                     eleValue.accept(notKey);
                     idx++;
@@ -153,8 +153,8 @@ class ValueStringify implements ValueVisitor {
                 res.append(vstr);
 
             } else {
-                int idx = 0;
                 res.append("{");
+                int idx = 0;
                 for (Map.Entry<Value, Value> entry : value.getMap().entrySet()) {
                     entry.getKey().accept(key);
                     res.append(" = ");
@@ -216,7 +216,12 @@ class ValueStringify implements ValueVisitor {
                             if (bs.length() > 0) {
                                 v = bs.toLongArray()[0];
                             }
-                            res.append("0x").append(Long.toHexString(v));
+                            if (cnt < 32) {
+                                res.append("0x").append(Long.toHexString(v));
+                            } else {
+                                res.append(v);
+                            }
+
                             if (idx != sz) {
                                 res.append(", ");
                             }

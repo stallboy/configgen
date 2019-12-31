@@ -446,7 +446,7 @@ public class GenLua extends Generator {
         ps.disableCache();
 
 
-        if (!ctx.getCtxName().getLocalNameMap().isEmpty()) { // 对收集到的引用local化，lua执行应该会快点
+        if (!ctx.getCtxName().getLocalNameMap().isEmpty()) { // 对收集到的引用local化，lua执行会快点
             for (Map.Entry<String, String> entry : ctx.getCtxName().getLocalNameMap().entrySet()) {
                 ps.println("local %s = %s", entry.getValue(), entry.getKey());
             }
@@ -459,9 +459,10 @@ public class GenLua extends Generator {
         }
 
         if (useShared && ctx.getCtxShared().getSharedList().size() > 0) { // 共享相同的表
+            ps.println("local R = %s._mk.R", pkg); // 给lua个机会设置__newindex，做运行时检测
             ps.println("local A = {}");
             for (CtxShared.VCompositeStr vstr : ctx.getCtxShared().getSharedList()) {
-                ps.println("%s = %s", vstr.getName(), vstr.getValueStr());
+                ps.println("%s = R(%s)", vstr.getName(), vstr.getValueStr());
             }
             ps.println();
         }

@@ -25,16 +25,17 @@
 * column.name，type, desc, compressAsOne
     - name, desc会从csv文件第1,2行提取,生成代码时保留csv中配置名称的大小写，成员变量为首字母小写的name,引用的成员变量为Ref+首字母大写的name
     - type 在xml要自己修改.基本类型有bool,int,long,float,string(text),复合类型包括bean,list,map
-        - text用于客户端实现国际化需求，所有配置为text的字段数据会被单独放入一个文件中，只要修改这个文件就自动起作用了。
-        - list,xx,count     ArrayList；compressAsOne时count可不要
-        - map,xx,yy,count   LinkedHashMap;
-        - 如果type里包含bean，且不是一个单元格，则要在csv里第二行名字起名为field.name@xx，同时从这开始后列名字序列不要断，要和config.xml里的定义顺序一致，方便程序检测这个field的结束点。
+        * text用于客户端实现国际化需求，所有配置为text的字段数据会被单独放入一个文件中，只要修改这个文件就自动起作用了。
+        * list,xx,count     ArrayList；compressAsOne时count可不要
+        * map,xx,yy,count   LinkedHashMap;
+        * 如果type是个复合类型且不是一个单元格，假设占N单元格，则要在csv里第二行（程序名行）
+        此column的起始格起名为xml中定义的column下的name，同时从这开始之后有列名字的N列都属于此column。
                          
     - compressAsOne，可支持把任意嵌套bean（包括循环嵌套bean）写在一个格子里，比如a,(b1,b2),c(d,e(f,g)).转义规则同csv标准，
     比如数组里的一个字符串含有逗号，那么得用"号把它扩起来，如果引号里有引号，则要用双引号
-        - "a",b,c   等同与a;b;c
+        - "a",b,c   分为3组a和b和c
         - "a,b",c   则被分为2组a,b 和c
-        - "a"",b";c 也是2组a",b和c
+        - "a"",b",c 也是2组a",b和c
    
 * uniqueKey.keys
     - 唯一键，keys可多列，逗号分割
@@ -50,8 +51,7 @@
     - 可直接在column里配置range="min,max"逗号分割
     
 * table/bean/column.own
-    - 里面可填任意字符串，配合启动参数使用，contains语义。
-    - 共用一份config.xml，通过启动参数own和这里的own选择生成部分，想省客户端内存用这个
+    - 里面可填任意字符串，配合启动参数使用，contains语义。客户端服务器共用一份config.xml，通过启动参数own和这里的own选择部分数据来生成，本意是节省客户端内存。
 
 
 ## FAQ
@@ -63,7 +63,6 @@
     3. 如果config.xml不满足需求，则手动修改config.xml，比如修改type，主键，增加唯一键，外键，枚举，取值约束
     4. 重复1，2，3流程(可参照example目录)
 
-
 *   为什么支持enum，enumPart？
 
       当有一个知识策划，程序都要了解的时候，放到csv里。程序也不用写魔数了。
@@ -73,23 +72,22 @@
 *   为什么要支持nullableRef？
 
       这里约定ref是必须有引用的，nullableRef是可为null的，生成代码时用前缀ref，nullableRef来做区别，逻辑使用refXx就不用检测是否为null了。
-      
       csv单元格中不填的话默认为false,0,""，所以不要用0作为一行的id。
       如果有nullableRef请不要填0，请用留空。否则程序会检测报错
       
-*   嵌套Bean支持，多态Bean支持？
+*   嵌套结构支持，多态结构支持？
 
-      可以直接嵌套任意层
+      可以通过bean的定义直接嵌套任意层，所占列数根据Bean的定义递归计算到基本类型可得
 
-      可以通过ref,nullableRef,listRef间接嵌套，listRef特别利于把逻辑上有很多列的表（包含list<一个Bean>）
-      展开到另一个表中变成很多行（每个行代表一个Bean）
-      
       可以在Bean下定义多个子Bean支持多态 比如CompleteTaskCond，有Level 5, KillMonster 1001 3这样的2个子Bean。
       则这个Bean所占列数是所有子Bean占列数的最大值。
       
-      如果一个column的bean是出现无法计算列数的循环嵌套，则必须配置compressAsOne
+      如果一个column出现无法计算列数的循环嵌套，则必须配置compressAsOne，只占一列。
       比如CompleteTaskCond有子Bean：CondAnd 有2个column条件cond1，cond2，是CompleteTaskCond，则这两个column需要配置为compressAsOne
-      具体配置例子：CondAnd Level(5) KillMonster(1001,3)
+      具体配置例子：CondAnd Level(5) KillMonster(1001,3)    
+      
+      可以通过ref,nullableRef,listRef间接嵌套，listRef特别利于把逻辑上有很多列的表（包含list<一个Bean>）
+      展开到另一个表中变成很多行（每个行代表一个Bean）
 
 *   国际化策略？
 

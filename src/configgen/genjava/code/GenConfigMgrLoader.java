@@ -49,6 +49,12 @@ class GenConfigMgrLoader {
         ps.println2("}");
         ps.println();
 
+        ps.println2("_resolveAll(mgr);");
+
+        ps.println2("return mgr;");
+        ps.println1("}");
+
+        ps.println1("private static void _resolveAll(ConfigMgr mgr) {");
         for (VTable vTable : vdb.getVTables()) {
             if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                 continue;
@@ -58,9 +64,6 @@ class GenConfigMgrLoader {
                 ps.println2("%s._resolveAll(mgr);", Name.tableDataFullName(vTable.getTTable()));
             }
         }
-
-        ps.println2("return mgr;");
-
         ps.println1("}");
         ps.println("}");
     }

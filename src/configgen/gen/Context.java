@@ -1,29 +1,27 @@
 package configgen.gen;
 
 import configgen.Logger;
-import configgen.data.AllData;
 import configgen.define.AllDefine;
 import configgen.type.AllType;
 import configgen.value.AllValue;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 
 public class Context {
+    // fullValue很费内存，在用到时再生成，而fullData在fullDefine里
     private final AllDefine fullDefine;
-    //不存储fullValue
+    private final AllType fullType;
 
     private boolean _isI18n = false;
-    private I18n i18n = new I18n();
-    private LangSwitch langSwitch = null;
+    private I18n i18n = new I18n();        // 这个是国际化,直接改成对应国家语言
+    private LangSwitch langSwitch = null;  // 这个是要实现客户端可在多国语言间切换语言
 
-    private AllValue lastValue;
-    private String lastValueOwn;
 
     Context(Path xmlPath, String encoding) {
         fullDefine = new AllDefine(xmlPath, encoding);
-        fullDefine.readDataFilesThenAutoFix();
+        fullDefine.readDataFilesAndAutoFix();
+        fullType = fullDefine.resolveFullType();
     }
 
     public Path getDataDir() {
@@ -42,7 +40,7 @@ public class Context {
 
     void dump() {
         fullDefine.dump(System.out);
-        fullDefine.getFullType().dump(System.out);
+        fullType.dump(System.out);
     }
 
     public LangSwitch getLangSwitch() {
@@ -62,6 +60,9 @@ public class Context {
     }
 
 
+    private AllValue lastValue;
+    private String lastValueOwn;
+
     public AllValue makeValue(String own) {
         if (lastValue != null) {
             if (Objects.equals(own, lastValueOwn)) {
@@ -72,12 +73,9 @@ public class Context {
         lastValue = null; //让它可以被尽快gc
         AllValue value;
         if (own == null || own.isEmpty()) {
-            value = make(fullDefine.getFullType());
+            value = make(fullType);
         } else {
-            AllDefine ownDefine = fullDefine.extractOwn(own);
-            AllType ownType = new AllType(ownDefine);
-            ownType.resolve();
-            value = make(ownType);
+            value = make(fullDefine.resolvePartType(own));
         }
 
         lastValueOwn = own;

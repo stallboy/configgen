@@ -87,8 +87,7 @@ public class AllDefine extends Node {
 
     //////////////////////////////// 对上层接口，隐藏import导致的层级Data和层级Table
 
-    private AllData thisData;
-    private AllType fullType; //只有顶层Define有
+    private AllData thisData; // fullDefine才有，所谓full就是全部的定义，不能是从own抽取的
     private final Map<String, DTable> cachedAllDataTables = new TreeMap<>();
 
 
@@ -108,11 +107,6 @@ public class AllDefine extends Node {
         return cachedAllTables.get(tableName);
     }
 
-
-    public AllType getFullType() {
-        return fullType;
-    }
-
     public DTable getDTable(String tableName) {
         return cachedAllDataTables.get(tableName);
     }
@@ -120,19 +114,22 @@ public class AllDefine extends Node {
 
     //////////////////////////////// 读取数据文件，并补充完善Define
 
-    public void readDataFilesThenAutoFix() {
+    public void readDataFilesAndAutoFix() {
         AllType firstTryType = new AllType(this);
         firstTryType.resolve();
 
         autoFixByData(firstTryType);
         save();
-
-        fullType = new AllType(this);
-        fullType.resolve();
-        attachTypeToData(fullType);
     }
 
-    // 自动从Data种提取头两行的定义信息，填充Define，保存到xml
+    public AllType resolveFullType() {
+        AllType fullType = new AllType(this);
+        fullType.resolve();
+        attachTypeToData(fullType);
+        return fullType;
+    }
+
+    // 自动从Data种提取头两行的定义信息，填充Define
     void autoFixByData(AllType firstTryType) {
         for (Import imp : imports.values()) {
             imp.define.autoFixByData(firstTryType);
@@ -183,12 +180,13 @@ public class AllDefine extends Node {
     }
 
 
-    // 返回的是全新的 部分的Define
-
-    public AllDefine extractOwn(String own) {
+    // 返回的是全新的 部分的Type
+    public AllType resolvePartType(String own) {
         AllDefine topPart = extract(own);
         topPart.resolveExtract(topPart);
-        return topPart;
+        AllType ownType = new AllType(topPart);
+        ownType.resolve();
+        return ownType;
     }
 
 

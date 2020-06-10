@@ -1,5 +1,11 @@
 ## Configuration
 
+* db.datadir
+    - 数据文件所在目录，默认为当前目录.
+
+* import.file
+    - 引入另一个xml定义文件，现在有两种分割文件的方式，一个是用import.file,一个是用下面的own
+
 * bean.name，enumRef
     - bean必须自己手工在config.xml里定义；column.type包含bean的时候也必须手工指定；这些没法自动猜测。
     - name用.分割构成名字空间

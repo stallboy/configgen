@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="GBK" standalone="no"?>
-<db>
+<db datadir=".">
     <bean name="LevelRank">
         <column desc="等级" name="Level" type="int"/>
         <column desc="品质" name="Rank" ref="equip.rank" type="int"/>
@@ -101,14 +101,6 @@
     <table enum="name" name="task.completeconditiontype" primaryKey="id">
         <column desc="任务完成条件类型（id的范围为1-100）" name="id" type="int"/>
         <column desc="程序用名字" name="name" type="string"/>
-    </table>
-    <table name="task.task" primaryKey="taskid">
-        <column desc="任务完成条件类型（id的范围为1-100）" name="taskid" ref="task.taskextraexp" refType="NULLABLE" type="int"/>
-        <column desc="程序用名字" name="name" type="string"/>
-        <column desc="注释" name="desc" type="string"/>
-        <column name="nexttask" type="int"/>
-        <column name="completecondition" type="task.completecondition"/>
-        <column name="exp" type="int"/>
     </table>
     <table name="task.taskextraexp" primaryKey="taskid">
         <column desc="任务完成条件类型（id的范围为1-100）" name="taskid" type="int"/>

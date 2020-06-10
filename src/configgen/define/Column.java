@@ -83,9 +83,10 @@ public class Column extends Node {
         return null;
     }
 
-    void resolveExtract() {
-        if (foreignKey != null && foreignKey.invalid())
+    void resolveExtract(AllDefine top) {
+        if (foreignKey != null && foreignKey.invalid(top)) {
             foreignKey = null;
+        }
     }
 
     void save(Element parent) {

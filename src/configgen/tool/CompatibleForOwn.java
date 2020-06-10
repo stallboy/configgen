@@ -6,17 +6,17 @@ import configgen.define.Bean;
 import configgen.define.Column;
 import configgen.define.Table;
 
-import java.io.File;
+import java.nio.file.Path;
 
 public class CompatibleForOwn {
 
 
-    public static void makeCompatible(File xmlFile, String encoding) {
-        AllDefine fullDefine = new AllDefine(xmlFile);
+    public static void makeCompatible(Path xmlFile, String encoding) {
+        AllDefine fullDefine = new AllDefine(xmlFile, encoding);
         Logger.mm("define");
 
 
-        for (Bean bean : fullDefine.getBeans()) {
+        for (Bean bean : fullDefine.getAllBeans()) {
             for (String own : bean.own.split(",")) {
                 if (noColumnOwn(bean, own)) {
                     makeAllColumnOwn(bean, own);
@@ -24,7 +24,7 @@ public class CompatibleForOwn {
             }
         }
 
-        for (Table table : fullDefine.tables.values()) {
+        for (Table table : fullDefine.getAllTables()) {
             for (String own : table.bean.own.split(",")) {
                 if (noColumnOwn_Normal(table.bean, own)) {
                     makeAllColumnOwn_Normal(table.bean, own);
@@ -32,7 +32,7 @@ public class CompatibleForOwn {
             }
         }
 
-        fullDefine.save(xmlFile, encoding);
+        fullDefine.save();
     }
 
     private static boolean noColumnOwn(Bean bean, String own) {

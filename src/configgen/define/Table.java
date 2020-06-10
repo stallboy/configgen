@@ -40,7 +40,7 @@ public class Table extends Node {
             enumType = EnumType.EnumPart;
             enumStr = self.getAttribute("enumPart");
             require(!enumStr.isEmpty(), "enumPart empty");
-        }else{
+        } else {
             enumType = EnumType.None;
             enumStr = "";
         }
@@ -97,6 +97,8 @@ public class Table extends Node {
         isPrimaryKeySeq = false;
     }
 
+
+    //////////////////////////////// extract
     private Table(AllDefine _parent, Table original) {
         super(_parent, original.name);
         enumType = original.enumType;
@@ -104,7 +106,6 @@ public class Table extends Node {
         primaryKey = original.primaryKey;
         isPrimaryKeySeq = original.isPrimaryKeySeq;
     }
-
 
     Table extract(AllDefine _parent, String own) {
         Table part = new Table(_parent, this);
@@ -120,8 +121,8 @@ public class Table extends Node {
         return part;
     }
 
-    void resolveExtract() {
-        bean.resolveExtract();
+    void resolveExtract(AllDefine top) {
+        bean.resolveExtract(top);
         String original = enumStr;
         if (!bean.columns.containsKey(original)) {
             enumType = EnumType.None;
@@ -130,6 +131,8 @@ public class Table extends Node {
         require(bean.columns.keySet().containsAll(Arrays.asList(primaryKey)), "must own primaryKey");
     }
 
+
+    //////////////////////////////// save
     void save(Element parent) {
         Element self = DomUtils.newChild(parent, "table");
         uniqueKeys.values().forEach(c -> c.save(self));
@@ -147,7 +150,7 @@ public class Table extends Node {
         if (primaryKey.length > 0) {
             self.setAttribute("primaryKey", String.join(",", primaryKey));
         }
-        if (isPrimaryKeySeq){
+        if (isPrimaryKeySeq) {
             self.setAttribute("isPrimaryKeySeq", "true");
         }
     }

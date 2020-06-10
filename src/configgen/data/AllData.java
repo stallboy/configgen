@@ -24,89 +24,64 @@ public class AllData extends Node {
     private final Path dataDir;
     private final Map<String, DTable> dTables = new HashMap<>();
 
-    private AllDefine fullDefine;
-    private AllType fullType;
-
-
     public AllData(Path _dataDir, String dataEncoding) {
         super(null, "AllData");
         dataDir = _dataDir;
 
-        try {
-            Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes a) {
-                    String path = dataDir.relativize(file).toString();
-                    if (path.endsWith(".csv")) {
-                        String p = path.substring(0, path.length() - 4);
-                        String configName = String.join(".", p.split("[\\\\/]")).toLowerCase();
-                        List<List<String>> allLines = CSVParser.readFromFile(file, dataEncoding);
-//                        Logger.mm(file.toString());
-                        dTables.put(configName, new DTable(AllData.this, configName, allLines));
+        if (Files.isDirectory(dataDir)) {
+            try {
+                Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes a) {
+                        String path = dataDir.relativize(file).toString();
+                        if (path.endsWith(".csv")) {
+                            String p = path.substring(0, path.length() - 4);
+                            String configName = String.join(".", p.split("[\\\\/]")).toLowerCase();
+                            List<List<String>> allLines = CSVParser.readFromFile(file, dataEncoding);
+                            // Logger.mm(file.toString());
+                            dTables.put(configName, new DTable(AllData.this, configName, allLines));
+                        }
+                        return FileVisitResult.CONTINUE;
                     }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+                });
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    public Path getDataDir() {
-        return dataDir;
-    }
 
     public DTable getDTable(String tableName) {
         return dTables.get(tableName);
     }
 
-    public Collection<DTable> getDTables(){
-        return dTables.values();
-    }
-
-    public AllDefine getFullDefine() {
-        return fullDefine;
-    }
-
-    public AllType getFullType() {
-        return fullType;
+    public Map<String, DTable> getDTables() {
+        return dTables;
     }
 
 
-    public void refineDefineAndType(File xmlFile, String encoding) {
-        fullDefine = new AllDefine(xmlFile);
-        Logger.mm("define");
-
-        AllType firstTryType = new AllType(fullDefine);
-        firstTryType.resolve();
-
-        autoCompleteDefine(fullDefine, firstTryType);
-        fullDefine.save(xmlFile, encoding);
-
-        fullType = new AllType(fullDefine);
-        fullType.resolve();
-        Logger.mm("type");
-
-        for (DTable table : dTables.values()) {
-            table.setTableType(fullType.getTTable(table.name));
+    public void attachType(AllType fullType) {
+        for (DTable dTable : dTables.values()) {
+            dTable.setTableType(fullType.getTTable(dTable.name));
         }
     }
 
-    private void autoCompleteDefine(AllDefine allDefine, AllType allType) {
+
+    public void autoFixDefine(AllDefine defineToFix, AllType firstTryType) {
         Map<String, TTable> old = new HashMap<>();
-        for (TTable tTable : allType.getTTables()) {
+        for (TTable tTable : firstTryType.getTTables()) {
             old.put(tTable.name, tTable);
         }
 
-        allDefine.tables.clear();
+        defineToFix.clearTables();
         for (DTable dTable : dTables.values()) {
             TTable ttable = old.remove(dTable.name);
             Table tableDefine;
             if (ttable != null) {
                 tableDefine = ttable.getTableDefine();
-                allDefine.tables.put(dTable.name, tableDefine);
+                defineToFix.addTable(tableDefine);
             } else {
-                tableDefine = allDefine.newTable(dTable.name);
+                tableDefine = defineToFix.newTable(dTable.name);
                 Logger.verbose("new table " + tableDefine.fullName());
             }
 

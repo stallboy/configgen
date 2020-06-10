@@ -15,7 +15,7 @@ public class AllType extends Node {
 
     public AllType(AllDefine allDefine) {
         super(null, "AllType");
-        for (Bean bean : allDefine.getBeans()) {
+        for (Bean bean : allDefine.getAllBeans()) {
             try {
                 TBean tBean = new TBean(this, bean);
                 tBeans.put(tBean.name, tBean);
@@ -24,7 +24,7 @@ public class AllType extends Node {
             }
         }
 
-        for (Table table : allDefine.tables.values()) {
+        for (Table table : allDefine.getAllTables()) {
             try {
                 TTable tTable = new TTable(this, table);
                 tTables.put(tTable.name, tTable);

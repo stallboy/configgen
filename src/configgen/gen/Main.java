@@ -1,16 +1,12 @@
 package configgen.gen;
 
 import configgen.Logger;
-import configgen.tool.CompatibleForOwn;
-import configgen.tool.GenAllRefValues;
 import configgen.gencs.GenCs;
 import configgen.gencs.GenPack;
-import configgen.tool.BinaryToText;
-import configgen.genjava.code.GenJavaCode;
 import configgen.genjava.GenJavaData;
-import configgen.tool.GenI18n;
+import configgen.genjava.code.GenJavaCode;
 import configgen.genlua.GenLua;
-import configgen.tool.ValueSearcher;
+import configgen.tool.*;
 import configgen.util.CachedFiles;
 
 import java.io.File;
@@ -28,7 +24,6 @@ public final class Main {
         System.out.println("Usage: java -jar configgen.jar [options]");
         System.out.println();
         System.out.println("----配置表信息--------------------------------------");
-        System.out.println("    -datadir      配表所在目录");
         System.out.println("    -xml          配表结构文件，默认是config.xml");
         System.out.println("    -encoding     配表和配表结构文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
         System.out.println("    -verify       检查配表约束");
@@ -100,7 +95,7 @@ public final class Main {
 
         for (int i = 0; i < args.length; ++i) {
             switch (args[i]) {
-                case "-datadir":
+                case "-datadir": // 兼容需求之前的启动参数，新的不要用这个了，直接用xml
                     datadir = args[++i];
                     break;
                 case "-xml":
@@ -175,28 +170,38 @@ public final class Main {
 
         if (compatibleForOwn) {
             if (xml != null) {
-                CompatibleForOwn.makeCompatible(new File(xml), encoding);
+                CompatibleForOwn.makeCompatible(Paths.get(xml), encoding);
             } else {
                 usage("-compatibleForOwn 需要配置-xml");
             }
             return;
         }
 
-        if (datadir == null) {
-            usage("-datadir 未配置");
-            return;
-        }
-
         if (i18nfile != null && langSwitchDir != null) {
-            usage("-不能同时配置i18nfile和langSwitchDir");
+            usage("-不能同时配置-i18nfile和-langSwitchDir");
             return;
         }
 
-        Path dataDir = Paths.get(datadir);
-        File xmlFile = xml != null ? new File(xml) : dataDir.resolve("config.xml").toFile();
+        Path xmlPath = null;
+        if (xml != null) {
+            if (datadir == null) {
+                xmlPath = Paths.get(xml);
+            } else {
+                usage("-不要同时配置-datadir和-xml");
+                return;
+            }
+        } else {
+            if (datadir == null){
+                usage("-请配置-xml");
+                return;
+            }else{
+                xmlPath =  Paths.get(datadir).resolve("config.xml");
+            }
+        }
+
 
         Logger.mm(String.format("start total memory %dm", Runtime.getRuntime().maxMemory() / 1024 / 1024));
-        Context ctx = new Context(dataDir, xmlFile, encoding);
+        Context ctx = new Context(xmlPath, encoding);
         ctx.setI18nOrLangSwitch(i18nfile, langSwitchDir, i18nencoding, i18ncrlfaslf);
         if (dump) {
             ctx.dump();

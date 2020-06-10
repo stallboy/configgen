@@ -8,15 +8,19 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Node {
-    protected final Node root;
-    public final Node parent;
+    protected Node root;
+    public Node parent;
     public final String name;
 
     private List<Node> children;
 
     public Node(Node parent, String name) {
-        this.parent = parent;
         this.name = name;
+        _setParent(parent);
+    }
+
+    private void _setParent(Node parent) {
+        this.parent = parent;
         if (parent != null) {
             root = parent.root;
             if (parent.children == null) {
@@ -27,6 +31,19 @@ public class Node {
             root = this;
         }
     }
+
+    public void setNewParent(Node newParent) {
+        if (parent == newParent) {
+            return;
+        }
+
+        if (parent.children != null) {
+            parent.children.remove(this);
+        }
+
+        _setParent(newParent);
+    }
+
 
     @Override
     public String toString() {

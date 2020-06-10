@@ -2,6 +2,7 @@ package configgen.value;
 
 import configgen.Node;
 import configgen.data.AllData;
+import configgen.define.AllDefine;
 import configgen.gen.Context;
 import configgen.type.AllType;
 import configgen.type.TTable;
@@ -22,15 +23,15 @@ public class AllValue extends Node {
     private final Context ctx;
     private Map<String, VTable> vTables;
 
-    public AllValue(AllType tdb, AllData fullData, Context ctx) {
+    public AllValue(AllType subType, AllDefine fullDefine, Context ctx) {
         super(null, "value");
-        this.allType = tdb;
+        this.allType = subType;
         this.ctx = ctx;
-        vTables = new LinkedHashMap<>(tdb.getTTables().size());
+        vTables = new LinkedHashMap<>(subType.getTTables().size());
         current = this;
-        for (TTable tTable : tdb.getTTables()) {
+        for (TTable tTable : subType.getTTables()) {
             try {
-                VTable vt = new VTable(this, tTable, fullData.getDTable(tTable.name));
+                VTable vt = new VTable(this, tTable, fullDefine.getDTable(tTable.name));
                 vTables.put(tTable.name, vt);
             } catch (Throwable e) {
                 throw new AssertionError(tTable.name + ",这个表数据构造出错", e);

@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.Objects;
 
 public class Context {
-    private final AllData fullData;
+    private final AllDefine fullDefine;
     //不存储fullValue
 
     private boolean _isI18n = false;
@@ -21,18 +21,15 @@ public class Context {
     private AllValue lastValue;
     private String lastValueOwn;
 
-    Context(Path dataDir, File xmlFile, String encoding) {
-        fullData = new AllData(dataDir, encoding);
-        fullData.refineDefineAndType(xmlFile, encoding);
+    Context(Path xmlPath, String encoding) {
+        fullDefine = new AllDefine(xmlPath, encoding);
+        fullDefine.readDataFilesThenAutoFix();
     }
 
     public Path getDataDir() {
-        return fullData.getDataDir();
+        return fullDefine.getDataDir();
     }
 
-    public AllData getFullData() {
-        return fullData;
-    }
 
     void setI18nOrLangSwitch(String i18nFile, String langSwitchDir, String i18nEncoding, boolean crlfaslf) {
         if (i18nFile != null) {
@@ -44,8 +41,8 @@ public class Context {
     }
 
     void dump() {
-        fullData.getFullDefine().dump(System.out);
-        fullData.getFullType().dump(System.out);
+        fullDefine.dump(System.out);
+        fullDefine.getFullType().dump(System.out);
     }
 
     public LangSwitch getLangSwitch() {
@@ -75,9 +72,9 @@ public class Context {
         lastValue = null; //让它可以被尽快gc
         AllValue value;
         if (own == null || own.isEmpty()) {
-            value = make(fullData.getFullType());
+            value = make(fullDefine.getFullType());
         } else {
-            AllDefine ownDefine = fullData.getFullDefine().extract(own);
+            AllDefine ownDefine = fullDefine.extractOwn(own);
             AllType ownType = new AllType(ownDefine);
             ownType.resolve();
             value = make(ownType);
@@ -91,7 +88,7 @@ public class Context {
     }
 
     private AllValue make(AllType myType) {
-        AllValue value = new AllValue(myType, fullData, this);
+        AllValue value = new AllValue(myType, fullDefine, this);
         Logger.mm("value");
         value.verifyConstraint();
         return value;

@@ -57,9 +57,8 @@ public class ForeignKey extends Node {
         mapKeyRef = original.mapKeyRef;
     }
 
-    boolean invalid() {
-        AllDefine allDefine = (AllDefine) root;
-        return !((ref == null || ref.valid(allDefine)) && (mapKeyRef == null || mapKeyRef.valid(allDefine)));
+    boolean invalid(AllDefine top) {
+        return !((ref == null || ref.valid(top)) && (mapKeyRef == null || mapKeyRef.valid(top)));
     }
 
     void save(Element parent) {

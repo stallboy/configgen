@@ -108,14 +108,7 @@ public class Bean extends Node {
         compressSeparator = ';';
     }
 
-    private Bean(Node _parent, Bean original) {
-        super(_parent, original.name);
-        type = original.type;
-        childDynamicBeanEnumRef = original.childDynamicBeanEnumRef;
-        own = original.own;
-        compress = original.compress;
-        compressSeparator = original.compressSeparator;
-    }
+
 
     @Override
     public String fullName() {
@@ -124,6 +117,17 @@ public class Bean extends Node {
         } else {
             return parent.fullName() + "." + name;
         }
+    }
+
+
+    //////////////////////////////// extract
+    private Bean(Node _parent, Bean original) {
+        super(_parent, original.name);
+        type = original.type;
+        childDynamicBeanEnumRef = original.childDynamicBeanEnumRef;
+        own = original.own;
+        compress = original.compress;
+        compressSeparator = original.compressSeparator;
     }
 
     Bean extract(Node _parent, String _own) {
@@ -164,11 +168,14 @@ public class Bean extends Node {
         return part;
     }
 
-    void resolveExtract() {
-        columns.values().forEach(Column::resolveExtract);
+    void resolveExtract(AllDefine top) {
+        for (Column col : columns.values()) {
+            col.resolveExtract(top);
+        }
+
         List<String> dels = new ArrayList<>();
         foreignKeys.forEach((n, fk) -> {
-            if (fk.invalid()) {
+            if (fk.invalid(top)) {
                 dels.add(n);
             }
         });
@@ -177,6 +184,8 @@ public class Bean extends Node {
         }
     }
 
+
+    //////////////////////////////// save
     void save(Element parent) {
         update(DomUtils.newChild(parent, "bean"));
     }

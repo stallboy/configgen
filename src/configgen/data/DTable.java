@@ -77,29 +77,34 @@ public class DTable extends Node {
         return recordList;
     }
 
-    void autoCompleteDefine(Table table) {
-        Bean bean = table.bean;
-        Map<String, Column> old = new LinkedHashMap<>(bean.columns);
-        bean.columns.clear();
-        dcolumns.forEach((n, col) -> {
-            Column f = old.remove(n);
-            if (f == null) {
-                f = ((AllDefine) table.parent).newColumn(table, n, col.guessType(), col.desc());
-                Logger.verbose("new column " + f.fullName());
+
+    //////////////////////////////// auto fix
+
+    void autoFixDefine(Table tableToFix, TTable currentTableTable) {
+        parse(currentTableTable);
+
+        Set<String> currentRemains = tableToFix.getColumnNames();
+        for (DColumn col : dcolumns.values()) {
+            boolean contains = currentRemains.remove(col.name);
+            if (contains) {
+                tableToFix.setColumnDesc(col.name, col.desc());
             } else {
-                bean.columns.put(f.name, f);
-                f.desc = col.desc();
+                Column c = tableToFix.newColumn(col.name, col.guessType(), col.desc());
+                Logger.verbose("new column " + c.fullName());
             }
-        });
+        }
 
-        old.forEach((k, f) -> Logger.verbose("delete column " + f.fullName()));
+        for (String currentRemain : currentRemains) {
+            tableToFix.removeColumn(currentRemain);
+            Logger.verbose("delete column " + tableToFix.fullName() + "." + currentRemain);
+        }
 
-        if (table.primaryKey.length == 0) {
-            table.primaryKey = new String[]{table.bean.columns.keySet().iterator().next()};
+        if (tableToFix.primaryKey.length == 0) {
+            tableToFix.primaryKey = new String[]{tableToFix.bean.columns.keySet().iterator().next()};
         }
     }
 
-    void parse(TTable ttable) {
+    private void parse(TTable ttable) {
         if (ttable != null) {
             defined = ttable.getTBean().getColumnMap();
         } else {

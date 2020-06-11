@@ -8,17 +8,13 @@ import configgen.type.AllType;
 import configgen.type.TTable;
 import configgen.util.CSVParser;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AllData extends Node {
     private final Path dataDir;
@@ -30,7 +26,7 @@ public class AllData extends Node {
 
         if (Files.isDirectory(dataDir)) {
             try {
-                Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
+                Files.walkFileTree(dataDir, new SimpleFileVisitor<>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes a) {
                         String path = dataDir.relativize(file).toString();
@@ -51,10 +47,6 @@ public class AllData extends Node {
     }
 
 
-    public DTable getDTable(String tableName) {
-        return dTables.get(tableName);
-    }
-
     public Map<String, DTable> getDTables() {
         return dTables;
     }
@@ -68,32 +60,30 @@ public class AllData extends Node {
 
 
     public void autoFixDefine(AllDefine defineToFix, AllType firstTryType) {
-        Map<String, TTable> old = new HashMap<>();
-        for (TTable tTable : firstTryType.getTTables()) {
-            old.put(tTable.name, tTable);
-        }
-
-        defineToFix.clearTables();
+        Set<String> currentRemains = defineToFix.getTableNames();
         for (DTable dTable : dTables.values()) {
-            TTable ttable = old.remove(dTable.name);
-            Table tableDefine;
-            if (ttable != null) {
-                tableDefine = ttable.getTableDefine();
-                defineToFix.addTable(tableDefine);
+            TTable currentTableType = firstTryType.getTTable(dTable.name);
+            boolean contains = currentRemains.remove(dTable.name);
+
+            Table tableToFix;
+            if (contains) {
+                tableToFix = currentTableType.getTableDefine();
             } else {
-                tableDefine = defineToFix.newTable(dTable.name);
-                Logger.verbose("new table " + tableDefine.fullName());
+                tableToFix = defineToFix.newTable(dTable.name);
+                Logger.verbose("new table " + tableToFix.fullName());
             }
 
             try {
-                dTable.parse(ttable);
-                dTable.autoCompleteDefine(tableDefine);
+                dTable.autoFixDefine(tableToFix, currentTableType);
             } catch (Throwable e) {
                 throw new AssertionError(dTable.name + ", 根据这个表里的数据来猜测表结构和类型出错，看是不是手动在xml里声明一下", e);
             }
         }
 
-        old.forEach((k, cfg) -> Logger.verbose("delete table " + cfg.fullName()));
+        for (String currentRemain : currentRemains) {
+            defineToFix.removeTable(currentRemain);
+            Logger.verbose("delete table " + defineToFix.fullName() + "." + currentRemain);
+        }
     }
 
 

@@ -4,9 +4,7 @@ import configgen.Node;
 import configgen.util.DomUtils;
 import org.w3c.dom.Element;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Table extends Node {
     public enum EnumType {
@@ -98,7 +96,32 @@ public class Table extends Node {
     }
 
 
+    //////////////////////////////// auto fix使用的接口
+
+    public Set<String> getColumnNames() {
+        return new HashSet<>(bean.columns.keySet());
+    }
+
+    public Column newColumn(String colName, String colType, String colDesc) {
+        Column c = new Column(bean, colName, colType, colDesc);
+        bean.columns.put(colName, c);
+        return c;
+    }
+
+    public void setColumnDesc(String colName, String colDesc) {
+        Column c = bean.columns.get(colName);
+        if (c != null) {
+            c.desc = colDesc;
+        }
+    }
+
+    public void removeColumn(String colName) {
+        bean.columns.remove(colName);
+    }
+
+
     //////////////////////////////// extract
+
     private Table(AllDefine _parent, Table original) {
         super(_parent, original.name);
         enumType = original.enumType;
@@ -133,6 +156,7 @@ public class Table extends Node {
 
 
     //////////////////////////////// save
+
     void save(Element parent) {
         Element self = DomUtils.newChild(parent, "table");
         uniqueKeys.values().forEach(c -> c.save(self));

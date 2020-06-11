@@ -32,7 +32,7 @@ public class CompatibleForOwn {
             }
         }
 
-        fullDefine.save();
+        fullDefine.saveToXml();
     }
 
     private static boolean noColumnOwn(Bean bean, String own) {

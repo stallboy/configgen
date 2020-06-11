@@ -36,7 +36,6 @@ public class Import extends Node {
     void save(Element parent) {
         Element self = DomUtils.newChild(parent, "import");
         self.setAttribute("file", file);
-        define.save();
     }
 
 

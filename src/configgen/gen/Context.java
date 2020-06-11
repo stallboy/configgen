@@ -20,8 +20,7 @@ public class Context {
 
     Context(Path xmlPath, String encoding) {
         fullDefine = new AllDefine(xmlPath, encoding);
-        fullDefine.readDataFilesAndAutoFix();
-        fullType = fullDefine.resolveFullType();
+        fullType = fullDefine.readData_AutoFix_ResolveType();
     }
 
     public Path getDataDir() {

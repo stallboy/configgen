@@ -10,9 +10,7 @@ import org.w3c.dom.Element;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class AllDefine extends Node {
     private final Map<String, Bean> beans = new TreeMap<>();
@@ -66,15 +64,17 @@ public class AllDefine extends Node {
             require(!beans.containsKey(t.name), "表和Bean定义名字重复", t.name);
         }
 
-        fixCache();
+        updateCache();
     }
 
-    private void fixCache() {
+    private void updateCache() {
+        cachedAllBeans.clear();
         cachedAllBeans.putAll(beans);
         for (Import imp : imports.values()) {
             cachedAllBeans.putAll(imp.define.cachedAllBeans);
         }
 
+        cachedAllTables.clear();
         cachedAllTables.putAll(tables);
         for (Import imp : imports.values()) {
             cachedAllTables.putAll(imp.define.cachedAllTables);
@@ -84,6 +84,7 @@ public class AllDefine extends Node {
     Path resolvePath(String file) {
         return xmlPath.getParent().resolve(file);
     }
+
 
     //////////////////////////////// 对上层接口，隐藏import导致的层级Data和层级Table
 
@@ -114,36 +115,52 @@ public class AllDefine extends Node {
 
     //////////////////////////////// 读取数据文件，并补充完善Define
 
-    public void readDataFilesAndAutoFix() {
+    public AllType readData_AutoFix_ResolveType() {
         AllType firstTryType = new AllType(this);
         firstTryType.resolve();
 
-        autoFixByData(firstTryType);
-        save();
+        readDataFilesAndAutoFix(firstTryType);
+
+        saveToXml();
+
+        return resolveFullTypeAndAttachToData();
     }
 
-    public AllType resolveFullType() {
-        AllType fullType = new AllType(this);
-        fullType.resolve();
-        attachTypeToData(fullType);
-        return fullType;
-    }
 
     // 自动从Data种提取头两行的定义信息，填充Define
-    void autoFixByData(AllType firstTryType) {
+    private void readDataFilesAndAutoFix(AllType firstTryType) {
         for (Import imp : imports.values()) {
-            imp.define.autoFixByData(firstTryType);
+            imp.define.readDataFilesAndAutoFix(firstTryType);
         }
+
         thisData = new AllData(dataDir, encoding);
         thisData.autoFixDefine(this, firstTryType);
 
+
+        updateCache();
+        cachedAllDataTables.clear();
         cachedAllDataTables.putAll(thisData.getDTables());
         for (Import imp : imports.values()) {
             cachedAllDataTables.putAll(imp.define.cachedAllDataTables);
         }
     }
 
-    // 把齐全的类型信息 赋到 Data上，因为之后生成Value时可能只会用 不全的Type
+    // 保存回xml
+    public void saveToXml() {
+        for (Import imp : imports.values()) {
+            imp.define.saveToXml();
+        }
+        save();
+    }
+
+    // 解析出类型，把齐全的类型信息 赋到 Data上，因为之后生成Value时可能只会用 不全的Type
+    private AllType resolveFullTypeAndAttachToData() {
+        AllType fullType = new AllType(this);
+        fullType.resolve();
+        attachTypeToData(fullType);
+        return fullType;
+    }
+
     void attachTypeToData(AllType type) {
         thisData.attachType(type);
         for (Import imp : imports.values()) {
@@ -152,12 +169,14 @@ public class AllDefine extends Node {
     }
 
 
-    public void clearTables() {
-        tables.clear();
+    //////////////////////////////// auto fix使用的接口
+
+    public Set<String> getTableNames() {
+        return new HashSet<>(tables.keySet());
     }
 
-    public void addTable(Table table) {
-        tables.put(table.name, table);
+    public void removeTable(String tableName) {
+        tables.remove(tableName);
     }
 
     public Table newTable(String tableName) {
@@ -165,13 +184,6 @@ public class AllDefine extends Node {
         tables.put(tableName, t);
         return t;
     }
-
-    public Column newColumn(Table table, String colName, String colType, String colDesc) {
-        Column c = new Column(table.bean, colName, colType, colDesc);
-        table.bean.columns.put(colName, c);
-        return c;
-    }
-
 
     //////////////////////////////// extract
 
@@ -218,7 +230,7 @@ public class AllDefine extends Node {
             }
         }
 
-        part.fixCache();
+        part.updateCache();
         return part;
     }
 
@@ -246,7 +258,7 @@ public class AllDefine extends Node {
 
     //////////////////////////////// save
 
-    public void save() {
+    private void save() {
         Document doc = DomUtils.newDocument();
 
         Element self = doc.createElement("db");

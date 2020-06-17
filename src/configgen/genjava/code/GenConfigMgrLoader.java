@@ -10,6 +10,10 @@ class GenConfigMgrLoader {
         ps.println("package %s;", Name.codeTopPkg);
         ps.println();
 
+        ps.println("import java.util.LinkedHashMap;");
+        ps.println("import java.util.Map;");
+        ps.println();
+
         ps.println("public class ConfigMgrLoader {");
         ps.println();
 
@@ -28,42 +32,41 @@ class GenConfigMgrLoader {
         ps.println2("if (c < %d) {", cnt);
         ps.println3("throw new IllegalArgumentException();");
         ps.println2("}");
+        ps.println();
+
+        ps.println2("Map<String, ConfigLoader> allConfigLoaders = getAllConfigLoaders();");
         ps.println2("for (int i = 0; i < c; i++) {");
         ps.println3("String tableName = input.readStr();");
         ps.println3("int tableSize = input.readInt();");
-        ps.println3("switch (tableName) {");
-        for (VTable vTable : vdb.getVTables()) {
-            if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
-                continue;
-            }
-
-            ps.println4("case \"%s\":", vTable.name);
-            ps.println5("%s._createAll(mgr, input);", Name.tableDataFullName(vTable.getTTable()));
-            ps.println5("break;");
-        }
-
-        ps.println4("default:");
-        ps.println5("input.skipBytes(tableSize);");
-        ps.println5("break;");
+        ps.println3("ConfigLoader configLoader = allConfigLoaders.get(tableName);");
+        ps.println3("if (configLoader != null) {");
+        ps.println4("configLoader.createAll(mgr, input);");
+        ps.println3("} else {");
+        ps.println4("input.skipBytes(tableSize);");
         ps.println3("}");
         ps.println2("}");
         ps.println();
 
-        ps.println2("_resolveAll(mgr);");
+        ps.println2("for (ConfigLoader configLoader : allConfigLoaders.values()) {");
+        ps.println3("configLoader.resolveAll(mgr);");
+        ps.println2("}");
+        ps.println();
 
         ps.println2("return mgr;");
         ps.println1("}");
+        ps.println();
 
-        ps.println1("private static void _resolveAll(ConfigMgr mgr) {");
+        ps.println1("private static Map<String, ConfigLoader> getAllConfigLoaders() {");
+        ps.println2("Map<String, ConfigLoader> allConfigLoaders = new LinkedHashMap<>();");
         for (VTable vTable : vdb.getVTables()) {
             if (vTable.getTTable().getTableDefine().isEnumFull() && vTable.getTTable().getTableDefine().isEnumHasOnlyPrimaryKeyAndEnumStr()) {
                 continue;
             }
 
-            if (vTable.getTTable().getTBean().hasRef()) {
-                ps.println2("%s._resolveAll(mgr);", Name.tableDataFullName(vTable.getTTable()));
-            }
+            ps.println2("allConfigLoaders.put(\"%s\", new %s._ConfigLoader());", vTable.name, Name.tableDataFullName(vTable.getTTable()));
         }
+        ps.println();
+        ps.println2("return allConfigLoaders;");
         ps.println1("}");
         ps.println("}");
     }

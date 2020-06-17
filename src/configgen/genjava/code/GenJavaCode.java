@@ -59,6 +59,10 @@ public class GenJavaCode extends Generator {
             GenConfigMgr.generate(ps);
         }
 
+        try (CachedIndentPrinter ps = createCode(new File(dstDir, "ConfigLoader.java"), encoding)) {
+            GenConfigLoader.generate(ps);
+        }
+
         try (CachedIndentPrinter ps = createCode(new File(dstDir, "ConfigMgrLoader.java"), encoding)) {
             GenConfigMgrLoader.generate(value, ps);
         }

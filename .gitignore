@@ -3,3 +3,4 @@ configgen.jar
 /out
 /.idea
 /classes.test
+/example/java

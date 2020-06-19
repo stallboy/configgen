@@ -4,3 +4,5 @@ configgen.jar
 /.idea
 /classes.test
 /example/java
+/example/cs
+/example/lua

@@ -33,24 +33,37 @@ class GenBeanClassTablePart {
         ps.println1("}");
         ps.println();
 
-        //static _createAll
-        ps.println1("public static void _createAll(%s.ConfigMgr mgr, configgen.genjava.ConfigInput input) {", Name.codeTopPkg);
-        ps.println2("for (int c = input.readInt(); c > 0; c--) {");
-        ps.println3("%s self = %s._create(input);", name.className, name.className);
+
+
+        // implements ConfigLoader
+        ps.println1("public static class _ConfigLoader implements %s.ConfigLoader {", Name.codeTopPkg);
+        ps.println();
+
+        // override createAll
+        ps.println2("@Override");
+        ps.println2("public void createAll(%s.ConfigMgr mgr, configgen.genjava.ConfigInput input) {", Name.codeTopPkg);
+        ps.println3("for (int c = input.readInt(); c > 0; c--) {");
+        ps.println4("%s self = %s._create(input);", name.className, name.className);
         generateAllMapPut(ttable, name, ps);
+        ps.println3("}");
         ps.println2("}");
-        ps.println1("}");
         ps.println();
 
         //static _resolveAll
+        ps.println2("@Override");
+        ps.println2("public void resolveAll(%s.ConfigMgr mgr) {", Name.codeTopPkg);
         if (tbean.hasRef()) {
-            ps.println1("public static void _resolveAll(%s.ConfigMgr mgr) {", Name.codeTopPkg);
-            ps.println2("for (%s e : mgr.%sAll.values()) {", name.className, name.containerPrefix);
-            ps.println3("e._resolve(mgr);");
-            ps.println2("}");
-            ps.println1("}");
-            ps.println();
+            ps.println3("for (%s e : mgr.%sAll.values()) {", name.className, name.containerPrefix);
+            ps.println4("e._resolve(mgr);");
+            ps.println3("}");
+        } else {
+            ps.println3("// no resolve");
         }
+        ps.println2("}");
+        ps.println();
+
+        ps.println1("}");
+        ps.println();
     }
 
 
@@ -85,7 +98,7 @@ class GenBeanClassTablePart {
 
     private static void generateMapPut(Map<String, Type> keys, BeanName name, CachedIndentPrinter ps, boolean isPrimaryKey) {
         String mapName = name.containerPrefix + (isPrimaryKey ? "All" : Name.uniqueKeyMapName(keys));
-        ps.println3("mgr." + mapName + ".put(" + MethodStr.actualParamsKey(keys, "self.") + ", self);");
+        ps.println4("mgr." + mapName + ".put(" + MethodStr.actualParamsKey(keys, "self.") + ", self);");
     }
 
     private static void generateKeyClass(Map<String, Type> keys, CachedIndentPrinter ps) {

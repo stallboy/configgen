@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 class AContext {
-    private static AContext instance = new AContext();
+    private static final AContext instance = new AContext();
 
     static AContext getInstance() {
         return instance;
@@ -15,6 +15,7 @@ class AContext {
 
     private String pkgPrefixStr;
     private LangSwitch langSwitch;
+    private boolean sharedEmptyTable;
     private boolean shared;
     private boolean pack;
     private boolean tryColumnMode;
@@ -29,14 +30,15 @@ class AContext {
 
     private AStat statistics;
 
-    void init(String pkg, LangSwitch ls, boolean share, boolean col, boolean pak, boolean no_str) {
+    void init(String pkg, LangSwitch ls, boolean shareEmptyTable, boolean share, boolean col, boolean pak, boolean no_str) {
         langSwitch = ls;
+        sharedEmptyTable = shareEmptyTable;
         shared = share;
         tryColumnMode = col;
         pack = pak;
         noStr = no_str;
 
-        if (shared) {
+        if (sharedEmptyTable) {
             emptyTableStr = "E";
         } else {
             emptyTableStr = "{}";

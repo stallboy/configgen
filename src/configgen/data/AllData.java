@@ -26,7 +26,7 @@ public class AllData extends Node {
 
         if (Files.isDirectory(dataDir)) {
             try {
-                Files.walkFileTree(dataDir, new SimpleFileVisitor<>() {
+                Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes a) {
                         String path = dataDir.relativize(file).toString();

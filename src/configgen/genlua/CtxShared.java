@@ -14,7 +14,7 @@ class CtxShared {
     // 用于lua生成时table能共享内存就共享，以最小化客户端的内存占用
     static class VCompositeStr {
         private String valueStr = null;
-        private String name;
+        private final String name;
 
         VCompositeStr(int i) {
             name = String.format("A[%d]", i);

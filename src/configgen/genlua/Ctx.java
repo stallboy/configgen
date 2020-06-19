@@ -3,10 +3,10 @@ package configgen.genlua;
 import configgen.value.*;
 
 class Ctx {
-    private VTable vTable;
-    private CtxColumnStore ctxColumnStore;
-    private CtxShared ctxShared;
-    private CtxName ctxName;
+    private final VTable vTable;
+    private final CtxColumnStore ctxColumnStore;
+    private final CtxShared ctxShared;
+    private final CtxName ctxName;
 
 
     Ctx(VTable vtable) {

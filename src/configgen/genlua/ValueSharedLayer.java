@@ -32,10 +32,10 @@ public class ValueSharedLayer implements ValueVisitor {
         }
     }
 
-    private ValueShared shared;
+    private final ValueShared shared;
     private final Map<VComposite, VCompositeCnt> compositeValueToCnt;
-    private boolean isCurr;
-    private ValueSharedLayer next;
+    private final boolean isCurr;
+    private final ValueSharedLayer next;
 
     ValueSharedLayer(ValueShared shared) {
         this.shared = shared;

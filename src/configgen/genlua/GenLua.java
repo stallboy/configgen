@@ -24,13 +24,14 @@ public class GenLua extends Generator {
     private final boolean useEmmyLua;
     private final boolean preload;
     private final boolean useShared;
+    private final boolean useSharedEmptyTable;
     private final boolean packBool;
     private final boolean tryColumnMode;
     private AllValue value;
 
     private boolean isLangSwitch;
     private LangSwitch langSwitch;
-    private boolean noStr;
+    private final boolean noStr;
 
     public GenLua(Parameter parameter) {
         super(parameter);
@@ -41,7 +42,9 @@ public class GenLua extends Generator {
 
         useEmmyLua = parameter.has("emmylua", "是否生成EmmyLua相关的注解");
         preload = parameter.has("preload", "是否一开始就全部加载配置，默认用到的时候再加载");
-        useShared = parameter.has("shared", "是否提取公共table");
+        useSharedEmptyTable = parameter.has("sharedEmptyTable", "是否提取空table {}");
+        useShared = parameter.has("shared", "是否提取非空的公共table");
+
         packBool = parameter.has("packbool", "是否要把同一个结构里的多个bool压缩成一个int");
         tryColumnMode = parameter.has("col", "是否尝试列模式,如果开启将压缩同一列的bool和不超过26bit的整数\n" +
                 "            默认-Dgenlua.column_min_row=100,-Dgenlua.column_min_save=100");
@@ -51,7 +54,7 @@ public class GenLua extends Generator {
 
     @Override
     public void generate(Context ctx) throws IOException {
-        AContext.getInstance().init(pkg, ctx.getLangSwitch(), useShared, tryColumnMode, packBool, noStr);
+        AContext.getInstance().init(pkg, ctx.getLangSwitch(), useSharedEmptyTable, useShared, tryColumnMode, packBool, noStr);
 
         langSwitch = ctx.getLangSwitch();
         isLangSwitch = langSwitch != null;
@@ -453,7 +456,7 @@ public class GenLua extends Generator {
             ps.println();
         }
 
-        if (useShared && ctx.getCtxShared().getEmptyTableUseCount() > 0) { // 共享空表
+        if (useSharedEmptyTable && ctx.getCtxShared().getEmptyTableUseCount() > 0) { // 共享空表
             ps.println("local E = %s._mk.E", pkg);
             ps.println();
         }

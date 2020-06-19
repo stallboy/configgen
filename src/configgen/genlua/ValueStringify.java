@@ -7,7 +7,7 @@ import java.util.*;
 
 class ValueStringify implements ValueVisitor {
 
-    private static Set<String> keywords = new HashSet<>(Arrays.asList(
+    private static final Set<String> keywords = new HashSet<>(Arrays.asList(
             "break", "goto", "do", "end", "for", "in", "repeat", "util", "while",
             "if", "then", "elseif", "function", "local", "nil", "true", "false"));
 
@@ -26,10 +26,10 @@ class ValueStringify implements ValueVisitor {
 
     //////////////////////////////////////////// per vtable
 
-    private StringBuilder res;
-    private Ctx ctx;
-    private String beanTypeStr;
-    private boolean isKey;
+    private final StringBuilder res;
+    private final Ctx ctx;
+    private final String beanTypeStr;
+    private final boolean isKey;
 
     private ValueStringify key;
     private ValueStringify notKey;

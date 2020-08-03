@@ -9,7 +9,6 @@ import configgen.genlua.GenLua;
 import configgen.tool.*;
 import configgen.util.CachedFiles;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -182,7 +181,7 @@ public final class Main {
             return;
         }
 
-        Path xmlPath = null;
+        Path xmlPath;
         if (xml != null) {
             if (datadir == null) {
                 xmlPath = Paths.get(xml);

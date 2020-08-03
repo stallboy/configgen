@@ -12,7 +12,7 @@ import java.util.*;
 
 public class VTable extends Node {
     private final TTable tTable;
-    private List<VBean> vBeanList;
+    private final List<VBean> vBeanList;
     final Set<Value> primaryKeyValueSet = new LinkedHashSet<>();
     final Map<String, Set<Value>> uniqueKeyValueSetMap = new LinkedHashMap<>();
 

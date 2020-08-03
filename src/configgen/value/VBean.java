@@ -10,7 +10,7 @@ import java.util.*;
 
 public class VBean extends VComposite {
     private final TBean tBean;
-    private List<Value> values;
+    private final List<Value> values;
     private final VBean childDynamicVBean;
 
     VBean(TBean tbean, AData<TBean> adata) {

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class ListParser {
 
-    private static StringBuilder field = new StringBuilder(128); //这里假设是单线程
+    private static final StringBuilder field = new StringBuilder(128); //这里假设是单线程
 
     private enum ListState {
         START, NO_QUOTE, QUOTE, QUOTE2

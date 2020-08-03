@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VList extends VComposite {
-    private ArrayList<Value> list;
+    private final ArrayList<Value> list;
 
     VList(TList type, AData<TList> adata) {
         super(type, adata.cells);

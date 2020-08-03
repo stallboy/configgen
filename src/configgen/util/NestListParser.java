@@ -5,7 +5,7 @@ import java.util.List;
 
 public class NestListParser {
 
-    private static StringBuilder field = new StringBuilder(128); //这里假设是单线程
+    private static final StringBuilder field = new StringBuilder(128); //这里假设是单线程
 
     private enum NestListState {
         START, NO_QUOTE, QUOTE, QUOTE2, IN_PARENTHESES, PARENTHESES_OK
@@ -21,7 +21,7 @@ public class NestListParser {
     // "b,c" 解析为两段：                  <1>b        <2>c
     // "(b,c)" 解析为一段                  <1>b,c
     // "a(b,c)" 解析为一段                 <1>a(b,c)
-    // "a,(b,c)" 解析为一段                <1>a        <2>b,c
+    // "a,(b,c)" 解析为两段                <1>a        <2>b,c
     // "a,(b,(c1,c2)),d(e,f)" 解析为三段： <1>a        <2>b,(c1,c2)        <3>d(e,f)
     public static List<String> parseNestList(String str) {
         NestListState state = NestListState.START;

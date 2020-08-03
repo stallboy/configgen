@@ -21,7 +21,7 @@ public class AllValue extends Node {
 
     private final AllType allType;
     private final Context ctx;
-    private Map<String, VTable> vTables;
+    private final Map<String, VTable> vTables;
 
     public AllValue(AllType subType, AllDefine fullDefine, Context ctx) {
         super(null, "value");

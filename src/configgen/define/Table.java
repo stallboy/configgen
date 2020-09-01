@@ -18,12 +18,13 @@ public class Table extends Node {
     public String enumStr;
     public String[] primaryKey;
     public boolean isPrimaryKeySeq;
+    private int extraSplit = 0; //0 是部分，1是额外分出一个文件。lua生成assets.lua时报错，因为lua单个文件不能多余65526个constant，所以这里分割一下
 
     public final Map<String, UniqueKey> uniqueKeys = new LinkedHashMap<>();
 
     Table(AllDefine parent, Element self) {
         super(parent, self.getAttribute("name"));
-        DomUtils.permitAttributes(self, "name", "own", "enum", "enumPart", "primaryKey", "isPrimaryKeySeq");
+        DomUtils.permitAttributes(self, "name", "own", "enum", "enumPart", "primaryKey", "isPrimaryKeySeq", "extraSplit");
         DomUtils.permitElements(self, "column", "foreignKey", "range", "uniqueKey");
 
         bean = new Bean(this, self);
@@ -50,6 +51,10 @@ public class Table extends Node {
         }
 
         isPrimaryKeySeq = self.hasAttribute("isPrimaryKeySeq");
+
+        if (self.hasAttribute("extraSplit")) {
+            extraSplit = Integer.parseInt(self.getAttribute("extraSplit"));
+        }
 
         for (Element ele : DomUtils.elements(self, "uniqueKey")) {
             UniqueKey uk = new UniqueKey(this, ele);
@@ -86,6 +91,10 @@ public class Table extends Node {
         return false;
     }
 
+    public int getExtraSplit() {
+        return extraSplit;
+    }
+
     Table(AllDefine parent, String name) {
         super(parent, name);
         bean = new Bean(this, name);
@@ -93,6 +102,7 @@ public class Table extends Node {
         enumStr = "";
         primaryKey = new String[0];
         isPrimaryKeySeq = false;
+        extraSplit = 0;
     }
 
 
@@ -128,6 +138,7 @@ public class Table extends Node {
         enumStr = original.enumStr;
         primaryKey = original.primaryKey;
         isPrimaryKeySeq = original.isPrimaryKeySeq;
+        extraSplit = original.extraSplit;
     }
 
     Table extract(AllDefine _parent, String own) {
@@ -176,6 +187,10 @@ public class Table extends Node {
         }
         if (isPrimaryKeySeq) {
             self.setAttribute("isPrimaryKeySeq", "true");
+        }
+
+        if (extraSplit > 0) {
+            self.setAttribute("extraSplit", String.valueOf(extraSplit));
         }
     }
 }

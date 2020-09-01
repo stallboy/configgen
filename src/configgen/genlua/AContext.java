@@ -17,9 +17,9 @@ class AContext {
     private LangSwitch langSwitch;
     private boolean sharedEmptyTable;
     private boolean shared;
-    private boolean pack;
+    private boolean packBool;
     private boolean tryColumnMode;
-    private boolean noStr;
+    private boolean noStr; //只用于测试
 
     private String emptyTableStr;
     private final Set<String> forbidLocalNames = new HashSet<>(Arrays.asList("Beans", "this", "mk",
@@ -30,13 +30,13 @@ class AContext {
 
     private AStat statistics;
 
-    void init(String pkg, LangSwitch ls, boolean shareEmptyTable, boolean share, boolean col, boolean pak, boolean no_str) {
+    void init(String pkg, LangSwitch ls, boolean shareEmptyTable, boolean share, boolean col, boolean packBool, boolean noStr) {
         langSwitch = ls;
         sharedEmptyTable = shareEmptyTable;
         shared = share;
         tryColumnMode = col;
-        pack = pak;
-        noStr = no_str;
+        this.packBool = packBool;
+        this.noStr = noStr;
 
         if (sharedEmptyTable) {
             emptyTableStr = "E";
@@ -67,8 +67,8 @@ class AContext {
         return shared;
     }
 
-    boolean isPack() {
-        return pack;
+    boolean isPackBool() {
+        return packBool;
     }
 
     boolean isTryColumnMode() {

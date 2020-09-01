@@ -84,7 +84,7 @@ class TypeStr {
     }
 
     private static boolean isDoPackBool(TBean tbean) {
-        boolean doPack = AContext.getInstance().isPack();
+        boolean doPack = AContext.getInstance().isPackBool();
         if (doPack) {
             int boolCnt = tbean.getBoolFieldCount();
             if (boolCnt >= 50) {

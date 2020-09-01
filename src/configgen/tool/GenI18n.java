@@ -9,8 +9,8 @@ import java.util.*;
 
 public final class GenI18n extends Generator implements I18n.Collector {
 
-    private File file;
-    private String encoding;
+    private final File file;
+    private final String encoding;
 
     public GenI18n(Parameter parameter) {
         super(parameter);
@@ -40,7 +40,7 @@ public final class GenI18n extends Generator implements I18n.Collector {
         CSVWriter.writeToFile(file, encoding, rows);
     }
 
-    private Map<String, Map<String, String>> table2TextMap = new TreeMap<>();
+    private final Map<String, Map<String, String>> table2TextMap = new TreeMap<>();
     private String lastTable;
     private Map<String, String> lastTextMap;
 

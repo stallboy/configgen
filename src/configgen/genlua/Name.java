@@ -56,4 +56,8 @@ public class Name {
     static String tablePath(String tableName) {
         return tableName.replace('.', '/').toLowerCase() + ".lua";
     }
+
+    static String tableExtraPath(String tableName, int extraIndex) {
+        return tableName.replace('.', '/').toLowerCase() + "_" + extraIndex + ".lua";
+    }
 }

@@ -192,7 +192,7 @@ class ValueStringify implements ValueVisitor {
                 res.append("(");
                 int idx = 0;
                 boolean meetBool = false;
-                boolean doPack = AContext.getInstance().isPack() && (val.getTBean().getBoolFieldCount() > 1);
+                boolean doPack = AContext.getInstance().isPackBool() && (val.getTBean().getBoolFieldCount() > 1);
                 for (Value fieldValue : val.getValues()) {
                     if (doPack && fieldValue instanceof VBool) { //从第一个遇到的bool开始搞
                         if (!meetBool) {

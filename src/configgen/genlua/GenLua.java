@@ -29,6 +29,7 @@ public class GenLua extends Generator {
     private final boolean tryColumnMode;
     private AllValue value;
 
+    private File dstDir;
     private boolean isLangSwitch;
     private LangSwitch langSwitch;
     private final boolean noStr;
@@ -60,7 +61,7 @@ public class GenLua extends Generator {
         isLangSwitch = langSwitch != null;
 
         Path dstDirPath = Paths.get(dir).resolve(pkg.replace('.', '/'));
-        File dstDir = dstDirPath.toFile();
+        dstDir = dstDirPath.toFile();
         value = ctx.makeValue(own);
 
         StringBuilder fileDst = new StringBuilder(512 * 1024); //优化gc alloc
@@ -323,7 +324,7 @@ public class GenLua extends Generator {
         ps.println("return Beans");
     }
 
-    private void generate_table(VTable vtable, CachedIndentPrinter ps, StringBuilder lineCache) {
+    private void generate_table(VTable vtable, CachedIndentPrinter ps, StringBuilder lineCache) throws IOException {
         TTable ttable = vtable.getTTable();
         TBean tbean = ttable.getTBean();
 
@@ -344,13 +345,16 @@ public class GenLua extends Generator {
         ps.println("local this = %s", fullName);
         ps.println();
 
+        int extraSplit = ttable.getTableDefine().getExtraSplit();
+        boolean tryUseShared = useShared && extraSplit == 0;
+        boolean tryColumnStore = tryColumnMode && extraSplit == 0;
 
         Ctx ctx = new Ctx(vtable);
-        if (useShared) {
+        if (tryUseShared) {
             ctx.parseShared();
         }
 
-        if (tryColumnMode) {
+        if (tryColumnStore) {
             ctx.parseColumnStore();
         }
 
@@ -376,16 +380,18 @@ public class GenLua extends Generator {
                 TypeStr.getLuaFieldsString(tbean, ctx));
         ps.println();
 
-
-        // 先打印数据到cache，同时收集用到的引用
-        ps.enableCache();
         if (isLangSwitch) {
             langSwitch.enterTable(ttable.name);
         }
 
 
+        int extraFileCnt = 0;
         if (ctx.getCtxColumnStore().isUseColumnStore()) {
             ///////////////////////////////////// 使用列模式
+
+            // 先打印数据到cache，同时收集用到的引用
+            ps.enableCache(0, 0);
+
             int columnSize = ttable.getTBean().getColumns().size();
             int dataSize = vtable.getVBeanList().size();
 
@@ -439,6 +445,8 @@ public class GenLua extends Generator {
         } else {
             ///////////////////////////////////// 正常模式
             ValueStringify stringify = new ValueStringify(lineCache, ctx, "mk");
+            extraFileCnt = ps.enableCache(extraSplit, vtable.getVBeanList().size());
+
             for (VBean vBean : vtable.getVBeanList()) {
                 lineCache.setLength(0);
                 vBean.accept(stringify);
@@ -461,7 +469,7 @@ public class GenLua extends Generator {
             ps.println();
         }
 
-        if (useShared && ctx.getCtxShared().getSharedList().size() > 0) { // 共享相同的表
+        if (tryUseShared && ctx.getCtxShared().getSharedList().size() > 0) { // 共享相同的表
             ps.println("local R = %s._mk.R", pkg); // 给lua个机会设置__newindex，做运行时检测
             ps.println("local A = {}");
             for (CtxShared.VCompositeStr vstr : ctx.getCtxShared().getSharedList()) {
@@ -472,6 +480,37 @@ public class GenLua extends Generator {
 
         // 再打印cache
         ps.printCache();
+
+        for (int extraIdx = 0; extraIdx < extraFileCnt; extraIdx++) {
+            ps.println();
+            ps.println("(require \"%s_%d\")(mk)", fullName, extraIdx + 1);
+
+            try (CachedIndentPrinter extraPs = createCode(new File(dstDir, Name.tableExtraPath(vtable.name, extraIdx + 1)), encoding)) {
+
+                extraPs.println("local %s = require \"%s._cfgs\"", pkg, pkg);
+                if (ttable.getTBean().hasSubBean()) {
+                    extraPs.println("local Beans = %s._beans", pkg);
+                }
+                extraPs.println();
+
+                if (!ctx.getCtxName().getLocalNameMap().isEmpty()) { // 对收集到的引用local化，lua执行会快点
+                    for (Map.Entry<String, String> entry : ctx.getCtxName().getLocalNameMap().entrySet()) {
+                        extraPs.println("local %s = %s", entry.getValue(), entry.getKey());
+                    }
+                    extraPs.println();
+                }
+
+                if (useSharedEmptyTable && ctx.getCtxShared().getEmptyTableUseCount() > 0) { // 共享空表
+                    extraPs.println("local E = %s._mk.E", pkg);
+                    extraPs.println();
+                }
+
+                extraPs.println("return function(mk)");
+                ps.printExtraCacheTo(extraPs, extraIdx);
+                extraPs.println("end");
+            }
+        }
+
         ps.println();
         ps.println("return this");
     }

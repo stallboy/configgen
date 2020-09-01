@@ -4,15 +4,20 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CachedIndentPrinter implements Closeable {
-    private Path path;
-    private String encoding;
-    private StringBuilder dst;
-    private StringBuilder cache;
-    private StringBuilder tmp;
+    private final Path path;
+    private final String encoding;
+    private final StringBuilder dst;
+    private final StringBuilder cache;
+    private final List<StringBuilder> extraCaches = new ArrayList<>();
+    private final StringBuilder tmp;
     private int indent;
     private boolean usingCache;
+    private int lineCntPerFile;
+    private int lineCnt;
 
     public CachedIndentPrinter(File file, String encoding) {
         this.path = file.toPath().toAbsolutePath().normalize();
@@ -48,9 +53,20 @@ public class CachedIndentPrinter implements Closeable {
         }
     }
 
-    public void enableCache() {
+    public int enableCache(int extraSplit_LinePerFile, int allLineCnt) {
         usingCache = true;
         cache.setLength(0);
+        extraCaches.clear();
+        this.lineCntPerFile = extraSplit_LinePerFile;
+        this.lineCnt = 0;
+
+        if (extraSplit_LinePerFile > 0 && allLineCnt > 0) {
+            int fileCnt = (allLineCnt + extraSplit_LinePerFile - 1) / extraSplit_LinePerFile;
+            for (int i = 1; i < fileCnt; i++) {
+                extraCaches.add(new StringBuilder());
+            }
+        }
+        return extraCaches.size();
     }
 
     public void disableCache() {
@@ -61,8 +77,12 @@ public class CachedIndentPrinter implements Closeable {
         dst.append(cache);
     }
 
+    public void printExtraCacheTo(CachedIndentPrinter newPs, int extraIdx) {
+        newPs.dst.append(extraCaches.get(extraIdx));
+    }
+
     public void println() {
-        dst.append("\n");
+        to().append("\n");
     }
 
     public void println(String fmt, Object... args) {
@@ -99,7 +119,7 @@ public class CachedIndentPrinter implements Closeable {
 
 
     private void printlnn(int n, String fmt, Object... args) {
-        StringBuilder to = usingCache ? cache : dst;
+        StringBuilder to = to();
         indent += n;
         if (args.length > 0) {
             tmp.setLength(0);
@@ -111,10 +131,29 @@ public class CachedIndentPrinter implements Closeable {
         indent -= n;
     }
 
-    private void prefix(StringBuilder sb, String fmt) {
-        for (int i = 0; i < indent; i++) {
-            sb.append("    ");
+    private StringBuilder to() {
+        if (!usingCache) {
+            return dst;
         }
+
+        if (extraCaches.isEmpty() || lineCntPerFile <= 0) {
+            return cache;
+        }
+
+
+        int idx = lineCnt / lineCntPerFile;
+        lineCnt++;
+
+        if (idx == 0) {
+            return cache;
+        } else {
+            idx = Math.min(idx, extraCaches.size());
+            return extraCaches.get(idx-1);
+        }
+    }
+
+    private void prefix(StringBuilder sb, String fmt) {
+        sb.append("    ".repeat(Math.max(0, indent)));
         sb.append(fmt);
         sb.append('\n');
     }

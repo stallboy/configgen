@@ -153,7 +153,9 @@ public class CachedIndentPrinter implements Closeable {
     }
 
     private void prefix(StringBuilder sb, String fmt) {
-        sb.append("    ".repeat(Math.max(0, indent)));
+        for (int i = 0; i < indent; i++) {
+            sb.append("    ");
+        }
         sb.append(fmt);
         sb.append('\n');
     }

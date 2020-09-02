@@ -481,9 +481,11 @@ public class GenLua extends Generator {
         // 再打印cache
         ps.printCache();
 
-        for (int extraIdx = 0; extraIdx < extraFileCnt; extraIdx++) {
+        if (extraFileCnt > 0){
             ps.println();
-            ps.println("(require \"%s_%d\")(mk)", fullName, extraIdx + 1);
+        }
+        for (int extraIdx = 0; extraIdx < extraFileCnt; extraIdx++) {
+            ps.println("require \"%s_%d\"(mk)", fullName, extraIdx + 1);
 
             try (CachedIndentPrinter extraPs = createCode(new File(dstDir, Name.tableExtraPath(vtable.name, extraIdx + 1)), encoding)) {
 

@@ -2,11 +2,10 @@ package configgen.data;
 
 import configgen.Logger;
 import configgen.Node;
-import configgen.define.Bean;
 import configgen.define.Column;
-import configgen.define.AllDefine;
 import configgen.define.Table;
-import configgen.type.*;
+import configgen.type.TTable;
+import configgen.type.Type;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -80,23 +79,28 @@ public class DTable extends Node {
 
     //////////////////////////////// auto fix
 
-    void autoFixDefine(Table tableToFix, TTable currentTableTable) {
-        parse(currentTableTable);
+    void autoFixDefine(Table tableToFix, TTable currentTableType) {
+        parse(currentTableType);
 
-        Set<String> currentRemains = tableToFix.getColumnNames();
+        LinkedHashMap<String, Column> columnMapCopy = tableToFix.getColumnMapCopy();
+
+        tableToFix.clearColumns();
         for (DColumn col : dcolumns.values()) {
-            boolean contains = currentRemains.remove(col.name);
-            if (contains) {
-                tableToFix.setColumnDesc(col.name, col.desc());
+            Column column = columnMapCopy.remove(col.name);
+            if (column != null) {
+                String newDesc = col.desc();
+                boolean changed = tableToFix.addColumn(column, newDesc);
+                if (changed) {
+                    Logger.verbose("change column desc " + newDesc);
+                }
             } else {
-                Column c = tableToFix.newColumn(col.name, col.guessType(), col.desc());
+                Column c = tableToFix.addNewColumn(col.name, col.guessType(), col.desc());
                 Logger.verbose("new column " + c.fullName());
             }
         }
 
-        for (String currentRemain : currentRemains) {
-            tableToFix.removeColumn(currentRemain);
-            Logger.verbose("delete column " + tableToFix.fullName() + "." + currentRemain);
+        for (Column remove : columnMapCopy.values()) {
+            Logger.verbose("delete column " + remove.fullName());
         }
 
         if (tableToFix.primaryKey.length == 0) {

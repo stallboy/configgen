@@ -95,7 +95,7 @@ public class Table extends Node {
         return extraSplit;
     }
 
-    Table(AllDefine parent, String name) {
+    Table(AllDefine parent, String name) { // 新csv，产生新table定义
         super(parent, name);
         bean = new Bean(this, name);
         enumType = EnumType.None;
@@ -108,25 +108,28 @@ public class Table extends Node {
 
     //////////////////////////////// auto fix使用的接口
 
-    public Set<String> getColumnNames() {
-        return new HashSet<>(bean.columns.keySet());
+    public LinkedHashMap<String, Column> getColumnMapCopy() {
+        return new LinkedHashMap<>(bean.columns);
     }
 
-    public Column newColumn(String colName, String colType, String colDesc) {
+    public void clearColumns() {
+        bean.columns.clear();
+    }
+
+    public boolean addColumn(Column column, String newColumnDesc) {
+        boolean changed = false;
+        if (!column.desc.equals(newColumnDesc)){
+            column.desc = newColumnDesc;
+            changed = true;
+        }
+        bean.columns.put(column.name, column);
+        return changed;
+    }
+
+    public Column addNewColumn(String colName, String colType, String colDesc) {
         Column c = new Column(bean, colName, colType, colDesc);
         bean.columns.put(colName, c);
         return c;
-    }
-
-    public void setColumnDesc(String colName, String colDesc) {
-        Column c = bean.columns.get(colName);
-        if (c != null) {
-            c.desc = colDesc;
-        }
-    }
-
-    public void removeColumn(String colName) {
-        bean.columns.remove(colName);
     }
 
 

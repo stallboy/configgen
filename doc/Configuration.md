@@ -11,11 +11,13 @@
     - name用.分割构成名字空间
     - enumRef支持动态bean，这个指向一个enum的table，在这个bean里定义子bean
     
-* table.name，primaryKey, isPrimaryKeySeq，enum, enumPart
+* table.name，primaryKey, isPrimaryKeySeq，enum, enumPart, extraSplit
     - name文件路径，全小写，路径用.分割。这样和package名称统一，也避免linux，windows差异
     - primary key! 默认是第一个field，如果不是请配置，逗号分割，比如keys="aa,bb"就是2个field aa,bb为key
     - 如果有isPrimaryKeySeq，则主键值必须是1,2,3,4...
     - 如果程序想访问单独一行，配置enumPart，比如enumPart="aa"就是field aa作为enum名称，enum是全枚举，如果增加不支持热更
+    - extraSplit为生成lua文件时是否为数据生成多个文件，默认不。
+    - 假如数据项有250行，extraSplit配置为100，则分为3个文件，会额外多出_1,_2两个文件，原文件和_1各100行，_2含50行
     
 * column.name，type, desc, compressAsOne
     - name, desc会从csv文件第1,2行提取,生成代码时保留csv中配置名称的大小写，成员变量为首字母小写的name,引用的成员变量为Ref+首字母大写的name

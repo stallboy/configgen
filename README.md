@@ -2,6 +2,8 @@
 
 让策划可以在excel中做灵活的配置，之后再为程序生成访问配置表的代码
 
+* [介绍](https://stallboy.github.io/configgen/)
+
 ## 主要功能
 
 * 通过配置外键，取值范围，使策划可以随时检测数据一致性
@@ -14,10 +16,10 @@
 
 * 生成lua注重内存大小
 
-* [介绍](https://stallboy.github.io/configgen/)
+* [完整介绍 - 策划配置系统](https://stallboy.github.io/configgen/ConfiggenIntro.pdf)
 
-* [如何配置 - Configuration](/docs/Configuration.md)
+* [如何配置 - Configuration](https://stallboy.github.io/configgen/Configuration.html)
 
-* [常见问题 - FAQ](/docs/FAQ.md)
+* [常见问题 - FAQ](https://stallboy.github.io/configgen/FAQ.html)
 
 

@@ -14,7 +14,7 @@
 
 * 生成lua注重内存大小
 
-* [介绍 - 策划配置系统](/ConfiggenIntro.pdf)
+* [完整介绍 - 策划配置系统](/ConfiggenIntro.pdf)
 
 * [如何配置 - Configuration](/Configuration.md)
 

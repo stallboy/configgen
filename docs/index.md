@@ -1,37 +1,21 @@
-## Welcome to GitHub Pages
+## Welcome to configgen
 
-You can use the [editor on GitHub](https://github.com/stallboy/configgen/edit/master/docs/index.md) to maintain and preview the content for your website in Markdown files.
+让策划可以在excel中做灵活的配置，之后再为程序生成访问配置表的代码
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+### 主要功能
 
-### Markdown
+* 通过配置外键，取值范围，使策划可以随时检测数据一致性
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+* 通过生成代码，使程序方便访问类型化数据，外键引用和枚举得到一行，支持java,c#,lua
 
-```markdown
-Syntax highlighted code block
+* 支持多态结构，嵌套结构，可在一个单元格里写任意复杂的结构数据，相当于让csv有了xml的灵活性
 
-# Header 1
-## Header 2
-### Header 3
+* 生成java注重安全
 
-- Bulleted
-- List
+* 生成lua注重内存大小
 
-1. Numbered
-2. List
+* [ppt - 策划配置系统](/doc/策划配置系统.pptx)
 
-**Bold** and _Italic_ and `Code` text
+* [如何配置 - Configuration](/doc/Configuration.md)
 
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/stallboy/configgen/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+* [常见问题 - FAQ](/doc/FAQ.md)

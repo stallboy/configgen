@@ -14,8 +14,8 @@
 
 * 生成lua注重内存大小
 
-* [ppt - 策划配置系统](/doc/策划配置系统.pptx)
+* [介绍 - 策划配置系统](/ConfiggenIntro.pdf)
 
-* [如何配置 - Configuration](/doc/Configuration.md)
+* [如何配置 - Configuration](/Configuration.md)
 
-* [常见问题 - FAQ](/doc/FAQ.md)
+* [常见问题 - FAQ](/FAQ.md)

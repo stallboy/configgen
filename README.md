@@ -14,23 +14,10 @@
 
 * 生成lua注重内存大小
 
-* [ppt - 策划配置系统](doc/策划配置系统.pptx)
+* [介绍](https://stallboy.github.io/configgen/)
 
-* [如何配置 - Configuration](doc/Configuration.md)
+* [如何配置 - Configuration](/docs/Configuration.md)
 
-* [常见问题 - FAQ](doc/FAQ.md)
+* [常见问题 - FAQ](/docs/FAQ.md)
 
 
-
-## 设计逻辑
-
-![intro](doc/intro.PNG)
-![idea1](doc/idea1.PNG)
-![idea2](doc/idea2.PNG)
-![idea3](doc/idea3.PNG)
-![idea4](doc/idea4.PNG)
-![idea5](doc/idea5.PNG)
-![idea5-2](doc/idea5-2.PNG)
-![idea6](doc/idea6.PNG)
-![idea7](doc/idea7.PNG)
-![idea8](doc/idea8.PNG)

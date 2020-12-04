@@ -183,7 +183,7 @@ public class GenCs extends Generator {
         // property
         tbean.getColumnMap().forEach((n, t) -> {
             Column f = tbean.getBeanDefine().columns.get(n);
-            String c = f.desc.isEmpty() ? "" : " // " + f.desc;
+            String c = f.desc.isEmpty() ? "" : " /* " + f.desc + "*/";
             ps.println2("public " + type(t) + " " + upper1(n) + " { get; private set; }" + c);
             t.getConstraint().references.forEach(r -> ps.println2("public " + refType(t, r) + " " + refName(r) + " { get; private set; }"));
         });

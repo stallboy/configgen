@@ -25,6 +25,7 @@
         <bean name="TalkNpc">
             <column name="npcid" type="int"/>
         </bean>
+        <bean name="TestNoColumn"/>
         <bean name="Chat">
             <column name="msg" type="string"/>
         </bean>

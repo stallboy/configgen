@@ -20,9 +20,12 @@ class GenBeanClass {
         boolean isBean = vtable == null;
         boolean isTable = !isBean;
 
+        boolean isBeanAndHasNoColumn = isBean && tbean.getColumns().isEmpty();
+        boolean isChildDynamicBean = tbean.getBeanDefine().type == Bean.BeanType.ChildDynamicBean;
+
         ps.println("package " + name.pkg + ";");
         ps.println();
-        if (tbean.getBeanDefine().type == Bean.BeanType.ChildDynamicBean) {
+        if (isChildDynamicBean) {
             TBean baseAction = (TBean) tbean.parent;
             ps.println("public class " + name.className + " implements " + Name.fullName(baseAction) + " {");
             ps.println1("@Override");
@@ -51,9 +54,11 @@ class GenBeanClass {
         ps.println();
 
         //constructor
-        ps.println1("private %s() {", name.className);
-        ps.println1("}");
-        ps.println();
+        if (!isBeanAndHasNoColumn) { //如果是没有列得 bean，就只生成一个public 构造就行。
+            ps.println1("private %s() {", name.className);
+            ps.println1("}");
+            ps.println();
+        }
 
         if (isBean) {
             ps.println1("public %s(%s) {", name.className, MethodStr.formalParams(tbean.getColumnMap()));
@@ -125,8 +130,21 @@ class GenBeanClass {
             ps.println();
         }
 
-        //hashCode, equals
-        if (isBean) {
+        if (isBeanAndHasNoColumn) {
+            ps.println1("@Override");
+            ps.println1("public int hashCode() {");
+            ps.println2("return " + name.className + ".class.hashCode();");
+            ps.println1("}");
+            ps.println();
+
+            ps.println1("@Override");
+            ps.println1("public boolean equals(Object other) {");
+            ps.println2("return this == other || other instanceof " + name.className + ";");
+            ps.println1("}");
+            ps.println();
+
+
+        } else if (isBean) {
             Map<String, Type> keys = tbean.getColumnMap();
             ps.println1("@Override");
             ps.println1("public int hashCode() {");
@@ -145,9 +163,17 @@ class GenBeanClass {
         }
 
         //toString
+        String beanName = "";
+        if (isChildDynamicBean)
+            beanName = name.className;
         ps.println1("@Override");
         ps.println1("public String toString() {");
-        ps.println2("return \"(\" + " + tbean.getColumnMap().keySet().stream().map(Generator::lower1).collect(Collectors.joining(" + \",\" + ")) + " + \")\";");
+        if (isBeanAndHasNoColumn) {
+            ps.println2("return \"%s\";", beanName);
+        } else {
+            String params = tbean.getColumnMap().keySet().stream().map(Generator::lower1).collect(Collectors.joining(" + \",\" + "));
+            ps.println2("return \"%s(\" + %s + \")\";", beanName, params);
+        }
         ps.println1("}");
         ps.println();
 

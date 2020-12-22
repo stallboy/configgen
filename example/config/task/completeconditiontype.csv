@@ -5,3 +5,4 @@ id,name,
 3,CollectItem,收集物品
 4,ConditionAnd,组合节点
 5,Chat,聊天
+6,TestNoColumn,

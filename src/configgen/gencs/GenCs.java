@@ -159,8 +159,10 @@ public class GenCs extends Generator {
         ps.println("namespace " + name.pkg);
         ps.println("{");
 
-        boolean isAction = tbean.getBeanDefine().type == Bean.BeanType.ChildDynamicBean;
-        if (isAction) {
+        boolean isChildDynamicBean = tbean.getBeanDefine().type == Bean.BeanType.ChildDynamicBean;
+        boolean isBeanHasNoColumn = tbean.getColumns().isEmpty();
+
+        if (isChildDynamicBean) {
             TBean baseAction = (TBean) tbean.parent;
             ps.println1("public partial class " + name.className + " : " + fullName(baseAction));
             ps.println1("{");
@@ -198,36 +200,59 @@ public class GenCs extends Generator {
             ps.println2("}");
             ps.println();
 
-            ps.println2("public " + name.className + "(" + formalParams(tbean.getColumnMap()) + ") {");
-            tbean.getColumnMap().forEach((n, t) -> ps.println3("this." + upper1(n) + " = " + lower1(n) + ";"));
+            if (!isBeanHasNoColumn) { //避免重复
+                ps.println2("public " + name.className + "(" + formalParams(tbean.getColumnMap()) + ") {");
+                tbean.getColumnMap().forEach((n, t) -> ps.println3("this." + upper1(n) + " = " + lower1(n) + ";"));
+                ps.println2("}");
+                ps.println();
+            }
+        }
+
+        Map<String, Type> keys = ttable != null ? ttable.getPrimaryKey() : tbean.getColumnMap();
+
+        if(isBeanHasNoColumn){
+            //hash
+            ps.println2("public override int GetHashCode()");
+            ps.println2("{");
+            ps.println3("return this.GetType().GetHashCode();");
+            ps.println2("}");
+            ps.println();
+
+            //equal
+            ps.println2("public override bool Equals(object obj)");
+            ps.println2("{");
+            ps.println3("if (obj == null) return false;");
+            ps.println3("if (obj == this) return true;");
+            ps.println3("var o = obj as " + name.className + ";");
+            ps.println3("return o != null;");
+            ps.println2("}");
+            ps.println();
+        }else{
+            //hash
+            ps.println2("public override int GetHashCode()");
+            ps.println2("{");
+            ps.println3("return " + hashCodes(keys) + ";");
+            ps.println2("}");
+            ps.println();
+
+            //equal
+            ps.println2("public override bool Equals(object obj)");
+            ps.println2("{");
+            ps.println3("if (obj == null) return false;");
+            ps.println3("if (obj == this) return true;");
+            ps.println3("var o = obj as " + name.className + ";");
+            ps.println3("return o != null && " + equals(keys) + ";");
+            ps.println2("}");
+            ps.println();
+
+            //toString
+            ps.println2("public override string ToString()");
+            ps.println2("{");
+            ps.println3("return \"(\" + " + toStrings(tbean.getColumnMap()) + " + \")\";");
             ps.println2("}");
             ps.println();
         }
 
-        //hash
-        Map<String, Type> keys = ttable != null ? ttable.getPrimaryKey() : tbean.getColumnMap();
-        ps.println2("public override int GetHashCode()");
-        ps.println2("{");
-        ps.println3("return " + hashCodes(keys) + ";");
-        ps.println2("}");
-        ps.println();
-
-        //equal
-        ps.println2("public override bool Equals(object obj)");
-        ps.println2("{");
-        ps.println3("if (obj == null) return false;");
-        ps.println3("if (obj == this) return true;");
-        ps.println3("var o = obj as " + name.className + ";");
-        ps.println3("return o != null && " + equals(keys) + ";");
-        ps.println2("}");
-        ps.println();
-
-        //toString
-        ps.println2("public override string ToString()");
-        ps.println2("{");
-        ps.println3("return \"(\" + " + toStrings(tbean.getColumnMap()) + " + \")\";");
-        ps.println2("}");
-        ps.println();
 
         String csv = "\"" + tbean.getBeanDefine().name + "\"";
         if (ttable != null) {
@@ -308,7 +333,7 @@ public class GenCs extends Generator {
         } // end cfg != null
 
         //static create
-        String pre = isAction ? "internal new static " : "internal static ";
+        String pre = isChildDynamicBean ? "internal new static " : "internal static ";
         ps.println2(pre + name.className + " _create(Config.Stream os)");
         ps.println2("{");
         ps.println3("var self = new " + name.className + "();");
@@ -331,7 +356,7 @@ public class GenCs extends Generator {
 
         //resolve
         if (tbean.hasRef()) {
-            pre = isAction ? "internal override " : "internal ";
+            pre = isChildDynamicBean ? "internal override " : "internal ";
             ps.println2(pre + "void _resolve(Config.LoadErrors errors)");
             ps.println2("{");
             tbean.getColumnMap().forEach((n, t) -> {

@@ -22,6 +22,7 @@ public class TBean extends Type {
 
     // 多态Bean基类包含这些子类定义
     private TTable childDynamicBeanEnumRefTable;
+    private String childDynamicDefaultBeanName = "";
     private final Map<String, TBean> childDynamicBeans = new LinkedHashMap<>();
 
 
@@ -31,6 +32,7 @@ public class TBean extends Type {
         if (beanDefine.type == Bean.BeanType.NormalBean) {
             init();
         } else {
+            childDynamicDefaultBeanName = beanDefine.childDynamicDefaultBeanName;
             beanDefine.childDynamicBeans.forEach((n, b) -> childDynamicBeans.put(n, new TBean(this, b)));
         }
     }
@@ -89,6 +91,10 @@ public class TBean extends Type {
 
     public TTable getChildDynamicBeanEnumRefTable() {
         return childDynamicBeanEnumRefTable;
+    }
+
+    public String getChildDynamicDefaultBeanName() {
+        return childDynamicDefaultBeanName;
     }
 
     public Collection<TBean> getChildDynamicBeans() {

@@ -136,9 +136,13 @@ public class GenCs extends Generator {
         ps.println1("internal static " + name.className + " _create(Config.Stream os) {");
         ps.println2("switch(os.ReadString()) {");
         for (TBean actionBean : tbean.getChildDynamicBeans()) {
+            if (actionBean.name.equals(tbean.getChildDynamicDefaultBeanName())) {
+                ps.println3("case \"\":");
+            }
             ps.println3("case \"" + actionBean.name + "\":");
             ps.println4("return " + fullName(actionBean) + "._create(os);");
         }
+
         ps.println2("}");
         ps.println2("return null;");
         ps.println1("}");

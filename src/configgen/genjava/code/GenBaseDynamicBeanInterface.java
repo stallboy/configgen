@@ -23,6 +23,9 @@ class GenBaseDynamicBeanInterface {
         ps.inc();
         ps.println("switch(input.readStr()) {");
         for (TBean actionBean : tbean.getChildDynamicBeans()) {
+            if (actionBean.name.equals(tbean.getChildDynamicDefaultBeanName())) {
+                ps.println1("case \"\":");
+            }
             ps.println1("case \"%s\":", actionBean.name);
             ps.println2("return %s._create(input);", Name.fullName(actionBean));
         }

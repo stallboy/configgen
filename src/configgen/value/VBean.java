@@ -44,6 +44,9 @@ public class VBean extends VComposite {
 
         if (tBean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
             String childDynamicBeanName = parsed.get(0).data;
+            if (childDynamicBeanName.isEmpty() && !tbean.getChildDynamicDefaultBeanName().isEmpty()) {
+                childDynamicBeanName = tbean.getChildDynamicDefaultBeanName();
+            }
             TBean fullChildTBean = adata.fullType.getChildDynamicBeanByName(childDynamicBeanName);
             require(Objects.nonNull(fullChildTBean), "子Bean不存在", childDynamicBeanName);
             int fullChildColumnSpan =  adata.compressAsOne ? 1 : fullChildTBean.columnSpan();

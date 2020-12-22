@@ -27,6 +27,7 @@ public class Bean extends Node {
 
     //多态Bean基类包含这些子类定义
     public final String childDynamicBeanEnumRef;
+    public final String childDynamicDefaultBeanName;
     public final Map<String, Bean> childDynamicBeans = new LinkedHashMap<>();
 
 
@@ -43,13 +44,20 @@ public class Bean extends Node {
             compressSeparator = ';';
         }
         childDynamicBeanEnumRef = self.getAttribute("enumRef");
+        childDynamicDefaultBeanName = self.getAttribute("defaultBeanName");
         if (self.hasAttribute("enumRef")) {
             type = BeanType.BaseDynamicBean;
-            DomUtils.permitAttributes(self, "name", "own", "enumRef");
+            DomUtils.permitAttributes(self, "name", "own", "enumRef", "defaultBeanName");
             DomUtils.permitElements(self, "bean");
             for (Element e : DomUtils.elements(self, "bean")) {
                 Bean b = new Bean(this, e);
                 require(null == childDynamicBeans.put(b.name, b), "Bean名字重复", b.name);
+            }
+            if (!childDynamicDefaultBeanName.isEmpty()) {
+                Bean childDynamicDefaultBean = childDynamicBeans.get(childDynamicDefaultBeanName);
+                require(Objects.nonNull(childDynamicDefaultBean), "defaultBeanName未定义", childDynamicDefaultBeanName);
+                require(childDynamicDefaultBean.columns.isEmpty(), "defaultBean不能定义column",
+                        childDynamicDefaultBeanName);
             }
         } else {
             type = BeanType.NormalBean;
@@ -66,6 +74,7 @@ public class Bean extends Node {
         compress = false;
         compressSeparator = ';';
         childDynamicBeanEnumRef = "";
+        childDynamicDefaultBeanName = "";
         init(self);
     }
 
@@ -76,6 +85,7 @@ public class Bean extends Node {
         type = BeanType.ChildDynamicBean;
         compress = false;
         childDynamicBeanEnumRef = "";
+        childDynamicDefaultBeanName = "";
         compressSeparator = ';';
         DomUtils.permitAttributes(self, "name", "own");
         DomUtils.permitElements(self, "column", "foreignKey", "keyRange");
@@ -103,6 +113,7 @@ public class Bean extends Node {
         super(table, name);
         type = BeanType.Table;
         childDynamicBeanEnumRef = "";
+        childDynamicDefaultBeanName = "";
         own = "";
         compress = false;
         compressSeparator = ';';
@@ -125,6 +136,7 @@ public class Bean extends Node {
         super(_parent, original.name);
         type = original.type;
         childDynamicBeanEnumRef = original.childDynamicBeanEnumRef;
+        childDynamicDefaultBeanName = original.childDynamicDefaultBeanName;
         own = original.own;
         compress = original.compress;
         compressSeparator = original.compressSeparator;
@@ -198,6 +210,8 @@ public class Bean extends Node {
             self.setAttribute("compress", String.valueOf(compressSeparator));
         if (!childDynamicBeanEnumRef.isEmpty())
             self.setAttribute("enumRef", childDynamicBeanEnumRef);
+        if (!childDynamicDefaultBeanName.isEmpty())
+            self.setAttribute("defaultBeanName", childDynamicDefaultBeanName);
 
         columns.values().forEach(c -> c.save(self));
         foreignKeys.values().forEach(c -> c.save(self));

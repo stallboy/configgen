@@ -6,10 +6,11 @@
 * import.file
     - 引入另一个xml定义文件，现在有两种分割文件的方式，一个是用import.file,一个是用下面的own
 
-* bean.name，enumRef
+* bean.name，enumRef,defaultBeanName
     - bean必须自己手工在config.xml里定义；column.type包含bean的时候也必须手工指定；这些没法自动猜测。
     - name用.分割构成名字空间
     - enumRef支持动态bean，这个指向一个enum的table，在这个bean里定义子bean
+    - defaultBeanName 用于多态Bean，支持此Bean在csv的对应格中空着，就自动选择此子Bean，此子Bean不能包含字段。
     
 * table.name，primaryKey, isPrimaryKeySeq，enum, enumPart, extraSplit
     - name文件路径，全小写，路径用.分割。这样和package名称统一，也避免linux，windows差异

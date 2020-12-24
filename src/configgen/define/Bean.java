@@ -31,6 +31,9 @@ public class Bean extends Node {
     public final Map<String, Bean> childDynamicBeans = new LinkedHashMap<>();
 
 
+    /**
+     * 正常Bean 或 多态基类Bean
+     */
     Bean(AllDefine _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
@@ -67,6 +70,9 @@ public class Bean extends Node {
         }
     }
 
+    /**
+     * 作为Table的Bean
+     */
     Bean(Table _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
@@ -78,6 +84,9 @@ public class Bean extends Node {
         init(self);
     }
 
+    /**
+     * 子Bean
+     */
     private Bean(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         own = self.getAttribute("own");
@@ -109,6 +118,9 @@ public class Bean extends Node {
         }
     }
 
+    /**
+     * 有新csv文件，导致的新建Bean
+     */
     Bean(Table table, String name) {
         super(table, name);
         type = BeanType.Table;
@@ -130,8 +142,11 @@ public class Bean extends Node {
         }
     }
 
-
     //////////////////////////////// extract
+
+    /**
+     * 抽取部分字段作为新的Bean，因为有些字段客户端不需要，或者说不想泄露到客户端包里
+     */
     private Bean(Node _parent, Bean original) {
         super(_parent, original.name);
         type = original.type;

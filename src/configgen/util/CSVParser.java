@@ -17,6 +17,12 @@ public final class CSVParser {
     }
 
 
+    /**
+     * 会先检查path对应的文件是否有bom头，如果有就用bom头里的信息（比如识别出来时utf8）来作为文件编码
+     * 如果没有bom头，则就用这里的参数encoding来打开文件。
+     * 好处是：一般的中文文件就都是GBK编码，
+     * 如果国际化成泰语，GBK不行了，需要utf8，则只要此csv文件有bom头就ok
+     */
     public static List<List<String>> readFromFile(Path path, String encoding) {
         try {
             //使用reader很费内存

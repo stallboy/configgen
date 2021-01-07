@@ -6,9 +6,19 @@ import org.w3c.dom.Element;
 
 public class ForeignKey extends Node {
     public enum RefType {
-        NORMAL,   // 链接到表的主键或唯一键，不能为空
-        NULLABLE, // 格子里可以什么都不填
-        LIST      // 可以外键到其他表的非unique key
+        /**
+         * 链接到表的主键或唯一键，不能为空
+         */
+        NORMAL,
+        /**
+         * 格子里可以什么都不填，此时索引到的就是null
+         */
+        NULLABLE,
+        /**
+         * 可以外键到其他表的非唯一键（unique key），
+         * 当一个table中有list [item] 导致此csv表格太宽时，可以把item放到另一个表的一行中。
+         */
+        LIST
     }
 
     public final String[] keys;

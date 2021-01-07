@@ -1,6 +1,7 @@
 package configgen.gen;
 
 import configgen.Logger;
+import configgen.data.DTable;
 import configgen.define.AllDefine;
 import configgen.type.AllType;
 import configgen.value.AllValue;
@@ -9,13 +10,37 @@ import java.nio.file.Path;
 import java.util.Objects;
 
 public class Context {
-    // fullValue很费内存，在用到时再生成，而fullData在fullDefine里
+    /**
+     * 完整的结构定义，xml <-> java object
+     * 注意fullDefine中，包含了完整的fullData，方便根据csv头的信息来自动修复autofix xml。
+     * 这里假设 工作流是策划修改csv来改变配置结构，而基本不用手工修改xml，xml自动匹配csv，
+     * 程序如果发现不合适，再手工修改xml。
+     */
     private final AllDefine fullDefine;
+    /**
+     * 完整的包含类型的结构定义，xml中的type被解析，ref被关联
+     */
     private final AllType fullType;
 
+
+    /**
+     * 直接国际化,直接改成对应国家语言
+     */
     private boolean _isI18n = false;
-    private I18n i18n = new I18n();        // 这个是国际化,直接改成对应国家语言
-    private LangSwitch langSwitch = null;  // 这个是要实现客户端可在多国语言间切换语言
+    private I18n i18n = new I18n();
+
+    /**
+     * 这个是要实现客户端可在多国语言间切换语言
+     */
+    private LangSwitch langSwitch = null;
+
+
+    /**
+     * 优化，避免gen多次时，重复生成value
+     * 注意这里不再立马生成fullValue，因为很费内存，在用到时再生成。
+     */
+    private AllValue lastValue;
+    private String lastValueOwn;
 
 
     Context(Path xmlPath, String encoding) {
@@ -27,6 +52,9 @@ public class Context {
         return fullDefine.getDataDir();
     }
 
+    public DTable getDTable(String tableName) {
+        return fullDefine.getDTable(tableName);
+    }
 
     void setI18nOrLangSwitch(String i18nFile, String langSwitchDir, String i18nEncoding, boolean crlfaslf) {
         if (i18nFile != null) {
@@ -59,9 +87,6 @@ public class Context {
     }
 
 
-    private AllValue lastValue;
-    private String lastValueOwn;
-
     public AllValue makeValue(String own) {
         if (lastValue != null) {
             if (Objects.equals(own, lastValueOwn)) {
@@ -85,7 +110,7 @@ public class Context {
     }
 
     private AllValue make(AllType myType) {
-        AllValue value = new AllValue(myType, fullDefine, this);
+        AllValue value = new AllValue(myType, this);
         Logger.mm("value");
         value.verifyConstraint();
         return value;

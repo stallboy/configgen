@@ -3,7 +3,9 @@ package configgen.genjava;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// 这个既是总入口，又是多态bean
+/**
+ * 这个既是总入口，又是多态bean
+ */
 public class SchemaInterface implements Schema {
 
     public final Map<String, Schema> implementations = new LinkedHashMap<>(); //包含SchemaBean和SchemaEnum

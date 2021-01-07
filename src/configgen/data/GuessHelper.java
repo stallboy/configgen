@@ -10,11 +10,11 @@ import java.util.Set;
 
 final class GuessHelper {
 
-    static String getColumnName(String name){
-        int i = name.indexOf('@'); //为了是兼容之前版本
+    static String getColumnName(String name) {
+        int i = name.indexOf('@'); //为了是兼容之前版本，也给各机会在@后面来声明此bean下第一个字段的名称
         if (i != -1) {
             return name.substring(0, i);
-        }else{
+        } else {
             return name;
         }
     }

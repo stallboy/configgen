@@ -9,7 +9,16 @@ import java.util.*;
 public class Table extends Node {
     public enum EnumType {
         None,
+        /**
+         * 全枚举：生成时就是枚举，
+         * 可以switch case，配合静态类型检查，可方便提示逻辑是否漏掉了一种情况的处理。
+         * 同时多态类必须配置枚举，方便switch case
+         */
         EnumFull,
+        /**
+         * 半枚举：生成时是通过类的static成员，来访问csv的某一行。
+         * 这样代码避免了使用魔数。也不用运行时检查是否为null，因为启动时保证必不为null
+         */
         EnumPart,
     }
 
@@ -18,7 +27,10 @@ public class Table extends Node {
     public String enumStr;
     public String[] primaryKey;
     public boolean isPrimaryKeySeq;
-    private int extraSplit = 0; //0 是部分，1是额外分出一个文件。lua生成assets.lua时报错，因为lua单个文件不能多余65526个constant，所以这里分割一下
+    /**
+     * 0 是部分，1是额外分出一个文件。lua生成assets.lua时报错，因为lua单个文件不能多余65526个constant，所以这里分割一下
+     */
+    private int extraSplit = 0;
 
     public final Map<String, UniqueKey> uniqueKeys = new LinkedHashMap<>();
 
@@ -118,7 +130,7 @@ public class Table extends Node {
 
     public boolean addColumn(Column column, String newColumnDesc) {
         boolean changed = false;
-        if (!column.desc.equals(newColumnDesc)){
+        if (!column.desc.equals(newColumnDesc)) {
             column.desc = newColumnDesc;
             changed = true;
         }

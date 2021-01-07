@@ -10,19 +10,30 @@ import java.util.*;
 public class TBean extends Type {
     private final Bean beanDefine;
 
-    // 列
+    /**
+     * 列的类型信息
+     */
     private final Map<String, Type> columns = new LinkedHashMap<>();
 
-    // 可以有多个外键，foreignKeys包含所有外键信息。
-    // 然后把单列外键分配到Type.constraints.references，多列外键分配到mRefs，
-    // 索引到非unique key的表的外键分配到listRefs。
+    /**
+     * foreignKeys包含所有外键信息。
+     * 1. 然后把单列外键分配到Type.constraints.references，
+     * 2. 多列外键分配到mRefs，
+     * 3. 索引到非唯一键的分配到listRefs。
+     */
     private final List<TForeignKey> foreignKeys = new ArrayList<>();
     private final List<TForeignKey> mRefs = new ArrayList<>();
     private final List<TForeignKey> listRefs = new ArrayList<>();
 
-    // 多态Bean基类包含这些子类定义
+
+    /**
+     * 多态Bean基类要索引到一个枚举table上，方便switch case
+     */
     private TTable childDynamicBeanEnumRefTable;
     private String childDynamicDefaultBeanName = "";
+    /**
+     * 多态Bean基类包含这些子类定义
+     */
     private final Map<String, TBean> childDynamicBeans = new LinkedHashMap<>();
 
 

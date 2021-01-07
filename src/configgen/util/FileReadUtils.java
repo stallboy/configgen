@@ -15,7 +15,10 @@ class FileReadUtils {
     private static final int BUFFER_SIZE = 8192;
 
 
-    //来自Files.readAllBytes
+    /**
+     * 来自Files.readAllBytes
+     * 这些都是为了减少点内存占用
+     */
     static int readAllBytes(Path path) throws IOException {
         try (SeekableByteChannel sbc = Files.newByteChannel(path);
              InputStream in = Channels.newInputStream(sbc)) {

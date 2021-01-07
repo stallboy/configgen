@@ -4,7 +4,18 @@ import configgen.Node;
 
 public class TString extends TPrimitive {
     public enum Subtype {
-        STRING, TEXT
+        /**
+         * 不涉及到国际化
+         * 其实感觉大部分string应该都会需要国际化
+         * 不需要的情况包括
+         * 1. 现有的类型不支持，比如DateTime，需要程序自己从string转下。
+         * 2. 用于开发期间的debug
+         */
+        STRING,
+        /**
+         * 需要国际化
+         */
+        TEXT
     }
 
     public final Subtype subtype;

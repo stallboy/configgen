@@ -12,7 +12,9 @@ public abstract class VComposite extends Value {
         cells = _cells;
     }
 
-    //shared用于lua生成时最小化内存占用，所以对同一个表中相同的table，就共享， 算是个优化
+    /**
+     * shared用于lua生成时最小化内存占用，所以对同一个表中相同的table，就共享， 算是个优化
+     */
     private boolean shared = false;
 
     public void setShared() {

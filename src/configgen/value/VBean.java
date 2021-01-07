@@ -11,6 +11,10 @@ import java.util.*;
 public class VBean extends VComposite {
     private final TBean tBean;
     private final List<Value> values;
+    /**
+     * 如果此Bean是基类，则childDynamicVBean对应具体子类Bean的值
+     * 否则为null
+     */
     private final VBean childDynamicVBean;
 
     VBean(TBean tbean, AData<TBean> adata) {

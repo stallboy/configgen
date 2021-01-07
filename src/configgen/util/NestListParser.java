@@ -18,11 +18,13 @@ public class NestListParser {
     private static final char rightParentheses = ')';
 
 
-    // "b,c" 解析为两段：                  <1>b        <2>c
-    // "(b,c)" 解析为一段                  <1>b,c
-    // "a(b,c)" 解析为一段                 <1>a(b,c)
-    // "a,(b,c)" 解析为两段                <1>a        <2>b,c
-    // "a,(b,(c1,c2)),d(e,f)" 解析为三段： <1>a        <2>b,(c1,c2)        <3>d(e,f)
+    /**
+     * "b,c" 解析为两段：                  <1>b        <2>c
+     * "(b,c)" 解析为一段                  <1>b,c
+     * "a(b,c)" 解析为一段                 <1>a(b,c)
+     * "a,(b,c)" 解析为两段                <1>a        <2>b,c
+     * "a,(b,(c1,c2)),d(e,f)" 解析为三段： <1>a        <2>b,(c1,c2)        <3>d(e,f)
+     */
     public static List<String> parseNestList(String str) {
         NestListState state = NestListState.START;
         ArrayList<String> list = new ArrayList<>();
@@ -143,7 +145,9 @@ public class NestListParser {
     }
 
 
-    // "a(b,c)" 解析为两段：  <1>a   <2>b,c
+    /**
+     * "a(b,c)" 解析为两段：  <1>a   <2>b,c
+     */
     public static List<String> parseFunction(String str) {
         FunctionState state = FunctionState.START;
         ArrayList<String> list = new ArrayList<>(2);

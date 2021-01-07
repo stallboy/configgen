@@ -1,6 +1,10 @@
 package configgen.genjava;
 
 public interface Schema {
+    /**
+     * 比较兼容性，codeSchema.compatible(dataSchema);
+     * 参照example/javaload/LoadConfig.java
+     */
     boolean compatible(Schema other);
 
     void accept(Visitor visitor);

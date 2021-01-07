@@ -19,7 +19,7 @@ public class VList extends VComposite {
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseNestList(dat);
 
-        } else if (type.compressType == Column.CompressType.UseSeparator) { //为了兼容之前的设计
+        } else if (type.compressType == Column.CompressType.UseSeparator) {
             require(adata.cells.size() == 1);
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseList(dat, type.compressSeparator);

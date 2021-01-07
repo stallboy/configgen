@@ -8,10 +8,23 @@ import java.util.*;
 
 public class Bean extends Node {
     public enum BeanType {
-        NormalBean,         //Bean
-        Table,              //表
-        BaseDynamicBean,    //多态Bean的基类
-        ChildDynamicBean,   //多态Bean的具体子类
+        /**
+         * 正常Bean
+         */
+        NormalBean,
+        /**
+         * 对应表（csv）的Bean，bean知道它直接被用于table了，也许不应该。
+         */
+        Table,
+        /**
+         * 多态Bean的基类
+         * 这里只支持一层的继承-多态。不支持多层，如果需要的话用组合来做吧
+         */
+        BaseDynamicBean,
+        /**
+         * 多态Bean的具体子类
+         */
+        ChildDynamicBean,
     }
 
     public final BeanType type;
@@ -130,7 +143,6 @@ public class Bean extends Node {
         compress = false;
         compressSeparator = ';';
     }
-
 
 
     @Override

@@ -13,7 +13,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class AllValue extends Node {
-    private static AllValue current; //约定一次处理一个，减少内存占用
+    /**
+     * 约定一次处理一个，减少内存占用
+     */
+    private static AllValue current;
 
     static AllValue getCurrent() {
         return current;
@@ -23,7 +26,7 @@ public class AllValue extends Node {
     private final Context ctx;
     private final Map<String, VTable> vTables;
 
-    public AllValue(AllType subType, AllDefine fullDefine, Context ctx) {
+    public AllValue(AllType subType, Context ctx) {
         super(null, "value");
         this.allType = subType;
         this.ctx = ctx;
@@ -31,7 +34,7 @@ public class AllValue extends Node {
         current = this;
         for (TTable tTable : subType.getTTables()) {
             try {
-                VTable vt = new VTable(this, tTable, fullDefine.getDTable(tTable.name));
+                VTable vt = new VTable(this, tTable, ctx.getDTable(tTable.name));
                 vTables.put(tTable.name, vt);
             } catch (Throwable e) {
                 throw new AssertionError(tTable.name + ",这个表数据构造出错", e);

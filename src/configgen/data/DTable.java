@@ -11,10 +11,27 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class DTable extends Node {
+    /**
+     * csv前两行的信息，
+     * 1. 第一行descLine, 中文，策划写；
+     * 2. 第二行nameLine, 英文，程序用。
+     * 记录下来用于生成代码
+     */
     private final Map<String, DColumn> dcolumns = new LinkedHashMap<>();
-    private final List<List<String>> recordList;
     private final List<String> descLine;
     private final List<String> nameLine;
+
+    /**
+     * csv2行之后的所有的数据， csv -> list.list.str
+     */
+    private final List<List<String>> recordList;
+
+
+    /**
+     * 解析好fullType后，附着到Data上，因为之后生成Value时可能只会用 不全的Type
+     */
+    private TTable tableType;
+
 
     private Map<String, Type> defined;
     private State state;
@@ -34,7 +51,6 @@ public class DTable extends Node {
         NORM, MAYBE_LIST_OR_MAP, LIST, MAYBE_MAP, MAYBE_MAP2, MAP
     }
 
-    private TTable tableType;
 
     public TTable getTableType() {
         return tableType;
@@ -108,6 +124,12 @@ public class DTable extends Node {
         }
     }
 
+    /**
+     * 这里有个状态机，用来在尊重已有 xml配置的基础上，对于没在xml里配置的
+     * 1. 来把a1,a2,...自动识别为list
+     * 2. 来把a1,b1,a2,b2,...自动识别为map
+     * 这个设计，是为了兼容《大主宰》游戏的配置，如果重头设计，我肯定要把这个功能砍掉。
+     */
     private void parse(TTable ttable) {
         if (ttable != null) {
             defined = ttable.getTBean().getColumnMap();

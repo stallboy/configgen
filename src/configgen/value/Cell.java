@@ -1,11 +1,8 @@
 package configgen.value;
 
-import configgen.util.ListParser;
-import configgen.util.NestListParser;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
+/**
+ * 保留原始信息，用于打印错误信息时，指出具体时那一行那一列出错
+ */
 public final class Cell {
     final int row;
     final int col;

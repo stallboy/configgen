@@ -13,18 +13,33 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class AllDefine extends Node {
-    private final Map<String, Bean> beans = new TreeMap<>();
-    private final Map<String, Table> tables = new TreeMap<>();
-    private final Map<String, Import> imports = new TreeMap<>();
-
     private Path xmlPath;
     private String encoding;
 
     private String dataDirStr;
     private Path dataDir;
 
+    private final Map<String, Bean> beans = new TreeMap<>();
+    private final Map<String, Table> tables = new TreeMap<>();
+    /**
+     * import其他文件，其他文件也可再import。
+     * 方便xml文件的组织，你可以全部csv就一个xml，也可以每个文件夹一个xml，最后总的一个xml来汇总。
+     * 比如可以区分客户端用的xml，服务器用的xml。所以这里就存在抽取data的两个机制，一个xml，一个own，任君选择
+     */
+    private final Map<String, Import> imports = new TreeMap<>();
+
+
+    /**
+     * 要对上层隐藏import的机制，这里为效率cache下来。
+     */
     private final Map<String, Bean> cachedAllBeans = new TreeMap<>();
     private final Map<String, Table> cachedAllTables = new TreeMap<>();
+
+    /**
+     * fullDefine才有，所谓full就是全部的定义，不能是从own抽取的
+     */
+    private AllData thisData;
+    private final Map<String, DTable> cachedAllDataTables = new TreeMap<>();
 
 
     public AllDefine(Path _xmlPath, String _encoding) {
@@ -88,9 +103,6 @@ public class AllDefine extends Node {
 
     //////////////////////////////// 对上层接口，隐藏import导致的层级Data和层级Table
 
-    private AllData thisData; // fullDefine才有，所谓full就是全部的定义，不能是从own抽取的
-    private final Map<String, DTable> cachedAllDataTables = new TreeMap<>();
-
 
     public Path getDataDir() {
         return dataDir;
@@ -115,6 +127,9 @@ public class AllDefine extends Node {
 
     //////////////////////////////// 读取数据文件，并补充完善Define
 
+    /**
+     *  读取数据文件，并补充完善Define，解析带类型的fullType
+     */
     public AllType readData_AutoFix_ResolveType() {
         AllType firstTryType = new AllType(this);
         firstTryType.resolve();
@@ -127,7 +142,9 @@ public class AllDefine extends Node {
     }
 
 
-    // 自动从Data种提取头两行的定义信息，填充Define
+    /**
+     * 自动从Data中提取头两行的定义信息，填充Define
+     */
     private void readDataFilesAndAutoFix(AllType firstTryType) {
         for (Import imp : imports.values()) {
             imp.define.readDataFilesAndAutoFix(firstTryType);
@@ -145,7 +162,9 @@ public class AllDefine extends Node {
         }
     }
 
-    // 保存回xml
+    /**
+     * 保存回xml
+     */
     public void saveToXml() {
         for (Import imp : imports.values()) {
             imp.define.saveToXml();
@@ -153,7 +172,9 @@ public class AllDefine extends Node {
         save();
     }
 
-    // 解析出类型，把齐全的类型信息 赋到 Data上，因为之后生成Value时可能只会用 不全的Type
+    /**
+     * 解析出类型，把齐全的类型信息 赋到 Data上，因为之后生成Value时可能只会用 不全的Type
+     */
     private AllType resolveFullTypeAndAttachToData() {
         AllType fullType = new AllType(this);
         fullType.resolve();
@@ -192,6 +213,11 @@ public class AllDefine extends Node {
     }
 
 
+    /**
+     * @param own 配置为own="client,xeditor"的column就会被resolvePartType("client")抽取出来
+     * @return 一个抽取过后的带类型结构信息。
+     * 用于对上层隐藏掉own的机制。
+     */
     // 返回的是全新的 部分的Type
     public AllType resolvePartType(String own) {
         AllDefine topPart = extract(own);

@@ -12,8 +12,8 @@ import java.util.*;
 public class CachedFiles {
     private static final Set<String> filename_set = new HashSet<>();
 
-    private static List<File> deleteFiles = new ArrayList<>();
-    private static List<File> deleteKeepMetaFiles = new ArrayList<>();
+    private static final List<File> deleteFiles = new ArrayList<>();
+    private static final List<File> deleteKeepMetaFiles = new ArrayList<>();
 
     public static void deleteOtherFiles(File dir) {
         deleteFiles.add(dir);

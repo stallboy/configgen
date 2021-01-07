@@ -12,11 +12,25 @@ import java.util.Map;
 
 public class TTable extends Node {
     private final Table tableDefine;
-    private final TBean tBean; //具体的column委派到TBean中
-    private Type enumColumn; // 枚举列
+    /**
+     * 具体的column委派到TBean中
+     * 注意这里用组合，但xml配置时column直接配置的table，是继承。
+     * 也许xml也用组合比较好，还能多个table共用相同的完整的bean。
+     */
+    private final TBean tBean;
+    /**
+     * 枚举对应列
+     */
+    private Type enumColumn;
 
-    //表可以有一个主键，多个唯一键
+    /**
+     * 对应sql的概念，一个表可以有一个主键，多个唯一键
+     * 主键
+     */
     private final Map<String, Type> primaryKey = new LinkedHashMap<>();
+    /**
+     * 唯一键
+     */
     private final List<Map<String, Type>> uniqueKeys = new ArrayList<>();
 
 

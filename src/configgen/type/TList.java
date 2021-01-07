@@ -7,7 +7,10 @@ import java.util.Objects;
 
 public class TList extends Type {
     public final Type value;
-    public final int count; // >=0; 0 意味着这个是compress的，使用compressSeparator分割
+    /**
+     * >=0; 0 意味着这个是compress的，使用compressSeparator分割
+     */
+    public final int count;
     public final Column.CompressType compressType;
     public final char compressSeparator;
 

@@ -32,19 +32,6 @@ public class Node {
         }
     }
 
-    public void setNewParent(Node newParent) {
-        if (parent == newParent) {
-            return;
-        }
-
-        if (parent.children != null) {
-            parent.children.remove(this);
-        }
-
-        _setParent(newParent);
-    }
-
-
     @Override
     public String toString() {
         return fullName();

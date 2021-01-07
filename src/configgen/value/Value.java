@@ -20,7 +20,11 @@ public abstract class Value {
 
     public abstract void accept(ValueVisitor visitor);
 
-    public abstract void verifyConstraint(); //约束分两种，一是Ref，一是Range
+    /**
+     * 检验约束
+     * 约束分两种，一是Ref，一是Range
+     */
+    public abstract void verifyConstraint();
 
     public abstract boolean isCellEmpty();
 

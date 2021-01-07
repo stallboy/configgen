@@ -12,10 +12,19 @@ import java.util.*;
 
 public class VTable extends Node {
     private final TTable tTable;
+    /**
+     * 对应与一行一行csv的value 列表
+     */
     private final List<VBean> vBeanList;
+    /**
+     * 主键和唯一键的value集合，不能冲突
+     */
     final Set<Value> primaryKeyValueSet = new LinkedHashSet<>();
     final Map<String, Set<Value>> uniqueKeyValueSetMap = new LinkedHashMap<>();
 
+    /**
+     * 枚举的字符串集合
+     */
     private final Set<String> enumNames = new LinkedHashSet<>();
     private final Map<String, Integer> enumNameToIntegerValueMap = new LinkedHashMap<>();
 

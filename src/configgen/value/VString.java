@@ -6,7 +6,11 @@ import configgen.type.TString;
 import java.util.List;
 
 public class VString extends VPrimitive {
-    public final String value; //生成代码用这个
+    /**
+     * 生成代码用这个
+     * 如果是i18n，即要国际化，那构造时会直接提取设置此value，这样对Generator隐藏掉这个机制
+     */
+    public final String value;
 
     VString(TString type, List<Cell> data) {
         super(type, data);
@@ -17,7 +21,7 @@ public class VString extends VPrimitive {
             String originalValue = raw.data;
             String v = AllValue.getCurrent().getCtx().getI18n().enterText(originalValue);
             value = v != null ? v : originalValue;
-            if ( AllValue.getCurrent().getCtx().isI18n() && v == null && !originalValue.isEmpty() ){
+            if (AllValue.getCurrent().getCtx().isI18n() && v == null && !originalValue.isEmpty()) {
                 System.out.println("未找到 " + type.fullName() + ": " + originalValue);
             }
         }

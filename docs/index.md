@@ -19,3 +19,7 @@
 * [如何配置 - Configuration](/Configuration.md)
 
 * [常见问题 - FAQ](/FAQ.md)
+
+### 代码结构
+
+![](/arch.png)

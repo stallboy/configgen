@@ -9,10 +9,11 @@ import configgen.value.AllValue;
 import java.nio.file.Path;
 import java.util.Objects;
 
+
 public class Context {
     /**
-     * 完整的结构定义，xml <-> java object
-     * 注意fullDefine中，包含了完整的fullData，方便根据csv头的信息来自动修复autofix xml。
+     * 完整的结构定义，xml <-> object
+     * 注意fullDefine中，包含了完整的fullData，方便根据csv头的信息来自动修复AutoFix xml。
      * 这里假设 工作流是策划修改csv来改变配置结构，而基本不用手工修改xml，xml自动匹配csv，
      * 程序如果发现不合适，再手工修改xml。
      */
@@ -30,7 +31,7 @@ public class Context {
     private I18n i18n = new I18n();
 
     /**
-     * 这个是要实现客户端可在多国语言间切换语言
+     * 这个是要实现客户端可在多国语言间切换语言，所以客户端服务器都需要完整的多国语言信息，而不能如i18n那样直接替换
      */
     private LangSwitch langSwitch = null;
 

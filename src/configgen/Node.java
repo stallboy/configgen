@@ -7,6 +7,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * 这个类的目的，就是为了形成一颗树，这样
+ * 1. 方便打印中间一个节点的fullName
+ * 2. dump出整棵树，用于调试查看
+ */
 public class Node {
     protected Node root;
     public Node parent;

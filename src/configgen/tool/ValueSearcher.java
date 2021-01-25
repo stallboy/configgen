@@ -55,8 +55,14 @@ public class ValueSearcher {
 
             @Override
             public void visit(VBean value) {
-                for (Value valueValue : value.getValues()) {
-                    valueValue.accept(this);
+                if (value.getChildDynamicVBean() != null) {
+                    for (Value valueValue : value.getChildDynamicVBean().getValues()) {
+                        valueValue.accept(this);
+                    }
+                } else {
+                    for (Value valueValue : value.getValues()) {
+                        valueValue.accept(this);
+                    }
                 }
             }
         };

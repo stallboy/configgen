@@ -6,7 +6,6 @@ import configgen.define.Table;
 import configgen.type.TBean;
 import configgen.type.TTable;
 import configgen.type.Type;
-import configgen.util.CSVParser;
 
 import java.util.*;
 
@@ -40,7 +39,7 @@ public class VTable extends Node {
         int row = 1;
         for (List<String> rowData : tableData.getRecordList()) {
             row++; // 从2开始
-            if (CSVParser.isEmptyRecord(rowData)) {
+            if (rowData.isEmpty()) {
                 continue;
             }
 

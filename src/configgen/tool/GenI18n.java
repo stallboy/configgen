@@ -1,5 +1,6 @@
 package configgen.tool;
 
+import configgen.data.DataFormatUtils;
 import configgen.gen.*;
 import configgen.util.CSVWriter;
 import configgen.gen.I18n;
@@ -37,7 +38,7 @@ public final class GenI18n extends Generator implements I18n.Collector {
             }
         }
 
-        CSVWriter.writeToFile(file, encoding, rows);
+        DataFormatUtils.writeToFile(file, encoding, rows);
     }
 
     private final Map<String, Map<String, String>> table2TextMap = new TreeMap<>();

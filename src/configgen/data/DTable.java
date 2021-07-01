@@ -80,6 +80,35 @@ public class DTable extends Node {
         recordList = raw.subList(2, raw.size());
     }
 
+    // 读取excel数据时使用
+    public static List<List<String>> adjustRecords(List<List<String>> raw) {
+        List<String> nameLine = raw.get(1);
+        // 根据nameLine计算出有效列数量
+        int nameColumnsCnt = nameLine.size();
+        int uselessColumnsCnt = 0;
+        for (int i = nameLine.size() - 1; i >= 0; i--) {
+            if (nameLine.get(i).isEmpty()) {
+                uselessColumnsCnt++;
+            } else {
+                break;
+            }
+        }
+        int usefulColumnsCnt = nameColumnsCnt - uselessColumnsCnt;
+
+        // 根据有效列数量，填充未满的记录列，防止后续读取数据时数组越界，excel才会有这种问题
+        for (List<String> line : raw.subList(2, raw.size())) {
+            if (line.isEmpty()) {
+                continue;
+            }
+            while (line.size() < usefulColumnsCnt) {
+                line.add("");
+            }
+        }
+
+        return raw;
+    }
+
+
     public List<Integer> getAllColumnIndexes() {
         List<Integer> indexes = new ArrayList<>();
         for (DColumn col : dcolumns.values()) {

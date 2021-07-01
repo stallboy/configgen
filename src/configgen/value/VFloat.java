@@ -2,7 +2,7 @@ package configgen.value;
 
 import configgen.define.Range;
 import configgen.type.TFloat;
-import configgen.util.CSVParser;
+import configgen.util.PrimitiveParser;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class VFloat extends VPrimitive {
         super(type, data);
         float v = 0;
         try {
-            v = CSVParser.parseFloat(raw.data);
+            v = PrimitiveParser.parseFloat(raw.data);
         } catch (Exception e) {
             error(e);
         }

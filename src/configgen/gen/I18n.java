@@ -1,6 +1,6 @@
 package configgen.gen;
 
-import configgen.util.CSVParser;
+import configgen.data.DataFormatUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +32,7 @@ public final class I18n {
 
     I18n(Path path, String encoding, boolean crlfaslf) {
         map = new HashMap<>();
-        List<List<String>> rows = CSVParser.readFromFile(path, encoding);
+        List<List<String>> rows = DataFormatUtils.readFromFile(path.toFile(), encoding);
         List<String> row0 = rows.get(0);
         if (row0 == null) {
             throw new IllegalArgumentException("国际化i18n文件为空");
@@ -43,7 +43,7 @@ public final class I18n {
 
         isCRLFAsLF = crlfaslf;
         for (List<String> row : rows) {
-            if (CSVParser.isEmptyRecord(row)) {
+            if (row.isEmpty()) {
                 continue;
             }
             if (row.size() != 3) {

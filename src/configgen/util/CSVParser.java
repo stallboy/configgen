@@ -1,8 +1,10 @@
 package configgen.util;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 //import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 
 public final class CSVParser {
@@ -23,23 +25,17 @@ public final class CSVParser {
      * 好处是：一般的中文文件就都是GBK编码，
      * 如果国际化成泰语，GBK不行了，需要utf8，则只要此csv文件有bom头就ok
      */
-    public static List<List<String>> readFromFile(Path path, String encoding) {
-        try {
-            //使用reader很费内存
-            //Reader reader = new UnicodeReader(new BufferedInputStream(new FileInputStream(file)), encoding)
-            int nread = FileReadUtils.readAllBytes(path);
-            byte[] buf = FileReadUtils.getBuf();
+    public static List<List<String>> readFromFile(Path path, String encoding) throws IOException {
+        //使用reader很费内存
+        //Reader reader = new UnicodeReader(new BufferedInputStream(new FileInputStream(file)), encoding)
+        int nread = FileReadUtils.readAllBytes(path);
+        byte[] buf = FileReadUtils.getBuf();
 
-            BomChecker.Res bom = BomChecker.checkBom(buf, nread, encoding);
-            String fileStr = new String(buf, bom.bomSize, nread - bom.bomSize, bom.encoding);
-            return parse(fileStr);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        BomChecker.Res bom = BomChecker.checkBom(buf, nread, encoding);
+        String fileStr = new String(buf, bom.bomSize, nread - bom.bomSize, bom.encoding);
+        return parse(fileStr);
     }
 
-
-    private static ArrayList<String> emptyRecord = new ArrayList<>();
     private static StringBuilder field = new StringBuilder(128); //这里假设是单线程
 
     //https://tools.ietf.org/html/rfc4180
@@ -185,9 +181,9 @@ public final class CSVParser {
         record.add(s);
     }
 
-    private static void addRecord(ArrayList<List<String>> result, ArrayList<String> record) {
+    private static void addRecord(ArrayList<List<String>> result, List<String> record) {
         if (!checkRecordHasContent(record)) {
-            record = emptyRecord; //作为空行标记
+            record = Collections.emptyList(); //作为空行标记
         }
 
         result.add(record);
@@ -200,32 +196,6 @@ public final class CSVParser {
             }
         }
         return false;
-    }
-
-    public static boolean isEmptyRecord(List<String> record) {
-        return record == emptyRecord;
-    }
-
-
-
-    public static boolean parseBoolean(String s) {
-        String t = s.trim();
-        return t.equals("1") || t.equalsIgnoreCase("true");
-    }
-
-    public static float parseFloat(String s) {
-        String t = s.trim();
-        return t.isEmpty() ? 0.f : Float.parseFloat(t);
-    }
-
-    public static int parseInt(String s) {
-        String t = s.trim();
-        return t.isEmpty() ? 0 : Integer.decode(t);
-    }
-
-    public static long parseLong(String s) {
-        String t = s.trim();
-        return t.isEmpty() ? 0 : Long.decode(t);
     }
 
 }

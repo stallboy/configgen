@@ -6,37 +6,45 @@ import configgen.define.AllDefine;
 import configgen.define.Table;
 import configgen.type.AllType;
 import configgen.type.TTable;
-import configgen.util.CSVParser;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class AllData extends Node {
-    private final Path dataDir;
-    private final Map<String, DTable> dTables = new HashMap<>();
+    private final Map<String, DTable> dTables = new HashMap<>();;
 
-    public AllData(Path _dataDir, String dataEncoding) {
+    public AllData(Path dataDir, String dataEncoding) {
         super(null, "AllData");
-        dataDir = _dataDir;
 
         if (Files.isDirectory(dataDir)) {
             try {
                 Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                     @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes a) {
-                        String path = dataDir.relativize(file).toString();
-                        if (path.endsWith(".csv")) {
-                            String p = path.substring(0, path.length() - 4);
-                            String configName = String.join(".", p.split("[\\\\/]")).toLowerCase();
-                            List<List<String>> allLines = CSVParser.readFromFile(file, dataEncoding);
+                    public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
+                        File file = path.toFile();
+                        EFileFormat fileFormat = DataFormatUtils.getFileFormat(file);
+                        if (fileFormat != EFileFormat.NONE) {
+                            String pathName = dataDir.relativize(path).toString();
+                            String pathWithoutExtension = pathName;
+                            int i = pathName.lastIndexOf('.');
+                            if (i >= 0) {
+                                pathWithoutExtension = pathName.substring(0, i);
+                            }
+                            String configName = String.join(".", pathWithoutExtension.split("[\\\\/]")).toLowerCase();
+                            List<List<String>> allLines = DataFormatUtils.readFromFile(file, dataEncoding);
                             // Logger.mm(file.toString());
                             dTables.put(configName, new DTable(AllData.this, configName, allLines));
                         }
+
                         return FileVisitResult.CONTINUE;
                     }
                 });
@@ -45,7 +53,6 @@ public class AllData extends Node {
             }
         }
     }
-
 
     public Map<String, DTable> getDTables() {
         return dTables;

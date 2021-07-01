@@ -59,13 +59,9 @@ public class CSVWriter {
     }
 
 
-    public static void writeToFile(File file, String encoding, List<List<String>> rows) {
-        try {
-            try(Writer w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), encoding))){
-                write(w, rows);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    public static void writeToFile(File file, String encoding, List<List<String>> rows) throws IOException {
+        try(Writer w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), encoding))){
+            write(w, rows);
         }
     }
 

@@ -2,7 +2,7 @@ package configgen.value;
 
 import configgen.define.Range;
 import configgen.type.TInt;
-import configgen.util.CSVParser;
+import configgen.util.PrimitiveParser;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class VInt extends VPrimitive {
         super(type, data);
         int v = 0;
         try {
-            v = CSVParser.parseInt(raw.data);
+            v = PrimitiveParser.parseInt(raw.data);
         } catch (Exception e) {
             error(e);
         }

@@ -36,7 +36,7 @@ public final class CSVParser {
         return parse(fileStr);
     }
 
-    private static StringBuilder field = new StringBuilder(128); //这里假设是单线程
+    private static final StringBuilder field = new StringBuilder(128); //这里假设是单线程
 
     //https://tools.ietf.org/html/rfc4180
     public static List<List<String>> parse(String source) {
@@ -74,7 +74,7 @@ public final class CSVParser {
                 case NO_QUOTE:
                     switch (c) {
                         case comma:
-                            addField(record, field);
+                            addField(record);
                             state = State.START;
                             break;
                         case cr:
@@ -100,7 +100,7 @@ public final class CSVParser {
                 case QUOTE2:
                     switch (c) {
                         case comma:
-                            addField(record, field);
+                            addField(record);
                             state = State.START;
                             break;
                         case quote:
@@ -121,11 +121,11 @@ public final class CSVParser {
                     switch (c) {
                         case comma:
                             field.append(cr);
-                            addField(record, field);
+                            addField(record);
                             state = State.START;
                             break;
                         case lf:
-                            addField(record, field);
+                            addField(record);
                             addRecord(result, record);
 
                             record = new ArrayList<>(record.size()); //优化下存储
@@ -150,11 +150,11 @@ public final class CSVParser {
                 break;
             case CR:
                 field.append(cr);
-                addField(record, field);
+                addField(record);
                 addRecord(result, record);
                 break;
             default:
-                addField(record, field);
+                addField(record);
                 addRecord(result, record);
                 break;
         }
@@ -165,8 +165,8 @@ public final class CSVParser {
 
 //    private static HashMap<String, String> stringCache = new HashMap<>(1024);
 
-    private static void addField(ArrayList<String> record, StringBuilder field) {
-        String s = field.toString();
+    private static void addField(ArrayList<String> record) {
+        String s = CSVParser.field.toString();
 
         if (s.length() < 5) {//与速度和内存间取个平衡吧
 //            String c = stringCache.get(s);

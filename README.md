@@ -22,6 +22,4 @@
 
 * [常见问题 - FAQ](https://stallboy.github.io/configgen/FAQ.html)
 
-## 代码结构
-
-![](docs/arch.png)
+* [常见问题 - Design](https://stallboy.github.io/configgen/Design.html)

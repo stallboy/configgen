@@ -37,6 +37,7 @@ public class NestListParser {
         for (char c : str.toCharArray()) {
             switch (state) {
                 case START:
+                    //noinspection StatementWithEmptyBody
                     if (c == whitespace) {
                         // ignore, stay at START state
                     } else if (c == separator) {
@@ -115,6 +116,7 @@ public class NestListParser {
                     }
                     break;
                 case PARENTHESES_OK:
+                    //noinspection StatementWithEmptyBody
                     if (c == whitespace) {
                         // ignore, stay at START state
                     } else if (c == separator) {
@@ -161,6 +163,7 @@ public class NestListParser {
         for (char c : str.toCharArray()) {
             switch (state) {
                 case START:
+                    //noinspection StatementWithEmptyBody
                     if (c == whitespace) {
                         // ignore, stay at START state
                     } else if (parameters_ok) {

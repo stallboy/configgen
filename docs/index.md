@@ -14,12 +14,10 @@
 
 * 生成lua注重内存大小
 
-* [完整介绍 - 策划配置系统](/ConfiggenIntro.pdf)
+* [完整介绍 - 策划配置系统](ConfiggenIntro.pdf)
 
-* [如何配置 - Configuration](/Configuration.md)
+* [如何配置 - Configuration](Configuration.md)
 
-* [常见问题 - FAQ](/FAQ.md)
+* [常见问题 - FAQ](FAQ.md)
 
-### 代码结构
-
-![](/arch.png)
+* [代码设计 - Design](Design.md)

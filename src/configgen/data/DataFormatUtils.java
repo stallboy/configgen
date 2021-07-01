@@ -12,21 +12,17 @@ import java.util.List;
 
 public class DataFormatUtils {
 
-    private static String getFileExtension(File file) {
+    public static EFileFormat getFileFormat(File file) {
         String fileName = file.getName();
+        String ext = "";
         int i = fileName.lastIndexOf('.');
         if (i >= 0) {
-            return fileName.substring(i + 1);
+            ext = fileName.substring(i + 1);
         }
-        return "";
-    }
 
-    public static EFileFormat getFileFormat(File file) {
-        String extension = getFileExtension(file);
-
-        if ("csv".equalsIgnoreCase(extension)) {
+        if ("csv".equalsIgnoreCase(ext)) {
             return EFileFormat.CSV;
-        } else if ("xlsx".equalsIgnoreCase(extension)) {
+        } else if ("xlsx".equalsIgnoreCase(ext)) {
             return EFileFormat.EXCEL;
         }
 
@@ -49,7 +45,7 @@ public class DataFormatUtils {
 
     private static List<List<String>> readFromFile0(EFileFormat fileFormat, File file, String encoding)
             throws IOException, InvalidFormatException {
-        switch (fileFormat){
+        switch (fileFormat) {
             case CSV:
                 return CSVParser.readFromFile(file.toPath(), encoding);
             case EXCEL:

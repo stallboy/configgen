@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class AllData extends Node {
-    private final Map<String, DTable> dTables = new HashMap<>();;
+    private final Map<String, DTable> dTables = new HashMap<>();
 
     public AllData(Path dataDir, String dataEncoding) {
         super(null, "AllData");
@@ -42,7 +42,7 @@ public class AllData extends Node {
                             String configName = String.join(".", pathWithoutExtension.split("[\\\\/]")).toLowerCase();
                             List<List<String>> allLines = DataFormatUtils.readFromFile(file, dataEncoding);
                             // Logger.mm(file.toString());
-                            dTables.put(configName, new DTable(AllData.this, configName, allLines));
+                            dTables.put(configName, new DTable(AllData.this, configName, allLines, fileFormat));
                         }
 
                         return FileVisitResult.CONTINUE;

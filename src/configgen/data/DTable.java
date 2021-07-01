@@ -17,7 +17,7 @@ public class DTable extends Node {
      * 2. 第二行nameLine, 英文，程序用。
      * 记录下来用于生成代码
      */
-    private final Map<String, DColumn> dcolumns = new LinkedHashMap<>();
+    private final Map<String, DColumn> dColumns = new LinkedHashMap<>();
     private final List<String> descLine;
     private final List<String> nameLine;
 
@@ -59,13 +59,13 @@ public class DTable extends Node {
     void setTableType(TTable tableType) {
         this.tableType = tableType;
 
-        for (DColumn col : dcolumns.values()) {
+        for (DColumn col : dColumns.values()) {
             col.setColumnType(tableType.getTBean().getColumn(col.name));
         }
     }
 
 
-    DTable(AllData parent, String name, List<List<String>> raw) {
+    DTable(AllData parent, String name, List<List<String>> raw, EFileFormat format) {
         super(parent, name);
         if (raw.size() < 2) {
             System.out.println(fullName() + " 数据行数小于2");
@@ -75,13 +75,17 @@ public class DTable extends Node {
             throw new AssertionError();
         }
 
+        if (format == EFileFormat.EXCEL) {
+            adjustRecords(raw);
+        }
+
         descLine = raw.get(0);
         nameLine = raw.get(1);
         recordList = raw.subList(2, raw.size());
     }
 
-    // 读取excel数据时使用
-    public static List<List<String>> adjustRecords(List<List<String>> raw) {
+    // 读取excel数据时使用, 防止后续的读取不到数据出现数组越界
+    private static void adjustRecords(List<List<String>> raw) {
         List<String> nameLine = raw.get(1);
         // 根据nameLine计算出有效列数量
         int nameColumnsCnt = nameLine.size();
@@ -104,14 +108,12 @@ public class DTable extends Node {
                 line.add("");
             }
         }
-
-        return raw;
     }
 
 
     public List<Integer> getAllColumnIndexes() {
         List<Integer> indexes = new ArrayList<>();
-        for (DColumn col : dcolumns.values()) {
+        for (DColumn col : dColumns.values()) {
             indexes.addAll(col.indexes);
         }
         return indexes;
@@ -130,7 +132,7 @@ public class DTable extends Node {
         LinkedHashMap<String, Column> columnMapCopy = tableToFix.getColumnMapCopy();
 
         tableToFix.clearColumns();
-        for (DColumn col : dcolumns.values()) {
+        for (DColumn col : dColumns.values()) {
             Column column = columnMapCopy.remove(col.name);
             if (column != null) {
                 String newDesc = col.desc();
@@ -374,7 +376,6 @@ public class DTable extends Node {
                 put(A + "2", ABSpan.get(2));
                 break;
             case NORM:
-                break;
             default:
                 break;
         }
@@ -390,11 +391,11 @@ public class DTable extends Node {
         DColumn col = new DColumn(this, s);
         col.indexes.addAll(a);
         col.descs.addAll(a.stream().map(descLine::get).collect(Collectors.toList()));
-        require(null == dcolumns.put(s, col), "列重复", s);
+        require(null == dColumns.put(s, col), "列重复", s);
     }
 
     private void add(String s, int i) {
-        DColumn col = dcolumns.get(s);
+        DColumn col = dColumns.get(s);
         col.indexes.add(i);
         col.descs.add(descLine.get(i));
     }

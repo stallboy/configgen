@@ -1,6 +1,5 @@
 package configgen.util;
 
-import configgen.data.DTable;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
@@ -22,9 +21,8 @@ public class ExcelReader {
         try (XSSFWorkbook workbook = new XSSFWorkbook(file)) {
             FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
             XSSFSheet sheet = getDataSheet(file, workbook);
-            List<List<String>> allLines = readSheet(sheet, evaluator);
 
-            return DTable.adjustRecords(allLines); // 防止后续的读取不到数据出现数组越界
+            return readSheet(sheet, evaluator);
         }
     }
 

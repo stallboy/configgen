@@ -22,4 +22,4 @@
 
 * [常见问题 - FAQ](https://stallboy.github.io/configgen/FAQ.html)
 
-* [常见问题 - Design](https://stallboy.github.io/configgen/Design.html)
+* [代码设计 - Design](https://stallboy.github.io/configgen/Design.html)

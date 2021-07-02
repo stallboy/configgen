@@ -6,6 +6,10 @@ import configgen.define.AllDefine;
 import configgen.define.Table;
 import configgen.type.AllType;
 import configgen.type.TTable;
+import configgen.util.EFileFormat;
+import configgen.util.SheetData;
+import configgen.util.SheetHandler;
+import configgen.util.SheetUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,10 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class AllData extends Node {
     private final Map<String, DTable> dTables = new HashMap<>();
@@ -25,32 +26,39 @@ public class AllData extends Node {
     public AllData(Path dataDir, String dataEncoding) {
         super(null, "AllData");
 
-        if (Files.isDirectory(dataDir)) {
-            try {
-                Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
-                        File file = path.toFile();
-                        EFileFormat fileFormat = DataFormatUtils.getFileFormat(file);
-                        if (fileFormat != EFileFormat.NONE) {
-                            String pathName = dataDir.relativize(path).toString();
-                            String pathWithoutExtension = pathName;
-                            int i = pathName.lastIndexOf('.');
-                            if (i >= 0) {
-                                pathWithoutExtension = pathName.substring(0, i);
-                            }
-                            String configName = String.join(".", pathWithoutExtension.split("[\\\\/]")).toLowerCase();
-                            List<List<String>> allLines = DataFormatUtils.readFromFile(file, dataEncoding);
-                            // Logger.mm(file.toString());
-                            dTables.put(configName, new DTable(AllData.this, configName, allLines, fileFormat));
-                        }
+        if (!Files.isDirectory(dataDir)) {
+            throw new IllegalArgumentException("配置顶级目录必须是目录. dataDir = " + dataDir);
+        }
+        Map<String, List<DSheet>> dSheetMap = new TreeMap<>();
+        try {
+            Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
+                    List<SheetData> sheetDataList =
+                            SheetUtils.readFromFile(path.toFile(), new ReadOption(dataEncoding));
 
-                        return FileVisitResult.CONTINUE;
+                    for (SheetData sheetData : sheetDataList) {
+                        DSheet sheet = DSheet.create(dataDir, AllData.this, sheetData);
+                        List<DSheet> sheetList = dSheetMap.get(sheet.getConfigName());
+                        if (sheetList == null) {
+                            dSheetMap.put(sheet.getConfigName(), sheetList = new ArrayList<>());
+                        }
+                        sheetList.add(sheet);
                     }
-                });
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        for (Map.Entry<String, List<DSheet>> e : dSheetMap.entrySet()) {
+            String configName = e.getKey();
+            List<DSheet> sheetList = e.getValue();
+
+            DTable dTable = new DTable(AllData.this, configName, sheetList);
+            dTables.put(configName, dTable);
         }
     }
 
@@ -93,5 +101,27 @@ public class AllData extends Node {
         }
     }
 
+    class ReadOption extends SheetHandler.DefaultReadOption {
+
+        public ReadOption(String dataEncoding) {
+            super(dataEncoding);
+        }
+
+        @Override
+        public boolean acceptSheet(EFileFormat format, File file, String sheetName) {
+            if (format == EFileFormat.EXCEL) {
+                if (!sheetName.isEmpty()) {
+                    // 只接受首字母是英文字母的页签
+                    char firstChar = sheetName.charAt(0);
+                    if (('a' <= firstChar && firstChar <= 'z')
+                            || ('A' <= firstChar && firstChar <= 'Z')) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            return super.acceptSheet(format, file, sheetName);
+        }
+    }
 
 }

@@ -1,4 +1,4 @@
-package configgen.data;
+package configgen.util;
 
 public enum EFileFormat {
     NONE,

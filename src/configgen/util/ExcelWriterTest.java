@@ -1,6 +1,5 @@
 package configgen.util;
 
-import configgen.data.DataFormatUtils;
 import org.junit.Test;
 
 import java.io.File;
@@ -20,7 +19,7 @@ public class ExcelWriterTest {
                 Arrays.asList(String.valueOf(2), "test2", "hello\nworld", "")
                 );
 
-        DataFormatUtils.writeToFile(new File(fileName), "UTF-8", rows);
+        SheetUtils.writeToFile(new File(fileName), rows, new SheetHandler.DefaultWriteOption("UTF-8"));
     }
 
 }

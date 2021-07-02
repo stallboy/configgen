@@ -1,5 +1,8 @@
 package configgen.gen;
 
+import configgen.util.EFileFormat;
+import configgen.util.SheetUtils;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -38,10 +41,14 @@ public class LangSwitch {
         langMap.put("zh_cn", new Lang("zh_cn", new I18n())); //原始csv里是中文
         try {
             Files.list(Paths.get(path)).forEach(langFilePath -> {
-                String langFileName = langFilePath.getFileName().toString();
-                if (langFileName.endsWith(".csv")) {
-                    String lang = langFileName.substring(0, langFileName.length() - 4);
-                    langMap.put(lang, new Lang(lang, new I18n(langFilePath, encoding, crlfaslf)));
+                EFileFormat format = SheetUtils.getFileFormat(langFilePath.toFile());
+                if (format != EFileFormat.NONE) {
+                    String langName = langFilePath.getFileName().toString();
+                    int i = langName.lastIndexOf(".");
+                    if (i >= 0) {
+                        langName = langName.substring(0, i);
+                    }
+                    langMap.put(langName, new Lang(langName, new I18n(langFilePath, encoding, crlfaslf)));
                 }
             });
         } catch (IOException e) {

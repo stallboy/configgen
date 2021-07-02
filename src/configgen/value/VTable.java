@@ -1,6 +1,7 @@
 package configgen.value;
 
 import configgen.Node;
+import configgen.data.DSheet;
 import configgen.data.DTable;
 import configgen.define.Table;
 import configgen.type.TBean;
@@ -35,23 +36,31 @@ public class VTable extends Node {
         List<Integer> allColumnIndexes = tableData.getAllColumnIndexes();
         require(allColumnIndexes.size() > 0);
 
-        vBeanList = new ArrayList<>(tableData.getRecordList().size());
-        int row = 1;
-        for (List<String> rowData : tableData.getRecordList()) {
-            row++; // 从2开始
-            if (rowData.isEmpty()) {
-                continue;
-            }
+        DSheet[] sheets = tableData.getSheets();
+        int totalRecords = 0;
+        for (DSheet sheet : sheets) {
+            totalRecords += sheet.getRecordList().size();
+        }
 
-            // 转换为AData
-            List<Cell> cells = new ArrayList<>(allColumnIndexes.size());
-            for (Integer columnIndex : allColumnIndexes) {
-                Cell c = new Cell(row, columnIndex, rowData.get(columnIndex));
-                cells.add(c);
+        vBeanList = new ArrayList<>(totalRecords);
+        for (DSheet sheet : sheets) {
+            int row = 1;
+            for (List<String> record : sheet.getRecordList()) {
+                row++; // 从2开始
+                if (record.isEmpty()) {
+                    continue;
+                }
+
+                // 转换为AData
+                List<Cell> cells = new ArrayList<>(allColumnIndexes.size());
+                for (Integer columnIndex : allColumnIndexes) {
+                    Cell c = new Cell(row, columnIndex, record.get(columnIndex));
+                    cells.add(c);
+                }
+                AData<TBean> adata = new AData<>(cells, tableData.getTableType().getTBean(), false);
+                VBean vbean = new VBean(ttable.getTBean(), adata);
+                vBeanList.add(vbean);
             }
-            AData<TBean> adata = new AData<>(cells, tableData.getTableType().getTBean(), false);
-            VBean vbean = new VBean(ttable.getTBean(), adata);
-            vBeanList.add(vbean);
         }
 
         // 收集主键和唯一键

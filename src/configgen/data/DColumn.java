@@ -46,13 +46,15 @@ final class DColumn extends Node {
 
     private Set<String> dataSet() {
         Set<String> r = new HashSet<>();
-        for (List<String> row : ((DTable) parent).getRecordList()) {
-            if (row.isEmpty()) {
-                continue;
-            }
+        for (DSheet sheet : ((DTable) parent).getSheets()) {
+            for (List<String> record : sheet.getRecordList()) {
+                if (record.isEmpty()) {
+                    continue;
+                }
 
-            for (Integer index : indexes) {
-                r.add(row.get(index));
+                for (Integer index : indexes) {
+                    r.add(record.get(index));
+                }
             }
         }
         return r;
@@ -66,19 +68,21 @@ final class DColumn extends Node {
 
     private Pair dataKeyValueSet() {
         Pair res = new Pair();
-        for (List<String> row : ((DTable) parent).getRecordList()) {
-            if (row.isEmpty()) {
-                continue;
-            }
+        for (DSheet sheet : ((DTable) parent).getSheets()) {
+            for (List<String> record : sheet.getRecordList()) {
+                if (record.isEmpty()) {
+                    continue;
+                }
 
-            int i = 0;
-            for (Integer index : indexes) {
-                String r = row.get(index);
-                if (i % 2 == 0)
-                    res.key.add(r);
-                else
-                    res.value.add(r);
-                i++;
+                int i = 0;
+                for (Integer index : indexes) {
+                    String r = record.get(index);
+                    if (i % 2 == 0)
+                        res.key.add(r);
+                    else
+                        res.value.add(r);
+                    i++;
+                }
             }
         }
         return res;

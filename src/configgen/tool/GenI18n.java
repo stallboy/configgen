@@ -1,9 +1,10 @@
 package configgen.tool;
 
-import configgen.data.DataFormatUtils;
 import configgen.gen.*;
-import configgen.util.CSVWriter;
 import configgen.gen.I18n;
+import configgen.util.SheetData;
+import configgen.util.SheetHandler;
+import configgen.util.SheetUtils;
 
 import java.io.File;
 import java.util.*;
@@ -38,7 +39,7 @@ public final class GenI18n extends Generator implements I18n.Collector {
             }
         }
 
-        DataFormatUtils.writeToFile(file, encoding, rows);
+        SheetUtils.writeToFile(SheetData.valueOf(file, rows), new SheetHandler.DefaultWriteOption(encoding));
     }
 
     private final Map<String, Map<String, String>> table2TextMap = new TreeMap<>();

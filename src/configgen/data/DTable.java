@@ -10,6 +10,14 @@ import configgen.type.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 一个DTable拆分到多个的表格中配置，每个表格用SheetData表示
+ * 约定表格必须在同一个文件夹下，且名称为 xxx 或者 xxx_0,xxx_1,xxx_2,xxx_3 ...
+ * 比如task表，
+ * 如果是csv配置，可以拆分成：task.csv(同task_0.csv)，task_1.csv，task_2.csv
+ * 如果是excel配置，excel中的页签名称可以拆分成：task(同task_0)，task_1，task_2
+ *
+ */
 public class DTable extends Node {
     /**
      * csv前两行的信息，
@@ -18,14 +26,7 @@ public class DTable extends Node {
      * 记录下来用于生成代码
      */
     private final Map<String, DColumn> dColumns = new LinkedHashMap<>();
-    private final List<String> descLine;
-    private final List<String> nameLine;
-
-    /**
-     * csv2行之后的所有的数据， csv -> list.list.str
-     */
-    private final List<List<String>> recordList;
-
+    private final DSheet[] sheets;
 
     /**
      * 解析好fullType后，附着到Data上，因为之后生成Value时可能只会用 不全的Type
@@ -65,51 +66,36 @@ public class DTable extends Node {
     }
 
 
-    DTable(AllData parent, String name, List<List<String>> raw, EFileFormat format) {
-        super(parent, name);
-        if (raw.size() < 2) {
-            System.out.println(fullName() + " 数据行数小于2");
-            for (List<String> strings : raw) {
-                System.out.println(String.join(",", strings));
-            }
-            throw new AssertionError();
+    DTable(AllData parent, String configName, List<DSheet> sheetList) {
+        super(parent, configName);
+
+        DSheet[] sheets = sheetList.toArray(new DSheet[sheetList.size()]);
+        if (sheets.length > 1) {
+            // 按表格序号排序
+            Arrays.sort(sheets, Comparator.comparing(DSheet::getTableIndex));
+        }
+        this.sheets = sheets;
+
+        // 首个表格序号必须是0
+        DSheet firstSheet = sheets[0];
+        if (firstSheet.getTableIndex() != 0) {
+            throw new AssertionError("首个表格序号必须是0。，当前序号是：" + firstSheet.getTableIndex() +
+                    ", 表 = " + firstSheet.fullName());
         }
 
-        if (format == EFileFormat.EXCEL) {
-            adjustRecords(raw);
-        }
-
-        descLine = raw.get(0);
-        nameLine = raw.get(1);
-        recordList = raw.subList(2, raw.size());
-    }
-
-    // 读取excel数据时使用, 防止后续的读取不到数据出现数组越界
-    private static void adjustRecords(List<List<String>> raw) {
-        List<String> nameLine = raw.get(1);
-        // 根据nameLine计算出有效列数量
-        int nameColumnsCnt = nameLine.size();
-        int uselessColumnsCnt = 0;
-        for (int i = nameLine.size() - 1; i >= 0; i--) {
-            if (nameLine.get(i).isEmpty()) {
-                uselessColumnsCnt++;
-            } else {
-                break;
+        // 表格序号不能重复，先允许不连续吧
+        for (int i = 1; i < sheets.length; i++) {
+            if (sheets[i - 1].getTableIndex() + 1 != sheets[i].getTableIndex()) {
+                throw new AssertionError("拆分的表格序号不连续。 当前表 = " + sheets[i - 1].fullName() +
+                        ", 下一个表 = " + sheets[i].fullName());
             }
         }
-        int usefulColumnsCnt = nameColumnsCnt - uselessColumnsCnt;
 
-        // 根据有效列数量，填充未满的记录列，防止后续读取数据时数组越界，excel才会有这种问题
-        for (List<String> line : raw.subList(2, raw.size())) {
-            if (line.isEmpty()) {
-                continue;
-            }
-            while (line.size() < usefulColumnsCnt) {
-                line.add("");
-            }
+        // 其他表格的列必须和首个表格列一致
+        for (int i = 1; i < sheets.length; i++) {
+            firstSheet.assertCompatible(sheets[i]);
         }
     }
-
 
     public List<Integer> getAllColumnIndexes() {
         List<Integer> indexes = new ArrayList<>();
@@ -119,8 +105,16 @@ public class DTable extends Node {
         return indexes;
     }
 
-    public List<List<String>> getRecordList() {
-        return recordList;
+    private List<String> getDescLine() {
+        return sheets[0].getDescLine();
+    }
+
+    private List<String> getNameLine() {
+        return sheets[0].getNameLine();
+    }
+
+    public DSheet[] getSheets() {
+        return sheets;
     }
 
 
@@ -170,7 +164,7 @@ public class DTable extends Node {
 
         state = State.NORM;
         index = -1;
-        for (String s : nameLine) {
+        for (String s : getNameLine()) {
             index++;
             if (s.isEmpty())
                 continue;
@@ -390,13 +384,13 @@ public class DTable extends Node {
     private void put(String s, List<Integer> a) {
         DColumn col = new DColumn(this, s);
         col.indexes.addAll(a);
-        col.descs.addAll(a.stream().map(descLine::get).collect(Collectors.toList()));
+        col.descs.addAll(a.stream().map(getDescLine()::get).collect(Collectors.toList()));
         require(null == dColumns.put(s, col), "列重复", s);
     }
 
     private void add(String s, int i) {
         DColumn col = dColumns.get(s);
         col.indexes.add(i);
-        col.descs.add(descLine.get(i));
+        col.descs.add(getDescLine().get(i));
     }
 }

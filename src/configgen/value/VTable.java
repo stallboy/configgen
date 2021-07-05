@@ -35,6 +35,7 @@ public class VTable extends Node {
         parent.getCtx().getI18n().enterTable(name);
         List<Integer> allColumnIndexes = tableData.getAllColumnIndexes();
         require(allColumnIndexes.size() > 0);
+        int maxColumnIndex = allColumnIndexes.stream().mapToInt(Integer::intValue).max().getAsInt();
 
         DSheet[] sheets = tableData.getSheets();
         int totalRecords = 0;
@@ -44,11 +45,15 @@ public class VTable extends Node {
 
         vBeanList = new ArrayList<>(totalRecords);
         for (DSheet sheet : sheets) {
-            int row = 1;
+            int row = 2;
             for (List<String> record : sheet.getRecordList()) {
-                row++; // 从2开始
+                row++; // 从3开始
                 if (record.isEmpty()) {
                     continue;
+                }
+                if (record.size() <= maxColumnIndex) {
+                    error("当前行的列数和名称行不匹配. 名称行要求至少[" + (maxColumnIndex + 1) + "]列，当前行仅[" + record.size() + "]列"
+                            + ",sheet=" + sheet.name + ",row=" + row);
                 }
 
                 // 转换为AData

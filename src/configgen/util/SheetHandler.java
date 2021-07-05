@@ -14,32 +14,32 @@ import java.util.List;
 
 public interface SheetHandler {
 
-    List<SheetData> readFromFile(File file, ReadOption option) throws IOException, InvalidFormatException;
+    List<SheetData> readFromFile(File file, String encoding, ReadFilter filter) throws IOException, InvalidFormatException;
 
-    void writeToFile(List<SheetData> sheetDataList, WriteOption option) throws IOException, InvalidFormatException;
+    void writeToFile(List<SheetData> sheetDataList, String encoding) throws IOException, InvalidFormatException;
 
     class CSVHandler implements SheetHandler {
 
         @Override
-        public List<SheetData> readFromFile(File file, ReadOption option) throws IOException {
+        public List<SheetData> readFromFile(File file, String encoding, ReadFilter filter) throws IOException {
             String fileName = file.getName();
             String sheetName = fileName;
             int i = fileName.lastIndexOf('.');
             if (i >= 0) {
                 sheetName = fileName.substring(0, i);
             }
-            if (!option.acceptSheet(EFileFormat.CSV, file, sheetName)) {
+            if (!filter.acceptSheet(EFileFormat.CSV, file, sheetName)) {
                 return Collections.emptyList();
             }
-            List<List<String>> rows = CSVParser.readFromFile(file.toPath(), option.dataEncoding());
+            List<List<String>> rows = CSVParser.readFromFile(file.toPath(), encoding);
 
             return Collections.singletonList(new SheetData(EFileFormat.CSV, file, sheetName, rows));
         }
 
         @Override
-        public void writeToFile(List<SheetData> sheetDataList, WriteOption option) throws IOException {
+        public void writeToFile(List<SheetData> sheetDataList, String encoding) throws IOException {
             for (SheetData sheetData : sheetDataList) {
-                CSVWriter.writeToFile(sheetData.file, option.dataEncoding(), sheetData.rows);
+                CSVWriter.writeToFile(sheetData.file, encoding, sheetData.rows);
             }
         }
     }
@@ -48,15 +48,14 @@ public interface SheetHandler {
     class ExcelHandler implements SheetHandler {
 
         @Override
-        public List<SheetData> readFromFile(File file, ReadOption option) throws IOException, InvalidFormatException {
+        public List<SheetData> readFromFile(File file, String encoding, ReadFilter filter) throws IOException, InvalidFormatException {
             List<SheetData> sheetDataList = new ArrayList<>();
             try (Workbook workbook = WorkbookFactory.create(file)) {
                 FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
                 for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
                     Sheet sheet = workbook.getSheetAt(sheetIndex);
                     String sheetName = sheet.getSheetName().trim();
-                    //暂时约定已下划线开头的sheet为非数据sheet，不读
-                    if (!option.acceptSheet(EFileFormat.EXCEL, file, sheetName)) {
+                    if (!filter.acceptSheet(EFileFormat.EXCEL, file, sheetName)) {
                         continue;
                     }
 
@@ -69,56 +68,17 @@ public interface SheetHandler {
         }
 
         @Override
-        public void writeToFile(List<SheetData> sheetDataList, WriteOption option)
+        public void writeToFile(List<SheetData> sheetDataList, String encoding)
                 throws IOException, InvalidFormatException {
             ExcelWriter.writeToFile(sheetDataList);
         }
     }
 
 
-    interface ReadOption {
-
-        String dataEncoding();
+    interface ReadFilter {
 
         boolean acceptSheet(EFileFormat format, File file, String sheetName);
 
-    }
-
-    class DefaultReadOption implements ReadOption {
-        private final String dataEncoding;
-
-        public DefaultReadOption(String dataEncoding) {
-            this.dataEncoding = dataEncoding;
-        }
-
-        @Override
-        public String dataEncoding() {
-            return this.dataEncoding;
-        }
-
-        @Override
-        public boolean acceptSheet(EFileFormat format, File file, String sheetName) {
-            return true;
-        }
-    }
-
-    interface WriteOption {
-
-        String dataEncoding();
-
-    }
-
-    class DefaultWriteOption implements WriteOption {
-        private final String dataEncoding;
-
-        public DefaultWriteOption(String dataEncoding) {
-            this.dataEncoding = dataEncoding;
-        }
-
-        @Override
-        public String dataEncoding() {
-            return this.dataEncoding;
-        }
     }
 
 }

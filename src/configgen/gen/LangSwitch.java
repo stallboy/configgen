@@ -42,7 +42,7 @@ public class LangSwitch {
         try {
             Files.list(Paths.get(path)).forEach(langFilePath -> {
                 EFileFormat format = SheetUtils.getFileFormat(langFilePath.toFile());
-                if (format != EFileFormat.NONE) {
+                if (format != null) {
                     String langName = langFilePath.getFileName().toString();
                     int i = langName.lastIndexOf(".");
                     if (i >= 0) {

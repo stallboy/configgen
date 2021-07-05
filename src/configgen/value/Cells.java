@@ -10,16 +10,16 @@ public class Cells {
 
     public static List<Cell> parseFunc(Cell dat) {
         return NestListParser.parseFunction(dat.data).stream().
-                map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+                map(s -> new Cell(dat.sheet, dat.row, dat.col, s)).collect(Collectors.toList());
     }
 
     public static List<Cell> parseNestList(Cell dat) {
         return NestListParser.parseNestList(dat.data).stream().
-                map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+                map(s -> new Cell(dat.sheet, dat.row, dat.col, s)).collect(Collectors.toList());
     }
 
     public static List<Cell> parseList(Cell dat, char separator) {
         return ListParser.parseList(dat.data, separator).stream().
-                map(s -> new Cell(dat.row, dat.col, s)).collect(Collectors.toList());
+                map(s -> new Cell(dat.sheet, dat.row, dat.col, s)).collect(Collectors.toList());
     }
 }

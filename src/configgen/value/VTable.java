@@ -54,7 +54,7 @@ public class VTable extends Node {
                 // 转换为AData
                 List<Cell> cells = new ArrayList<>(allColumnIndexes.size());
                 for (Integer columnIndex : allColumnIndexes) {
-                    Cell c = new Cell(row, columnIndex, record.get(columnIndex));
+                    Cell c = new Cell(sheet, row, columnIndex, record.get(columnIndex));
                     cells.add(c);
                 }
                 AData<TBean> adata = new AData<>(cells, tableData.getTableType().getTBean(), false);

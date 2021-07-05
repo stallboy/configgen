@@ -8,7 +8,6 @@ import configgen.type.AllType;
 import configgen.type.TTable;
 import configgen.util.EFileFormat;
 import configgen.util.SheetData;
-import configgen.util.SheetHandler;
 import configgen.util.SheetUtils;
 
 import java.io.File;
@@ -35,7 +34,7 @@ public class AllData extends Node {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
                     List<SheetData> sheetDataList =
-                            SheetUtils.readFromFile(path.toFile(), new ReadOption(dataEncoding));
+                            SheetUtils.readFromFile(path.toFile(), dataEncoding, AllData::acceptSheet);
 
                     for (SheetData sheetData : sheetDataList) {
                         DSheet sheet = DSheet.create(dataDir, AllData.this, sheetData);
@@ -98,25 +97,17 @@ public class AllData extends Node {
         }
     }
 
-    static class ReadOption extends SheetHandler.DefaultReadOption {
-
-        public ReadOption(String dataEncoding) {
-            super(dataEncoding);
-        }
-
-        @Override
-        public boolean acceptSheet(EFileFormat format, File file, String sheetName) {
-            if (format == EFileFormat.EXCEL) {
-                if (!sheetName.isEmpty()) {
-                    // 只接受首字母是英文字母的页签
-                    char firstChar = sheetName.charAt(0);
-                    return ('a' <= firstChar && firstChar <= 'z')
-                            || ('A' <= firstChar && firstChar <= 'Z');
-                }
-                return false;
+    private static boolean acceptSheet(EFileFormat format, File file, String sheetName) {
+        if (format == EFileFormat.EXCEL) {
+            if (!sheetName.isEmpty()) {
+                // 只接受首字母是英文字母的页签
+                char firstChar = sheetName.charAt(0);
+                return ('a' <= firstChar && firstChar <= 'z')
+                        || ('A' <= firstChar && firstChar <= 'Z');
             }
-            return super.acceptSheet(format, file, sheetName);
+            return false;
         }
+        return true;
     }
 
 }

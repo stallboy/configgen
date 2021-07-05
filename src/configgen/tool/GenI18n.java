@@ -39,7 +39,7 @@ public final class GenI18n extends Generator implements I18n.Collector {
             }
         }
 
-        SheetUtils.writeToFile(SheetData.valueOf(file, rows), new SheetHandler.DefaultWriteOption(encoding));
+        SheetUtils.writeToFile(SheetData.valueOf(file, rows), encoding);
     }
 
     private final Map<String, Map<String, String>> table2TextMap = new TreeMap<>();

@@ -31,21 +31,21 @@ public class SheetUtils {
             return EFileFormat.EXCEL;
         }
 
-        return EFileFormat.NONE;
+        return null;
     }
 
-    public static List<SheetData> readFromFile(File file, SheetHandler.ReadOption option) {
+    public static List<SheetData> readFromFile(File file, String encoding, SheetHandler.ReadFilter filter) {
         try {
-            return readFromFile0(file, option);
+            return readFromFile0(file, encoding, filter);
         } catch (IOException | InvalidFormatException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    private static List<SheetData> readFromFile0(File file, SheetHandler.ReadOption option)
+    private static List<SheetData> readFromFile0(File file, String encoding, SheetHandler.ReadFilter filter)
             throws IOException, InvalidFormatException {
         EFileFormat format = getFileFormat(file);
-        if (format == EFileFormat.NONE) {
+        if (format == null) {
             return Collections.emptyList();
         }
 
@@ -54,33 +54,33 @@ public class SheetUtils {
             throw new IllegalStateException("Unsupported EFileFormat. format = " + format + ", file = " + file);
         }
 
-        return sheetHandler.readFromFile(file, option);
+        return sheetHandler.readFromFile(file, encoding, filter);
     }
 
-    public static void writeToFile(File file, List<List<String>> rows, SheetHandler.WriteOption option) {
-        writeToFile(SheetData.valueOf(file, rows), option);
+    public static void writeToFile(File file, List<List<String>> rows, String encoding) {
+        writeToFile(SheetData.valueOf(file, rows), encoding);
     }
 
-    public static void writeToFile(File file, String sheetName, List<List<String>> rows, SheetHandler.WriteOption option) {
-        writeToFile(SheetData.valueOf(file, sheetName, rows), option);
+    public static void writeToFile(File file, String sheetName, List<List<String>> rows, String encoding) {
+        writeToFile(SheetData.valueOf(file, sheetName, rows), encoding);
     }
 
-    public static void writeToFile(SheetData sheetData, SheetHandler.WriteOption option) {
-        writeToFile(Collections.singletonList(sheetData), option);
+    public static void writeToFile(SheetData sheetData, String encoding) {
+        writeToFile(Collections.singletonList(sheetData), encoding);
     }
 
-    public static void writeToFile(List<SheetData> sheetDataList, SheetHandler.WriteOption option) {
+    public static void writeToFile(List<SheetData> sheetDataList, String encoding) {
         try {
-            writeToFile0(sheetDataList, option);
+            writeToFile0(sheetDataList, encoding);
         } catch (IOException | InvalidFormatException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    private static void writeToFile0(List<SheetData> sheetDataList, SheetHandler.WriteOption option)
+    private static void writeToFile0(List<SheetData> sheetDataList, String encoding)
             throws IOException, InvalidFormatException {
         if (sheetDataList.size() == 1) {
-            writeToFile0(sheetDataList.get(0).format, sheetDataList, option);
+            writeToFile0(sheetDataList.get(0).format, sheetDataList, encoding);
         }
         Map<EFileFormat, List<SheetData>> formatMap = new EnumMap<>(EFileFormat.class);
         for (SheetData sheetData : sheetDataList) {
@@ -89,18 +89,18 @@ public class SheetUtils {
         }
 
         for (Map.Entry<EFileFormat, List<SheetData>> e : formatMap.entrySet()) {
-            writeToFile0(e.getKey(), e.getValue(), option);
+            writeToFile0(e.getKey(), e.getValue(), encoding);
         }
     }
 
-    private static void writeToFile0(EFileFormat format, List<SheetData> sheetDataList, SheetHandler.WriteOption option)
+    private static void writeToFile0(EFileFormat format, List<SheetData> sheetDataList, String encoding)
             throws IOException, InvalidFormatException {
         SheetHandler sheetHandler = sheetHandlerMap.get(format);
         if (sheetHandler == null) {
             throw new IllegalStateException("EFileFormat not support. format = " + format +
                     ", file = " + sheetDataList.get(0).file);
         }
-        sheetHandler.writeToFile(sheetDataList, option);
+        sheetHandler.writeToFile(sheetDataList, encoding);
     }
 
 }

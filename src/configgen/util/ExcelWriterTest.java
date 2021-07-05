@@ -19,7 +19,7 @@ public class ExcelWriterTest {
                 Arrays.asList(String.valueOf(2), "test2", "hello\nworld", "")
                 );
 
-        SheetUtils.writeToFile(new File(fileName), rows, new SheetHandler.DefaultWriteOption("UTF-8"));
+        SheetUtils.writeToFile(new File(fileName), rows, "UTF-8");
     }
 
 }

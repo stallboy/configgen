@@ -16,7 +16,6 @@ import java.util.List;
  * 如果是excel配置，excel中的页签名称可以拆分成：task(同task_0)，task_1，task_2
  */
 public class DSheet extends Node {
-    private final EFileFormat format;
     private final String configName;
     private final int tableIndex;
 
@@ -76,7 +75,7 @@ public class DSheet extends Node {
     private DSheet(Node parent, String sheetId, SheetData sheetData, String configName, int tableIndex) {
         super(parent, sheetId);
 
-        this.format = sheetData.format;
+        EFileFormat format = sheetData.format;
         this.configName = configName;
         this.tableIndex = tableIndex;
 
@@ -146,9 +145,6 @@ public class DSheet extends Node {
         }
     }
 
-
-
-
     private static String getSheetId(Path topDir, SheetData data) {
         if (data.format == EFileFormat.EXCEL) {
             return topDir.relativize(data.file.toPath()) + "/" + data.sheetName;
@@ -156,7 +152,6 @@ public class DSheet extends Node {
             return topDir.relativize(data.file.toPath()).toString();
         }
     }
-
 
     public String getConfigName() {
         return configName;

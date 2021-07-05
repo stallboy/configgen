@@ -58,6 +58,26 @@ public final class Main {
     }
 
     public static void main(String[] args) throws Exception {
+        try {
+            main0(args);
+        } catch (Throwable t) {
+            String newLine = System.lineSeparator();
+            StringBuilder sb = new StringBuilder();
+            sb.append("-------------------------错误描述-------------------------").append(newLine);
+            int stackCnt = 0;
+            Throwable curr = t;
+            while (curr != null && ++stackCnt < 10) {
+                sb.append(curr.getMessage()).append(newLine);
+                curr = curr.getCause();
+            }
+            sb.append("-------------------------错误堆栈-------------------------").append(newLine);
+            System.out.print(sb);
+
+            throw t;
+        }
+    }
+
+    private static void main0(String[] args) throws Exception {
         Generators.addProvider("java", GenJavaCode::new);
         Generators.addProvider("javadata", GenJavaData::new);
 

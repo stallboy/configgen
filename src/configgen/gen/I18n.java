@@ -2,7 +2,6 @@ package configgen.gen;
 
 import configgen.util.EFileFormat;
 import configgen.util.SheetData;
-import configgen.util.SheetHandler;
 import configgen.util.SheetUtils;
 
 import java.io.File;
@@ -36,7 +35,7 @@ public final class I18n {
 
     I18n(Path path, String encoding, boolean crlfaslf) {
         map = new HashMap<>();
-        List<SheetData> sheetDataList = SheetUtils.readFromFile(path.toFile(), new ReadOption(encoding));
+        List<SheetData> sheetDataList = SheetUtils.readFromFile(path.toFile(), encoding, I18n::acceptSheet);
         if (sheetDataList.size() == 0) {
             throw new IllegalArgumentException("国际化i18n文件为空");
         }
@@ -125,26 +124,18 @@ public final class I18n {
     }
 
 
-    static class ReadOption extends SheetHandler.DefaultReadOption {
-
-        public ReadOption(String dataEncoding) {
-            super(dataEncoding);
-        }
-
-        @Override
-        public boolean acceptSheet(EFileFormat format, File file, String sheetName) {
-            // Excel只支持sheet名称和文件名称一样
-            if (format == EFileFormat.EXCEL) {
-                String fileName = file.getName();
-                int i = fileName.lastIndexOf(".");
-                if (i < 0) {
-                    return fileName.equals(sheetName);
-                } else {
-                    return fileName.substring(0, i).equals(sheetName);
-                }
+    private static boolean acceptSheet(EFileFormat format, File file, String sheetName) {
+        // Excel只支持sheet名称和文件名称一样
+        if (format == EFileFormat.EXCEL) {
+            String fileName = file.getName();
+            int i = fileName.lastIndexOf(".");
+            if (i < 0) {
+                return fileName.equals(sheetName);
+            } else {
+                return fileName.substring(0, i).equals(sheetName);
             }
-            return true;
         }
+        return true;
     }
 }
 

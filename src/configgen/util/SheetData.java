@@ -22,7 +22,7 @@ public class SheetData {
 
     public static SheetData valueOf(File file, String sheetName, List<List<String>> rows) {
         EFileFormat format = SheetUtils.getFileFormat(file);
-        if (format == EFileFormat.NONE) {
+        if (format == null) {
             throw new IllegalStateException("Unsupported format. file = " + file);
         }
 

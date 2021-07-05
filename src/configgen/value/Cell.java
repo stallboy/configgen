@@ -1,14 +1,18 @@
 package configgen.value;
 
+import configgen.data.DSheet;
+
 /**
  * 保留原始信息，用于打印错误信息时，指出具体时那一行那一列出错
  */
 public final class Cell {
+    final DSheet sheet;
     final int row;
     final int col;
     final String data;
 
-    public Cell(int row, int col, String data) {
+    public Cell(DSheet sheet, int row, int col, String data) {
+        this.sheet = sheet;
         this.row = row;
         this.col = col;
         this.data = data;
@@ -20,7 +24,7 @@ public final class Cell {
 
     @Override
     public String toString() {
-        return "row=" + (row + 1) + ",col=" + toAZ(col) + ",data=" + data;
+        return "sheet=" + sheet.name + ",row=" + (row + 1) + ",col=" + toAZ(col) + ",data=" + data;
     }
 
     private static final int N = 'Z' - 'A' + 1;

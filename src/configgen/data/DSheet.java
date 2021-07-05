@@ -27,6 +27,52 @@ public class DSheet extends Node {
      */
     private final List<List<String>> recordList;
 
+    static DSheet create(Path topDir, Node parent, SheetData data) {
+        String sheetName = data.sheetName;
+        EFileFormat format = data.format;
+        File file = data.file;
+
+        String tableName;
+        int tableIndex;
+        int i = sheetName.lastIndexOf("_");
+        if (i < 0) {
+            tableName = sheetName.trim();
+            tableIndex = 0;
+        } else {
+            String postfix = sheetName.substring(i + 1).trim();
+            try {
+                tableIndex = Integer.parseInt(postfix);
+                tableName = sheetName.substring(0, i).trim();
+            } catch (NumberFormatException ignore) {
+                tableName = sheetName.trim();
+                tableIndex = 0;
+            }
+        }
+
+        if (tableName.isEmpty()) {
+            if (format == EFileFormat.CSV) {
+                throw new AssertionError("根据表名解析出的tableName为空, file = " + file);
+            }
+            throw new AssertionError("根据sheet名称解析出的tableName为空， file = " + file + ", sheetName = " + sheetName);
+        }
+
+        if (tableIndex < 0) {
+            if (format == EFileFormat.CSV) {
+                throw new AssertionError("根据表名解析出的tableIndex为负数, file = " + file);
+            }
+            throw new AssertionError("根据sheet名称解析出的tableIndex为负数， file = " + file + ", sheetName = " + sheetName);
+        }
+
+        String packageName = topDir.relativize(file.getParentFile().toPath()).toString();
+        packageName = String.join(".", packageName.split("[\\\\/]")).toLowerCase();
+        //将表名转成小写，保持原来的大小写更合适吧？
+        String configName = packageName + "." + tableName.toLowerCase();
+
+        String sheetId = getSheetId(topDir, data);
+
+        return new DSheet(parent, sheetId, data, configName, tableIndex);
+    }
+
     private DSheet(Node parent, String sheetId, SheetData sheetData, String configName, int tableIndex) {
         super(parent, sheetId);
 
@@ -68,24 +114,6 @@ public class DSheet extends Node {
         return rows.subList(2, rows.size());
     }
 
-    public void assertCompatible(DSheet target) {
-        int usefulColumnCnt = getUsefulColumnCnt(nameLine);
-        int targetUsefulColumnCnt = getUsefulColumnCnt(target.nameLine);
-        if (targetUsefulColumnCnt != usefulColumnCnt) {
-            throw new AssertionError("表格的列数不匹配. firstSheet = " + fullName() + "[共" + usefulColumnCnt + " 列]"
-                    + ", targetSheet = " + target.fullName() + "[共" + targetUsefulColumnCnt + " 列]");
-        }
-        for (int i = 0; i < usefulColumnCnt; i++) {
-            String columnName = nameLine.get(i);
-            String targetColumnName = target.nameLine.get(i);
-            if (!targetColumnName.equalsIgnoreCase(columnName)) {
-                throw new AssertionError("表格的列名称不匹配. " +
-                        "firstSheet = " + fullName() + "[第 " + i + " 列][" + columnName + "]" +
-                        ", targetSheet = " + target.fullName() + "[第 " + targetUsefulColumnCnt + " 列][" + targetColumnName + "]");
-            }
-        }
-    }
-
     // 根据nameLine计算出有效列数量
     private static int getUsefulColumnCnt(List<String> nameLine) {
         int nameColumnsCnt = nameLine.size();
@@ -100,51 +128,26 @@ public class DSheet extends Node {
         return nameColumnsCnt - uselessColumnsCnt;
     }
 
-    static DSheet create(Path topDir, Node parent, SheetData data) {
-        String sheetName = data.sheetName;
-        EFileFormat format = data.format;
-        File file = data.file;
-
-        String tableName;
-        int tableIndex;
-        int i = sheetName.lastIndexOf("_");
-        if (i < 0) {
-            tableName = sheetName.trim();
-            tableIndex = 0;
-        } else {
-            String postfix = sheetName.substring(i + 1).trim();
-            try {
-                tableIndex = Integer.parseInt(postfix);
-                tableName = sheetName.substring(0, i).trim();
-            } catch (NumberFormatException ignore) {
-                tableName = sheetName.trim();
-                tableIndex = 0;
+    public void assertCompatible(DSheet target) {
+        int usefulColumnCnt = getUsefulColumnCnt(nameLine);
+        int targetUsefulColumnCnt = getUsefulColumnCnt(target.nameLine);
+        if (targetUsefulColumnCnt != usefulColumnCnt) {
+            throw new AssertionError("表格的列数不匹配. firstSheet = " + fullName() + "[共" + usefulColumnCnt + " 列]"
+                                             + ", targetSheet = " + target.fullName() + "[共" + targetUsefulColumnCnt + " 列]");
+        }
+        for (int i = 0; i < usefulColumnCnt; i++) {
+            String columnName = nameLine.get(i);
+            String targetColumnName = target.nameLine.get(i);
+            if (!targetColumnName.equalsIgnoreCase(columnName)) {
+                throw new AssertionError("表格的列名称不匹配. " +
+                                                 "firstSheet = " + fullName() + "[第 " + i + " 列][" + columnName + "]" +
+                                                 ", targetSheet = " + target.fullName() + "[第 " + targetUsefulColumnCnt + " 列][" + targetColumnName + "]");
             }
         }
-
-        if (tableName.isEmpty()) {
-            if (format == EFileFormat.CSV) {
-                throw new AssertionError("根据表名解析出的tableName为空, file = " + file);
-            }
-            throw new AssertionError("根据sheet名称解析出的tableName为空， file = " + file + ", sheetName = " + sheetName);
-        }
-
-        if (tableIndex < 0) {
-            if (format == EFileFormat.CSV) {
-                throw new AssertionError("根据表名解析出的tableName为空, file = " + file);
-            }
-            throw new AssertionError("根据sheet名称解析出的tableName为空， file = " + file + ", sheetName = " + sheetName);
-        }
-
-        String packageName = topDir.relativize(file.getParentFile().toPath()).toString();
-        packageName = String.join(".", packageName.split("[\\\\/]")).toLowerCase();
-        //将表名转成小写，保持原来的大小写更合适吧？
-        String configName = packageName + "." + tableName.toLowerCase();
-
-        String sheetId = getSheetId(topDir, data);
-
-        return new DSheet(parent, sheetId, data, configName, tableIndex);
     }
+
+
+
 
     private static String getSheetId(Path topDir, SheetData data) {
         if (data.format == EFileFormat.EXCEL) {

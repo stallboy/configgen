@@ -84,10 +84,7 @@ public class SheetUtils {
         }
         Map<EFileFormat, List<SheetData>> formatMap = new EnumMap<>(EFileFormat.class);
         for (SheetData sheetData : sheetDataList) {
-            List<SheetData> lst = formatMap.get(sheetData.format);
-            if (lst == null) {
-                formatMap.put(sheetData.format, lst = new ArrayList<>());
-            }
+            List<SheetData> lst = formatMap.computeIfAbsent(sheetData.format, k -> new ArrayList<>());
             lst.add(sheetData);
         }
 

@@ -69,7 +69,7 @@ public class DTable extends Node {
     DTable(AllData parent, String configName, List<DSheet> sheetList) {
         super(parent, configName);
 
-        DSheet[] sheets = sheetList.toArray(new DSheet[sheetList.size()]);
+        DSheet[] sheets = sheetList.toArray(new DSheet[0]);
         if (sheets.length > 1) {
             // 按表格序号排序
             Arrays.sort(sheets, Comparator.comparing(DSheet::getTableIndex));
@@ -83,7 +83,7 @@ public class DTable extends Node {
                     ", 表 = " + firstSheet.fullName());
         }
 
-        // 表格序号不能重复，先允许不连续吧
+        // 表格序号不能重复，先必须连续吧
         for (int i = 1; i < sheets.length; i++) {
             if (sheets[i - 1].getTableIndex() + 1 != sheets[i].getTableIndex()) {
                 throw new AssertionError("拆分的表格序号不连续。 当前表 = " + sheets[i - 1].fullName() +

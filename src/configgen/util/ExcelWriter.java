@@ -22,10 +22,7 @@ public class ExcelWriter {
         } else if (!sheetDataList.isEmpty()) {
             Map<File, List<SheetData>> fileMap = new LinkedHashMap<>();
             for (SheetData sheetData : sheetDataList) {
-                List<SheetData> lst = fileMap.get(sheetData.file);
-                if (lst == null) {
-                    fileMap.put(sheetData.file, lst = new ArrayList<>());
-                }
+                List<SheetData> lst = fileMap.computeIfAbsent(sheetData.file, k -> new ArrayList<>());
                 lst.add(sheetData);
             }
 

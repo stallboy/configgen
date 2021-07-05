@@ -40,6 +40,7 @@ public abstract class Value {
                     sref.cache = sref.refToPrimaryKey() ? vtable.primaryKeyValueSet : vtable.uniqueKeyValueSetMap.get(String.join(",", sref.refCols));
                 }
                 if (type.isPrimitiveAndTableKey()) {
+                    //noinspection StatementWithEmptyBody
                     if (sref.refNullable) {
                         //主键，并且nullableRef，--->则可以格子中有值，但ref不到
                     } else {
@@ -59,7 +60,7 @@ public abstract class Value {
     }
 
     void error(Object... args) {
-        throw new AssertionError(join(args) + " -- " + toString());
+        throw new AssertionError(join(args) + " -- " + this);
     }
 
 

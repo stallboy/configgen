@@ -21,7 +21,7 @@ public interface SheetHandler {
     class CSVHandler implements SheetHandler {
 
         @Override
-        public List<SheetData> readFromFile(File file, ReadOption option) throws IOException, InvalidFormatException {
+        public List<SheetData> readFromFile(File file, ReadOption option) throws IOException {
             String fileName = file.getName();
             String sheetName = fileName;
             int i = fileName.lastIndexOf('.');
@@ -37,7 +37,7 @@ public interface SheetHandler {
         }
 
         @Override
-        public void writeToFile(List<SheetData> sheetDataList, WriteOption option) throws IOException, InvalidFormatException {
+        public void writeToFile(List<SheetData> sheetDataList, WriteOption option) throws IOException {
             for (SheetData sheetData : sheetDataList) {
                 CSVWriter.writeToFile(sheetData.file, option.dataEncoding(), sheetData.rows);
             }

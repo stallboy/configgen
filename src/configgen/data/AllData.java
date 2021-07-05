@@ -39,10 +39,7 @@ public class AllData extends Node {
 
                     for (SheetData sheetData : sheetDataList) {
                         DSheet sheet = DSheet.create(dataDir, AllData.this, sheetData);
-                        List<DSheet> sheetList = dSheetMap.get(sheet.getConfigName());
-                        if (sheetList == null) {
-                            dSheetMap.put(sheet.getConfigName(), sheetList = new ArrayList<>());
-                        }
+                        List<DSheet> sheetList = dSheetMap.computeIfAbsent(sheet.getConfigName(), k -> new ArrayList<>());
                         sheetList.add(sheet);
                     }
 
@@ -101,7 +98,7 @@ public class AllData extends Node {
         }
     }
 
-    class ReadOption extends SheetHandler.DefaultReadOption {
+    static class ReadOption extends SheetHandler.DefaultReadOption {
 
         public ReadOption(String dataEncoding) {
             super(dataEncoding);
@@ -113,10 +110,8 @@ public class AllData extends Node {
                 if (!sheetName.isEmpty()) {
                     // 只接受首字母是英文字母的页签
                     char firstChar = sheetName.charAt(0);
-                    if (('a' <= firstChar && firstChar <= 'z')
-                            || ('A' <= firstChar && firstChar <= 'Z')) {
-                        return true;
-                    }
+                    return ('a' <= firstChar && firstChar <= 'z')
+                            || ('A' <= firstChar && firstChar <= 'Z');
                 }
                 return false;
             }

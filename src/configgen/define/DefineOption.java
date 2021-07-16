@@ -116,6 +116,6 @@ public class DefineOption {
             "\n" +
             "simplify：是否简化此xml内容中的include和exclude定义，默认false\n" +
             "\tfalse：include和exclude全部放到此xml中\n" +
-            "\ttrue：undefinedPkg==include时，此xml中只会有exclude定义。 反之undefinedPkg==exclude时，此xml中只会有include定义\n";
+            "\ttrue：unspecifiedPkg==include时，此xml中只会有exclude定义。 unspecifiedPkg==exclude时，此xml中只会有include定义\n";
 
 }

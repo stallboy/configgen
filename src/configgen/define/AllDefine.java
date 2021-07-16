@@ -8,16 +8,24 @@ import configgen.util.DomUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 public class AllDefine extends Node {
-    private Path xmlPath;
-    private String encoding;
+    private final Path xmlPath;
+    private final String encoding;
 
-    private String dataDirStr;
+    private final DefineOption option;
     private Path dataDir;
+
+    private final Map<String, Include> includes = new TreeMap<>();
+    private final Map<String, Include> excludes = new TreeMap<>();
 
     private final Map<String, Bean> beans = new TreeMap<>();
     private final Map<String, Table> tables = new TreeMap<>();
@@ -46,27 +54,50 @@ public class AllDefine extends Node {
         super(null, "AllDefine");
         xmlPath = _xmlPath;
         encoding = _encoding;
-        dataDirStr = ".";
 
         if (!Files.exists(xmlPath)) {
+            option = new DefineOption();
             return;
         }
 
         Element self = DomUtils.rootElement(xmlPath.toFile());
-        DomUtils.permitAttributes(self, "datadir");
 
-        if (self.hasAttribute("datadir")) {
-            dataDirStr = self.getAttribute("datadir");
-            dataDir = resolvePath(dataDirStr);
-        } else {
-            dataDir = xmlPath.getParent(); //默认当前xml文件所在目录
-        }
-        DomUtils.permitElements(self, "import", "bean", "table");
+        option = new DefineOption(self);
+        dataDir = resolvePath(option.dataDir);
+
+        DomUtils.permitElements(self, "import", "include", "exclude", "bean", "table");
 
         for (Element e : DomUtils.elements(self, "import")) {
             Import imp = new Import(this, e, encoding);
             require(null == imports.put(imp.file, imp), "import file重复", imp.file);
         }
+
+        for (Element e : DomUtils.elements(self, "include")) {
+            Include in = new Include(this, e);
+            require(null == includes.put(in.file, in), "include file重复", in.file);
+        }
+
+        for (Element e : DomUtils.elements(self, "exclude")) {
+            Include ex = new Include(this, e);
+            require(null == excludes.put(ex.file, ex), "exclude file重复", ex.file);
+        }
+
+        // 自动扫描未指定的xml定义文件
+        TreeSet<String> unspecifiedPkgXmlFiles = scanIncludeXmlFiles();
+        unspecifiedPkgXmlFiles.removeAll(includes.keySet());
+        unspecifiedPkgXmlFiles.removeAll(excludes.keySet());
+        for (String file : unspecifiedPkgXmlFiles) {
+            Include in = new Include(this, file);
+            if (option.unspecifiedPkg == DefineOption.UnspecifiedPkg.Exclude) {
+                excludes.put(in.file, in);
+            } else {
+                includes.put(in.file, in);
+            }
+        }
+
+        Set<String> intersection = new TreeSet<>(includes.keySet());
+        intersection.retainAll(excludes.keySet());
+        require(intersection.isEmpty(), "include 和 exclude 存在交集. intersection = " + intersection);
 
         for (Element e : DomUtils.elements(self, "bean")) {
             Bean b = new Bean(this, e);
@@ -79,25 +110,53 @@ public class AllDefine extends Node {
             require(!beans.containsKey(t.name), "表和Bean定义名字重复", t.name);
         }
 
+        for (Include in : includes.values()) {
+            importBeanAndTables(in);
+        }
+        for (Include ex : excludes.values()) {
+            importBeanAndTables(ex);
+        }
+
         updateCache();
+    }
+
+    private void importBeanAndTables(Include include) {
+        for (Bean b : include.beans.values()) {
+            require(null == beans.put(b.name, b), "[include]Bean定义名字重复", b.name);
+            require(!tables.containsKey(b.name), "[include]Bean定义名字和表重复", b.name);
+        }
+        for (Table t : include.tables.values()) {
+            require(null == tables.put(t.name, t), "[include]表定义名字重复", t.name);
+            require(!beans.containsKey(t.name), "[include]表和Bean定义名字重复", t.name);
+        }
     }
 
     private void updateCache() {
         cachedAllBeans.clear();
         cachedAllBeans.putAll(beans);
         for (Import imp : imports.values()) {
-            cachedAllBeans.putAll(imp.define.cachedAllBeans);
+            for (Bean b : imp.define.cachedAllBeans.values()) {
+                require(null == cachedAllBeans.put(b.name, b), "[import]Bean定义名字重复", b.name);
+                require(!cachedAllTables.containsKey(b.name), "[import]表和Bean定义名字重复", b.name);
+            }
         }
 
         cachedAllTables.clear();
         cachedAllTables.putAll(tables);
         for (Import imp : imports.values()) {
-            cachedAllTables.putAll(imp.define.cachedAllTables);
+            for (Table t : imp.define.cachedAllTables.values()) {
+                require(null == cachedAllTables.put(t.name, t), "[import]表定义名重复", t.name);
+                require(!cachedAllBeans.containsKey(t.name), "[import]表和Bean定义名字重复", t.name);
+            }
         }
     }
 
     Path resolvePath(String file) {
-        return xmlPath.getParent().resolve(file);
+        return xmlPath.resolveSibling(file).normalize();
+    }
+
+    Path resolveDataPath(String file) {
+        return dataDir.resolve(file).normalize();
     }
 
 
@@ -106,6 +165,10 @@ public class AllDefine extends Node {
 
     public Path getDataDir() {
         return dataDir;
+    }
+
+    public String getEncoding() {
+        return encoding;
     }
 
     public Collection<Bean> getAllBeans() {
@@ -131,8 +194,7 @@ public class AllDefine extends Node {
      *  读取数据文件，并补充完善Define，解析带类型的fullType
      */
     public AllType readData_AutoFix_ResolveType() {
-        AllType firstTryType = new AllType(this);
-        firstTryType.resolve();
+        AllType firstTryType = DefineView.fullDefine(this).buildAllType();
 
         readDataFilesAndAutoFix(firstTryType);
 
@@ -150,7 +212,7 @@ public class AllDefine extends Node {
             imp.define.readDataFilesAndAutoFix(firstTryType);
         }
 
-        thisData = new AllData(dataDir, encoding);
+        thisData = new AllData(this);
         thisData.autoFixDefine(this, firstTryType);
 
 
@@ -162,6 +224,20 @@ public class AllDefine extends Node {
         }
     }
 
+    public boolean excludeDataFile(Path dataFilePath) {
+        String includeXmlFile = xmlPath.getParent().relativize(dataFilePath).toString();
+        return excludes.containsKey(includeXmlFile);
+    }
+
+    public boolean removeTableIfNotExclude(String tableName) {
+        String includeXmlFile = nameToIncludeXmlFile(tableName);
+        if (!excludes.containsKey(includeXmlFile)) {
+            tables.remove(tableName);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * 保存回xml
      */
@@ -169,15 +245,44 @@ public class AllDefine extends Node {
         for (Import imp : imports.values()) {
             imp.define.saveToXml();
         }
-        save();
+
+        TreeMap<String, Bean> splitBeans = new TreeMap<>(this.beans);
+        TreeMap<String, Table> splitTables = new TreeMap<>(this.tables);
+
+        // 先clear，如果是PkgBasedSplit模式会再次填充数据
+        for (Include include : includes.values()) {
+            include.clear();
+        }
+        for (Include exclude : excludes.values()) {
+            exclude.clear();
+        }
+        if (option.splitMode == DefineOption.SplitMode.PkgBased) {
+            pkgBasedSplit(splitBeans, splitTables);
+        }
+
+        for (Include include : new ArrayList<>(includes.values())) {
+            include.saveToXml(encoding);
+
+            if (include.isEmpty()) {
+                includes.remove(include.file);
+            }
+        }
+        for (Include exclude : new ArrayList<>(excludes.values())) {
+            exclude.saveToXml(encoding);
+
+            if (exclude.isEmpty()) {
+                excludes.remove(exclude.file);
+            }
+        }
+
+        save(splitBeans, splitTables);
     }
 
     /**
      * 解析出类型，把齐全的类型信息 赋到 Data上，因为之后生成Value时可能只会用 不全的Type
      */
     private AllType resolveFullTypeAndAttachToData() {
-        AllType fullType = new AllType(this);
-        fullType.resolve();
+        AllType fullType = DefineView.fullDefine(this).buildAllType();
         attachTypeToData(fullType);
         return fullType;
     }
@@ -196,10 +301,6 @@ public class AllDefine extends Node {
         return new HashSet<>(tables.keySet());
     }
 
-    public void removeTable(String tableName) {
-        tables.remove(tableName);
-    }
-
     public Table newTable(String tableName) {
         Table t = new Table(this, tableName);
         tables.put(tableName, t);
@@ -208,39 +309,27 @@ public class AllDefine extends Node {
 
     //////////////////////////////// extract
 
-    private AllDefine(String own) {
-        super(null, "AllDefine(" + own + ")");
-    }
-
-
     /**
+     * 根据own和exclude抽取出定义视图
      * @param own 配置为own="client,xeditor"的column就会被resolvePartType("client")抽取出来
      * @return 一个抽取过后的带类型结构信息。
-     * 用于对上层隐藏掉own的机制。
+     * 用于对上层隐藏掉own机制 和 exclude机制。
      */
     // 返回的是全新的 部分的Type
     public AllType resolvePartType(String own) {
-        AllDefine topPart = extract(own);
-        topPart.resolveExtract(topPart);
-        AllType ownType = new AllType(topPart);
-        ownType.resolve();
-        return ownType;
+        return new DefineView(this, own).buildAllType();
     }
 
-
-    AllDefine extract(String own) {
-        AllDefine part = new AllDefine(own);
-
+    void extract(DefineView defineView, String own) {
         for (Import imp : imports.values()) {
-            Import pi = imp.extract(part, own);
-            part.imports.put(pi.file, pi);
+            imp.extract(defineView, own);
         }
 
         for (Bean bean : beans.values()) {
             try {
-                Bean pb = bean.extract(part, own);
+                Bean pb = bean.extract(defineView, defineView);
                 if (pb != null)
-                    part.beans.put(bean.name, pb);
+                    defineView.beans.put(bean.name, pb);
             } catch (Throwable e) {
                 throw new AssertionError(bean.name + ",从这个结构体抽取[" + own + "]出错", e);
             }
@@ -248,62 +337,152 @@ public class AllDefine extends Node {
 
         for (Table table : tables.values()) {
             try {
-                Table pc = table.extract(part, own);
+                if (!defineView.isIgnoreExcludes()) {
+                    String includeXmlFile = nameToIncludeXmlFile(table.name);
+                    if (excludes.containsKey(includeXmlFile)) {
+                        // 表所在的目录都被排除
+                        continue;
+                    }
+                }
+
+                Table pc = table.extract(defineView);
                 if (pc != null)
-                    part.tables.put(table.name, pc);
+                    defineView.tables.put(table.name, pc);
             } catch (Throwable e) {
                 throw new AssertionError(table.name + ",从这个表结构抽取[" + own + "]出错", e);
             }
         }
-
-        part.updateCache();
-        return part;
     }
-
-    void resolveExtract(AllDefine top) {
-        for (Import imp : imports.values()) {
-            imp.resolveExtract(top);
-        }
-
-        for (Bean bean : beans.values()) {
-            try {
-                bean.resolveExtract(top);
-            } catch (Throwable e) {
-                throw new AssertionError(bean.name + ",解析这个结构体抽取部分出错", e);
-            }
-        }
-        for (Table table : tables.values()) {
-            try {
-                table.resolveExtract(top);
-            } catch (Throwable e) {
-                throw new AssertionError(table.name + ",解析这个表结构抽取部分出错", e);
-            }
-        }
-    }
-
 
     //////////////////////////////// save
 
-    private void save() {
+    private void save(TreeMap<String, Bean> splitBeans, TreeMap<String, Table> splitTables) {
         Document doc = DomUtils.newDocument();
+        doc.appendChild(doc.createComment(DefineOption.commentText));
 
         Element self = doc.createElement("db");
         doc.appendChild(self);
-        self.setAttribute("datadir", dataDirStr);
+        option.save(self);
 
         for (Import imp : imports.values()) {
             imp.save(self);
         }
 
-        for (Bean b : beans.values()) {
+        if (!option.simplify || option.unspecifiedPkg == DefineOption.UnspecifiedPkg.Exclude) {
+            for (Include include : includes.values()) {
+                include.save(self, "include");
+            }
+        }
+        if (!option.simplify || option.unspecifiedPkg == DefineOption.UnspecifiedPkg.Include) {
+            for (Include exclude : excludes.values()) {
+                exclude.save(self, "exclude");
+            }
+        }
+
+        for (Bean b : splitBeans.values()) {
             b.save(self);
         }
-        for (Table t : tables.values()) {
+        for (Table t : splitTables.values()) {
             t.save(self);
         }
 
         DomUtils.prettySaveDocument(doc, xmlPath.toFile(), encoding);
     }
 
+    ///////////////////////////////////////////// split(include or exclude) xml
+
+    private TreeSet<String> scanIncludeXmlFiles() {
+        TreeSet<String> includeXmlFiles = new TreeSet<>();
+        try {
+            Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
+                    File file = path.toFile();
+                    // 必须是xml
+                    if (!file.getName().endsWith(".xml")) {
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    // 文件名必须和目录名一样
+                    String fileName = file.getName();
+                    fileName = fileName.substring(0, fileName.length() - ".xml".length());
+                    if (!fileName.equals(file.getParentFile().getName())) {
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    // 不能是xmlPath文件自己
+                    if (dataDir.equals(xmlPath)) {
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    // 在顶级目录下，忽略
+                    if (path.getParent().equals(dataDir)) {
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    String includeXmlFile = formatXmlFilePath(path);
+                    includeXmlFiles.add(includeXmlFile);
+
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return includeXmlFiles;
+    }
+
+    private void pkgBasedSplit(TreeMap<String, Bean> splitBeans, TreeMap<String, Table> splitTables) {
+        for (Table t : this.tables.values()) {
+            String file = nameToIncludeXmlFile(t.name);
+            if (file.isEmpty()) {
+                continue;
+            }
+            Include include = excludes.get(file); // 先重excludes中找，找到的话表示被排除了
+            if (include == null) {
+                include = includes.computeIfAbsent(file, f -> new Include(this, f));
+            }
+            include.tables.put(t.name, t);
+            splitTables.remove(t.name);
+        }
+
+        for (Bean b : this.beans.values()) {
+            String file = nameToIncludeXmlFile(b.name);
+            if (file.isEmpty()) {
+                continue;
+            }
+            Include include = excludes.get(file); // 先重excludes中找，找到的话表示被排除了
+            if (include == null) {
+                include = includes.computeIfAbsent(file, f -> new Include(this, f));
+            }
+            include.beans.put(b.name, b);
+            splitBeans.remove(b.name);
+        }
+    }
+
+    private String nameToIncludeXmlFile(String name) {
+        int i = name.lastIndexOf('.');
+        if (i <= 0) {
+            //定义在顶级目录，不用再分割到子目录中
+            return "";
+        }
+        String innerPkgName = name.substring(0, i);
+        String relativePath = innerPkgName.replace(".", "/");
+        Path includeXmlPath = resolveDataPath(relativePath).normalize();
+        includeXmlPath = includeXmlPath.resolve(includeXmlPath.toFile().getName() + ".xml");
+
+        return formatXmlFilePath(includeXmlPath);
+    }
+
+    String formatXmlFilePath(Path includeXmlPath) {
+        return xmlPath.getParent().relativize(includeXmlPath).normalize().toString().replace("\\", "/");
+    }
+
+    // 约定includeXmlFile必须和它代表的配置放在同一目录
+    String childDataPathToPkgName(Path childDataDir) {
+        String relativePath = dataDir.relativize(childDataDir).normalize().toString();
+        return relativePath.replace("\\", "/").replace("/", ".");
+    }
 
 }

@@ -2,20 +2,19 @@ package configgen.type;
 
 import configgen.Node;
 import configgen.define.Bean;
-import configgen.define.AllDefine;
+import configgen.define.DefineView;
 import configgen.define.Table;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class AllType extends Node {
-    private final Map<String, TBean> tBeans = new LinkedHashMap<>();
-    private final Map<String, TTable> tTables = new LinkedHashMap<>();
+    public final Map<String, TBean> tBeans = new LinkedHashMap<>();
+    public final Map<String, TTable> tTables = new LinkedHashMap<>();
 
-    public AllType(AllDefine allDefine) {
+    public AllType(DefineView defineView) {
         super(null, "AllType");
-        for (Bean bean : allDefine.getAllBeans()) {
+
+        for (Bean bean : defineView.beans.values()) {
             try {
                 TBean tBean = new TBean(this, bean);
                 tBeans.put(tBean.name, tBean);
@@ -24,7 +23,7 @@ public class AllType extends Node {
             }
         }
 
-        for (Table table : allDefine.getAllTables()) {
+        for (Table table : defineView.tables.values()) {
             try {
                 TTable tTable = new TTable(this, table);
                 tTables.put(tTable.name, tTable);

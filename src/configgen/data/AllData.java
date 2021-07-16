@@ -22,19 +22,24 @@ import java.util.*;
 public class AllData extends Node {
     private final Map<String, DTable> dTables = new HashMap<>();
 
-    public AllData(Path dataDir, String dataEncoding) {
+    public AllData(AllDefine define) {
         super(null, "AllData");
 
+        Path dataDir = define.getDataDir();
         if (!Files.isDirectory(dataDir)) {
             throw new IllegalArgumentException("配置顶级目录必须是目录. dataDir = " + dataDir);
         }
+
         Map<String, List<DSheet>> dSheetMap = new TreeMap<>();
         try {
             Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
+                    if (define.excludeDataFile(path)) {
+                        return FileVisitResult.CONTINUE;
+                    }
                     List<SheetData> sheetDataList =
-                            SheetUtils.readFromFile(path.toFile(), dataEncoding, AllData::acceptSheet);
+                            SheetUtils.readFromFile(path.toFile(), define.getEncoding(), AllData::acceptSheet);
 
                     for (SheetData sheetData : sheetDataList) {
                         DSheet sheet = DSheet.create(dataDir, AllData.this, sheetData);
@@ -92,8 +97,9 @@ public class AllData extends Node {
         }
 
         for (String currentRemain : currentRemains) {
-            defineToFix.removeTable(currentRemain);
-            Logger.verbose("delete table " + defineToFix.fullName() + "." + currentRemain);
+            if (defineToFix.removeTableIfNotExclude(currentRemain)) {
+                Logger.verbose("delete table " + defineToFix.fullName() + "." + currentRemain);
+            }
         }
     }
 

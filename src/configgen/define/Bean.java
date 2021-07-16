@@ -101,7 +101,7 @@ public class Bean extends Node {
      * 子Bean
      */
     private Bean(Bean _parent, Element self) {
-        super(_parent, self.getAttribute("name"));
+        super(_parent, self.getAttribute("name")); //子bean的名称不用包装pkgName
         own = self.getAttribute("own");
         require(_parent.type == BeanType.BaseDynamicBean, "不允许ChildDynamicBean又有ChildDynamicBean");
         type = BeanType.ChildDynamicBean;
@@ -169,21 +169,21 @@ public class Bean extends Node {
         compressSeparator = original.compressSeparator;
     }
 
-    Bean extract(Node _parent, String _own) {
+    Bean extract(Node _parent, DefineView defineView) {
         Bean part = new Bean(_parent, this);
 
         if (type == BeanType.BaseDynamicBean) {
-            if (!own.contains(_own))
+            if (!defineView.isOwn(own))
                 return null;
             // 对于多态Bean,只用在基类上配置own，不需要在每个子Bean上都配置own
             childDynamicBeans.forEach((name, actionBean) -> {
-                Bean bn = actionBean.extract(part, _own);
+                Bean bn = actionBean.extract(part, defineView);
                 part.childDynamicBeans.put(name, bn);
             });
         } else {
             // 标记了own的列 提取出来
             columns.forEach((name, c) -> {
-                Column pc = c.extract(part, _own);
+                Column pc = c.extract(part, defineView);
                 if (pc != null) {
                     part.columns.put(name, pc);
                 }
@@ -207,14 +207,20 @@ public class Bean extends Node {
         return part;
     }
 
-    void resolveExtract(AllDefine top) {
+    void resolveExtract(DefineView defineView) {
+        if (type == BeanType.BaseDynamicBean) {
+            for (Bean actionBean : childDynamicBeans.values()) {
+                actionBean.resolveExtract(defineView);
+            }
+        }
+
         for (Column col : columns.values()) {
-            col.resolveExtract(top);
+            col.resolveExtract(defineView);
         }
 
         List<String> dels = new ArrayList<>();
         foreignKeys.forEach((n, fk) -> {
-            if (fk.invalid(top)) {
+            if (fk.invalid(defineView)) {
                 dels.add(n);
             }
         });
@@ -222,7 +228,6 @@ public class Bean extends Node {
             foreignKeys.remove(del);
         }
     }
-
 
     //////////////////////////////// save
     void save(Element parent) {

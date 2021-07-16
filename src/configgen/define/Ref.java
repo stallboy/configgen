@@ -29,8 +29,8 @@ public class Ref {
         return table + "," + String.join(",", cols);
     }
 
-    boolean valid(AllDefine top) {
-        Table t = top.getTable(table);
+    boolean valid(DefineView defineView) {
+        Table t = defineView.tables.get(table);
         return t != null && t.bean.columns.keySet().containsAll(Arrays.asList(cols));
     }
 

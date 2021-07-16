@@ -147,7 +147,7 @@ public class Table extends Node {
 
     //////////////////////////////// extract
 
-    private Table(AllDefine _parent, Table original) {
+    private Table(DefineView _parent, Table original) {
         super(_parent, original.name);
         enumType = original.enumType;
         enumStr = original.enumStr;
@@ -156,9 +156,9 @@ public class Table extends Node {
         extraSplit = original.extraSplit;
     }
 
-    Table extract(AllDefine _parent, String own) {
-        Table part = new Table(_parent, this);
-        part.bean = bean.extract(part, own);
+    Table extract(DefineView defineView) {
+        Table part = new Table(defineView, this);
+        part.bean = bean.extract(part, defineView);
         if (part.bean == null)
             return null;
 
@@ -170,8 +170,8 @@ public class Table extends Node {
         return part;
     }
 
-    void resolveExtract(AllDefine top) {
-        bean.resolveExtract(top);
+    void resolveExtract(DefineView defineView) {
+        bean.resolveExtract(defineView);
         String original = enumStr;
         if (!bean.columns.containsKey(original)) {
             enumType = EnumType.None;
@@ -179,7 +179,6 @@ public class Table extends Node {
         }
         require(bean.columns.keySet().containsAll(Arrays.asList(primaryKey)), "must own primaryKey");
     }
-
 
     //////////////////////////////// save
 

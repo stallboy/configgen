@@ -86,14 +86,14 @@ public class Column extends Node {
         compressSeparator = original.compressSeparator;
     }
 
-    Column extract(Bean _parent, String _own) {
-        if (own.contains(_own))
+    Column extract(Bean _parent, DefineView defineView) {
+        if (defineView.isOwn(own))
             return new Column(_parent, this);
         return null;
     }
 
-    void resolveExtract(AllDefine top) {
-        if (foreignKey != null && foreignKey.invalid(top)) {
+    void resolveExtract(DefineView defineView) {
+        if (foreignKey != null && foreignKey.invalid(defineView)) {
             foreignKey = null;
         }
     }

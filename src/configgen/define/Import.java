@@ -17,18 +17,8 @@ public class Import extends Node {
 
 
     //////////////////////////////// extract
-    private Import(Node _parent, Import original, String own) {
-        super(_parent, "import");
-        file = original.file;
-        define = original.define.extract(own);
-    }
-
-    Import extract(Node _parent, String _own) {
-        return new Import(_parent, this, _own);
-    }
-
-    void resolveExtract(AllDefine top) {
-        define.resolveExtract(top);
+    void extract(DefineView defineView, String own) {
+        define.extract(defineView, own);
     }
 
 

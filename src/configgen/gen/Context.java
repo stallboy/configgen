@@ -96,18 +96,12 @@ public class Context {
         }
 
         lastValue = null; //让它可以被尽快gc
-        AllValue value;
-        if (own == null || own.isEmpty()) {
-            value = make(fullType);
-        } else {
-            value = make(fullDefine.resolvePartType(own));
-        }
 
         lastValueOwn = own;
-        lastValue = value;
+        lastValue = make(fullDefine.resolvePartType(own));
 
         Logger.mm("verify " + (own == null ? "" : own));
-        return value;
+        return lastValue;
     }
 
     private AllValue make(AllType myType) {

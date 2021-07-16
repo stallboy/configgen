@@ -8,7 +8,6 @@ import configgen.util.DomUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -52,7 +51,7 @@ public class AllDefine extends Node {
 
     public AllDefine(Path _xmlPath, String _encoding) {
         super(null, "AllDefine");
-        xmlPath = _xmlPath;
+        xmlPath = _xmlPath.toAbsolutePath().normalize();
         encoding = _encoding;
 
         if (!Files.exists(xmlPath)) {
@@ -397,26 +396,27 @@ public class AllDefine extends Node {
             Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
-                    File file = path.toFile();
-                    // 必须是xml
-                    if (!file.getName().endsWith(".xml")) {
+                    // 不能是xmlPath文件自己
+                    if (path.equals(xmlPath)) {
                         return FileVisitResult.CONTINUE;
                     }
+
+                    String fileName = path.toFile().getName();
+                    // 必须是xml
+                    if (!fileName.endsWith(".xml")) {
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    Path parentPath = path.getParent();
 
                     // 文件名必须和目录名一样
-                    String fileName = file.getName();
                     fileName = fileName.substring(0, fileName.length() - ".xml".length());
-                    if (!fileName.equals(file.getParentFile().getName())) {
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    // 不能是xmlPath文件自己
-                    if (dataDir.equals(xmlPath)) {
+                    if (!fileName.equals(parentPath.toFile().getName())) {
                         return FileVisitResult.CONTINUE;
                     }
 
                     // 在顶级目录下，忽略
-                    if (path.getParent().equals(dataDir)) {
+                    if (parentPath.equals(dataDir)) {
                         return FileVisitResult.CONTINUE;
                     }
 

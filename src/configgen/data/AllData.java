@@ -9,6 +9,7 @@ import configgen.type.TTable;
 import configgen.util.EFileFormat;
 import configgen.util.SheetData;
 import configgen.util.SheetUtils;
+import configgen.view.ViewFilter;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,10 +23,10 @@ import java.util.*;
 public class AllData extends Node {
     private final Map<String, DTable> dTables = new HashMap<>();
 
-    public AllData(AllDefine define) {
+    public AllData(AllDefine allDefine) {
         super(null, "AllData");
 
-        Path dataDir = define.getDataDir();
+        Path dataDir = allDefine.getDataDir();
         if (!Files.isDirectory(dataDir)) {
             throw new IllegalArgumentException("配置顶级目录必须是目录. dataDir = " + dataDir);
         }
@@ -35,11 +36,8 @@ public class AllData extends Node {
             Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
-                    if (define.excludeDataFile(path)) {
-                        return FileVisitResult.CONTINUE;
-                    }
                     List<SheetData> sheetDataList =
-                            SheetUtils.readFromFile(path.toFile(), define.getEncoding(), AllData::acceptSheet);
+                            SheetUtils.readFromFile(path.toFile(), allDefine.getEncoding(), AllData::acceptSheet);
 
                     for (SheetData sheetData : sheetDataList) {
                         DSheet sheet = DSheet.create(dataDir, AllData.this, sheetData);
@@ -63,8 +61,8 @@ public class AllData extends Node {
         }
     }
 
-    public Map<String, DTable> getDTables() {
-        return dTables;
+    public DTable get(String table) {
+        return dTables.get(table);
     }
 
 
@@ -74,22 +72,22 @@ public class AllData extends Node {
         }
     }
 
-
-    public void autoFixDefine(AllDefine defineToFix, AllType firstTryType) {
+    public void autoFixDefine(AllDefine defineToFix) {
         Set<String> currentRemains = defineToFix.getTableNames();
+        AllType firstTryType = defineToFix.resolveType(ViewFilter.FULL_DEFINE);
         for (DTable dTable : dTables.values()) {
-            TTable currentTableType = firstTryType.getTTable(dTable.name);
             boolean contains = currentRemains.remove(dTable.name);
 
             Table tableToFix;
             if (contains) {
-                tableToFix = currentTableType.getTableDefine();
+                tableToFix = defineToFix.getTable(dTable.name);
             } else {
                 tableToFix = defineToFix.newTable(dTable.name);
                 Logger.verbose("new table " + tableToFix.fullName());
             }
 
             try {
+                TTable currentTableType = firstTryType.getTTable(dTable.name);
                 dTable.autoFixDefine(tableToFix, currentTableType);
             } catch (Throwable e) {
                 throw new AssertionError(dTable.name + ", 根据这个表里的数据来猜测表结构和类型出错，看是不是手动在xml里声明一下", e);
@@ -97,9 +95,9 @@ public class AllData extends Node {
         }
 
         for (String currentRemain : currentRemains) {
-            if (defineToFix.removeTableIfNotExclude(currentRemain)) {
-                Logger.verbose("delete table " + defineToFix.fullName() + "." + currentRemain);
-            }
+            // 被ViewFilter忽略的Table，不应该被修复，所以只有被accept的才可能会被删除
+            defineToFix.removeTable(currentRemain);
+            Logger.verbose("delete table " + defineToFix.fullName() + "." + currentRemain);
         }
     }
 

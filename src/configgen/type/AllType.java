@@ -2,7 +2,7 @@ package configgen.type;
 
 import configgen.Node;
 import configgen.define.Bean;
-import configgen.define.DefineView;
+import configgen.view.DefineView;
 import configgen.define.Table;
 
 import java.util.*;
@@ -66,4 +66,48 @@ public class AllType extends Node {
             }
         }
     }
+
+    TBean resolveBeanRef(TBean parent, String refBeanName) {
+        if (refBeanName.contains(".")) {
+            String fullName = refBeanName;
+            if (refBeanName.startsWith(".")) {
+                fullName = refBeanName.substring(1);
+            }
+            return getTBean(fullName);
+        } else {
+            String pkgName = parent.resolvePkgName();
+            if (pkgName.isEmpty()) {
+                return getTBean(refBeanName);
+            }
+
+            String fullName = pkgName + "." + refBeanName;
+            TBean tb = getTBean(fullName);
+            if (tb != null) {
+                return tb;
+            }
+            return getTBean(refBeanName);
+        }
+    }
+
+    TTable resolveTableRef(TBean parent, String refTableName) {
+        if (refTableName.contains(".")) {
+            String fullName = refTableName;
+            if (refTableName.startsWith(".")) {
+                fullName = refTableName.substring(1);
+            }
+            return getTTable(fullName);
+        } else {
+            String pkgName = parent.resolvePkgName();
+            if (pkgName.isEmpty()) {
+                return getTTable(refTableName);
+            }
+            String fullName = pkgName + "." + refTableName;
+            TTable tt = getTTable(fullName);
+            if (tt != null) {
+                return tt;
+            }
+            return getTTable(refTableName);
+        }
+    }
+
 }

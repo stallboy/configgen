@@ -11,8 +11,8 @@ import java.nio.file.Path;
 public class CompatibleForOwn {
 
 
-    public static void makeCompatible(Path xmlFile, String encoding) {
-        AllDefine fullDefine = new AllDefine(xmlFile, encoding);
+    public static void makeCompatible(Path dataDir, String encoding) {
+        AllDefine fullDefine = new AllDefine(dataDir, encoding);
         Logger.mm("define");
 
 

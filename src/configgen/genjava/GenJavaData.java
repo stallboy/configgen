@@ -9,18 +9,16 @@ import java.io.*;
 
 public final class GenJavaData extends Generator {
     private final File file;
-    private final String own;
 
     public GenJavaData(Parameter parameter) {
         super(parameter);
         file = new File(parameter.get("file", "config.data", "文件名"));
-        own = parameter.get("own", null, "提取部分配置");
         parameter.end();
     }
 
     @Override
     public void generate(Context ctx) throws IOException {
-        AllValue value = ctx.makeValue(own);
+        AllValue value = ctx.makeValue(filter);
         try (ConfigOutput output = new ConfigOutput(new DataOutputStream(new CachedFileOutputStream(file, 2048 * 1024)))) {
             Schema schema = SchemaParser.parse(value, ctx.getLangSwitch());
             schema.write(output);

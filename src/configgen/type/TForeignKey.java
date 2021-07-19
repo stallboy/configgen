@@ -39,7 +39,7 @@ public class TForeignKey extends Node {
     }
 
     private TTable resolveRef(Ref ref) {
-        TTable tt = ((AllType) root).getTTable(ref.table);
+        TTable tt = ((AllType) root).resolveTableRef((TBean) parent, ref.table);
         require(tt != null, "外键表不存在", ref.table);
         return tt;
     }

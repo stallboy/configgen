@@ -259,7 +259,7 @@ public class TBean extends Type {
 
     public void resolve() {
         if (beanDefine.type == Bean.BeanType.BaseDynamicBean) {
-            childDynamicBeanEnumRefTable = ((AllType) root).getTTable(beanDefine.childDynamicBeanEnumRef);
+            childDynamicBeanEnumRefTable = ((AllType) root).resolveTableRef(this, beanDefine.childDynamicBeanEnumRef);
             require(childDynamicBeanEnumRefTable != null, "多态Bean的枚举表不存在", beanDefine.childDynamicBeanEnumRef);
             for (TBean tBean : childDynamicBeans.values()) {
                 tBean.resolve();
@@ -331,7 +331,7 @@ public class TBean extends Type {
             type = new TMap(this, col.name, columns.size(), k, v, c);
 
         } else {
-            type = resolveType(col.name, columns.size(), col.type, col.compressType == Column.CompressType.AsOne);
+            type = resolveType(this, col.name, columns.size(), col.type, col.compressType == Column.CompressType.AsOne);
             if (type instanceof TPrimitive) {
                 require(col.compressType == Column.CompressType.NoCompress,
                         "原始类型不要配置compress或compressAsOne");
@@ -355,4 +355,15 @@ public class TBean extends Type {
         return cnt;
     }
 
+    String resolvePkgName() {
+        String pkgAndName;
+        if (beanDefine.type == Bean.BeanType.ChildDynamicBean) {
+            pkgAndName = beanDefine.parent.name;
+        } else {
+            pkgAndName = beanDefine.name;
+        }
+        int i = pkgAndName.lastIndexOf(".");
+
+        return i < 0 ? "" : pkgAndName.substring(0, i);
+    }
 }

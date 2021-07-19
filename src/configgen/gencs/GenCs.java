@@ -25,7 +25,6 @@ public class GenCs extends Generator {
     private final String pkg;
     private final String encoding;
     private final String prefix;
-    private final String own;
     private File dstDir;
     private AllValue value;
 
@@ -35,14 +34,13 @@ public class GenCs extends Generator {
         pkg = parameter.get("pkg", "Config", "包名");
         encoding = parameter.get("encoding", "GBK", "生成文件的编码");
         prefix = parameter.get("prefix", "Data", "生成类的前缀");
-        own = parameter.get("own", null, "提取部分配置");
         parameter.end();
     }
 
     @Override
     public void generate(Context ctx) throws IOException {
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
-        value = ctx.makeValue(own);
+        value = ctx.makeValue(filter);
         //copyFile("CSV.cs");
         //copyFile("CSVLoader.cs");
         //copyFile("LoadErrors.cs");

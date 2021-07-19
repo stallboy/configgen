@@ -2,6 +2,7 @@ package configgen.define;
 
 import configgen.Node;
 import configgen.util.DomUtils;
+import configgen.view.DefineView;
 import org.w3c.dom.Element;
 
 public class Column extends Node {
@@ -86,10 +87,8 @@ public class Column extends Node {
         compressSeparator = original.compressSeparator;
     }
 
-    Column extract(Bean _parent, DefineView defineView) {
-        if (defineView.isOwn(own))
-            return new Column(_parent, this);
-        return null;
+    Column extract(Bean _parent) {
+        return new Column(_parent, this);
     }
 
     void resolveExtract(DefineView defineView) {

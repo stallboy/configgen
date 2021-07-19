@@ -48,7 +48,7 @@ public abstract class Type extends Node {
     public abstract <T> T accept(TypeVisitorT<T> visitor);
 
 
-    Type resolveType(String columnName, int columnIdx, String type, boolean compressAsOne) {
+    Type resolveType(TBean parent, String columnName, int columnIdx, String type, boolean compressAsOne) {
         switch (type) {
             case "int":
                 return new TInt(this, columnName, columnIdx);
@@ -63,7 +63,7 @@ public abstract class Type extends Node {
             case "text":
                 return new TString(this, columnName, columnIdx, TString.Subtype.TEXT);
             default:
-                TBean bean = ((AllType) root).getTBean(type);
+                TBean bean = ((AllType) root).resolveBeanRef(parent, type);
                 if (bean != null) {
                     return new TBeanRef(this, columnName, columnIdx, bean, compressAsOne);
                 } else {

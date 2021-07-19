@@ -30,7 +30,7 @@ public class GenJavaCode extends Generator {
 
     @Override
     public void generate(Context ctx) throws IOException {
-        AllValue value = ctx.makeValue();
+        AllValue value = ctx.makeValue(filter);
         dstDir = Paths.get(dir).resolve(pkg.replace('.', '/')).toFile();
 
         Name.codeTopPkg = pkg;

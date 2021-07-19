@@ -25,7 +25,7 @@ public final class GenI18n extends Generator implements I18n.Collector {
     public void generate(Context ctx) {
         table2TextMap.clear();
         ctx.getI18n().setCollector(this);
-        ctx.makeValue();
+        ctx.makeValue(filter);
 
         List<List<String>> rows = new ArrayList<>(64 * 1024);
         for (Map.Entry<String, Map<String, String>> table2TextEntry : table2TextMap.entrySet()) {

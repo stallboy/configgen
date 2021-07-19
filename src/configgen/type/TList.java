@@ -1,6 +1,5 @@
 package configgen.type;
 
-import configgen.Node;
 import configgen.define.Column;
 
 import java.util.Objects;
@@ -14,10 +13,10 @@ public class TList extends Type {
     public final Column.CompressType compressType;
     public final char compressSeparator;
 
-    TList(Node parent, String name, int idx, String value, int count, Column.CompressType compressType, char compressSeparator) {
+    TList(TBean parent, String name, int idx, String value, int count, Column.CompressType compressType, char compressSeparator) {
         super(parent, name, idx);
 
-        this.value = resolveType("value", idx, value, compressType == Column.CompressType.AsOne);
+        this.value = resolveType(parent, "value", idx, value, compressType == Column.CompressType.AsOne);
         require(Objects.nonNull(this.value), "list里的值类型不存在", value);
         this.count = count;
         this.compressType = compressType;

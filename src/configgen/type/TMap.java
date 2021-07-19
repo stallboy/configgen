@@ -1,7 +1,5 @@
 package configgen.type;
 
-import configgen.Node;
-
 import java.util.Objects;
 
 public class TMap extends Type {
@@ -9,14 +7,14 @@ public class TMap extends Type {
     public final Type value;
     public final int count; // must > 0
 
-    TMap(Node parent, String name, int idx, String key, String value, int count) {
+    TMap(TBean parent, String name, int idx, String key, String value, int count) {
         super(parent, name, idx);
-        this.key = resolveType("key", idx, key, false);
+        this.key = resolveType(parent, "key", idx, key, false);
         require(Objects.nonNull(this.key), "map的Key类型不存在", key);
         if (this.key instanceof TString){
             require(!this.key.hasText(), "map的Key类型不能是Text");
         }
-        this.value = resolveType("value", idx, value, false);
+        this.value = resolveType(parent, "value", idx, value, false);
         require(Objects.nonNull(this.value), "map的Value类型不存在", value);
         if (this.value instanceof TString){
             require(!this.value.hasText(), "map的Value类型不能是Text");

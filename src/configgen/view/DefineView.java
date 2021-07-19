@@ -1,39 +1,33 @@
-package configgen.define;
+package configgen.view;
 
 import configgen.Node;
+import configgen.define.AllDefine;
+import configgen.define.Bean;
+import configgen.define.Column;
+import configgen.define.Table;
 import configgen.type.AllType;
 
 import java.util.*;
 
 public class DefineView extends Node {
-    private final String own;
-    private final boolean ignoreExcludes; //是否忽略exclude，在构造fullDefine时需要忽略
+    public final ViewFilter filter;
 
     // defineView 抽取的结果
     public final Map<String, Bean> beans = new TreeMap<>();
     public final Map<String, Table> tables = new TreeMap<>();
 
-    DefineView(AllDefine define, String own) {
-        this(define, own, false);
-    }
+    public DefineView(AllDefine define, ViewFilter filter) {
+        super(define, filter.name());
 
-    private DefineView(AllDefine define, String own, boolean ignoreExcludes) {
-        super(define, "defineView(" + own + ")");
+        this.filter = filter;
 
-        this.own = own;
-        this.ignoreExcludes = ignoreExcludes;
-
-        define.extract(this, own);
+        define.extract(this);
 
         trimUnusedBeans();
 
         resolveExtract();
-    }
 
-    static DefineView fullDefine(AllDefine define) {
-        String own = ""; // own所有
-        //ignoreExcludes = true; //不排除任何table
-        return new DefineView(define, own, true);
+        filter.saveToXml(define);
     }
 
     void resolveExtract() {
@@ -106,26 +100,7 @@ public class DefineView extends Node {
         }
     }
 
-    boolean isOwn(String defineOwn) {
-        if (own == null || own.isEmpty()) {
-            return true;
-        }
-        if (defineOwn == null || defineOwn.isEmpty()) {
-            return false;
-        }
-        for (String oneOwn : defineOwn.split(",")) {
-            if (own.equals(oneOwn)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    boolean isIgnoreExcludes() {
-        return ignoreExcludes;
-    }
-
-    AllType buildAllType() {
+    public AllType buildAllType() {
         AllType allType = new AllType(this);
         allType.resolve();
 

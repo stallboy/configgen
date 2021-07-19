@@ -1,18 +1,22 @@
 package configgen.gen;
 
+import configgen.view.ViewFilter;
 import configgen.util.CachedFileOutputStream;
 import configgen.util.CachedIndentPrinter;
-
+import configgen.view.OwnFilter;
+import configgen.view.XmlBasedFilter;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.ZipOutputStream;
 
 public abstract class Generator {
     protected final Parameter parameter;
+    protected final ViewFilter filter;
 
     /**
      * @param parameter 此接口有2个实现类，一个用于收集usage，一个用于实际参数解析
@@ -20,6 +24,19 @@ public abstract class Generator {
      */
     protected Generator(Parameter parameter) {
         this.parameter = parameter;
+        String viewXml = parameter.get("viewXml", null,"根据定义的视图xml生成数据");
+        if (viewXml != null) {
+            filter = new XmlBasedFilter(Paths.get(viewXml));
+            String own = parameter.get("own", null, "提取部分配置");
+            require(own == null, "有viewXml的情况下，不需要再配置own参数");
+        } else {
+            String own = parameter.get("own", null, "提取部分配置");
+            filter = new OwnFilter(own);
+        }
+    }
+
+    public ViewFilter getFilter() {
+        return filter;
     }
 
     public abstract void generate(Context ctx) throws IOException;

@@ -2,6 +2,7 @@ package configgen.define;
 
 import configgen.Node;
 import configgen.util.DomUtils;
+import configgen.view.DefineView;
 import org.w3c.dom.Element;
 
 import java.util.*;
@@ -27,6 +28,7 @@ public class Bean extends Node {
         ChildDynamicBean,
     }
 
+    Define define;
     public final BeanType type;
     public final String own;
 
@@ -47,8 +49,9 @@ public class Bean extends Node {
     /**
      * 正常Bean 或 多态基类Bean
      */
-    Bean(AllDefine _parent, Element self) {
-        super(_parent, self.getAttribute("name"));
+    Bean(Define _parent, Element self) {
+        super(_parent, _parent.wrapPkgName(self.getAttribute("name")));
+        define = _parent;
         own = self.getAttribute("own");
 
         compress = self.hasAttribute("compress");
@@ -86,8 +89,9 @@ public class Bean extends Node {
     /**
      * 作为Table的Bean
      */
-    Bean(Table _parent, Element self) {
-        super(_parent, self.getAttribute("name"));
+    Bean(Table _parent, Define _define, Element self) {
+        super(_parent, _define.wrapPkgName(self.getAttribute("name")));
+        define = _define;
         own = self.getAttribute("own");
         type = BeanType.Table;
         compress = false;
@@ -102,6 +106,8 @@ public class Bean extends Node {
      */
     private Bean(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name")); //子bean的名称不用包装pkgName
+
+        define = _parent.define;
         own = self.getAttribute("own");
         require(_parent.type == BeanType.BaseDynamicBean, "不允许ChildDynamicBean又有ChildDynamicBean");
         type = BeanType.ChildDynamicBean;
@@ -134,8 +140,9 @@ public class Bean extends Node {
     /**
      * 有新csv文件，导致的新建Bean
      */
-    Bean(Table table, String name) {
+    Bean(Table table, Define _define, String name) {
         super(table, name);
+        define = _define;
         type = BeanType.Table;
         childDynamicBeanEnumRef = "";
         childDynamicDefaultBeanName = "";
@@ -154,6 +161,10 @@ public class Bean extends Node {
         }
     }
 
+    public Define getDefine() {
+        return define;
+    }
+
     //////////////////////////////// extract
 
     /**
@@ -161,6 +172,7 @@ public class Bean extends Node {
      */
     private Bean(Node _parent, Bean original) {
         super(_parent, original.name);
+        define = original.define;
         type = original.type;
         childDynamicBeanEnumRef = original.childDynamicBeanEnumRef;
         childDynamicDefaultBeanName = original.childDynamicDefaultBeanName;
@@ -171,10 +183,7 @@ public class Bean extends Node {
 
     Bean extract(Node _parent, DefineView defineView) {
         Bean part = new Bean(_parent, this);
-
         if (type == BeanType.BaseDynamicBean) {
-            if (!defineView.isOwn(own))
-                return null;
             // 对于多态Bean,只用在基类上配置own，不需要在每个子Bean上都配置own
             childDynamicBeans.forEach((name, actionBean) -> {
                 Bean bn = actionBean.extract(part, defineView);
@@ -183,16 +192,11 @@ public class Bean extends Node {
         } else {
             // 标记了own的列 提取出来
             columns.forEach((name, c) -> {
-                Column pc = c.extract(part, defineView);
-                if (pc != null) {
-                    part.columns.put(name, pc);
+                if (defineView.filter.acceptColumn(c)) {
+                    Column pc = c.extract(part);
+                    part.columns.put(name, Objects.requireNonNull(pc));
                 }
             });
-
-            // ChildDynamicBean一旦需要，就算没有列，其实也隐含了枚举字符串，所以要包含上
-            if (part.columns.isEmpty() && type != BeanType.ChildDynamicBean) {
-                return null;
-            }
 
             ranges.forEach((n, r) -> {
                 if (part.columns.containsKey(n))
@@ -207,7 +211,7 @@ public class Bean extends Node {
         return part;
     }
 
-    void resolveExtract(DefineView defineView) {
+    public void resolveExtract(DefineView defineView) {
         if (type == BeanType.BaseDynamicBean) {
             for (Bean actionBean : childDynamicBeans.values()) {
                 actionBean.resolveExtract(defineView);
@@ -235,7 +239,10 @@ public class Bean extends Node {
     }
 
     void update(Element self) {
-        self.setAttribute("name", name);
+        if (type == BeanType.ChildDynamicBean)
+            self.setAttribute("name", name);
+        else
+            self.setAttribute("name", define.unwrapPkgName(name));
         if (!own.isEmpty())
             self.setAttribute("own", own);
         if (compress)

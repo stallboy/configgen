@@ -21,7 +21,6 @@ public class GenPack extends Generator {
 
     private final File dstDir;
     private final String xml;
-    private final String own;
     private final boolean packAll;
 
     public GenPack(Parameter parameter) {
@@ -29,14 +28,13 @@ public class GenPack extends Generator {
         dstDir = new File(parameter.get("dir", "cfg", "目录"));
         xml = parameter.get("xml", null, "描述分包策略的xml文件");
         packAll = parameter.has("packall", "是否全部打成一个包,这样不需要配置xml");
-        own = parameter.get("own", null, "提取部分配置");
 
         parameter.end();
     }
 
     @Override
     public void generate(Context ctx) throws IOException {
-        AllValue value = ctx.makeValue(own);
+        AllValue value = ctx.makeValue(filter);
         Map<String, Set<String>> packs = new HashMap<>();
 
         if (packAll) {

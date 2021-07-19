@@ -1,8 +1,10 @@
 package configgen.gen;
 
 import configgen.Logger;
+import configgen.data.AllData;
 import configgen.data.DTable;
 import configgen.define.AllDefine;
+import configgen.view.ViewFilter;
 import configgen.type.AllType;
 import configgen.value.AllValue;
 
@@ -23,6 +25,7 @@ public class Context {
      */
     private final AllType fullType;
 
+    private final AllData fullData;
 
     /**
      * 直接国际化,直接改成对应国家语言
@@ -41,12 +44,13 @@ public class Context {
      * 注意这里不再立马生成fullValue，因为很费内存，在用到时再生成。
      */
     private AllValue lastValue;
-    private String lastValueOwn;
+    private ViewFilter lastViewFilter;
 
 
-    Context(Path xmlPath, String encoding) {
-        fullDefine = new AllDefine(xmlPath, encoding);
-        fullType = fullDefine.readData_AutoFix_ResolveType();
+    Context(Path dataDir, String encoding) {
+        fullDefine = new AllDefine(dataDir, encoding);
+        fullData = fullDefine.readData();
+        fullType = fullDefine.autoFixDefineAndResolveFullType(fullData);
     }
 
     public Path getDataDir() {
@@ -54,7 +58,7 @@ public class Context {
     }
 
     public DTable getDTable(String tableName) {
-        return fullDefine.getDTable(tableName);
+        return fullData.get(tableName);
     }
 
     void setI18nOrLangSwitch(String i18nFile, String langSwitchDir, String i18nEncoding, boolean crlfaslf) {
@@ -83,24 +87,19 @@ public class Context {
         return i18n;
     }
 
-    public AllValue makeValue() {
-        return makeValue(null);
-    }
-
-
-    public AllValue makeValue(String own) {
+    public AllValue makeValue(ViewFilter filter) {
         if (lastValue != null) {
-            if (Objects.equals(own, lastValueOwn)) {
+            if (Objects.equals(filter, lastViewFilter)) {
                 return lastValue;
             }
         }
 
         lastValue = null; //让它可以被尽快gc
 
-        lastValueOwn = own;
-        lastValue = make(fullDefine.resolvePartType(own));
+        lastViewFilter = filter;
+        lastValue = make(fullDefine.resolveType(filter));
 
-        Logger.mm("verify " + (own == null ? "" : own));
+        Logger.mm("verify " + filter.name());
         return lastValue;
     }
 

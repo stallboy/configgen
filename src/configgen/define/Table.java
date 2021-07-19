@@ -2,6 +2,7 @@ package configgen.define;
 
 import configgen.Node;
 import configgen.util.DomUtils;
+import configgen.view.DefineView;
 import org.w3c.dom.Element;
 
 import java.util.*;
@@ -34,12 +35,12 @@ public class Table extends Node {
 
     public final Map<String, UniqueKey> uniqueKeys = new LinkedHashMap<>();
 
-    Table(AllDefine parent, Element self) {
-        super(parent, self.getAttribute("name"));
+    Table(Define parent, Element self) {
+        super(parent, parent.wrapPkgName(self.getAttribute("name")));
         DomUtils.permitAttributes(self, "name", "own", "enum", "enumPart", "primaryKey", "isPrimaryKeySeq", "extraSplit");
         DomUtils.permitElements(self, "column", "foreignKey", "range", "uniqueKey");
 
-        bean = new Bean(this, self);
+        bean = new Bean(this, parent, self);
 
 
         if (self.hasAttribute("enum")) {
@@ -59,7 +60,7 @@ public class Table extends Node {
         if (self.hasAttribute("primaryKey")) {
             primaryKey = DomUtils.parseStringArray(self, "primaryKey");
         } else {
-            primaryKey = new String[]{bean.columns.keySet().iterator().next()};
+            primaryKey = new String[] { bean.columns.keySet().iterator().next() };
         }
 
         isPrimaryKeySeq = self.hasAttribute("isPrimaryKeySeq");
@@ -107,9 +108,9 @@ public class Table extends Node {
         return extraSplit;
     }
 
-    Table(AllDefine parent, String name) { // 新csv，产生新table定义
+    Table(Define parent, String name) { // 新csv，产生新table定义
         super(parent, name);
-        bean = new Bean(this, name);
+        bean = new Bean(this, parent, name);
         enumType = EnumType.None;
         enumStr = "";
         primaryKey = new String[0];
@@ -159,8 +160,7 @@ public class Table extends Node {
     Table extract(DefineView defineView) {
         Table part = new Table(defineView, this);
         part.bean = bean.extract(part, defineView);
-        if (part.bean == null)
-            return null;
+        Objects.requireNonNull(part.bean);
 
         uniqueKeys.forEach((n, uk) -> {
             if (part.bean.columns.keySet().containsAll(Arrays.asList(uk.keys))) {
@@ -170,7 +170,7 @@ public class Table extends Node {
         return part;
     }
 
-    void resolveExtract(DefineView defineView) {
+    public void resolveExtract(DefineView defineView) {
         bean.resolveExtract(defineView);
         String original = enumStr;
         if (!bean.columns.containsKey(original)) {

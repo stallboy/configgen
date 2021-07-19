@@ -20,7 +20,6 @@ public class GenLua extends Generator {
     private final String dir;
     private final String pkg;
     private final String encoding;
-    private final String own;
     private final boolean useEmmyLua;
     private final boolean preload;
     private final boolean useShared;
@@ -39,7 +38,6 @@ public class GenLua extends Generator {
         dir = parameter.get("dir", ".", "生成代码所在目录");
         pkg = parameter.get("pkg", "cfg", "模块名称");
         encoding = parameter.get("encoding", "UTF-8", "编码");
-        own = parameter.get("own", null, "提取部分配置");
 
         useEmmyLua = parameter.has("emmylua", "是否生成EmmyLua相关的注解");
         preload = parameter.has("preload", "是否一开始就全部加载配置，默认用到的时候再加载");
@@ -62,7 +60,7 @@ public class GenLua extends Generator {
 
         Path dstDirPath = Paths.get(dir).resolve(pkg.replace('.', '/'));
         dstDir = dstDirPath.toFile();
-        value = ctx.makeValue(own);
+        value = ctx.makeValue(filter);
 
         StringBuilder fileDst = new StringBuilder(512 * 1024); //优化gc alloc
         StringBuilder cache = new StringBuilder(512 * 1024);

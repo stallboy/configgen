@@ -1,5 +1,7 @@
 package configgen.define;
 
+import configgen.view.DefineView;
+
 import java.util.Arrays;
 
 public class Ref {

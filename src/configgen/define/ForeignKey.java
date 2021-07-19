@@ -2,6 +2,7 @@ package configgen.define;
 
 import configgen.Node;
 import configgen.util.DomUtils;
+import configgen.view.DefineView;
 import org.w3c.dom.Element;
 
 public class ForeignKey extends Node {

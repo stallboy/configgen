@@ -68,8 +68,8 @@ public class ForeignKey extends Node {
         mapKeyRef = original.mapKeyRef;
     }
 
-    boolean invalid(DefineView defineView) {
-        return !((ref == null || ref.valid(defineView)) && (mapKeyRef == null || mapKeyRef.valid(defineView)));
+    boolean invalid(Bean parent, DefineView defineView) {
+        return !((ref == null || ref.valid(parent, defineView)) && (mapKeyRef == null || mapKeyRef.valid(parent, defineView)));
     }
 
     void save(Element parent) {

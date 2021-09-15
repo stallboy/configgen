@@ -161,6 +161,17 @@ public class Bean extends Node {
         }
     }
 
+    public String getPkgName() {
+        String pkgAndName;
+        if (type == Bean.BeanType.ChildDynamicBean) {
+            pkgAndName = parent.name;
+        } else {
+            pkgAndName = name;
+        }
+        int i = pkgAndName.lastIndexOf(".");
+        return i < 0 ? "" : pkgAndName.substring(0, i);
+    }
+
     public Define getDefine() {
         return define;
     }
@@ -224,7 +235,7 @@ public class Bean extends Node {
 
         List<String> dels = new ArrayList<>();
         foreignKeys.forEach((n, fk) -> {
-            if (fk.invalid(defineView)) {
+            if (fk.invalid(this, defineView)) {
                 dels.add(n);
             }
         });

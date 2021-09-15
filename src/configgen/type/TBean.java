@@ -355,15 +355,4 @@ public class TBean extends Type {
         return cnt;
     }
 
-    String resolvePkgName() {
-        String pkgAndName;
-        if (beanDefine.type == Bean.BeanType.ChildDynamicBean) {
-            pkgAndName = beanDefine.parent.name;
-        } else {
-            pkgAndName = beanDefine.name;
-        }
-        int i = pkgAndName.lastIndexOf(".");
-
-        return i < 0 ? "" : pkgAndName.substring(0, i);
-    }
 }

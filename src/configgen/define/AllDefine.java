@@ -121,6 +121,10 @@ public class AllDefine extends Node {
         return tables.get(tableName);
     }
 
+    public Bean getBean(String beanName) {
+        return beans.get(beanName);
+    }
+
     //////////////////////////////// 读取数据文件，并补充完善Define
 
     public AllData readData() {

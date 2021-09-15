@@ -92,7 +92,7 @@ public class Column extends Node {
     }
 
     void resolveExtract(DefineView defineView) {
-        if (foreignKey != null && foreignKey.invalid(defineView)) {
+        if (foreignKey != null && foreignKey.invalid((Bean) parent, defineView)) {
             foreignKey = null;
         }
     }

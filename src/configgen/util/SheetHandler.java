@@ -50,7 +50,7 @@ public interface SheetHandler {
         @Override
         public List<SheetData> readFromFile(File file, String encoding, ReadFilter filter) throws IOException, InvalidFormatException {
             List<SheetData> sheetDataList = new ArrayList<>();
-            try (Workbook workbook = WorkbookFactory.create(file)) {
+            try (Workbook workbook = WorkbookFactory.create(file, null, true)) {
                 FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
                 for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
                     Sheet sheet = workbook.getSheetAt(sheetIndex);

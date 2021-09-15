@@ -31,12 +31,46 @@ public class Ref {
         return table + "," + String.join(",", cols);
     }
 
-    boolean valid(DefineView defineView) {
-        Table t = defineView.tables.get(table);
+    boolean valid(Bean parent, DefineView defineView) {
+        String resolvedTable = resolveTableFullName(parent, table);
+        Table t = defineView.tables.get(resolvedTable);
         return t != null && t.bean.columns.keySet().containsAll(Arrays.asList(cols));
     }
 
-    boolean equal(Ref ref){
-        return ref != null && table.equals(ref.table) && Arrays.equals(cols, ref.cols);
+    public static String resolveBeanFullName(Bean parentBean , String refName) {
+        if (refName.contains(".")) {
+            return refName.startsWith(".") ? refName.substring(1) : refName;
+        }
+
+        String pkgName = parentBean.getPkgName();
+        if (pkgName.isEmpty()) {
+            return refName;
+        }
+
+        String fullName = pkgName + "." + refName;
+        if (parentBean.getDefine().allDefine.getBean(fullName) != null) {
+            return fullName;
+        }
+
+        return refName;
     }
+
+    public static String resolveTableFullName(Bean parentBean, String refName) {
+        if (refName.contains(".")) {
+            return refName.startsWith(".") ? refName.substring(1) : refName;
+        }
+
+        String pkgName = parentBean.getPkgName();
+        if (pkgName.isEmpty()) {
+            return refName;
+        }
+
+        String fullName = pkgName + "." + refName;
+        if (parentBean.getDefine().allDefine.getTable(fullName) != null) {
+            return fullName;
+        }
+
+        return refName;
+    }
+
 }

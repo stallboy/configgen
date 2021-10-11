@@ -1,10 +1,7 @@
 package configgen.view;
 
 import configgen.Node;
-import configgen.define.AllDefine;
-import configgen.define.Bean;
-import configgen.define.Column;
-import configgen.define.Table;
+import configgen.define.*;
 import configgen.type.AllType;
 
 import java.util.*;
@@ -64,12 +61,6 @@ public class DefineView extends Node {
         resolveUsedBean(table.bean, dstUsedBeans);
     }
 
-    private void resolveUsedBeanIf(Bean bean, Set<String> dstUsedBeans) {
-        if (bean != null && beans.containsKey(bean.name) && dstUsedBeans.add(bean.name)) {
-            resolveUsedBean(bean, dstUsedBeans);
-        }
-    }
-
     private void resolveUsedBean(Bean bean, Set<String> dstUsedBeans) {
         if (bean.type == Bean.BeanType.BaseDynamicBean) {
             for (Bean actionBean : bean.childDynamicBeans.values()) {
@@ -77,26 +68,54 @@ public class DefineView extends Node {
             }
         } else {
             for (Column col : bean.columns.values()) {
-                resolveUsedBean(col, dstUsedBeans);
+                resolveUsedBean(bean, col, dstUsedBeans);
             }
         }
     }
 
-    private void resolveUsedBean(Column col, Set<String> dstUsedBeans) {
+    private void resolveUsedBean(Bean parentBean, Column col, Set<String> dstUsedBeans) {
         if (col.type.startsWith("list,")) {
             String[] sp = col.type.split(",");
             String v = sp[1].trim();
 
-            resolveUsedBeanIf(beans.get(v), dstUsedBeans);
+            resolveUsedBeanIf(parentBean, v, dstUsedBeans);
         } else if (col.type.startsWith("map,")) {
             String[] sp = col.type.split(",");
             String k = sp[1].trim();
             String v = sp[2].trim();
 
-            resolveUsedBeanIf(beans.get(k), dstUsedBeans);
-            resolveUsedBeanIf(beans.get(v), dstUsedBeans);
+            resolveUsedBeanIf(parentBean, k, dstUsedBeans);
+            resolveUsedBeanIf(parentBean, v, dstUsedBeans);
         } else {
-            resolveUsedBeanIf(beans.get(col.type), dstUsedBeans);
+            resolveUsedBeanIf(parentBean, col.type, dstUsedBeans);
+        }
+    }
+
+    private void resolveUsedBeanIf(Bean parentBean, String type, Set<String> dstUsedBeans) {
+        if (isPrimitive(type)) {
+            return;
+        }
+
+        String fullName = Ref.resolveBeanFullName(parentBean, type);
+        Bean bean = beans.get(fullName);
+        Objects.requireNonNull(bean);
+
+        if (dstUsedBeans.add(bean.name)) {
+            resolveUsedBean(bean, dstUsedBeans);
+        }
+    }
+
+    private static boolean isPrimitive(String type) {
+        switch (type) {
+            case "int":
+            case "long":
+            case "string":
+            case "bool":
+            case "float":
+            case "text":
+                return true;
+            default:
+                return false;
         }
     }
 

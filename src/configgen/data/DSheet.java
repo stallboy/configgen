@@ -22,9 +22,22 @@ public class DSheet extends Node {
     private final List<String> descLine;
     private final List<String> nameLine;
     /**
-     * csv2行之后的所有的数据， csv -> list.list.str
+     * csv HeadRow行之后的所有的数据， csv -> list.list.str
      */
     private final List<List<String>> recordList;
+
+    private static int HeadRow;
+
+    static {
+        String row = System.getProperty("configgen.headrow");
+        if (row == null || row.equals("2")) {
+            HeadRow = 2;
+        } else if (row.equals("3")) {
+            HeadRow = 3; //第三行可以是类型信息，随便，这里不会读取这个数据，会忽略掉，也就是说类型的权威数据在xml里
+        } else {
+            System.err.printf("-Dconfiggen.headrow，设置为[%s], 它只能设置为2或3，不设置的话默认是2\n", row);
+        }
+    }
 
     static DSheet create(Path topDir, Node parent, SheetData data) {
         String sheetName = data.sheetName;
@@ -93,10 +106,11 @@ public class DSheet extends Node {
         recordList = adjustRecords(format, nameLine, rows);
     }
 
+
     // 读取excel数据时使用, 防止后续的读取不到数据出现数组越界
     private static List<List<String>> adjustRecords(EFileFormat format, List<String> nameLine, List<List<String>> rows) {
         if (format != EFileFormat.EXCEL) {
-            return rows.subList(2, rows.size());
+            return rows.subList(HeadRow, rows.size());
         }
 
         int usefulColumnsCnt = getUsefulColumnCnt(nameLine);
@@ -110,7 +124,7 @@ public class DSheet extends Node {
             }
         }
 
-        return rows.subList(2, rows.size());
+        return rows.subList(HeadRow, rows.size());
     }
 
     // 根据nameLine计算出有效列数量

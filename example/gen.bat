@@ -1,2 +1,2 @@
-java -jar ../configgen.jar -xml configserver/configserver.xml -gen lua,dir:lua,sharedEmptyTable -gen java,dir:java -gen cs,dir:cs -gen pack,dir:cs/cfg -gen javadata
+java -jar ../configgen.jar -datadir config -gen lua,dir:lua,sharedEmptyTable -gen java,dir:java -gen cs,dir:cs -gen pack,dir:cs/cfg -gen javadata
 pause

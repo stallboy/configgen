@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="GBK"?><db>
+    <table enum="name" name="ability" primaryKey="id">
+        <column desc="属性类型" name="id" type="int"/>
+        <column desc="程序用名字" name="name" type="string"/>
+    </table>
+    <table extraSplit="40" name="jewelry" primaryKey="ID">
+        <column desc="首饰ID" name="ID" range="1,9999" type="int"/>
+        <column desc="首饰名称" name="Name" type="string"/>
+        <column desc="图标ID" name="IconFile" type="string"/>
+        <column desc="首饰等级" name="LvlRank" ref="equip.jewelryrandom" type="LevelRank"/>
+        <column desc="首饰类型" name="Type" ref="equip.jewelrytype" type="string"/>
+        <column desc="套装ID（为0是没有不属于套装，首饰品级为4的首饰该参数为套装id，其余情况为0,引用JewelrySuit.csv）" name="SuitID" ref="equip.jewelrysuit" refType="NULLABLE" type="int"/>
+        <column desc="关键属性类型" name="KeyAbility" ref="equip.ability" type="int"/>
+        <column desc="关键属性数值" name="KeyAbilityValue" type="int"/>
+        <column desc="售卖价格" name="SalePrice" type="int"/>
+        <column desc="描述,根据Lvl和Rank来随机3个属性，第一个属性由Lvl,Rank行随机，剩下2个由Lvl和小于Rank的行里随机。Rank最小的时候都从Lvl，Rank里随机。" name="Description" type="string"/>
+    </table>
+    <table name="jewelryrandom" primaryKey="LvlRank">
+        <column desc="等级" name="LvlRank" type="LevelRank"/>
+        <column desc="最小攻击力" name="AttackRange" type="Range"/>
+        <column desc="最小防御力" name="OtherRange" type="list,Range,4"/>
+        <column compressAsOne="1" desc="测试compressAsOne" name="TestCompress1" type="list,TestCompressBean"/>
+    </table>
+    <table enumPart="Ename" name="jewelrysuit" primaryKey="SuitID">
+        <column desc="饰品套装ID" name="SuitID" type="int"/>
+        <column name="Ename" type="string"/>
+        <column desc="策划用名字" name="Name" type="text"/>
+        <column desc="套装属性类型1（装备套装中的两件时增加的属性）" name="Ability1" type="int"/>
+        <column desc="套装属性1" name="Ability1Value" type="int"/>
+        <column desc="套装属性类型2（装备套装中的三件时增加的属性）" name="Ability2" type="int"/>
+        <column desc="套装属性2" name="Ability2Value" type="int"/>
+        <column desc="套装属性类型3（装备套装中的四件时增加的属性）" name="Ability3" type="int"/>
+        <column desc="套装属性3" name="Ability3Value" type="int"/>
+        <column desc="部件1" name="SuitList" type="list,int,4"/>
+    </table>
+    <table enum="TypeName" name="jewelrytype" primaryKey="TypeName">
+        <column desc="程序用名字" name="TypeName" type="string"/>
+    </table>
+    <table enum="RankName" name="rank" primaryKey="RankID">
+        <column desc="稀有度" name="RankID" type="int"/>
+        <column desc="程序用名字" name="RankName" type="string"/>
+        <column desc="显示名称" name="RankShowName" type="string"/>
+    </table>
+</db>

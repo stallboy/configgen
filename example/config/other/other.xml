@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="GBK"?><db>
+    <table name="loot" primaryKey="lootid">
+        <column desc="序号" name="lootid" ref="other.lootitem,lootid" refType="LIST" type="int"/>
+        <column name="ename" type="string"/>
+        <column desc="名字" name="name" type="string"/>
+        <column desc="掉落0件物品的概率" name="chanceList" type="list,int,7"/>
+    </table>
+    <table name="lootitem" primaryKey="lootid,itemid">
+        <column desc="掉落id" name="lootid" type="int"/>
+        <column desc="掉落物品" name="itemid" type="int"/>
+        <column desc="掉落概率" name="chance" type="int"/>
+        <column desc="数量下限" name="countmin" type="int"/>
+        <column desc="数量上限" name="countmax" type="int"/>
+    </table>
+    <table name="monster" primaryKey="id">
+        <column desc="id" name="id" type="int"/>
+        <column compress=":" name="posList" type="list,Position"/>
+    </table>
+    <table name="signin" primaryKey="id">
+        <column desc="礼包ID" name="id" type="int"/>
+        <column desc="普通奖励" name="item2countMap" type="map,int,int,5"/>
+        <column desc="vip奖励" name="vipitem2vipcountMap" type="map,int,int,2"/>
+        <column desc="领取vip奖励的最低等级" name="viplevel" type="int"/>
+        <column desc="礼包图标" name="IconFile" type="string"/>
+    </table>
+</db>

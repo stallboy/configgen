@@ -13,6 +13,7 @@ public interface ViewFilter {
 
     boolean acceptBean(Bean bean);
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean acceptTable(Table table);
 
     void saveToXml(AllDefine allDefine);

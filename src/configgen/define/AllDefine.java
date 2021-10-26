@@ -35,7 +35,7 @@ public class AllDefine extends Node {
 
     private Define.SplitMode getSplitMode() {
         Define topDefine = defines.get(topXmlFile);
-        // 如果不存在topXmlFile，当PkgBased出来，否则按topXmlFile定义的splitMode处理
+        // 如果不存在topXmlFile，当PkgBased处理，否则按topXmlFile定义的splitMode处理
         return topDefine == null ? Define.SplitMode.PkgBased : topDefine.splitMode;
     }
 

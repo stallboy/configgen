@@ -18,6 +18,8 @@
 
 * [完整介绍 - 策划配置系统](https://stallboy.github.io/configgen/ConfiggenIntro.pdf)
 
+* [给策划的 - 配表工具功能介绍](https://stallboy.github.io/configgen/IntroToDesigner.html)
+
 * [如何配置 - Configuration](https://stallboy.github.io/configgen/Configuration.html)
 
 * [常见问题 - FAQ](https://stallboy.github.io/configgen/FAQ.html)

@@ -102,16 +102,16 @@ public class AllData extends Node {
     }
 
     private static boolean acceptSheet(EFileFormat format, File file, String sheetName) {
-        if (format == EFileFormat.EXCEL) {
-            if (!sheetName.isEmpty()) {
-                // 只接受首字母是英文字母的页签
-                char firstChar = sheetName.charAt(0);
-                return ('a' <= firstChar && firstChar <= 'z')
-                        || ('A' <= firstChar && firstChar <= 'Z');
-            }
-            return false;
+//        if (format == EFileFormat.EXCEL) {
+        if (!sheetName.isEmpty()) {
+            // 只接受首字母是英文字母的页签
+            char firstChar = sheetName.charAt(0);
+            return ('a' <= firstChar && firstChar <= 'z')
+                    || ('A' <= firstChar && firstChar <= 'Z');
         }
-        return true;
+        return false;
+//        }
+//        return true;
     }
 
 }

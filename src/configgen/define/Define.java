@@ -125,9 +125,9 @@ public class Define extends Node {
     }
 
     enum SplitMode {
-        /** 所有bean的table的定义都在同一个xml文件中 */
+        /** 所有bean和table的定义都在同一个xml文件中 */
         AllInOne,
-        /** 基于包的分割，将bean和table按包名分割到不通文件夹下的xml中 */
+        /** 基于包的分割，将bean和table按包名分割到不同文件夹下的xml中 */
         PkgBased,
         ;
 

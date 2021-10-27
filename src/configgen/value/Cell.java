@@ -24,7 +24,7 @@ public final class Cell {
 
     @Override
     public String toString() {
-        return "sheet=" + sheet.name + ",row=" + (row + 1) + ",col=" + toAZ(col) + ",data=" + data;
+        return String.format("sheet=%s,row=%d,col=%s,data=%s", sheet.name, row, toAZ(col), data);
     }
 
     private static final int N = 'Z' - 'A' + 1;

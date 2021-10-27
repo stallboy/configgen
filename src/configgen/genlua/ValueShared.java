@@ -27,7 +27,8 @@ class ValueShared {
         while (true) {
             ValueSharedLayer nextLayer = new ValueSharedLayer(this);
 
-            for (ValueSharedLayer.VCompositeCnt vc : currLayer.getCompositeValueToCnt().values()) {
+            List<ValueSharedLayer.VCompositeCnt> currLayerCopy = new ArrayList<>(currLayer.getCompositeValueToCnt().values());
+            for (ValueSharedLayer.VCompositeCnt vc : currLayerCopy) {
                 if (!vc.isTraversed()) {
                     vc.getFirst().accept(nextLayer);
                     vc.setTraversed();
@@ -38,7 +39,7 @@ class ValueShared {
                 layers.add(nextLayer);
                 currLayer = nextLayer;
             } else {
-                break;
+                break;  // 直到下一层，再也没有共用的结构了，就退出
             }
         }
     }

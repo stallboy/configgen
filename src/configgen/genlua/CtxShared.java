@@ -6,12 +6,15 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-class CtxShared {
 
+/**
+ * 用于lua生成时table能共享内存就共享，以最小化客户端的内存占用
+ *
+ */
+class CtxShared {
     private int emptyTableUseCount = 0;
     private final Map<VComposite, VCompositeStr> sharedCompositeValues = new LinkedHashMap<>();
 
-    // 用于lua生成时table能共享内存就共享，以最小化客户端的内存占用
     static class VCompositeStr {
         private String valueStr = null;
         private final String name;
@@ -37,6 +40,8 @@ class CtxShared {
     void parseShared(Ctx ctx) {
         ValueShared shared = new ValueShared(ctx.getVTable());
         shared.iterateShared();
+
+        // 遍历层级收集下
         int idx = 0;
         for (int i = shared.getLayers().size() - 1; i >= 0; i--) {
             ValueSharedLayer layer = shared.getLayers().get(i);
@@ -49,6 +54,7 @@ class CtxShared {
             }
         }
 
+        // 生成value的字符串
         for (Map.Entry<VComposite, VCompositeStr> entry : sharedCompositeValues.entrySet()) {
             StringBuilder sb = new StringBuilder();
             entry.getKey().accept(new ValueStringify(sb, ctx, null));

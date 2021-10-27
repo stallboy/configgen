@@ -26,6 +26,7 @@ public class DSheet extends Node {
      */
     private final List<List<String>> recordList;
 
+
     private static int HeadRow;
 
     static {
@@ -37,6 +38,10 @@ public class DSheet extends Node {
         } else {
             System.err.printf("-Dconfiggen.headrow，设置为[%s], 它只能设置为2或3，不设置的话默认是2\n", row);
         }
+    }
+
+    public static int getHeadRow() {
+        return HeadRow;
     }
 
     static DSheet create(Path topDir, Node parent, SheetData data) {

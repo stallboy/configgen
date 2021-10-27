@@ -45,7 +45,7 @@ public class VTable extends Node {
 
         vBeanList = new ArrayList<>(totalRecords);
         for (DSheet sheet : sheets) {
-            int row = 2;
+            int row = DSheet.getHeadRow();
             for (List<String> record : sheet.getRecordList()) {
                 row++; // 从3开始
                 if (record.isEmpty()) {

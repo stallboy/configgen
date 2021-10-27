@@ -2,7 +2,8 @@ package configgen.genlua;
 
 import configgen.value.*;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class ValueSharedLayer implements ValueVisitor {
     static class VCompositeCnt {
@@ -62,10 +63,12 @@ public class ValueSharedLayer implements ValueVisitor {
             oldInThisLayer.first.setShared(); //设置上，后面生成代码时会快点
             v.setShared();
         } else {
-            VCompositeCnt oldInPreviousLayer = shared.remove(v);
+            VCompositeCnt oldInPreviousLayer = shared.remove(v); //这个会从之前的layer中删除
             if (oldInPreviousLayer != null) { //前面的层可能包含了这个v
                 oldInPreviousLayer.cnt++;
-                compositeValueToCnt.put(v, oldInPreviousLayer); //挪到这层，这样生成lua代码时已经排序,但要在生成下层shared时不遍历这个，因为已经遍历过
+                //挪到这层，这样生成lua代码时已经排序,但要在生成下层shared时不遍历这个，因为已经遍历过
+                compositeValueToCnt.put(v, oldInPreviousLayer);
+
                 oldInPreviousLayer.first.setShared();
                 v.setShared();
 
@@ -127,7 +130,6 @@ public class ValueSharedLayer implements ValueVisitor {
     @Override
     public void visit(VBean value) {
         if (isCurr) {
-
             for (Value field : value.getValues()) {
                 field.accept(next);
             }

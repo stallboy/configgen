@@ -3,9 +3,13 @@ package configgen.genlua;
 import configgen.type.TBool;
 import configgen.type.TInt;
 import configgen.type.Type;
-import configgen.value.*;
+import configgen.value.VBean;
+import configgen.value.VInt;
+import configgen.value.VTable;
+import configgen.value.Value;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 class CtxColumnStore {
 
@@ -25,12 +29,12 @@ class CtxColumnStore {
     private static int MIN_SAVE = 100;
 
     static {
-        String min_row = System.getProperty("genlua.column_min_row");
+        String min_row = System.getProperty("genlua.column_min_row"); // 这个table至少多少行才开始考虑列模式
         if (min_row != null) {
             MIN_ROW = Integer.parseInt(min_row);
         }
 
-        String min_save = System.getProperty("genlua.column_min_save");
+        String min_save = System.getProperty("genlua.column_min_save"); //可以节省多少个lua 的number对象
         if (min_save != null) {
             MIN_SAVE = Integer.parseInt(min_save);
         }

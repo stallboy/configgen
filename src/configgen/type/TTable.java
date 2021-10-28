@@ -110,7 +110,7 @@ public class TTable extends Node {
                 TBean tbean = (TBean) t;
                 for (Type column : tbean.getColumns()) {
                     if (!(column instanceof TPrimitive)) {
-                        error("唯一键或主键类型如果是Bean，则Bean里必须只包含基本类型吧，为简单期间", k);
+                        error("唯一键或主键类型如果是Bean，则Bean里必须只包含基本类型吧，为简单", k);
                     }
                 }
             } else {

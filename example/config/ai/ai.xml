@@ -8,7 +8,6 @@
         <column desc="触发几率" name="TrigOdds" type="int"/>
         <column desc="触发行为" name="ActionID" type="string"/>
         <column desc="死亡移除" name="DeathRemove" type="bool"/>
-        <column name="__END" type="int"/>
     </table>
     <table name="ai_action" primaryKey="ID">
         <column desc="ID" name="ID" type="int"/>
@@ -16,7 +15,6 @@
         <column desc="公式" name="FormulaID" type="int"/>
         <column desc="参数(int)1" name="ArgIList" type="list,int,6"/>
         <column desc="参数(string)1" name="ArgSList" type="list,int,3"/>
-        <column name="__END" type="int"/>
     </table>
     <table name="ai_condition" primaryKey="ID">
         <column desc="ID" name="ID" type="int"/>
@@ -24,6 +22,5 @@
         <column desc="公式" name="FormulaID" type="int"/>
         <column desc="参数(int)1" name="ArgIList" type="list,int,6"/>
         <column desc="参数(string)1" name="ArgSList" type="list,int,3"/>
-        <column name="__END" type="int"/>
     </table>
 </db>

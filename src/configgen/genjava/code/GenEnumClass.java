@@ -32,6 +32,9 @@ class GenEnumClass {
                     ps.println1("public static %s %s = new %s(\"%s\");", name.className, enumName.toUpperCase(), name.className, enumName);
                 }
             }
+            if (isFull && 0 == c) {
+                ps.println1(";");
+            }
 
             ps.println();
             ps.println1("private String value;");
@@ -61,6 +64,9 @@ class GenEnumClass {
                 } else {
                     ps.println1("public static %s %s = new %s(\"%s\", %d);", name.className, enumName.toUpperCase(), name.className, enumName, value);
                 }
+            }
+            if (isFull && 0 == c) {
+                ps.println1(";");
             }
 
             ps.println();

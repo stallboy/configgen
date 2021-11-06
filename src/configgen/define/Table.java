@@ -95,13 +95,17 @@ public class Table extends Node {
 
     public boolean isEnumHasOnlyPrimaryKeyAndEnumStr() {
         if (enumType != EnumType.None) {
-            if (isEnumAsPrimaryKey()) {
-                return bean.columns.size() == 1;
-            } else {
-                return bean.columns.size() == 2;
+            if (bean.columns.size() > 2 || isEnumAsPrimaryKey() && bean.columns.size() > 1) {
+                return false;
             }
+            return !hasAnyForeignKey();
         }
         return false;
+    }
+
+    private boolean hasAnyForeignKey() {
+        return !bean.foreignKeys.isEmpty()
+                || bean.columns.values().stream().anyMatch(column -> null != column.foreignKey);
     }
 
     public int getExtraSplit() {

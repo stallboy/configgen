@@ -208,7 +208,8 @@ public class AllDefine extends Node {
     private TreeSet<String> scanDefineXmlFiles() {
         TreeSet<String> defineXmlFiles = new TreeSet<>();
         try {
-            Files.walkFileTree(dataDir, new SimpleFileVisitor<>() {
+            //noinspection Convert2Diamond
+            Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
                     if (isDefineXmlFile(path)) {

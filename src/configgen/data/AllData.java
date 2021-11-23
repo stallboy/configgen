@@ -31,7 +31,8 @@ public class AllData extends Node {
 
         Map<String, List<DSheet>> dSheetMap = new TreeMap<>();
         try {
-            Files.walkFileTree(dataDir, new SimpleFileVisitor<>() {
+            //noinspection Convert2Diamond
+            Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
 

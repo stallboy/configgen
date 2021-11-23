@@ -16,9 +16,9 @@ import java.util.Map;
 
 public class ExcelWriter {
 
-    public static void writeToFile(List<SheetData> sheetDataList) throws IOException, InvalidFormatException {
+    public static void writeToFile(List<SheetData> sheetDataList) throws IOException {
         if (sheetDataList.size() == 1) {
-            ExcelWriter.writeToFile(sheetDataList.get(0).file, sheetDataList);
+            writeToFile(sheetDataList.get(0).file, sheetDataList);
         } else if (!sheetDataList.isEmpty()) {
             Map<File, List<SheetData>> fileMap = new LinkedHashMap<>();
             for (SheetData sheetData : sheetDataList) {
@@ -32,12 +32,15 @@ public class ExcelWriter {
         }
     }
 
-    public static void writeToFile(File file, List<SheetData> sheetDataList) throws IOException, InvalidFormatException {
+
+    static void writeToFile(File file, List<SheetData> sheetDataList) throws IOException {
         Workbook workbook = null;
         try {
             if (file.exists()) {
                 try (FileInputStream fis = new FileInputStream(file)) {
                     workbook = WorkbookFactory.create(fis);
+                } catch (InvalidFormatException e) {
+                    throw new IOException(e);
                 }
             } else {
                 boolean isXls = file.getName().endsWith(".xls");

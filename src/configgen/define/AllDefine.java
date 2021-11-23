@@ -3,6 +3,7 @@ package configgen.define;
 import configgen.Node;
 import configgen.data.AllData;
 import configgen.type.AllType;
+import configgen.util.FileNameExtract;
 import configgen.view.DefineView;
 import configgen.view.ViewFilter;
 
@@ -165,6 +166,7 @@ public class AllDefine extends Node {
 
     /**
      * 根据own和exclude抽取出定义视图
+     *
      * @param viewFilter 配置为own="client,xeditor"的column就会被resolvePartType("client")抽取出来，也可以是一个view_xxx.xml
      * @return 一个抽取过后的带类型结构信息。
      * 用于对上层隐藏掉own机制 和 exclude机制。
@@ -206,7 +208,7 @@ public class AllDefine extends Node {
     private TreeSet<String> scanDefineXmlFiles() {
         TreeSet<String> defineXmlFiles = new TreeSet<>();
         try {
-            Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(dataDir, new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
                     if (isDefineXmlFile(path)) {
@@ -231,13 +233,15 @@ public class AllDefine extends Node {
             return false;
         }
         Path parentPath = path.getParent();
-        // 顶级目录，有可能是top.xml
+        // 顶级目录，有可能是config.xml
         if (dataDir.equals(parentPath)) {
             return fileName.equals(topXmlFile);
         } else {
             // 文件名必须和目录名一样
-            String fileNameDir = fileName.substring(0, fileName.length() - ".xml".length());
-            return fileNameDir.equals(parentPath.toFile().getName());
+            String moduleName = fileName.substring(0, fileName.length() - 4);
+            String parentDirName = parentPath.toFile().getName();
+
+            return FileNameExtract.isFileNameExtractMatch(parentDirName, moduleName);
         }
     }
 
@@ -257,7 +261,7 @@ public class AllDefine extends Node {
             if (file.isEmpty()) {
                 continue;
             }
-            Define currDefine  = defines.computeIfAbsent(file, f -> new Define(this, f));
+            Define currDefine = defines.computeIfAbsent(file, f -> new Define(this, f));
             currDefine.beans.put(b.name, b);
             topDefine.beans.remove(b.name);
         }
@@ -269,12 +273,11 @@ public class AllDefine extends Node {
             //定义在顶级目录，不用再分割到子目录中
             return "";
         }
-        String pkg = name.substring(0, i);
-        String relativePath = pkg.replace(".", "/");
-        Path defineXmlPath = resolvePath(relativePath).normalize();
-        defineXmlPath = defineXmlPath.resolve(defineXmlPath.toFile().getName() + ".xml");
 
-        return formatDefineXmlFilePath(defineXmlPath);
+        String pkg = name.substring(0, i);
+        Path defineXmlPath = FileNameExtract.packageNameToPathName(dataDir, pkg);
+        String xml = FileNameExtract.extractFileName(defineXmlPath.toFile().getName()) + ".xml";
+        return formatDefineXmlFilePath(defineXmlPath.resolve(xml));
     }
 
     String formatDefineXmlFilePath(Path defineXmlPath) {
@@ -284,7 +287,7 @@ public class AllDefine extends Node {
     // 约定defineXmlFile必须和它代表的配置放在同一目录
     public String childDataPathToPkgName(Path childDataDir) {
         String relativePath = dataDir.relativize(childDataDir).normalize().toString();
-        return relativePath.replace("\\", "/").replace("/", ".");
+        return FileNameExtract.extractPathName(relativePath);
     }
 
 }

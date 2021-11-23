@@ -1,7 +1,9 @@
 package configgen.data;
 
 import configgen.Node;
+import configgen.define.AllDefine;
 import configgen.util.EFileFormat;
+import configgen.util.FileNameExtract;
 import configgen.util.SheetData;
 
 import java.io.File;
@@ -44,24 +46,24 @@ public class DSheet extends Node {
         return HeadRow;
     }
 
-    static DSheet create(Path topDir, Node parent, SheetData data) {
-        String sheetName = data.sheetName;
+    static DSheet create(AllDefine allDefine, Node parent, SheetData data) {
+        String codeName = data.codeName;
         EFileFormat format = data.format;
         File file = data.file;
 
         String tableName;
         int tableIndex;
-        int i = sheetName.lastIndexOf("_");
+        int i = codeName.lastIndexOf("_");
         if (i < 0) {
-            tableName = sheetName.trim();
+            tableName = codeName.trim();
             tableIndex = 0;
         } else {
-            String postfix = sheetName.substring(i + 1).trim();
+            String postfix = codeName.substring(i + 1).trim();
             try {
                 tableIndex = Integer.parseInt(postfix);
-                tableName = sheetName.substring(0, i).trim();
+                tableName = codeName.substring(0, i).trim();
             } catch (NumberFormatException ignore) {
-                tableName = sheetName.trim();
+                tableName = codeName.trim();
                 tableIndex = 0;
             }
         }
@@ -70,22 +72,21 @@ public class DSheet extends Node {
             if (format == EFileFormat.CSV) {
                 throw new AssertionError("根据表名解析出的tableName为空, file = " + file);
             }
-            throw new AssertionError("根据sheet名称解析出的tableName为空， file = " + file + ", sheetName = " + sheetName);
+            throw new AssertionError("根据sheet名称解析出的tableName为空， file = " + file + ", sheetName = " + codeName);
         }
 
         if (tableIndex < 0) {
             if (format == EFileFormat.CSV) {
                 throw new AssertionError("根据表名解析出的tableIndex为负数, file = " + file);
             }
-            throw new AssertionError("根据sheet名称解析出的tableIndex为负数， file = " + file + ", sheetName = " + sheetName);
+            throw new AssertionError("根据sheet名称解析出的tableIndex为负数， file = " + file + ", sheetName = " + codeName);
         }
 
-        String packageName = topDir.relativize(file.getParentFile().toPath()).toString();
-        packageName = String.join(".", packageName.split("[\\\\/]")).toLowerCase();
+        String packageName = allDefine.childDataPathToPkgName(file.getParentFile().toPath());
         //将表名转成小写，保持原来的大小写更合适吧？
         String configName = packageName + "." + tableName.toLowerCase();
 
-        String sheetId = getSheetId(topDir, data);
+        String sheetId = getSheetId(allDefine.getDataDir(), data);
 
         return new DSheet(parent, sheetId, data, configName, tableIndex);
     }

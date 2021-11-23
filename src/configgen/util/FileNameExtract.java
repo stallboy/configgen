@@ -40,7 +40,7 @@ public class FileNameExtract {
 
         for (int i = 0; i < split.length; i++) {
             String e = extractFileName(split[i]);
-            if (e == null){
+            if (e == null) {
                 throw new RuntimeException(pathName + " 不符合规范");
             }
             normalized[i] = e;
@@ -64,7 +64,6 @@ public class FileNameExtract {
 
         return curPath;
     }
-
 
     public static boolean isFileNameExtractMatch(String fileNameNoExt, String extracted) {
         if (!fileNameNoExt.toLowerCase().startsWith(extracted)) {

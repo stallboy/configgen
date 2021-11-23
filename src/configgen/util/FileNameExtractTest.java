@@ -2,8 +2,7 @@ package configgen.util;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class FileNameExtractTest {
 
@@ -33,7 +32,7 @@ public class FileNameExtractTest {
         assertNull(e);
 
         e = FileNameExtract.extractFileName("Test_中文.xlsx");
-        assertEquals(e, "Test");
+        assertEquals(e, "test");
     }
 
     @Test
@@ -45,5 +44,20 @@ public class FileNameExtractTest {
         assertEquals(e, "test_2");
     }
 
+    @Test
+    public void testExtractPathName(){
+        String e = FileNameExtract.extractPathName("test_1_中文/test2_");
+        assertEquals(e, "test_1.test2_");
+
+        e = FileNameExtract.extractPathName("test_1_中文/test2_哈哈/a3");
+        assertEquals(e, "test_1.test2.a3");
+    }
+
+    @Test
+    public void testIsFileNameExtractMatch(){
+        boolean e = FileNameExtract.isFileNameExtractMatch("test_1_中文", "test_1");
+        assertTrue(e);
+
+    }
 
 }

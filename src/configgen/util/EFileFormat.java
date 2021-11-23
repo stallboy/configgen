@@ -44,21 +44,21 @@ public enum EFileFormat implements SheetHandler {
         @Override
         public List<SheetData> readFromFile(File file, String encoding) throws IOException {
             List<SheetData> sheetDataList = new ArrayList<>();
-            Workbook workbook = WorkbookFactory.create(file, null, true);
-            FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-            for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
-                Sheet sheet = workbook.getSheetAt(sheetIndex);
-                String sheetName = sheet.getSheetName().trim();
+            try (Workbook workbook = WorkbookFactory.create(file, null, true)) {
+                FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+                for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
+                    Sheet sheet = workbook.getSheetAt(sheetIndex);
+                    String sheetName = sheet.getSheetName().trim();
 
-                String codeName = FileNameExtract.extractFileName(sheetName);
-                if (codeName == null) {
-                    continue;
+                    String codeName = FileNameExtract.extractFileName(sheetName);
+                    if (codeName == null) {
+                        continue;
+                    }
+
+                    List<List<String>> rows = ExcelReader.readSheet(sheet, evaluator);
+                    sheetDataList.add(new SheetData(EFileFormat.EXCEL, file, sheetName, rows, codeName));
                 }
-
-                List<List<String>> rows = ExcelReader.readSheet(sheet, evaluator);
-                sheetDataList.add(new SheetData(EFileFormat.EXCEL, file, sheetName, rows, codeName));
             }
-
             return sheetDataList;
         }
 

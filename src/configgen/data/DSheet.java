@@ -2,12 +2,13 @@ package configgen.data;
 
 import configgen.Node;
 import configgen.define.AllDefine;
+import configgen.define.Table;
 import configgen.util.EFileFormat;
-import configgen.util.FileNameExtract;
 import configgen.util.SheetData;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,6 +28,7 @@ public class DSheet extends Node {
      * csv HeadRow行之后的所有的数据， csv -> list.list.str
      */
     private final List<List<String>> recordList;
+    private final boolean isColumnMode;
 
 
     private static int HeadRow;
@@ -46,10 +48,10 @@ public class DSheet extends Node {
         return HeadRow;
     }
 
-    static DSheet create(AllDefine allDefine, Node parent, SheetData data) {
-        String codeName = data.codeName;
-        EFileFormat format = data.format;
-        File file = data.file;
+    static DSheet create(AllDefine allDefine, Node parent, SheetData sheetData) {
+        String codeName = sheetData.codeName;
+        EFileFormat format = sheetData.format;
+        File file = sheetData.file;
 
         String tableName;
         int tableIndex;
@@ -85,26 +87,32 @@ public class DSheet extends Node {
         String packageName = allDefine.childDataPathToPkgName(file.getParentFile().toPath());
         //将表名转成小写，保持原来的大小写更合适吧？
         String configName = packageName + "." + tableName.toLowerCase();
-
-        String sheetId = getSheetId(allDefine.getDataDir(), data);
-
-        return new DSheet(parent, sheetId, data, configName, tableIndex);
+        String sheetId = getSheetId(allDefine.getDataDir(), sheetData);
+        Table tableDefine = allDefine.getTable(configName);
+        boolean isColumnMode = tableDefine != null && tableDefine.isColumnMode;
+        return new DSheet(parent, sheetId, sheetData, configName, tableIndex, isColumnMode);
     }
 
-    private DSheet(Node parent, String sheetId, SheetData sheetData, String configName, int tableIndex) {
+    private DSheet(Node parent, String sheetId, SheetData sheetData, String configName, int tableIndex, boolean isColumnMode) {
         super(parent, sheetId);
 
         EFileFormat format = sheetData.format;
         this.configName = configName;
         this.tableIndex = tableIndex;
+        this.isColumnMode = isColumnMode;
 
         List<List<String>> rows = sheetData.rows;
-        if (rows.size() < 2) {
-            System.out.println(fullName() + " 数据行数小于2");
-            for (List<String> strings : rows) {
-                System.out.println(String.join(",", strings));
+        if (isColumnMode) {
+            if (rows.size() < 1) {
+                throw new AssertionError(fullName() + " 数据行数小于1");
             }
-            throw new AssertionError();
+
+            rows = convertColumnMode(rows);
+        }
+
+
+        if (rows.size() < 2) {
+            throw new AssertionError(fullName() + " 数据行数小于2");
         }
 
         descLine = rows.get(0);
@@ -112,6 +120,28 @@ public class DSheet extends Node {
         recordList = adjustRecords(format, nameLine, rows);
     }
 
+    // 转列模式为行，之后统一处理
+    private static List<List<String>> convertColumnMode(List<List<String>> original) {
+        int origCol_resRow_Cnt = original.get(0).size(); //一般很小
+        int origRow_resCol_Cnt = original.size(); //一般很大
+
+        List<List<String>> res = new ArrayList<>(origCol_resRow_Cnt);
+        for (int origCol_resRow = 0; origCol_resRow < origCol_resRow_Cnt; origCol_resRow++) {
+            List<String> row = new ArrayList<>(origRow_resCol_Cnt);
+
+            for (List<String> originalRow : original) {
+                String cell = originalRow.get(origCol_resRow);
+                if (cell == null) {
+                    cell = "";
+                }
+
+                row.add(cell);
+            }
+            res.add(row);
+        }
+
+        return res;
+    }
 
     // 读取excel数据时使用, 防止后续的读取不到数据出现数组越界
     private static List<List<String>> adjustRecords(EFileFormat format, List<String> nameLine, List<List<String>> rows) {
@@ -191,6 +221,10 @@ public class DSheet extends Node {
 
     public List<List<String>> getRecordList() {
         return recordList;
+    }
+
+    public boolean isColumnMode() {
+        return isColumnMode;
     }
 
 }

@@ -3,6 +3,14 @@
         <column desc="属性类型" name="id" type="int"/>
         <column desc="程序用名字" name="name" type="string"/>
     </table>
+    <table entry="entry" isColumnMode="true" name="equipconfig" primaryKey="entry">
+        <column desc="入口，程序填" name="entry" type="string"/>
+        <column desc="形成套装的音石数量" name="stone_count_for_set" type="int"/>
+        <column desc="保底策略名称" name="draw_protect_name" type="string"/>
+        <column desc="公告Id" name="broadcastid" type="int"/>
+        <column desc="公告的最低品质" name="broadcast_least_quality" type="int"/>
+        <column desc="抽卡周奖励的邮件id" name="week_reward_mailid" type="int"/>
+    </table>
     <table extraSplit="40" name="jewelry" primaryKey="ID">
         <column desc="首饰ID" name="ID" range="1,9999" type="int"/>
         <column desc="首饰名称" name="Name" type="string"/>
@@ -21,7 +29,7 @@
         <column desc="最小防御力" name="OtherRange" type="list,Range,4"/>
         <column compressAsOne="1" desc="测试compressAsOne" name="TestCompress1" type="list,TestCompressBean"/>
     </table>
-    <table enumPart="Ename" name="jewelrysuit" primaryKey="SuitID">
+    <table entry="Ename" name="jewelrysuit" primaryKey="SuitID">
         <column desc="饰品套装ID" name="SuitID" type="int"/>
         <column name="Ename" type="string"/>
         <column desc="策划用名字" name="Name" type="text"/>

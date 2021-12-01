@@ -31,10 +31,9 @@ public class SheetUtils {
             if (format == null) {
                 return Collections.emptyList();
             }
-
             return format.readFromFile(file, encoding);
         } catch (IOException e) {
-            throw new RuntimeException(e.getMessage(), e);
+            throw new RuntimeException(file + " 读取出错", e);
         }
     }
 
@@ -43,23 +42,29 @@ public class SheetUtils {
     }
 
     public static void writeToFile(List<SheetData> sheetDataList, String encoding) {
-        try {
-            if (sheetDataList.size() == 1) {
+
+        if (sheetDataList.size() == 1) {
+            try {
                 sheetDataList.get(0).format.writeToFile(sheetDataList, encoding);
+            } catch (IOException e) {
+                throw new RuntimeException(sheetDataList.get(0).file + " 读取出错", e);
             }
-            Map<EFileFormat, List<SheetData>> formatMap = new EnumMap<>(EFileFormat.class);
-            for (SheetData sheetData : sheetDataList) {
-                List<SheetData> lst = formatMap.computeIfAbsent(sheetData.format, k -> new ArrayList<>());
-                lst.add(sheetData);
-            }
-
-            for (Map.Entry<EFileFormat, List<SheetData>> e : formatMap.entrySet()) {
-                e.getKey().writeToFile(e.getValue(), encoding);
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage(), e);
         }
+        Map<EFileFormat, List<SheetData>> formatMap = new EnumMap<>(EFileFormat.class);
+        for (SheetData sheetData : sheetDataList) {
+            List<SheetData> lst = formatMap.computeIfAbsent(sheetData.format, k -> new ArrayList<>());
+            lst.add(sheetData);
+        }
+
+        for (Map.Entry<EFileFormat, List<SheetData>> e : formatMap.entrySet()) {
+            try {
+                e.getKey().writeToFile(e.getValue(), encoding);
+            } catch (IOException ex) {
+                throw new RuntimeException(e.getValue().get(0).file + " 读取出错", ex);
+            }
+        }
+
+
     }
 
 }

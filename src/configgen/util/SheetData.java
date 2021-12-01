@@ -15,7 +15,6 @@ public class SheetData {
         this.file = file;
         this.sheetName = sheetName;
         this.rows = rows;
-
         this.codeName = codeName;
     }
 

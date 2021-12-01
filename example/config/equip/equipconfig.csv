@@ -1,0 +1,6 @@
+"入口，程序填",entry,Instance
+形成套装的音石数量,stone_count_for_set,2
+保底策略名称,draw_protect_name,测试
+公告Id,broadcastid,9500
+公告的最低品质,broadcast_least_quality,1003
+抽卡周奖励的邮件id,week_reward_mailid,100

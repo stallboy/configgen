@@ -3,12 +3,14 @@ package configgen.data;
 import configgen.Node;
 import configgen.define.AllDefine;
 import configgen.define.Table;
+import configgen.util.CSVParser;
 import configgen.util.EFileFormat;
 import configgen.util.SheetData;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -136,6 +138,10 @@ public class DSheet extends Node {
                 }
 
                 row.add(cell);
+            }
+
+            if (CSVParser.checkRecordEmpty(row)){
+                row = Collections.emptyList();
             }
             res.add(row);
         }

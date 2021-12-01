@@ -6,12 +6,10 @@ import configgen.define.AllDefine;
 import configgen.define.Table;
 import configgen.type.AllType;
 import configgen.type.TTable;
-import configgen.util.EFileFormat;
 import configgen.util.SheetData;
 import configgen.util.SheetUtils;
 import configgen.view.ViewFilter;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -33,14 +31,15 @@ public class AllData extends Node {
 
         Map<String, List<DSheet>> dSheetMap = new TreeMap<>();
         try {
+            //noinspection Convert2Diamond
             Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
-                    List<SheetData> sheetDataList =
-                            SheetUtils.readFromFile(path.toFile(), allDefine.getEncoding(), AllData::acceptSheet);
+
+                    List<SheetData> sheetDataList = SheetUtils.readFromFile(path.toFile(), allDefine.getEncoding());
 
                     for (SheetData sheetData : sheetDataList) {
-                        DSheet sheet = DSheet.create(dataDir, AllData.this, sheetData);
+                        DSheet sheet = DSheet.create(allDefine, AllData.this, sheetData);
                         List<DSheet> sheetList = dSheetMap.computeIfAbsent(sheet.getConfigName(), k -> new ArrayList<>());
                         sheetList.add(sheet);
                     }
@@ -101,17 +100,5 @@ public class AllData extends Node {
         }
     }
 
-    private static boolean acceptSheet(EFileFormat format, File file, String sheetName) {
-//        if (format == EFileFormat.EXCEL) {
-        if (!sheetName.isEmpty()) {
-            // 只接受首字母是英文字母的页签
-            char firstChar = sheetName.charAt(0);
-            return ('a' <= firstChar && firstChar <= 'z')
-                    || ('A' <= firstChar && firstChar <= 'Z');
-        }
-        return false;
-//        }
-//        return true;
-    }
 
 }

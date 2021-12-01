@@ -1,7 +1,6 @@
 package configgen.util;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -16,9 +15,9 @@ import java.util.Map;
 
 public class ExcelWriter {
 
-    public static void writeToFile(List<SheetData> sheetDataList) throws IOException, InvalidFormatException {
+    public static void writeToFile(List<SheetData> sheetDataList) throws IOException {
         if (sheetDataList.size() == 1) {
-            ExcelWriter.writeToFile(sheetDataList.get(0).file, sheetDataList);
+            writeToFile(sheetDataList.get(0).file, sheetDataList);
         } else if (!sheetDataList.isEmpty()) {
             Map<File, List<SheetData>> fileMap = new LinkedHashMap<>();
             for (SheetData sheetData : sheetDataList) {
@@ -32,7 +31,8 @@ public class ExcelWriter {
         }
     }
 
-    public static void writeToFile(File file, List<SheetData> sheetDataList) throws IOException, InvalidFormatException {
+
+    static void writeToFile(File file, List<SheetData> sheetDataList) throws IOException {
         Workbook workbook = null;
         try {
             if (file.exists()) {

@@ -3,6 +3,7 @@ package configgen.genlua;
 import configgen.define.Column;
 import configgen.gen.Generator;
 import configgen.type.*;
+import configgen.value.VTable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -244,6 +245,15 @@ class TypeStr {
             String c = f.desc.isEmpty() ? "" : ", " + f.desc;
             sb.append("---@field ").append(Generator.lower1(n)).append(" ").append(typeToLuaType(f.type)).append(" ").append(c).append("\n");
         }
+        return sb.toString();
+    }
+
+    static String getLuaEnumStringEmmyLua(VTable vtable) {
+        StringBuilder sb = new StringBuilder();
+        for (String enumName : vtable.getEnumNames()) {
+            sb.append("---@field ").append(enumName).append(" ").append(Name.fullName(vtable.getTTable())).append("\n");
+        }
+        sb.deleteCharAt(sb.length() - 1);
         return sb.toString();
     }
 

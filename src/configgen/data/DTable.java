@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
  * 比如task表，
  * 如果是csv配置，可以拆分成：task.csv(同task_0.csv)，task_1.csv，task_2.csv
  * 如果是excel配置，excel中的页签名称可以拆分成：task(同task_0)，task_1，task_2
- *
  */
 public class DTable extends Node {
     /**
@@ -59,10 +58,6 @@ public class DTable extends Node {
 
     void setTableType(TTable tableType) {
         this.tableType = tableType;
-
-        for (DColumn col : dColumns.values()) {
-            col.setColumnType(tableType.getTBean().getColumn(col.name));
-        }
     }
 
 
@@ -80,14 +75,14 @@ public class DTable extends Node {
         DSheet firstSheet = sheets[0];
         if (firstSheet.getTableIndex() != 0) {
             throw new AssertionError("首个表格序号必须是0。，当前序号是：" + firstSheet.getTableIndex() +
-                    ", 表 = " + firstSheet.fullName());
+                                             ", 表 = " + firstSheet.fullName());
         }
 
         // 表格序号不能重复，先必须连续吧
         for (int i = 1; i < sheets.length; i++) {
             if (sheets[i - 1].getTableIndex() + 1 != sheets[i].getTableIndex()) {
                 throw new AssertionError("拆分的表格序号不连续。 当前表 = " + sheets[i - 1].fullName() +
-                        ", 下一个表 = " + sheets[i].fullName());
+                                                 ", 下一个表 = " + sheets[i].fullName());
             }
         }
 

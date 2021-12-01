@@ -336,6 +336,8 @@ public class GenLua extends Generator {
         if (useEmmyLua) {
             ps.println("---@class %s", fullName);
             ps.println(TypeStr.getLuaFieldsStringEmmyLua(tbean) + "---@field get function");
+            if (vtable.getEnumNames().size() > 0)
+                ps.println(TypeStr.getLuaEnumStringEmmyLua(vtable));
             ps.println("---@field all table<any,%s>", fullName);
             ps.println(TypeStr.getLuaRefsStringEmmyLua(tbean));
         }
@@ -479,7 +481,7 @@ public class GenLua extends Generator {
         // 再打印cache
         ps.printCache();
 
-        if (extraFileCnt > 0){
+        if (extraFileCnt > 0) {
             ps.println();
         }
         for (int extraIdx = 0; extraIdx < extraFileCnt; extraIdx++) {

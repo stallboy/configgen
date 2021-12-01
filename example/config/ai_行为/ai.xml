@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="GBK" standalone="no"?>
+<db>
+    <table name="ai" primaryKey="ID">
+        <column desc="ID" name="ID" type="int"/>
+        <column desc="描述" name="Desc" type="string"/>
+        <column desc="触发公式" name="CondID" type="string"/>
+        <column desc="触发间隔(帧)" name="TrigTick" type="int"/>
+        <column desc="触发几率" name="TrigOdds" type="int"/>
+        <column desc="触发行为" name="ActionID" type="string"/>
+        <column desc="死亡移除" name="DeathRemove" type="bool"/>
+    </table>
+    <table name="ai_action" primaryKey="ID">
+        <column desc="ID" name="ID" type="int"/>
+        <column desc="描述" name="Desc" type="string"/>
+        <column desc="公式" name="FormulaID" type="int"/>
+        <column desc="参数(int)1" name="ArgIList" type="list,int,6"/>
+        <column desc="参数(string)1" name="ArgSList" type="list,int,3"/>
+    </table>
+    <table name="ai_condition" primaryKey="ID">
+        <column desc="ID" name="ID" type="int"/>
+        <column desc="描述" name="Desc" type="string"/>
+        <column desc="公式" name="FormulaID" type="int"/>
+        <column desc="参数(int)1" name="ArgIList" type="list,int,6"/>
+        <column desc="参数(string)1" name="ArgSList" type="list,int,3"/>
+    </table>
+</db>

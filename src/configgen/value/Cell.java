@@ -24,7 +24,11 @@ public final class Cell {
 
     @Override
     public String toString() {
-        return String.format("sheet=%s,row=%d,col=%s,data=%s", sheet.name, row, toAZ(col), data);
+        if (sheet.isColumnMode()) {
+            return String.format("sheet=%s,row=%d,col=%s,data=%s", sheet.name, col, toAZ(row), data);
+        } else {
+            return String.format("sheet=%s,row=%d,col=%s,data=%s", sheet.name, row, toAZ(col), data);
+        }
     }
 
     private static final int N = 'Z' - 'A' + 1;
@@ -32,10 +36,11 @@ public final class Cell {
     private static String toAZ(int v) {
         int q = v / N;
         String r = String.valueOf((char) ('A' + (v % N)));
-        if (q > 0)
+        if (q > 0) {
             return toAZ(q) + r;
-        else
+        } else {
             return r;
+        }
     }
 
 }

@@ -3,7 +3,6 @@ package configgen.util;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-//import java.util.HashMap;
 import java.util.Collections;
 import java.util.List;
 
@@ -163,39 +162,30 @@ public final class CSVParser {
         return result;
     }
 
-//    private static HashMap<String, String> stringCache = new HashMap<>(1024);
-
     private static void addField(ArrayList<String> record) {
         String s = CSVParser.field.toString();
 
         if (s.length() < 5) {//与速度和内存间取个平衡吧
-//            String c = stringCache.get(s);
-//            if (c == null) {
-//                stringCache.put(s, s);
-//            } else {
-//                s = c;
-//            }
-
             s = s.intern();
         }
         record.add(s);
     }
 
     private static void addRecord(ArrayList<List<String>> result, List<String> record) {
-        if (!checkRecordHasContent(record)) {
+        if (checkRecordEmpty(record)) {
             record = Collections.emptyList(); //作为空行标记
         }
 
         result.add(record);
     }
 
-    private static boolean checkRecordHasContent(List<String> record) {
+    public static boolean checkRecordEmpty(List<String> record) {
         for (String s : record) {
             if (!s.isEmpty()) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
 }

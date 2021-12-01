@@ -12,16 +12,6 @@ final class DColumn extends Node {
     final List<Integer> indexes = new ArrayList<>();
     final List<String> descs = new ArrayList<>();
 
-    private Type columnType;
-
-    public Type getColumnType() {
-        return columnType;
-    }
-
-    void setColumnType(Type columnType) {
-        this.columnType = columnType;
-    }
-
     DColumn(DTable parent, String name) {
         super(parent, name);
     }

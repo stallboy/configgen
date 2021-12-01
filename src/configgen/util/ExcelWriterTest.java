@@ -17,9 +17,9 @@ public class ExcelWriterTest {
                 Arrays.asList("title1", "title2", "", "title3"),
                 Arrays.asList(String.valueOf(1), "test", "abc\r\ndef", ""),
                 Arrays.asList(String.valueOf(2), "test2", "hello\nworld", "")
-                );
+        );
 
-        SheetUtils.writeToFile(new File(fileName), rows, "UTF-8");
+        SheetUtils.writeToFile(SheetData.valueOf(new File(fileName), rows), "UTF-8");
     }
 
 }

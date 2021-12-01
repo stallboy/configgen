@@ -25,6 +25,7 @@
         <copy todir="${build}/support">
             <fileset dir="${src}/support"/>
         </copy>
+        <copy file="${src}/log4j2.component.properties" todir="${build}"/>
         <jar jarfile="configgen.jar" basedir="${build}" excludes="**/*Test.java" manifest="${src}/MANIFEST.MF">
             <zipgroupfileset dir="lib" includes="*.jar" excludes="junit-4.12.jar,hamcrest-core-1.3.jar"/>
         </jar>

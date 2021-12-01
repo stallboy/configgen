@@ -5,7 +5,10 @@ import configgen.util.DomUtils;
 import configgen.view.DefineView;
 import org.w3c.dom.Element;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class Table extends Node {
     public enum EnumType {
@@ -24,31 +27,49 @@ public class Table extends Node {
     }
 
     public Bean bean;
-    public EnumType enumType;
-    public String enumStr;
+
     public String[] primaryKey;
     public boolean isPrimaryKeySeq;
+
+    public EnumType enumType;
+    public String enumStr;
     /**
      * 0 是部分，1是额外分出一个文件。lua生成assets.lua时报错，因为lua单个文件不能多余65526个constant，所以这里分割一下
      */
     private int extraSplit = 0;
+    public boolean isColumnMode;
 
     public final Map<String, UniqueKey> uniqueKeys = new LinkedHashMap<>();
 
     Table(Define parent, Element self) {
         super(parent, parent.wrapPkgName(self.getAttribute("name")));
-        DomUtils.permitAttributes(self, "name", "own", "enum", "enumPart", "primaryKey", "isPrimaryKeySeq", "extraSplit");
+        DomUtils.permitAttributes(self, "name", "own", "primaryKey", "isPrimaryKeySeq",
+                                  "enum", "enumPart", "entry", "extraSplit", "isColumnMode");
         DomUtils.permitElements(self, "column", "foreignKey", "range", "uniqueKey");
 
         bean = new Bean(this, parent, self);
+
+        if (self.hasAttribute("primaryKey")) {
+            primaryKey = DomUtils.parseStringArray(self, "primaryKey");
+        } else {
+            primaryKey = new String[]{bean.columns.keySet().iterator().next()};
+        }
+        isPrimaryKeySeq = self.hasAttribute("isPrimaryKeySeq");
 
 
         if (self.hasAttribute("enum")) {
             enumType = EnumType.EnumFull;
             enumStr = self.getAttribute("enum");
             require(!enumStr.isEmpty(), "enum empty");
-            require(!self.hasAttribute("enumPart"), "enum and enumPart conflict");
+            require(!self.hasAttribute("enumPart"), "enum和enumPart不要同时配置");
+            require(!self.hasAttribute("entry"), "enum和entry不要同时配置");
+        } else if (self.hasAttribute("entry")) {
+            require(!self.hasAttribute("enumPart"), "enumPart和entry不要同时配置，enumPart是旧属性名，请改用entry");
+            enumType = EnumType.EnumPart;
+            enumStr = self.getAttribute("entry");
+            require(!enumStr.isEmpty(), "entry empty");
         } else if (self.hasAttribute("enumPart")) {
+            require(!self.hasAttribute("entry"), "enumPart和entry不要同时配置，enumPart是旧属性名，请改用entry");
             enumType = EnumType.EnumPart;
             enumStr = self.getAttribute("enumPart");
             require(!enumStr.isEmpty(), "enumPart empty");
@@ -57,17 +78,11 @@ public class Table extends Node {
             enumStr = "";
         }
 
-        if (self.hasAttribute("primaryKey")) {
-            primaryKey = DomUtils.parseStringArray(self, "primaryKey");
-        } else {
-            primaryKey = new String[] { bean.columns.keySet().iterator().next() };
-        }
-
-        isPrimaryKeySeq = self.hasAttribute("isPrimaryKeySeq");
-
         if (self.hasAttribute("extraSplit")) {
             extraSplit = Integer.parseInt(self.getAttribute("extraSplit"));
         }
+
+        isColumnMode = self.hasAttribute("isColumnMode");
 
         for (Element ele : DomUtils.elements(self, "uniqueKey")) {
             UniqueKey uk = new UniqueKey(this, ele);
@@ -159,6 +174,7 @@ public class Table extends Node {
         primaryKey = original.primaryKey;
         isPrimaryKeySeq = original.isPrimaryKeySeq;
         extraSplit = original.extraSplit;
+        isColumnMode = original.isColumnMode;
     }
 
     Table extract(DefineView defineView) {
@@ -190,16 +206,7 @@ public class Table extends Node {
         Element self = DomUtils.newChild(parent, "table");
         uniqueKeys.values().forEach(c -> c.save(self));
         bean.update(self);
-        switch (enumType) {
-            case None:
-                break;
-            case EnumFull:
-                self.setAttribute("enum", enumStr);
-                break;
-            case EnumPart:
-                self.setAttribute("enumPart", enumStr);
-                break;
-        }
+
         if (primaryKey.length > 0) {
             self.setAttribute("primaryKey", String.join(",", primaryKey));
         }
@@ -207,8 +214,21 @@ public class Table extends Node {
             self.setAttribute("isPrimaryKeySeq", "true");
         }
 
+        switch (enumType) {
+            case None:
+                break;
+            case EnumFull:
+                self.setAttribute("enum", enumStr);
+                break;
+            case EnumPart:
+                self.setAttribute("entry", enumStr);
+                break;
+        }
         if (extraSplit > 0) {
             self.setAttribute("extraSplit", String.valueOf(extraSplit));
+        }
+        if (isColumnMode) {
+            self.setAttribute("isColumnMode", "true");
         }
     }
 }

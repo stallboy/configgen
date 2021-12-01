@@ -18,7 +18,7 @@
 - enumRef支持动态bean，这个指向一个enum的table，在这个bean里定义子bean
 - defaultBeanName 用于多态Bean，支持此Bean在csv的对应格中空着，就自动选择此子Bean，此子Bean不能包含字段。
 
-### table.name，primaryKey，isPrimaryKeySeq，enum，enumPart，extraSplit
+### table.name，primaryKey，isPrimaryKeySeq，enum，entry，extraSplit，isColumnMode
 
 - name文件路径，全小写，路径用.分割。这样和package名称统一，也避免linux，windows差异
 
@@ -34,12 +34,16 @@
 
 - 如果有isPrimaryKeySeq，则主键值必须是1,2,3,4...
 
-- 如果程序想访问单独一行，配置enumPart，比如enumPart="aa"就是field aa作为enum名称，enum是全枚举，如果增加不支持热更
+- 如果程序想访问单独一行，配置entry，比如entry="aa"就是field aa作为引用入口名称。
+
+- 如果程序不但要访问单独一行，还要需要switch case所有行，一般是个枚举，配置enum，如果增加不支持热更
 
 - extraSplit为生成lua文件时是否为数据生成多个文件，默认为0。假如数据项有250行，extraSplit配置为100，则分为3个文件，会额外多出_1,_2两个文件，原文件和_1各100行，_2含50行。
 
   - 引入这个是因为lua生成assets.lua时报错，assets.lua是资源系统自动生成的一个文件，里面会包含很多行，因为lua单个文件不能多余65526个constant，生成lua文件会报错，所以这里分割一下
   - 还有个好处是热更时减少下载文件大小，比如item表有10000个，起始大部分情况下热更时就改几行，如果不split那就热更整个文件，如果split成了5个文件，那很可能就只用热更这5个中的一个，减少了热更大小。
+
+- isColumnMode 设置为true，则以列为行，一列一列的读，当原本列数很多，行数很少时可以用这个模式，相当于旋转90度，方便配置。配合entry可以用于某个模块的全局配置。
 
 ### column.name，type，desc，compressAsOne
 

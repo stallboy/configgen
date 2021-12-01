@@ -1,0 +1,9 @@
+任务完成条件类型（id的范围为1-100）,程序用名字,注释,,,,,
+taskid,name,desc,nexttask,completecondition@enum,param1,param2,exp
+1,杀个怪,杀怪,2,KillMonster,1,3,1000
+2,和npc对话,和npc对话,3,TalkNpc,1,,2000
+3,收集物品,收集物品,,CollectItem,11,1,3000
+4,杀怪并且收集物品,杀怪并且收集物品,,ConditionAnd,"KillMonster(1,3)","CollectItem(11,1)",4000
+5,杀怪对话并且收集物品,杀怪对话并且收集物品,,ConditionAnd,"ConditionAnd(KillMonster(1,3), TalkNpc(1))","CollectItem(11,1)",5000
+6,聊天并且杀怪,测试转义符号,,ConditionAnd,"Chat(""葵花宝典,123"")","KillMonster(1,3)",5000
+7,测试,测试无参数得bean,,TestNoColumn,,,2000

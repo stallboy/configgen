@@ -36,6 +36,14 @@ public class AllData extends Node {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
 
+                    if (path.toFile().isHidden()){
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    if (path.getFileName().startsWith("~")){
+                        return FileVisitResult.CONTINUE;
+                    }
+
                     List<SheetData> sheetDataList = SheetUtils.readFromFile(path.toFile(), allDefine.getEncoding());
 
                     for (SheetData sheetData : sheetDataList) {

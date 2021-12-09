@@ -5,8 +5,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,8 +45,9 @@ public enum EFileFormat implements SheetHandler {
     EXCEL {
         @Override
         public List<SheetData> readFromFile(File file, String encoding) throws IOException {
+            byte[] content = Files.readAllBytes(file.toPath());
             List<SheetData> sheetDataList = new ArrayList<>();
-            try (Workbook workbook = WorkbookFactory.create(file, null, true)) {
+            try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(content))) {
                 FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
                 for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
                     Sheet sheet = workbook.getSheetAt(sheetIndex);

@@ -12,8 +12,8 @@
             <column name="msg" type="string"/>
         </bean>
         <bean name="ConditionAnd">
-            <column compressAsOne="1" name="cond1" type="task.completecondition"/>
-            <column compressAsOne="1" name="cond2" type="task.completecondition"/>
+            <column name="cond1" pack="1" type="task.completecondition"/>
+            <column name="cond2" pack="1" type="task.completecondition"/>
         </bean>
         <bean name="CollectItem">
             <column name="itemid" type="int"/>

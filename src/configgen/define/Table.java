@@ -228,7 +228,7 @@ public class Table extends Node {
             self.setAttribute("extraSplit", String.valueOf(extraSplit));
         }
         if (isColumnMode) {
-            self.setAttribute("isColumnMode", "true");
+            self.setAttribute("isColumnMode", "1");
         }
     }
 }

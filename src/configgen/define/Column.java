@@ -43,7 +43,7 @@ public class Column extends Node {
     Column(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         DomUtils.permitAttributes(self, "desc", "name", "type", "own",
-                "ref", "refType", "keyRef", "range", "compress", "compressAsOne");
+                "ref", "refType", "keyRef", "range", "compress", "compressAsOne", "pack");
         desc = self.getAttribute("desc");
         type = self.getAttribute("type");
         own = self.getAttribute("own");
@@ -53,7 +53,7 @@ public class Column extends Node {
         if (self.hasAttribute("range"))
             keyRange = new KeyRange(this, self);
 
-        if (self.hasAttribute("compressAsOne")) {
+        if (self.hasAttribute("compressAsOne") || self.hasAttribute("pack")) {
             compressType = CompressType.AsOne;
         } else if (self.hasAttribute("compress")) {
             compressType = CompressType.UseSeparator;
@@ -106,7 +106,7 @@ public class Column extends Node {
                 self.setAttribute("compress", String.valueOf(compressSeparator));
                 break;
             case AsOne:
-                self.setAttribute("compressAsOne", "1");
+                self.setAttribute("pack", "1");
                 break;
         }
 

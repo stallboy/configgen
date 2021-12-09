@@ -45,7 +45,7 @@
 
 - isColumnMode 设置为true，则以列为行，一列一列的读，当原本列数很多，行数很少时可以用这个模式，相当于旋转90度，方便配置。配合entry可以用于某个模块的全局配置。
 
-### column.name，type，desc，compressAsOne
+### column.name，type，desc，pack
 
 - name, desc会从csv文件第1,2行提取,生成代码时保留csv中配置名称的大小写，成员变量为首字母小写的name,引用的成员变量为Ref+首字母大写的name
 - type 在xml要自己修改.基本类型有bool,int,long,float,string(text),复合类型包括bean,list,map
@@ -54,7 +54,7 @@
     - map,xx,yy,count   LinkedHashMap;
     - 如果type里包含bean，且不是一个单元格，则要在csv里第二行名字起名为field.name@xx，同时从这开始后列名字序列不要断，要和config.xml里的定义顺序一致，方便程序检测这个field的结束点。
     
-- compressAsOne，可支持把任意嵌套bean（包括循环嵌套bean）写在一个格子里，比如a,(b1,b2),c(d,e(f,g)).转义规则同csv标准，
+- pack，配置pack="1",可把任意嵌套bean（包括循环嵌套bean）写在一个格子里，比如a,(b1,b2),c(d,e(f,g)).转义规则同csv标准，
   比如数组里的一个字符串含有逗号，那么得用"号把它扩起来，如果引号里有引号，则要用双引号
     - "a",b,c   等同与a;b;c
     - "a,b",c   则被分为2组a,b 和c

@@ -1,9 +1,6 @@
 package configgen.util;
 
 import org.w3c.dom.*;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSOutput;
-import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -14,7 +11,9 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -48,29 +47,11 @@ public final class DomUtils {
     }
 
     private static void prettySaveDocument(Document document, OutputStream destination, String encoding) {
-        DOMImplementation impl = document.getImplementation();
-        Object f = impl.getFeature("LS", "3.0");
-        if (f != null) {
-            try {
-                DOMImplementationLS ls = (DOMImplementationLS) f;
-                LSSerializer s = ls.createLSSerializer();
-                s.setNewLine("\r\n");
-                DOMConfiguration cfg = s.getDomConfig();
-                cfg.setParameter("format-pretty-print", Boolean.TRUE);
-                LSOutput dst = ls.createLSOutput();
-                dst.setEncoding(encoding);
-                dst.setByteStream(destination);
-                s.write(document, dst);
-                return;
-            }catch (Exception e){
-                // java9 s.write会报不支持encoding的异常
-            }
-        }
-
         try {
             Transformer t = TransformerFactory.newInstance().newTransformer();
             t.setOutputProperty(OutputKeys.INDENT, "yes");
             t.setOutputProperty(OutputKeys.METHOD, "xml");
+            t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
             t.setOutputProperty(OutputKeys.ENCODING, encoding);
             t.transform(new DOMSource(document), new StreamResult(destination));
         } catch (TransformerException e) {

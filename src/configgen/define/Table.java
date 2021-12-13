@@ -197,7 +197,7 @@ public class Table extends Node {
             enumType = EnumType.None;
             enumStr = "";
         }
-        require(bean.columns.keySet().containsAll(Arrays.asList(primaryKey)), "must own primaryKey");
+        require(bean.columns.keySet().containsAll(Arrays.asList(primaryKey)), "必须own主键=" + String.join(",", primaryKey));
     }
 
     //////////////////////////////// save

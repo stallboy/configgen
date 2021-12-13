@@ -132,15 +132,14 @@ public class DSheet extends Node {
             List<String> row = new ArrayList<>(origRow_resCol_Cnt);
 
             for (List<String> originalRow : original) {
-                String cell = originalRow.get(origCol_resRow);
-                if (cell == null) {
-                    cell = "";
+                String cell = "";
+                if (origCol_resRow < originalRow.size()){
+                    cell = originalRow.get(origCol_resRow);
                 }
-
                 row.add(cell);
             }
 
-            if (CSVParser.checkRecordEmpty(row)){
+            if (CSVParser.checkRecordEmpty(row)) {
                 row = Collections.emptyList();
             }
             res.add(row);

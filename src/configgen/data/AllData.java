@@ -40,7 +40,7 @@ public class AllData extends Node {
                         return FileVisitResult.CONTINUE;
                     }
 
-                    if (path.getFileName().startsWith("~")){
+                    if (path.getFileName().toString().startsWith("~")){
                         return FileVisitResult.CONTINUE;
                     }
 

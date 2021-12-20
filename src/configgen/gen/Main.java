@@ -1,7 +1,6 @@
 package configgen.gen;
 
 import configgen.Logger;
-import configgen.view.ViewFilter;
 import configgen.gencs.GenCs;
 import configgen.gencs.GenPack;
 import configgen.genjava.GenJavaData;
@@ -9,6 +8,7 @@ import configgen.genjava.code.GenJavaCode;
 import configgen.genlua.GenLua;
 import configgen.tool.*;
 import configgen.util.CachedFiles;
+import configgen.view.ViewFilter;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -20,10 +20,10 @@ public final class Main {
     private static void usage(String reason) {
         System.out.println(reason);
 
-        System.out.println("Usage: java -jar configgen.jar [options]");
+        System.out.println("Usage: java -jar configgen.jar -datadir [dir] [options] [gens]");
         System.out.println();
         System.out.println("----配置表信息--------------------------------------");
-        System.out.println("    -xml          配表结构文件，默认是config.xml");
+        System.out.println("    -datadir      配表根目录，根目录可以有个config.xml");
         System.out.println("    -encoding     配表和配表结构文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
         System.out.println("    -verify       检查配表约束");
 
@@ -38,7 +38,8 @@ public final class Main {
         System.out.println("----小工具--------------------------------------");
         System.out.println("    -binaryToText 后可接2个参数（java data的file，table名称-用startsWith匹配），打印table的定义和数据");
         System.out.println("    -search       后可接多个数字，找到匹配的数据");
-        System.out.println("    -compatibleForOwn   原来在table里配置了own='x'后，如果此table下没有column配置own='x'，则默认所有column都被选择，现在去掉此约定，必须显示配置column的own，这个命令用来做兼容性转换");
+//        System.out.println("    -compatibleForOwn   原来在table里配置了own='x'后，如果此table下没有column配置own='x'，" +
+//                                   "则默认所有column都被选择，现在去掉此约定，必须显示配置column的own，这个命令用来做兼容性转换");
 
         System.out.println("    -dump         打印内部树结构");
         System.out.println("    -v[1]         输出一些额外信息,1是额外gc测试内存");
@@ -46,11 +47,11 @@ public final class Main {
         System.out.println();
         System.out.println("----以下gen参数之间由,分割,参数名和参数取值之间由=或:分割--------------------------------------");
         Generators.getAllProviders().forEach((k, v) -> {
-                    System.out.printf("    -gen %s\n", k);
-                    Usage usage = new Usage();
-                    v.create(usage);
-                    usage.print();
-                }
+                                                 System.out.printf("    -gen %s\n", k);
+                                                 Usage usage = new Usage();
+                                                 v.create(usage);
+                                                 usage.print();
+                                             }
         );
 
 

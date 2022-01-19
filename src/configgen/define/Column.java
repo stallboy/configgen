@@ -7,11 +7,11 @@ import org.w3c.dom.Element;
 
 public class Column extends Node {
 
-    public enum CompressType {
+    public enum PackType {
         /**
          * 没有压缩格子，其他2个类型都只占用1格
          */
-        NoCompress,
+        NoPack,
         /**
          * 用分割符的方案，分隔符自定义
          * 比如list,Bean类型，比如list用#分割，Bean为2个int组合配置用;分割，则单元格可配置为518;4#511;2114
@@ -33,9 +33,9 @@ public class Column extends Node {
     public String own;
 
 
-    public final CompressType compressType;
+    public final PackType packType;
 
-    public char compressSeparator;
+    public char packSeparator;
 
     public ForeignKey foreignKey;
     public KeyRange keyRange;
@@ -43,7 +43,7 @@ public class Column extends Node {
     Column(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         DomUtils.permitAttributes(self, "desc", "name", "type", "own",
-                "ref", "refType", "keyRef", "range", "compress", "compressAsOne", "pack");
+                                  "ref", "refType", "keyRef", "range", "compress", "compressAsOne", "packSep", "pack");
         desc = self.getAttribute("desc");
         type = self.getAttribute("type");
         own = self.getAttribute("own");
@@ -54,14 +54,19 @@ public class Column extends Node {
             keyRange = new KeyRange(this, self);
 
         if (self.hasAttribute("compressAsOne") || self.hasAttribute("pack")) {
-            compressType = CompressType.AsOne;
-        } else if (self.hasAttribute("compress")) {
-            compressType = CompressType.UseSeparator;
+            packType = PackType.AsOne;
+        } else if (self.hasAttribute("compress")) {  // 改为packSep
+            packType = PackType.UseSeparator;
             String sep = self.getAttribute("compress");
             require(sep.length() == 1, "compress字符串长度必须是1", sep);
-            compressSeparator = sep.toCharArray()[0];
+            packSeparator = sep.toCharArray()[0];
+        } else if (self.hasAttribute("packSep")) {
+            packType = PackType.UseSeparator;
+            String sep = self.getAttribute("packSep");
+            require(sep.length() == 1, "packSep字符串长度必须是1", sep);
+            packSeparator = sep.toCharArray()[0];
         } else {
-            compressType = CompressType.NoCompress;
+            packType = PackType.NoPack;
         }
     }
 
@@ -70,7 +75,7 @@ public class Column extends Node {
         this.type = type;
         this.desc = desc;
         this.own = "";
-        compressType = CompressType.NoCompress;
+        packType = PackType.NoPack;
     }
 
     private Column(Bean _parent, Column original) {
@@ -83,8 +88,8 @@ public class Column extends Node {
         if (original.keyRange != null)
             keyRange = new KeyRange(this, original.keyRange);
 
-        compressType = original.compressType;
-        compressSeparator = original.compressSeparator;
+        packType = original.packType;
+        packSeparator = original.packSeparator;
     }
 
     Column extract(Bean _parent) {
@@ -101,9 +106,9 @@ public class Column extends Node {
         Element self = DomUtils.newChild(parent, "column");
         self.setAttribute("name", name);
         self.setAttribute("type", type);
-        switch (compressType) {
+        switch (packType) {
             case UseSeparator:
-                self.setAttribute("compress", String.valueOf(compressSeparator));
+                self.setAttribute("packSep", String.valueOf(packSeparator));
                 break;
             case AsOne:
                 self.setAttribute("pack", "1");

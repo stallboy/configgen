@@ -13,13 +13,13 @@ public class VList extends VComposite {
         super(type, adata.cells);
 
         List<Cell> parsed;
-        boolean compressAsOne = adata.compressAsOne || type.compressType == Column.CompressType.AsOne;
+        boolean compressAsOne = adata.compressAsOne || type.packType == Column.PackType.AsOne;
         if (compressAsOne) {
             require(adata.cells.size() == 1);
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseNestList(dat);
 
-        } else if (type.compressType == Column.CompressType.UseSeparator) {
+        } else if (type.packType == Column.PackType.UseSeparator) {
             require(adata.cells.size() == 1);
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseList(dat, type.compressSeparator);

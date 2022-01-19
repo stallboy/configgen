@@ -30,8 +30,8 @@ csv单元格中不填的话默认为false,0,""，所以不要用0作为一行的
 可以在Bean下定义多个子Bean支持多态 比如CompleteTaskCond，有Level 5, KillMonster 1001 3这样的2个子Bean。
 则这个Bean所占列数是所有子Bean占列数的最大值。
 
-如果一个column的bean是出现无法计算列数的循环嵌套，则必须配置compressAsOne
-比如CompleteTaskCond有子Bean：CondAnd 有2个column条件cond1，cond2，是CompleteTaskCond，则这两个column需要配置为compressAsOne
+如果一个column的bean是出现无法计算列数的循环嵌套，则必须配置pack
+比如CompleteTaskCond有子Bean：CondAnd 有2个column条件cond1，cond2，是CompleteTaskCond，则这两个column需要配置为pack
 具体配置例子：CondAnd Level(5) KillMonster(1001,3)
 
 ### 国际化策略？

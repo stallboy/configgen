@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="GBK"?><db>
+<?xml version="1.0" encoding="GBK" standalone="no"?>
+<db>
     <table enum="name" name="ability" primaryKey="id">
         <column desc="属性类型" name="id" type="int"/>
         <column desc="程序用名字" name="name" type="string"/>

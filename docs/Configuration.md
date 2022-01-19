@@ -50,7 +50,7 @@
 - name, desc会从csv文件第1,2行提取,生成代码时保留csv中配置名称的大小写，成员变量为首字母小写的name,引用的成员变量为Ref+首字母大写的name
 - type 在xml要自己修改.基本类型有bool,int,long,float,string(text),复合类型包括bean,list,map
     - text用于客户端实现国际化需求，所有配置为text的字段数据会被单独放入一个文件中，只要修改这个文件就自动起作用了。
-    - list,xx,count     ArrayList；compressAsOne时count可不要
+    - list,xx,count     ArrayList；pack时count可不要
     - map,xx,yy,count   LinkedHashMap;
     - 如果type里包含bean，且不是一个单元格，则要在csv里第二行名字起名为field.name@xx，同时从这开始后列名字序列不要断，要和config.xml里的定义顺序一致，方便程序检测这个field的结束点。
     

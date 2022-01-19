@@ -10,16 +10,16 @@ public class TList extends Type {
      * >=0; 0 意味着这个是compress的，使用compressSeparator分割
      */
     public final int count;
-    public final Column.CompressType compressType;
+    public final Column.PackType packType;
     public final char compressSeparator;
 
-    TList(TBean parent, String name, int idx, String value, int count, Column.CompressType compressType, char compressSeparator) {
+    TList(TBean parent, String name, int idx, String value, int count, Column.PackType packType, char compressSeparator) {
         super(parent, name, idx);
 
-        this.value = resolveType(parent, "value", idx, value, compressType == Column.CompressType.AsOne);
+        this.value = resolveType(parent, "value", idx, value, packType == Column.PackType.AsOne);
         require(Objects.nonNull(this.value), "list里的值类型不存在", value);
         this.count = count;
-        this.compressType = compressType;
+        this.packType = packType;
         this.compressSeparator = compressSeparator;
     }
 
@@ -61,7 +61,7 @@ public class TList extends Type {
 
     @Override
     public int columnSpan() {
-        return compressType != Column.CompressType.NoCompress ? 1 : (value.columnSpan() * count);
+        return packType != Column.PackType.NoPack ? 1 : (value.columnSpan() * count);
     }
 
 }

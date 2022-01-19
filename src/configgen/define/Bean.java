@@ -8,6 +8,7 @@ import org.w3c.dom.Element;
 import java.util.*;
 
 public class Bean extends Node {
+
     public enum BeanType {
         /**
          * 正常Bean
@@ -32,9 +33,9 @@ public class Bean extends Node {
     public final BeanType type;
     public final String own;
 
-    //对应Column.CompressType.UseSeparator,之后建议column配置用AsOne，这里就不需要了。
-    public final boolean compress;
-    public final char compressSeparator;
+    //对应Column.PackType.UseSeparator,之后建议column配置用AsOne，这里就不需要了。
+    public final boolean isPackBySeparator;
+    public final char packSeparator;
 
     public final Map<String, Column> columns = new LinkedHashMap<>();  //列
     public final Map<String, ForeignKey> foreignKeys = new LinkedHashMap<>(); //外键
@@ -54,13 +55,19 @@ public class Bean extends Node {
         define = _parent;
         own = self.getAttribute("own");
 
-        compress = self.hasAttribute("compress");
-        if (compress) {
+        if (self.hasAttribute("compress")) { // 改为packSep吧
+            isPackBySeparator = true;
             String sep = self.getAttribute("compress");
             require(sep.length() == 1, "分隔符compress长度必须为1");
-            compressSeparator = sep.toCharArray()[0];
+            packSeparator = sep.toCharArray()[0];
+        } else if (self.hasAttribute("packSep")) {
+            isPackBySeparator = true;
+            String sep = self.getAttribute("packSep");
+            require(sep.length() == 1, "分隔符pack长度必须为1");
+            packSeparator = sep.toCharArray()[0];
         } else {
-            compressSeparator = ';';
+            isPackBySeparator = false;
+            packSeparator = ';';
         }
         childDynamicBeanEnumRef = self.getAttribute("enumRef");
         childDynamicDefaultBeanName = self.getAttribute("defaultBeanName");
@@ -80,7 +87,7 @@ public class Bean extends Node {
             }
         } else {
             type = BeanType.NormalBean;
-            DomUtils.permitAttributes(self, "name", "own", "compress");
+            DomUtils.permitAttributes(self, "name", "own", "compress", "packSep");
             DomUtils.permitElements(self, "column", "foreignKey", "keyRange");
             init(self);
         }
@@ -94,8 +101,8 @@ public class Bean extends Node {
         define = _define;
         own = self.getAttribute("own");
         type = BeanType.Table;
-        compress = false;
-        compressSeparator = ';';
+        isPackBySeparator = false;
+        packSeparator = ';';
         childDynamicBeanEnumRef = "";
         childDynamicDefaultBeanName = "";
         init(self);
@@ -111,10 +118,10 @@ public class Bean extends Node {
         own = self.getAttribute("own");
         require(_parent.type == BeanType.BaseDynamicBean, "不允许ChildDynamicBean又有ChildDynamicBean");
         type = BeanType.ChildDynamicBean;
-        compress = false;
+        isPackBySeparator = _parent.isPackBySeparator;
+        packSeparator = _parent.packSeparator;
         childDynamicBeanEnumRef = "";
         childDynamicDefaultBeanName = "";
-        compressSeparator = ';';
         DomUtils.permitAttributes(self, "name", "own");
         DomUtils.permitElements(self, "column", "foreignKey", "keyRange");
         init(self);
@@ -147,8 +154,8 @@ public class Bean extends Node {
         childDynamicBeanEnumRef = "";
         childDynamicDefaultBeanName = "";
         own = "";
-        compress = false;
-        compressSeparator = ';';
+        isPackBySeparator = false;
+        packSeparator = ';';
     }
 
 
@@ -188,8 +195,8 @@ public class Bean extends Node {
         childDynamicBeanEnumRef = original.childDynamicBeanEnumRef;
         childDynamicDefaultBeanName = original.childDynamicDefaultBeanName;
         own = original.own;
-        compress = original.compress;
-        compressSeparator = original.compressSeparator;
+        isPackBySeparator = original.isPackBySeparator;
+        packSeparator = original.packSeparator;
     }
 
     Bean extract(Node _parent, DefineView defineView) {
@@ -244,6 +251,21 @@ public class Bean extends Node {
         }
     }
 
+
+    //////////////////////////////// auto fix
+    public void autoFixDefine(AllDefine defineToFix) {
+        for (Column col : columns.values()) {
+            if (col.foreignKey != null) {
+                col.foreignKey.autoFixDefine(this, defineToFix);
+            }
+        }
+
+        for (ForeignKey fk : foreignKeys.values()) {
+            fk.autoFixDefine(this, defineToFix);
+        }
+    }
+
+
     //////////////////////////////// save
     void save(Element parent) {
         update(DomUtils.newChild(parent, "bean"));
@@ -256,8 +278,8 @@ public class Bean extends Node {
             self.setAttribute("name", define.unwrapPkgName(name));
         if (!own.isEmpty())
             self.setAttribute("own", own);
-        if (compress)
-            self.setAttribute("compress", String.valueOf(compressSeparator));
+        if (isPackBySeparator)
+            self.setAttribute("packSep", String.valueOf(packSeparator));
         if (!childDynamicBeanEnumRef.isEmpty())
             self.setAttribute("enumRef", childDynamicBeanEnumRef);
         if (!childDynamicDefaultBeanName.isEmpty())

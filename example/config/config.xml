@@ -1,9 +1,10 @@
-<?xml version="1.0" encoding="GBK"?><db splitMode="PkgBased">
+<?xml version="1.0" encoding="GBK" standalone="no"?>
+<db splitMode="PkgBased">
     <bean name="LevelRank">
         <column desc="等级" name="Level" type="int"/>
         <column desc="品质" name="Rank" ref="equip.rank" type="int"/>
     </bean>
-    <bean compress=";" name="Position">
+    <bean name="Position" packSep=";">
         <column name="x" type="int"/>
         <column name="y" type="int"/>
         <column name="z" type="int"/>

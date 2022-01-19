@@ -33,11 +33,11 @@ public class VBean extends VComposite {
                 parsed = Cells.parseNestList(dat);
             }
 
-        } else if (adata.fullType.getBeanDefine().compress) { //向后兼容，之后尽量用compressAsOne
+        } else if (adata.fullType.getBeanDefine().isPackBySeparator) { //向后兼容，之后尽量用compressAsOne
             require(adata.cells.size() == 1,
                     "compress的Bean应只占一格, （Bean定义时可指明是否要压缩成一格，后来修改设计为对column配置compressAsOne属性，更灵活）");
             Cell dat = adata.cells.get(0);
-            parsed = Cells.parseList(dat, tBean.getBeanDefine().compressSeparator);
+            parsed = Cells.parseList(dat, tBean.getBeanDefine().packSeparator);
 
         } else {
             require(adata.cells.size() == adata.fullType.columnSpan(), "列宽度应一致");

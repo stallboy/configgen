@@ -82,7 +82,7 @@ public class AllDefine extends Node {
         if (getSplitMode() == Define.SplitMode.PkgBased) {
             pkgBasedSplit(topDefine);
         }
-        // 调整bean和tabe所属的define
+        // 调整bean和table所属的define
         for (Define define : defines.values()) {
             define.rectify();
         }

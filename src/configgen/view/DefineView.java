@@ -98,7 +98,9 @@ public class DefineView extends Node {
 
         String fullName = Ref.resolveBeanFullName(parentBean, type);
         Bean bean = beans.get(fullName);
-        Objects.requireNonNull(bean);
+        if (bean == null) {
+            throw new AssertionError("bean: [" + fullName + "]被使用，但没有被包含进来，看是不是忘了设置own");
+        }
 
         if (dstUsedBeans.add(bean.name)) {
             resolveUsedBean(bean, dstUsedBeans);

@@ -119,7 +119,7 @@ class TypeStr {
         for (Type t : tbean.getColumns()) {
             for (SRef r : t.getConstraint().references) {
                 if (t instanceof TMap) {
-                    System.out.println("map sref not suppport, bean=" + tbean.name);
+                    System.out.println("map sref not support, bean=" + tbean.name);
                     break;
                 }
                 String refname = Name.refName(r);
@@ -157,7 +157,7 @@ class TypeStr {
         sb.append("}");
         // 忽略ListRef
         // 的确这里不支持lua生成有refType="LIST"，当时也许是偷懒，也许是是觉得要客户端要遍历，比较低效，而服务器可以一开始就都resolve好。
-        // supprot/mkcfg.lua里，现在也不支持这种，需要修改。
+        // support/mkcfg.lua里，现在也不支持这种，需要修改。
         // 如果要改需要修改islist为枚举，而不是现在的bool，而修改需要改动很多生成代码，为了武林这个项目先不修改了，之后可以改进
         // islist为0是没有list，为1是原始此字段就是list，为2是listRef到别的table
         // 为2，{listRefName, 2, thisColumnIdx, dstTable, dstColumnIdx}

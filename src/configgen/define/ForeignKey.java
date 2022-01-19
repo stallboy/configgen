@@ -6,6 +6,7 @@ import configgen.view.DefineView;
 import org.w3c.dom.Element;
 
 public class ForeignKey extends Node {
+
     public enum RefType {
         /**
          * 链接到表的主键或唯一键，不能为空
@@ -25,6 +26,7 @@ public class ForeignKey extends Node {
     public final String[] keys;
     public Ref ref;
     public RefType refType;
+    // 这里考虑的是map类型，key， value都可以有ref，key对应这里的mapKeyRef，value对应上面的ref
     public Ref mapKeyRef;
 
     ForeignKey(Bean _parent, Element self) {
@@ -70,6 +72,15 @@ public class ForeignKey extends Node {
 
     boolean invalid(Bean parent, DefineView defineView) {
         return !((ref == null || ref.valid(parent, defineView)) && (mapKeyRef == null || mapKeyRef.valid(parent, defineView)));
+    }
+
+    public void autoFixDefine(Bean parentBean, AllDefine defineToFix) {
+        if (ref != null) {
+            ref.autoFixDefine(parentBean, defineToFix);
+        }
+        if (mapKeyRef != null) {
+            mapKeyRef.autoFixDefine(parentBean, defineToFix);
+        }
     }
 
     void save(Element parent) {

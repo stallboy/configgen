@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 public class Ref {
     public final String table;
-    public final String[] cols;
+    public String[] cols;
 
     Ref(String self) {
         if (!self.isEmpty()) {
@@ -21,6 +21,13 @@ public class Ref {
 
     public boolean refToPrimaryKey() {
         return cols.length == 0;
+    }
+
+    public void autoFixDefine(Bean parentBean, AllDefine defineToFix) {
+        Table refTable = defineToFix.getTable( resolveTableFullName(parentBean, table));
+        if (Arrays.equals(refTable.primaryKey, cols)){
+            cols = new String[0]; // 只要是索引到table主键，就不要填cols， 所以也用cols.length == 0来判断是否主键。
+        }
     }
 
     @Override
@@ -72,5 +79,6 @@ public class Ref {
 
         return refName;
     }
+
 
 }

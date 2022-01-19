@@ -3,6 +3,7 @@ package configgen.data;
 import configgen.Logger;
 import configgen.Node;
 import configgen.define.AllDefine;
+import configgen.define.Bean;
 import configgen.define.Table;
 import configgen.type.AllType;
 import configgen.type.TTable;
@@ -106,6 +107,18 @@ public class AllData extends Node {
             defineToFix.removeTable(currentRemain);
             Logger.verbose("delete table " + defineToFix.fullName() + "." + currentRemain);
         }
+
+
+        for (Table table : defineToFix.getAllTables()) {
+            table.autoFixDefine(defineToFix);
+        }
+
+        for (Bean bean : defineToFix.getAllBeans()) {
+            bean.autoFixDefine(defineToFix);
+        }
+
+
+
     }
 
 

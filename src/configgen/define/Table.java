@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Table extends Node {
+
     public enum EnumType {
         None,
         /**
@@ -162,6 +163,10 @@ public class Table extends Node {
         Column c = new Column(bean, colName, colType, colDesc);
         bean.columns.put(colName, c);
         return c;
+    }
+
+    public void autoFixDefine(AllDefine defineToFix) {
+        bean.autoFixDefine(defineToFix);
     }
 
 

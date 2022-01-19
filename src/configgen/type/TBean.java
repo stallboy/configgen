@@ -232,7 +232,7 @@ public class TBean extends Type {
 
     private int checkColumnSpan() {
         if (checking) { //递归时候的处理
-            throw new RuntimeException("使用递归Bean时候要使用compressAsOne来避免没法计算列数");
+            throw new RuntimeException("使用递归Bean时候要使用pack来避免没法计算列数");
         }
 
         checking = true;
@@ -245,7 +245,7 @@ public class TBean extends Type {
                     return 1;
                 }
             } else {
-                return beanDefine.compress ? 1 : columns.values().stream().mapToInt(Type::columnSpan).sum();
+                return beanDefine.isPackBySeparator ? 1 : columns.values().stream().mapToInt(Type::columnSpan).sum();
             }
         } finally {
             checking = false;
@@ -315,10 +315,10 @@ public class TBean extends Type {
                 require(c >= 1);
             }
             if (c == 0) {
-                require(col.compressType == Column.CompressType.UseSeparator || col.compressType == Column.CompressType.AsOne,
-                        "未定义列表的长度时必须定义compress或compressAsOne");
+                require(col.packType == Column.PackType.UseSeparator || col.packType == Column.PackType.AsOne,
+                        "未定义列表的长度时必须定义pack");
             }
-            type = new TList(this, col.name, columns.size(), v, c, col.compressType, col.compressSeparator);
+            type = new TList(this, col.name, columns.size(), v, c, col.packType, col.packSeparator);
 
         } else if (col.type.startsWith("map,")) {
             String[] sp = col.type.split(",");
@@ -326,15 +326,15 @@ public class TBean extends Type {
             String v = sp[2].trim();
             int c = Integer.parseInt(sp[3].trim());
             require(c >= 1);
-            require(c >= 1 && col.compressType == Column.CompressType.NoCompress,
-                    "map必须配置长度，不支持配置compress或compressAsOne");
+            require(c >= 1 && col.packType == Column.PackType.NoPack,
+                    "map必须配置长度，不支持配置pack");
             type = new TMap(this, col.name, columns.size(), k, v, c);
 
         } else {
-            type = resolveType(this, col.name, columns.size(), col.type, col.compressType == Column.CompressType.AsOne);
+            type = resolveType(this, col.name, columns.size(), col.type, col.packType == Column.PackType.AsOne);
             if (type instanceof TPrimitive) {
-                require(col.compressType == Column.CompressType.NoCompress,
-                        "原始类型不要配置compress或compressAsOne");
+                require(col.packType == Column.PackType.NoPack,
+                        "原始类型不要配置pack");
             }
         }
 

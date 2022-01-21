@@ -269,7 +269,7 @@ public class TBean extends Type {
                 resolveColumnType(column);
             }
             for (TForeignKey foreignKey : foreignKeys) {
-                foreignKey.resolve();
+                foreignKey.resolve(this);
             }
             for (Type columnType : columns.values()) {
                 Column column = beanDefine.columns.get(columnType.name);

@@ -24,8 +24,10 @@ public class Ref {
     }
 
     public void autoFixDefine(Bean parentBean, AllDefine defineToFix) {
-        Table refTable = defineToFix.getTable( resolveTableFullName(parentBean, table));
-        if (Arrays.equals(refTable.primaryKey, cols)){
+        Table refTable = defineToFix.getTable(resolveTableFullName(parentBean, table));
+        if (Arrays.equals(refTable.primaryKey, cols)) {
+            System.out.printf("[%s]索引到表=[%s]的主键=\"%s\"，默认就到主键，只配表就行了，不用明确配主键字段\n",
+                              parentBean.fullName(), table, String.join(",", cols));
             cols = new String[0]; // 只要是索引到table主键，就不要填cols， 所以也用cols.length == 0来判断是否主键。
         }
     }
@@ -44,7 +46,7 @@ public class Ref {
         return t != null && t.bean.columns.keySet().containsAll(Arrays.asList(cols));
     }
 
-    public static String resolveBeanFullName(Bean parentBean , String refName) {
+    public static String resolveBeanFullName(Bean parentBean, String refName) {
         if (refName.contains(".")) {
             return refName.startsWith(".") ? refName.substring(1) : refName;
         }

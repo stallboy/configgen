@@ -27,8 +27,8 @@ class TypeStr {
     }
 
     private static String getLuaOneUniqKeyString(Ctx ctx, Map<String, Type> keys, boolean isPrimaryKey) {
-        String allname = isPrimaryKey ? "all" : Name.uniqueKeyMapName(keys);
-        String getname = isPrimaryKey ? "get" : Name.uniqueKeyGetByName(keys);
+        String allname = isPrimaryKey ? Name.primaryKeyMapName : Name.uniqueKeyMapName(keys);
+        String getname = isPrimaryKey ? Name.primaryKeyGetName : Name.uniqueKeyGetByName(keys);
 
         TTable ttable = ctx.getVTable().getTTable();
         Iterator<Type> it = keys.values().iterator();
@@ -110,7 +110,12 @@ class TypeStr {
         }
     }
 
-    // refs { {refname, islist, dsttable, dstgetname, keyidx1, keyidx2}, }
+
+    /**
+     * {refName, 0, dstTable, dstGetName, thisColumnIdx, [thisColumnIdx2]}, -- 最常见类型
+     * {refName, 1, dstTable, dstGetName, thisColumnIdx}, --本身是list
+     * {refName, 2, dstTable, dstAllName, thisColumnIdx, dstColumnIdx}, --listRef到别的表
+     */
     static String getLuaRefsString(TBean tbean, boolean isUseColumnStore) {
         StringBuilder sb = new StringBuilder();
         boolean hasRef = false;
@@ -119,49 +124,66 @@ class TypeStr {
         for (Type t : tbean.getColumns()) {
             for (SRef r : t.getConstraint().references) {
                 if (t instanceof TMap) {
-                    System.out.println("map sref not support, bean=" + tbean.name);
+                    System.out.println("map类型的ref，lua不支持生成，忽略！ bean=" + tbean.name);
                     break;
                 }
-                String refname = Name.refName(r);
-                String dsttable = Name.fullName(r.refTable);
-                String dstgetname = Name.uniqueKeyGetByName(r.refCols);
-                String islist = "false";
+                String refName = Name.refName(r);
+                String dstTable = Name.fullName(r.refTable);
+                String dstGetName = Name.uniqueKeyGetByName(r.refCols);
+                String thisColumnIdx = getColumnStrOrIndex(t, tbean, isUseColumnStore);
+
                 if (t instanceof TList) {
-                    islist = "true";
+                    // {refName, 1, dstTable, dstGetName, thisColumnIdx}, --本身是list
+                    sb.append(String.format("\n    { '%s', 1, %s, '%s', %s }, ", refName, dstTable, dstGetName, thisColumnIdx));
+                } else {
+                    // {refName, 0, dstTable, dstGetName, thisColumnIdx}  --最常见类型
+                    sb.append(String.format("\n    { '%s', 0, %s, '%s', %s }, ", refName, dstTable, dstGetName, thisColumnIdx));
                 }
-                String idx = getColumnStrOrIndex(t, tbean, isUseColumnStore);
-                sb.append(String.format("\n    { '%s', %s, %s, '%s', %s }, ", refname, islist, dsttable, dstgetname, idx));
                 hasRef = true;
             }
         }
 
         for (TForeignKey mRef : tbean.getMRefs()) {
-            String refname = Name.refName(mRef);
-            String dsttable = Name.fullName(mRef.refTable);
-            String dstgetname = Name.uniqueKeyGetByName(mRef.foreignKeyDefine.ref.cols);
+            // {refName, 0, dstTable, dstGetName, thisColumnIdx, [thisColumnIdx2]}, -- 最常见类型
+            String refName = Name.refName(mRef);
+            String dstTable = Name.fullName(mRef.refTable);
+            String dstGetName = Name.uniqueKeyGetByName(mRef.foreignKeyDefine.ref.cols);
 
-            String keyidx1 = getColumnStrOrIndex(mRef.thisTableKeys[0], tbean, isUseColumnStore);
+            String thisColumnIdx = getColumnStrOrIndex(mRef.thisTableKeys[0], tbean, isUseColumnStore);
 
             if (mRef.thisTableKeys.length > 1) {
                 if (mRef.thisTableKeys.length != 2) {
                     throw new RuntimeException("keys length != 2 " + tbean.name);
                 }
-                String keyidx2 = getColumnStrOrIndex(mRef.thisTableKeys[1], tbean, isUseColumnStore);
-                sb.append(String.format("\n    { '%s', false, %s, '%s', %s, %s }, ", refname, dsttable, dstgetname, keyidx1, keyidx2));
+                String thisColumnIdx2 = getColumnStrOrIndex(mRef.thisTableKeys[1], tbean, isUseColumnStore);
+                sb.append(String.format("\n    { '%s', 0, %s, '%s', %s, %s }, ",
+                                        refName, dstTable, dstGetName, thisColumnIdx, thisColumnIdx2));
             } else {
-                sb.append(String.format("\n    { '%s', false, %s, '%s', %s }, ", refname, dsttable, dstgetname, keyidx1));
+                sb.append(String.format("\n    { '%s', 0, %s, '%s', %s }, ",
+                                        refName, dstTable, dstGetName, thisColumnIdx));
             }
 
             hasRef = true;
         }
-        sb.append("}");
-        // 忽略ListRef
-        // 的确这里不支持lua生成有refType="LIST"，当时也许是偷懒，也许是是觉得要客户端要遍历，比较低效，而服务器可以一开始就都resolve好。
-        // support/mkcfg.lua里，现在也不支持这种，需要修改。
-        // 如果要改需要修改islist为枚举，而不是现在的bool，而修改需要改动很多生成代码，为了武林这个项目先不修改了，之后可以改进
-        // islist为0是没有list，为1是原始此字段就是list，为2是listRef到别的table
-        // 为2，{listRefName, 2, thisColumnIdx, dstTable, dstColumnIdx}
 
+        for (TForeignKey listRef : tbean.getListRefs()) {
+            //{refName, 2, dstTable, dstAllName, thisColumnIdx, dstColumnIdx}, --listRef到别的表
+
+            String refName = Name.refName(listRef);
+            String dstTable = Name.fullName(listRef.refTable);
+            String dstAllName = Name.primaryKeyMapName;
+
+            String thisColumnIdx = getColumnStrOrIndex(listRef.thisTableKeys[0], tbean, isUseColumnStore);
+            String dstColumnIdx = getColumnStrOrIndex(listRef.getRefTypeKeys()[0], listRef.refTable.getTBean(), isUseColumnStore);
+
+            sb.append(String.format("\n    { '%s', 2, %s, '%s', %s, %s }, ",
+                                    refName, dstTable, dstAllName, thisColumnIdx, dstColumnIdx));
+
+            hasRef = true;
+        }
+
+
+        sb.append("}");
 
         if (hasRef) {
             return sb.toString();

@@ -1,4 +1,5 @@
 local ipairs = ipairs
+local pairs = pairs
 local rawget = rawget
 local setmetatable = setmetatable
 local unpack = unpack
@@ -6,22 +7,85 @@ local require = require
 
 local mkcfg = {}
 
-local btest = function(v, bit) ---bit 从0开始到52
+local btest = function(v, bit)
+    ---bit 从0开始到52
     return true  -- TODO
 end
 
-local bint = function(v, bitLow, bitCount) --- bitLow从0, bitCount最大26, bitLow+bitCount最大53
+local bint = function(v, bitLow, bitCount)
+    --- bitLow从0, bitCount最大26, bitLow+bitCount最大53
     return v -- TODO
 end
 
 mkcfg.i18n = {}
 
 mkcfg.E = {} --- emptyTable，为减少内存占用，所有生成的配置数据共享这个，代码别改哦
-mkcfg.R = function (v) --- ReadOnly
+mkcfg.R = function(v)
+    --- ReadOnly
     return v -- Note: 可设置__newindex进行检测
 end
 
---- refs { {refname, islist, dsttable, dstgetname, keyidx1, keyidx2}, }
+--- refs {
+---     {refname, 0, dstTable, dstGetName, thisColumnIdx, [thisColumnIdx2]}, -- 最常见类型
+---     {refname, 1, dstTable, dstGetName, thisColumnIdx}, --本身是list
+---     {refname, 2, dstTable, dstAllName, thisColumnIdx, dstColumnIdx}, --listRef到别的表
+---}
+local function mkrefs(get, refs)
+    for _, ref in ipairs(refs) do
+        local refname, islist, dsttable, dstgetname, k1, k2 = unpack(ref)
+
+        if islist == 2 then
+            -- t[k1]不是list，但listRef到dsttable[k2]，dstgetname是dstallname
+            -- k2不能为nil
+
+            local dsttable_allname = dstgetname
+            get[refname] = function(t)
+                local cache = rawget(t, refname)
+                if cache then
+                    return cache
+                end
+                cache = {}
+                local thisColumnValue = t[k1]
+
+                local dstall = dsttable[dsttable_allname]
+                for _, dstRow in pairs(dstall) do
+                    local dstColumnValue = dstRow[k2]
+                    if dstColumnValue == thisColumnValue then
+                        cache[#cache + 1] = dstColumnValue
+                    end
+                end
+                t[refname] = cache
+                return cache
+            end
+
+        elseif islist == 1 then
+            -- t[k1]本身是list，list里每个元素ele---ref--->到dsttable.dstgetname(ele)
+            -- k2肯定为 nil
+            get[refname] = function(t)
+                --- 只对list做cache，这样能避免频繁alloc，不对其他做，是因为非list的ref可能为nil，反正cache不住的
+                local cache = rawget(t, refname)
+                if cache then
+                    return cache
+                end
+                cache = {}
+                for _, ele in ipairs(t[k1]) do
+                    cache[#cache + 1] = dsttable[dstgetname](ele)
+                end
+                t[refname] = cache
+                return cache
+            end
+        elseif k2 == nil then
+            get[refname] = function(t)
+                return dsttable[dstgetname](t[k1])
+            end
+        else
+            get[refname] = function(t)
+                return dsttable[dstgetname](t[k1], t[k2])
+            end
+        end
+    end
+end
+
 local function mkbean(refs, textFields, fields)
     local get = {}
     for i, f in ipairs(fields) do
@@ -54,9 +118,10 @@ local function mkbean(refs, textFields, fields)
         else
             --- not in textFields
             if type(f) == 'table' then
+                -- 多个bool合成一个int存储
                 for k, ele in ipairs(f) do
                     get[ele] = function(t)
-                        return btest(t[i], k-1)
+                        return btest(t[i], k - 1)
                     end
                 end
             else
@@ -68,34 +133,7 @@ local function mkbean(refs, textFields, fields)
     end
 
     if refs then
-        for _, ref in ipairs(refs) do
-            local refname, islist, dsttable, dstgetname, k1, k2 = unpack(ref)
-            if k2 == nil then
-                if islist then
-                    get[refname] = function(t)
-                        --- 只对list做cache，这样能避免频繁alloc，不对其他做，是因为非list的ref可能为nil，反正cache不住的
-                        local cache = rawget(t, refname)
-                        if cache then
-                            return cache
-                        end
-                        cache = {}
-                        for _, ele in ipairs(t[k1]) do
-                            cache[#cache + 1] = dsttable[dstgetname](ele)
-                        end
-                        t[refname] = cache
-                        return cache
-                    end
-                else
-                    get[refname] = function(t)
-                        return dsttable[dstgetname](t[k1])
-                    end
-                end
-            else
-                get[refname] = function(t)
-                    return dsttable[dstgetname](t[k1], t[k2])
-                end
-            end
-        end
+        mkrefs(get, refs)
     end
 
     return get
@@ -337,34 +375,7 @@ local function mkbeanc(self, refs, textFields, fields)
     end
 
     if refs then
-        for _, ref in ipairs(refs) do
-            local refname, islist, dsttable, dstgetname, k1, k2 = unpack(ref)
-            if k2 == nil then
-                if islist then
-                    get[refname] = function(t)
-                        --- 只对list做cache，这样能避免频繁alloc，不对其他做，是因为非list的ref可能为nil，反正cache不住的
-                        local cache = rawget(t, refname)
-                        if cache then
-                            return cache
-                        end
-                        cache = {}
-                        for _, ele in ipairs(t[k1]) do
-                            cache[#cache + 1] = dsttable[dstgetname](ele)
-                        end
-                        t[refname] = cache
-                        return cache
-                    end
-                else
-                    get[refname] = function(t)
-                        return dsttable[dstgetname](t[k1])
-                    end
-                end
-            else
-                get[refname] = function(t)
-                    return dsttable[dstgetname](t[k1], t[k2])
-                end
-            end
-        end
+        mkrefs(get, refs)
     end
 
     return get

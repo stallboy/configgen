@@ -9,6 +9,11 @@ import java.util.stream.Stream;
 
 public class Name {
 
+    // primary key的容器名称是“all”， 函数名称是"get"
+    static final String primaryKeyMapName = "all";
+    static final String primaryKeyGetName = "get";
+
+
     static String uniqueKeyGetByName(Map<String, Type> keys) {
         return "getBy" + keys.keySet().stream().map(Generator::upper1).reduce("", (a, b) -> a + b);
     }

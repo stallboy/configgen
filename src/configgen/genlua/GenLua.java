@@ -1,7 +1,10 @@
 package configgen.genlua;
 
 import configgen.define.Bean;
-import configgen.gen.*;
+import configgen.gen.Context;
+import configgen.gen.Generator;
+import configgen.gen.LangSwitch;
+import configgen.gen.Parameter;
 import configgen.type.TBean;
 import configgen.type.TTable;
 import configgen.type.Type;
@@ -291,9 +294,9 @@ public class GenLua extends Generator {
                         ps.println("%s = %s(\"%s\")()", fulln, func, actionBean.name);
                     } else {
                         ps.println("%s = %s(\"%s\", %s, %s%s\n    )", fulln, func, actionBean.name,
-                                TypeStr.getLuaRefsString(actionBean, false),
-                                textFieldsStr,
-                                TypeStr.getLuaFieldsString(actionBean, null));
+                                   TypeStr.getLuaRefsString(actionBean, false),
+                                   textFieldsStr,
+                                   TypeStr.getLuaFieldsString(actionBean, null));
                     }
                 }
             } else {
@@ -311,9 +314,9 @@ public class GenLua extends Generator {
                     ps.println("%s = %s()()", full, func);
                 } else {
                     ps.println("%s = %s(%s, %s%s\n    )", full, func,
-                            TypeStr.getLuaRefsString(tbean, false),
-                            textFieldsStr,
-                            TypeStr.getLuaFieldsString(tbean, null));
+                               TypeStr.getLuaRefsString(tbean, false),
+                               textFieldsStr,
+                               TypeStr.getLuaFieldsString(tbean, null));
                 }
 
             }
@@ -335,10 +338,13 @@ public class GenLua extends Generator {
         String fullName = Name.fullName(vtable.getTTable());
         if (useEmmyLua) {
             ps.println("---@class %s", fullName);
-            ps.println(TypeStr.getLuaFieldsStringEmmyLua(tbean) + "---@field get function");
-            if (vtable.getEnumNames().size() > 0)
-                ps.println(TypeStr.getLuaEnumStringEmmyLua(vtable));
-            ps.println("---@field all table<any,%s>", fullName);
+            ps.println(TypeStr.getLuaFieldsStringEmmyLua(tbean));
+            ps.println(TypeStr.getLuaUniqKeysStringEmmyLua(ttable));
+            String enumStr = TypeStr.getLuaEnumStringEmmyLua(vtable);
+            if (!enumStr.isEmpty()) {
+                ps.println(enumStr);
+            }
+            ps.println("---@field %s table<any,%s>", Name.primaryKeyMapName, fullName);
             ps.println(TypeStr.getLuaRefsStringEmmyLua(tbean));
         }
 
@@ -373,11 +379,11 @@ public class GenLua extends Generator {
 
         // function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
         ps.println("local mk = %s._mk.%s(this, %s, %s, %s, %s%s\n    )", pkg, func,
-                TypeStr.getLuaUniqKeysString(ctx),
-                TypeStr.getLuaEnumString(ctx),
-                TypeStr.getLuaRefsString(tbean, ctx.getCtxColumnStore().isUseColumnStore()),
-                textFieldsStr,
-                TypeStr.getLuaFieldsString(tbean, ctx));
+                   TypeStr.getLuaUniqKeysString(ctx),
+                   TypeStr.getLuaEnumString(ctx),
+                   TypeStr.getLuaRefsString(tbean, ctx.getCtxColumnStore().isUseColumnStore()),
+                   textFieldsStr,
+                   TypeStr.getLuaFieldsString(tbean, ctx));
         ps.println();
 
         if (isLangSwitch) {

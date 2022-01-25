@@ -111,7 +111,7 @@ public final class DomUtils {
     public static String[] parseStringArray(Element self, String attrName) {
         String attr = self.getAttribute(attrName).trim();
         if (!attr.isEmpty())
-            return attr.split(",");
+            return attr.split("\\s*,\\s*");
         else
             return new String[0];
     }

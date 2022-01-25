@@ -13,7 +13,7 @@ import java.util.Map;
 class TypeStr {
 
 
-    // uniqkeys : {{allname=, getname=, keyidx1=, keyidx2=}, }
+    // {{allName, getName=, keyIdx1=, keyIdx2=}, }
     static String getLuaUniqKeysString(Ctx ctx) {
         TTable ttable = ctx.getVTable().getTTable();
         StringBuilder sb = new StringBuilder();
@@ -47,6 +47,7 @@ class TypeStr {
             return String.format("{ '%s', '%s', %s }, ", allname, getname, keystr1);
         }
     }
+
 
     private static String getColumnStrOrIndex(Type t, TBean bean, boolean isUseColumnStore) {
         if (isUseColumnStore) {
@@ -144,24 +145,19 @@ class TypeStr {
         }
 
         for (TForeignKey mRef : tbean.getMRefs()) {
-            // {refName, 0, dstTable, dstGetName, thisColumnIdx, [thisColumnIdx2]}, -- 最常见类型
+            // {refName, 0, dstTable, dstGetName, thisColumnIdx, thisColumnIdx2}, -- 最常见类型
             String refName = Name.refName(mRef);
             String dstTable = Name.fullName(mRef.refTable);
             String dstGetName = Name.uniqueKeyGetByName(mRef.foreignKeyDefine.ref.cols);
+            if (mRef.thisTableKeys.length != 2) {
+                throw new RuntimeException("lua只支持对多两列索引！，keys length != 2 " + tbean.name);
+            }
 
             String thisColumnIdx = getColumnStrOrIndex(mRef.thisTableKeys[0], tbean, isUseColumnStore);
+            String thisColumnIdx2 = getColumnStrOrIndex(mRef.thisTableKeys[1], tbean, isUseColumnStore);
 
-            if (mRef.thisTableKeys.length > 1) {
-                if (mRef.thisTableKeys.length != 2) {
-                    throw new RuntimeException("keys length != 2 " + tbean.name);
-                }
-                String thisColumnIdx2 = getColumnStrOrIndex(mRef.thisTableKeys[1], tbean, isUseColumnStore);
-                sb.append(String.format("\n    { '%s', 0, %s, '%s', %s, %s }, ",
-                                        refName, dstTable, dstGetName, thisColumnIdx, thisColumnIdx2));
-            } else {
-                sb.append(String.format("\n    { '%s', 0, %s, '%s', %s }, ",
-                                        refName, dstTable, dstGetName, thisColumnIdx));
-            }
+            sb.append(String.format("\n    { '%s', 0, %s, '%s', %s, %s }, ",
+                                    refName, dstTable, dstGetName, thisColumnIdx, thisColumnIdx2));
 
             hasRef = true;
         }
@@ -262,20 +258,40 @@ class TypeStr {
 
     static String getLuaFieldsStringEmmyLua(TBean tbean) {
         StringBuilder sb = new StringBuilder();
+        boolean has = false;
         for (String n : tbean.getColumnMap().keySet()) {
             Column f = tbean.getBeanDefine().columns.get(n);
             String c = f.desc.isEmpty() ? "" : ", " + f.desc;
             sb.append("---@field ").append(Generator.lower1(n)).append(" ").append(typeToLuaType(f.type)).append(" ").append(c).append("\n");
+            has = true;
+        }
+        if (has) {
+            sb.deleteCharAt(sb.length() - 1);
         }
         return sb.toString();
     }
 
-    static String getLuaEnumStringEmmyLua(VTable vtable) {
+    static String getLuaUniqKeysStringEmmyLua(TTable ttable) {
         StringBuilder sb = new StringBuilder();
-        for (String enumName : vtable.getEnumNames()) {
-            sb.append("---@field ").append(enumName).append(" ").append(Name.fullName(vtable.getTTable())).append("\n");
+        sb.append(String.format("---@field %s function\n", Name.primaryKeyGetName));
+        for (Map<String, Type> uniqueKey : ttable.getUniqueKeys()) {
+            sb.append(String.format("---@field %s function\n", Name.uniqueKeyGetByName(uniqueKey)));
         }
         sb.deleteCharAt(sb.length() - 1);
+        return sb.toString();
+    }
+
+
+    static String getLuaEnumStringEmmyLua(VTable vtable) {
+        StringBuilder sb = new StringBuilder();
+        boolean has = false;
+        for (String enumName : vtable.getEnumNames()) {
+            sb.append("---@field ").append(enumName).append(" ").append(Name.fullName(vtable.getTTable())).append("\n");
+            has = true;
+        }
+        if (has) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
         return sb.toString();
     }
 
@@ -286,26 +302,35 @@ class TypeStr {
         for (Type t : tbean.getColumns()) {
             for (SRef r : t.getConstraint().references) {
                 if (t instanceof TMap) {
-                    System.out.println("map sref not suppport, bean=" + tbean.name);
                     break;
                 }
-                String refname = Name.refName(r);
-                String dsttable = Name.fullName(r.refTable);
-//                String dstgetname = Name.uniqueKeyGetByName(r.refCols);
+                String refName = Name.refName(r);
+                String dstTable = Name.fullName(r.refTable);
                 if (t instanceof TList) {
-                    sb.append("---@field ");
-                    sb.append(String.format("%s table<number,%s>", refname, dsttable)); //refname, islist, dsttable, dstgetname, i));
-                    sb.append("\n");
+                    sb.append(String.format("---@field %s table<number,%s>\n", refName, dstTable));
                 } else {
-                    sb.append("---@field ");
-                    sb.append(String.format("%s %s", refname, dsttable)); //refname, islist, dsttable, dstgetname, i));
-                    sb.append("\n");
+                    sb.append(String.format("---@field %s %s\n", refName, dstTable));
                 }
                 hasRef = true;
             }
         }
-        //没处理外键的相关生成
-        //忽略ListRef
+
+        for (TForeignKey mRef : tbean.getMRefs()) {
+            // {refName, 0, dstTable, dstGetName, thisColumnIdx, thisColumnIdx2}, -- 最常见类型
+            String refName = Name.refName(mRef);
+            String dstTable = Name.fullName(mRef.refTable);
+            sb.append(String.format("---@field %s %s\n", refName, dstTable));
+            hasRef = true;
+        }
+
+        for (TForeignKey listRef : tbean.getListRefs()) {
+            //{refName, 2, dstTable, dstAllName, thisColumnIdx, dstColumnIdx}, --listRef到别的表
+            String refName = Name.refName(listRef);
+            String dstTable = Name.fullName(listRef.refTable);
+            sb.append(String.format("---@field %s table<number,%s>\n", refName, dstTable));
+            hasRef = true;
+        }
+
         if (hasRef) {
             return sb.toString();
         } else {
@@ -334,7 +359,7 @@ class TypeStr {
         for (Type col : tbean.getColumns()) {
             if (col.hasText()) {
                 if (col instanceof TString) {
-                    texts.add(Generator.lower1(col.getColumnName()) + " = true");
+                    texts.add(Generator.lower1(col.getColumnName()) + " = 1");
                 } else if (col instanceof TList && ((TList) col).value instanceof TString) {
                     texts.add(Generator.lower1(col.getColumnName()) + " = 2");
                 }

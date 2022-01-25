@@ -4,12 +4,12 @@ import configgen.Node;
 
 public class TBeanRef extends Type {
     public final TBean tBean;
-    public final boolean compressAsOne; //这里只考虑支持AsOne这一种类型
+    public final boolean packAsOne; //这里只考虑支持AsOne这一种类型
 
-    TBeanRef(Node parent, String name, int idx, TBean tBean, boolean compressAsOne) {
+    TBeanRef(Node parent, String name, int idx, TBean tBean, boolean packAsOne) {
         super(parent, name, idx);
         this.tBean = tBean;
-        this.compressAsOne = compressAsOne;
+        this.packAsOne = packAsOne;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class TBeanRef extends Type {
 
     @Override
     public int columnSpan() {
-        return compressAsOne ? 1 : tBean.columnSpan();
+        return packAsOne ? 1 : tBean.columnSpan();
     }
 
     @Override

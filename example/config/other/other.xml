@@ -3,7 +3,7 @@
     <table name="loot" primaryKey="lootid">
         <column desc="序号" name="lootid" ref="other.lootitem,lootid" refType="LIST" type="int"/>
         <column name="ename" type="string"/>
-        <column desc="名字" name="name" type="string"/>
+        <column desc="名字" name="name" type="text"/>
         <column desc="掉落0件物品的概率" name="chanceList" type="list,int,7"/>
     </table>
     <table name="lootitem" primaryKey="lootid,itemid">
@@ -18,6 +18,7 @@
         <column name="posList" packSep=":" type="list,Position"/>
     </table>
     <table name="signin" primaryKey="id">
+        <uniqueKey keys="id,viplevel"/>
         <column desc="礼包ID" name="id" type="int"/>
         <column desc="普通奖励" name="item2countMap" type="map,int,int,5"/>
         <column desc="vip奖励" name="vipitem2vipcountMap" type="map,int,int,2"/>

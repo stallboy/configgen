@@ -13,8 +13,8 @@ public class VList extends VComposite {
         super(type, adata.cells);
 
         List<Cell> parsed;
-        boolean compressAsOne = adata.compressAsOne || type.packType == Column.PackType.AsOne;
-        if (compressAsOne) {
+        boolean packAsOne = adata.packAsOne || type.packType == Column.PackType.AsOne;
+        if (packAsOne) {
             require(adata.cells.size() == 1);
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseNestList(dat);
@@ -30,13 +30,13 @@ public class VList extends VComposite {
         }
 
         list = new ArrayList<>();
-        int vc = compressAsOne ? 1 :
-                adata.fullType.value.columnSpan();  // 注意这里compressAsOne的自上而下一直传递的特性
+        int vc = packAsOne ? 1 :
+                adata.fullType.value.columnSpan();  // 注意这里packAsOne的自上而下一直传递的特性
 
         for (int s = 0; s < parsed.size(); s += vc) {
             if (!parsed.get(s).data.isEmpty()) { //第一个单元作为是否还有item的标记
                 list.add(Values.create(type.value, parsed.subList(s, s + vc),
-                        adata.fullType.value, compressAsOne));
+                        adata.fullType.value, packAsOne));
             } else {
                 for (Cell dc : parsed.subList(s, s + vc)) {
                     require(dc.data.isEmpty(), "list的item第一个为空格后，之后必须也都是空格", dc);

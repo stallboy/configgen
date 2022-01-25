@@ -15,14 +15,14 @@ class AData<T extends Type> {
     final T fullType;
 
     /**
-     * 因为compressAsOne的传递特性，所以这里要包含
+     * 因为packAsOne的传递特性，所以这里要包含
      */
-    final boolean compressAsOne;
+    final boolean packAsOne;
 
 
-    AData(List<Cell> cells, T fullType, boolean compressAsOne) {
+    AData(List<Cell> cells, T fullType, boolean packAsOne) {
         this.cells = cells;
         this.fullType = fullType;
-        this.compressAsOne = compressAsOne;
+        this.packAsOne = packAsOne;
     }
 }

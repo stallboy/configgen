@@ -5,7 +5,7 @@ import configgen.type.*;
 import java.util.List;
 
 public class Values {
-    public static Value create(Type t, List<Cell> cells, Type fullType, boolean compressAsOne) {
+    public static Value create(Type t, List<Cell> cells, Type fullType, boolean packAsOne) {
         return t.accept(new TypeVisitorT<Value>() {
             @Override
             public Value visit(TBool type) {
@@ -34,12 +34,12 @@ public class Values {
 
             @Override
             public Value visit(TList type) {
-                return new VList(type, new AData<>(cells, (TList) fullType, compressAsOne));
+                return new VList(type, new AData<>(cells, (TList) fullType, packAsOne));
             }
 
             @Override
             public Value visit(TMap type) {
-                return new VMap(type, new AData<>(cells, (TMap) fullType, compressAsOne));
+                return new VMap(type, new AData<>(cells, (TMap) fullType, packAsOne));
             }
 
             @Override
@@ -49,7 +49,7 @@ public class Values {
 
             @Override
             public Value visit(TBeanRef type) {
-                AData<TBean> newAData = new AData<>(cells, ((TBeanRef) fullType).tBean, compressAsOne || type.compressAsOne);
+                AData<TBean> newAData = new AData<>(cells, ((TBeanRef) fullType).tBean, packAsOne || type.packAsOne);
                 return new VBean(type.tBean, newAData);
             }
         });

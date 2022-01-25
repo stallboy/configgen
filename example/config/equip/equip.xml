@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="GBK" standalone="no"?>
 <db>
+    <bean name="TestPackBean">
+        <column name="name" type="string"/>
+        <column name="range" type="Range"/>
+    </bean>
     <table enum="name" name="ability" primaryKey="id">
         <column desc="属性类型" name="id" type="int"/>
         <column desc="程序用名字" name="name" type="string"/>
@@ -28,7 +32,7 @@
         <column desc="等级" name="LvlRank" type="LevelRank"/>
         <column desc="最小攻击力" name="AttackRange" type="Range"/>
         <column desc="最小防御力" name="OtherRange" type="list,Range,4"/>
-        <column desc="测试compressAsOne" name="TestCompress1" pack="1" type="list,TestCompressBean"/>
+        <column desc="测试pack" name="TestPack" pack="1" type="list,TestPackBean"/>
     </table>
     <table entry="Ename" name="jewelrysuit" primaryKey="SuitID">
         <column desc="饰品套装ID" name="SuitID" type="int"/>

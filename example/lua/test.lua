@@ -1,4 +1,4 @@
-require("cfg._beans")
+local Beans = require("cfg._beans")
 local cfg = require("cfg._cfgs")
 
 local function testAllAndGet()
@@ -9,8 +9,11 @@ end
 
 local function testMultiColumnAsPrimaryKeyGet()
     local t = cfg.other.lootitem.get(2, 40007)
-    assert(t.lootid == 2, "主键可以是2个字段，get(k1, k2)")
+    local all = cfg.other.lootitem.all
+    assert(t.lootid == 2, "主键可以是2个int字段，get(k1, k2)")
     assert(t.itemid == 40007)
+    local rawT = all[2 + 40007 * 10000000]
+    assert(rawT == t, "主键是k + j * 10000000")
 end
 
 local function testUniqueKeyGet()
@@ -38,8 +41,7 @@ end
 local function testMapField()
     local t = cfg.other.signin.get(4)
     local cnt = 0
-    for k, v in pairs(t.item2countMap) do
-        --print(k, v)
+    for _, _ in pairs(t.item2countMap) do
         cnt = cnt + 1
     end
 
@@ -59,6 +61,7 @@ end
 local function testRefNotCache()
     local t = cfg.task.task.get(1)
     local refM = t.completecondition.RefMonsterid
+    assert(refM ~= nil)
     assert(rawget(t.completecondition, "RefMonsterid") == nil, "Ref不会缓存，rawget一直拿到的都是nil，内存小点")
 end
 
@@ -101,9 +104,65 @@ local function testCsvColumnMode()
     assert(t.week_reward_mailid == 33, "csv可以一列一列配置，而不用一行一行")
 end
 
+local function testBeanAsPrimaryKeyGetError()
+    local all = cfg.equip.jewelryrandom.all
+    local firstK
+    for k, _ in pairs(all) do
+        firstK = k
+        break
+    end
+    local t = cfg.equip.jewelryrandom.get(Beans.levelrank(5, 1))
+    assert(t == nil, "bean做为主键，虽然能生成，但不好取到，因为lua的table的key如果是table，比较用的是引用比较")
+    assert(cfg.equip.jewelryrandom.get(firstK) ~= nil, "只能先拿到引用")
+end
+
+local function testCsvPack()
+    local all = cfg.equip.jewelryrandom.all
+    local tv
+    for k, v in pairs(all) do
+        if k.level == 5 and k.rank == 1 then
+            tv = v
+            break
+        end
+    end
+    print(tv.testPack[1].name, tv.testPack[1].range.min, tv.testPack[1].range.max,
+            tv.testPack[2].name, tv.testPack[2].range.min, tv.testPack[2].range.max)
+    assert(#tv.testPack == 2, "pack=1，可以把任意复杂的结构嵌入一格中")
+    assert(tv.testPack[1].range.min == 100)
+    assert(tv.testPack[1].range.max == 120)
+    assert(tv.testPack[2].range.min == 300)
+end
+
+local function testCsvPackSep()
+    local m = cfg.other.monster.get(1)
+    assert(#m.posList == 3, "packSep=, 允许自定义分隔符来座分割，定义packSep的Bean只占一格，定义了packSep的column也只占一格")
+    assert(m.posList[1].x == 1)
+    assert(m.posList[1].y == 2)
+    assert(m.posList[1].z == 3)
+end
+
+local function testExtraSplit()
+    local t = cfg.equip.jewelry.get(41)
+    assert(t.iD == 41, "extraSplit=40，可以生成多个lua文件组成一个表，方便更新大小最小化")
+    assert(cfg.equip.jewelry.get(1).iD == 1)
+    assert(cfg.equip.jewelry.get(91).iD == 91)
+end
+
+local function testCsvSplit()
+    local t = cfg.other.lootitem.get(10, 20853)
+    assert(t.lootid == 10, "同一个表可以放到多个csv里")
+    assert(t.itemid == 20853)
+end
+
+local function testCsvCanBeExcelSheet()
+    local t = cfg.ai.ai.get(10012)
+    assert(t.iD == 10012, "可以读excel文件")
+end
+
 testAllAndGet()
 testMultiColumnAsPrimaryKeyGet()
 testUniqueKeyGet()
+testBeanAsPrimaryKeyGetError()
 
 testField()
 testListField()
@@ -118,3 +177,8 @@ testEnum()
 testEntry()
 
 testCsvColumnMode()
+testCsvPack()
+testCsvPackSep()
+testExtraSplit()
+testCsvSplit()
+testCsvCanBeExcelSheet()

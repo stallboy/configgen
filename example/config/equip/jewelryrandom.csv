@@ -1,5 +1,5 @@
-等级,品质,最小攻击力,最大攻击力,最小防御力,最大防御力,最小血量,最大血量,最小暴击,最大暴击,最小格挡,最大格挡,测试compressAsOne
-LvlRank@Level,Rank,AttackRange,AttackMax,OtherRange,DefenceMax,HpMin,HpMax,CriticalMin,CriticalMax,BlockMin,BlockMax,TestCompress1
+等级,品质,最小攻击力,最大攻击力,最小防御力,最大防御力,最小血量,最大血量,最小暴击,最大暴击,最小格挡,最大格挡,测试pack
+LvlRank@Level,Rank,AttackRange,AttackMax,OtherRange,DefenceMax,HpMin,HpMax,CriticalMin,CriticalMax,BlockMin,BlockMax,TestPack
 5,1,5,8,1,2,300,315,15,18,1,1,"(""range1"",(100,120)),(""range2"", (300,400))"
 5,2,9,13,3,5,320,335,20,23,3,5,
 5,3,15,20,6,9,340,365,25,28,6,8,

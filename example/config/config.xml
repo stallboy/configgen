@@ -13,8 +13,4 @@
         <column desc="最小" name="Min" type="int"/>
         <column desc="最大" name="Max" type="int"/>
     </bean>
-    <bean name="TestCompressBean">
-        <column name="name" type="string"/>
-        <column name="range" type="Range"/>
-    </bean>
 </db>

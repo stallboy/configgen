@@ -18,6 +18,9 @@ public class VMap extends VComposite {
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseNestList(dat);
 
+        } else if (type.isPackByBlock) {
+            parsed = VTable.parseBlock(adata.cells);
+
         } else {
             require(adata.cells.size() == adata.fullType.columnSpan(), "数据和类型占格数不匹配");
             parsed = adata.cells;
@@ -26,7 +29,7 @@ public class VMap extends VComposite {
         int kc = adata.packAsOne ? 1 : adata.fullType.key.columnSpan();
         int vc = adata.packAsOne ? 1 : adata.fullType.value.columnSpan();
         for (int s = 0; s < parsed.size(); s += kc + vc) {
-            if (!parsed.get(s).data.isEmpty()) { //第一个单元作为是否还有key-value对的标记
+            if (!parsed.get(s).data.trim().isEmpty()) { //第一个单元作为是否还有key-value对的标记
                 Value key = Values.create(type.key, parsed.subList(s, s + kc),
                         adata.fullType.key, adata.packAsOne);
                 Value value = Values.create(type.value, parsed.subList(s + kc, s + kc + vc),

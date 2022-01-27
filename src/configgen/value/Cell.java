@@ -7,8 +7,8 @@ import configgen.data.DSheet;
  */
 public final class Cell {
     final DSheet sheet;
-    final int row;
-    final int col;
+    final int row;  // row 从0开始,  sheet.recordList.get(row).get(col) 就返回对应格子的string
+    final int col;  // col 从0开始
     final String data;
 
     public Cell(DSheet sheet, int row, int col, String data) {
@@ -24,11 +24,13 @@ public final class Cell {
 
     @Override
     public String toString() {
+        int r = row;
+        int c = col;
         if (sheet.isColumnMode()) {
-            return String.format("sheet=%s,row=%d,col=%s,data=%s", sheet.name, col, toAZ(row), data);
-        } else {
-            return String.format("sheet=%s,row=%d,col=%s,data=%s", sheet.name, row, toAZ(col), data);
+            r = col;
+            c = row;
         }
+        return String.format("sheet=%s,row=%d,col=%s,data=%s", sheet.name, DSheet.getHeadRow() + r + 1, toAZ(c), data);
     }
 
     private static final int N = 'Z' - 'A' + 1;

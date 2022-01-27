@@ -100,6 +100,10 @@ public class DTable extends Node {
         return indexes;
     }
 
+    public DColumn getColumn(String columnName) {
+        return dColumns.get(columnName);
+    }
+
     private List<String> getDescLine() {
         return sheets[0].getDescLine();
     }

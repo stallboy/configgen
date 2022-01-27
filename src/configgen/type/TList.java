@@ -6,21 +6,18 @@ import java.util.Objects;
 
 public class TList extends Type {
     public final Type value;
-    /**
-     * >=0; 0 意味着这个是compress的，使用compressSeparator分割
-     */
-    public final int count;
+    public final int count; // >=1
     public final Column.PackType packType;
-    public final char compressSeparator;
+    public final char packSeparator;
 
-    TList(TBean parent, String name, int idx, String value, int count, Column.PackType packType, char compressSeparator) {
+    TList(TBean parent, String name, int idx, String value, int count, Column.PackType packType, char packSeparator) {
         super(parent, name, idx);
 
         this.value = resolveType(parent, "value", idx, value, packType == Column.PackType.AsOne);
         require(Objects.nonNull(this.value), "list里的值类型不存在", value);
         this.count = count;
         this.packType = packType;
-        this.compressSeparator = compressSeparator;
+        this.packSeparator = packSeparator;
     }
 
     @Override
@@ -36,7 +33,11 @@ public class TList extends Type {
 
     @Override
     public String toString() {
-        return "list," + value + (count > 0 ? "," + count : "");
+        if (packType == Column.PackType.NoPack) {
+            return String.format("list,%s,%d", value, count);
+        } else {
+            return String.format("list,%s", value);
+        }
     }
 
     @Override
@@ -60,8 +61,20 @@ public class TList extends Type {
     }
 
     @Override
+    public boolean hasBlock() {
+        return packType == Column.PackType.Block || value.hasBlock();
+    }
+
+    @Override
     public int columnSpan() {
-        return packType != Column.PackType.NoPack ? 1 : (value.columnSpan() * count);
+        switch (packType) {
+            case NoPack:
+                return value.columnSpan() * count;
+            case Block:
+                return value.columnSpan();
+            default:
+                return 1;
+        }
     }
 
 }

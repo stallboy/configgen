@@ -22,9 +22,9 @@ public class VBean extends VComposite {
         tBean = tbean;
         require(adata.fullType.getBeanDefine().type == tBean.getBeanDefine().type, "类型应该一致");
 
-        // 把compress的展开
+        // 把pack的展开
         List<Cell> parsed;
-        if (adata.packAsOne) { //这个要先与compress检测，让这个推荐配置可以覆盖旧的情况
+        if (adata.packAsOne) { //先检测packAsOne，优先级高
             require(adata.cells.size() == 1, "pack应该只占一格");
             Cell dat = adata.cells.get(0);
             if (tBean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {

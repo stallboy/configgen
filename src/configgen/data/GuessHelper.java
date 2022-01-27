@@ -11,11 +11,16 @@ import java.util.Set;
 final class GuessHelper {
 
     static String getColumnName(String name) {
-        int i = name.indexOf('@'); //为了是兼容之前版本，也给各机会在@后面来声明此bean下第一个字段的名称
+        int i = name.indexOf(','); // 给机会在,后面来声明此bean下第一个字段的名称，其实用desc行也可以声明。
         if (i != -1) {
             return name.substring(0, i);
         } else {
-            return name;
+            int j = name.indexOf('@'); //为了是兼容之前版本
+            if (j != -1) {
+                return name.substring(0, j);
+            } else {
+                return name;
+            }
         }
     }
 

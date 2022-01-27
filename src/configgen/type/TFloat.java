@@ -14,11 +14,6 @@ public class TFloat extends TPrimitive {
     }
 
     @Override
-    public boolean hasText() {
-        return false;
-    }
-
-    @Override
     public String toString() {
         return "float";
     }

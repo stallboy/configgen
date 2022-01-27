@@ -43,6 +43,8 @@ public abstract class Type extends Node {
 
     public abstract boolean hasText();
 
+    public abstract boolean hasBlock();
+
     public abstract int columnSpan();
 
     public abstract <T> T accept(TypeVisitorT<T> visitor);

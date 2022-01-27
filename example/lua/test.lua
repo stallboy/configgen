@@ -58,17 +58,27 @@ local function testDynamicBeanField()
     assert(t.completecondition.count == 3, "count")
 end
 
-local function testRefNotCache()
-    local t = cfg.task.task.get(1)
-    local refM = t.completecondition.RefMonsterid
-    assert(refM ~= nil)
-    assert(rawget(t.completecondition, "RefMonsterid") == nil, "Ref不会缓存，rawget一直拿到的都是nil，内存小点")
-end
-
 local function testRef()
     local t = cfg.task.task.get(1)
     local rawGet = cfg.other.monster.get(t.completecondition.monsterid)
     assert(rawGet == t.completecondition.RefMonsterid, "Ref可以直接拿到另一个表的一行，不需要再去get")
+end
+
+local function testRefNotCache()
+    local t = cfg.task.task.get(1)
+    local refM = t.completecondition.RefMonsterid
+    assert(refM ~= nil)
+    assert(rawget(t.completecondition, "RefMonsterid") == nil, "Ref不会缓存，rawget一直拿到的都是nil，内存小点，这是个实现上的细节，将来可能会改变")
+end
+
+local function testNullableRef()
+    local t = cfg.task.task.get(1)
+    assert(t.nexttask == 2)
+    assert(t.NullableRefNexttask == cfg.task.task.get(2), "refType=nullable，如果为空，就==nil")
+    assert(t.NullableRefTaskid == cfg.task.taskextraexp.get(1))
+    t = cfg.task.task.get(3)
+    assert(t.NullableRefNexttask == nil)
+    assert(t.NullableRefTaskid == nil)
 end
 
 local function testListRef()
@@ -159,6 +169,13 @@ local function testCsvCanBeExcelSheet()
     assert(t.iD == 10012, "可以读excel文件")
 end
 
+local function testCsvBlock()
+    local t = cfg.other.drop.get(1)
+    assert(#t.items == 4, "可以用block来配置list")
+    assert(t.testmap[5] == 55, "可以用block来配置map")
+    assert(#t.items[1].itemids == 3, "支持嵌套block")
+end
+
 testAllAndGet()
 testMultiColumnAsPrimaryKeyGet()
 testUniqueKeyGet()
@@ -171,6 +188,7 @@ testDynamicBeanField()
 
 testRef()
 testRefNotCache()
+testNullableRef()
 testListRef()
 
 testEnum()
@@ -182,3 +200,4 @@ testCsvPackSep()
 testExtraSplit()
 testCsvSplit()
 testCsvCanBeExcelSheet()
+testCsvBlock()

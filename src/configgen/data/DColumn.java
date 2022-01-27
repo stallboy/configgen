@@ -8,12 +8,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-final class DColumn extends Node {
+public final class DColumn extends Node {
     final List<Integer> indexes = new ArrayList<>();
     final List<String> descs = new ArrayList<>();
 
     DColumn(DTable parent, String name) {
         super(parent, name);
+    }
+
+    public List<Integer> getIndexes(){
+        return indexes;
     }
 
     String guessType() {

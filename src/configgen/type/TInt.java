@@ -8,11 +8,6 @@ public class TInt extends TPrimitive {
     }
 
     @Override
-    public boolean hasText() {
-        return false;
-    }
-
-    @Override
     public String toString() {
         return "int";
     }

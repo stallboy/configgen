@@ -45,7 +45,7 @@
 
 - isColumnMode 设置为true，则以列为行，一列一列的读，当原本列数很多，行数很少时可以用这个模式，相当于旋转90度，方便配置。配合entry可以用于某个模块的全局配置。
 
-### column.name，type，desc，pack
+### column.name，type，desc，pack, block
 
 - name, desc会从csv文件第1,2行提取,生成代码时保留csv中配置名称的大小写，成员变量为首字母小写的name,引用的成员变量为Ref+首字母大写的name
 - type 在xml要自己修改.基本类型有bool,int,long,float,string(text),复合类型包括bean,list,map
@@ -59,6 +59,8 @@
     - "a",b,c   等同与a;b;c
     - "a,b",c   则被分为2组a,b 和c
     - "a"",b";c 也是2组a",b和c
+
+- block 配置block="1",对list和map这两个容器类型，可以让容器里的item，竖着排列往下配置。
 
 ### uniqueKey.keys
 

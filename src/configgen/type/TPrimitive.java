@@ -26,6 +26,16 @@ public abstract class TPrimitive extends Type {
     }
 
     @Override
+    public boolean hasText() {
+        return false;
+    }
+
+    @Override
+    public boolean hasBlock(){
+        return false;
+    }
+
+    @Override
     public int columnSpan() {
         return 1;
     }

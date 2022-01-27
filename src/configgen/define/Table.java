@@ -21,10 +21,10 @@ public class Table extends Node {
          */
         EnumFull,
         /**
-         * 半枚举：生成时是通过类的static成员，来访问csv的某一行。
+         * 入口：生成时是通过类的static成员，来访问csv的某一行。
          * 这样代码避免了使用魔数。也不用运行时检查是否为null，因为启动时保证必不为null
          */
-        EnumPart,
+        Entry,
     }
 
     public Bean bean;
@@ -61,19 +61,12 @@ public class Table extends Node {
         if (self.hasAttribute("enum")) {
             enumType = EnumType.EnumFull;
             enumStr = self.getAttribute("enum");
-            require(!enumStr.isEmpty(), "enum empty");
-            require(!self.hasAttribute("enumPart"), "enum和enumPart不要同时配置");
-            require(!self.hasAttribute("entry"), "enum和entry不要同时配置");
-        } else if (self.hasAttribute("entry")) {
-            require(!self.hasAttribute("enumPart"), "enumPart和entry不要同时配置，enumPart是旧属性名，请改用entry");
-            enumType = EnumType.EnumPart;
-            enumStr = self.getAttribute("entry");
-            require(!enumStr.isEmpty(), "entry empty");
-        } else if (self.hasAttribute("enumPart")) {
-            require(!self.hasAttribute("entry"), "enumPart和entry不要同时配置，enumPart是旧属性名，请改用entry");
-            enumType = EnumType.EnumPart;
-            enumStr = self.getAttribute("enumPart");
-            require(!enumStr.isEmpty(), "enumPart empty");
+            require(!enumStr.isEmpty(), "enum 不能为空");
+        } else if (self.hasAttribute("entry") || self.hasAttribute("enumPart")) {
+            enumType = EnumType.Entry;
+            enumStr = self.hasAttribute("entry") ?
+                    self.getAttribute("entry") : self.getAttribute("enumPart");
+            require(!enumStr.isEmpty(), "entry 不能为空");
         } else {
             enumType = EnumType.None;
             enumStr = "";
@@ -102,7 +95,7 @@ public class Table extends Node {
     }
 
     public boolean isEnumPart() {
-        return enumType == EnumType.EnumPart;
+        return enumType == EnumType.Entry;
     }
 
     public boolean isEnumAsPrimaryKey() {
@@ -225,7 +218,7 @@ public class Table extends Node {
             case EnumFull:
                 self.setAttribute("enum", enumStr);
                 break;
-            case EnumPart:
+            case Entry:
                 self.setAttribute("entry", enumStr);
                 break;
         }

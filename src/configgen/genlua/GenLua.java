@@ -151,6 +151,10 @@ public class GenLua extends Generator {
         for (TTable c : value.getTDb().getTTables()) {
             String full = Name.fullName(c);
             definePkg(full, ps, context);
+
+            if (useEmmyLua) {
+                ps.println("---@type %s", full);
+            }
             if (preload) {
                 ps.println("%s = {}", full);
             } else {
@@ -159,59 +163,8 @@ public class GenLua extends Generator {
             context.add(full);
         }
 
-        if (useEmmyLua) {
-            context.clear();
-            context.add(pkg);
-            generate_emmylua(ps, value.getTDb().getTTables(), context, 3);
-        }
-
         ps.println();
         ps.println("return %s", pkg);
-    }
-
-    private void generate_emmylua(CachedIndentPrinter ps, Collection<TTable> tables, Set<String> context, int lastIndent) {
-        String lastUpperPkg = "";
-        Queue<TTable> subCfgQueue = new LinkedList<>();
-        for (TTable c : tables) {
-            String full = Name.fullName(c);
-            String[] nameSplits = full.split("\\.");
-            int splitLenth = nameSplits.length;
-            String lastName = nameSplits[splitLenth - 1];
-            if (lastIndent < splitLenth) {
-                //如果是更深一层的文件夹，先进队列
-                subCfgQueue.add(c);
-                continue;
-            }
-            String curUpperPkg = nameSplits[splitLenth - 2];
-            //如果上层的文件夹发生了变化，那么检测队列是否有之前预存的，把这些配置解析了
-            if (!subCfgQueue.isEmpty() && !curUpperPkg.equals(lastUpperPkg)) {
-                //先把下层在上层的入口给输出了
-                String upperPkg2 = "";
-                for (TTable tableInQueue : subCfgQueue) {
-                    String fullName2 = Name.fullName(tableInQueue);
-                    String[] nameSplits2 = fullName2.split("\\.");
-                    int splitLenth2 = nameSplits2.length;
-                    String curUpperPkg2 = nameSplits2[splitLenth2 - 2];
-                    if (!upperPkg2.equals(curUpperPkg2)) {
-                        int lastNameLenth = nameSplits2[splitLenth2 - 1].length();
-                        ps.println("---@field %s %s", curUpperPkg2, fullName2.substring(0, fullName2.length() - lastNameLenth - 1));
-                    }
-                    upperPkg2 = curUpperPkg2;
-                }
-
-                //然后再递归输出之前缓存的内容
-                generate_emmylua(ps, subCfgQueue, context, lastIndent + 1);
-                subCfgQueue.clear();
-            }
-            lastIndent = splitLenth;
-            lastUpperPkg = curUpperPkg;
-
-            definePkgEmmyLua(full, ps, context);
-            if (!preload) {
-                ps.println("---@field %s %s", lastName, full);
-            }
-            context.add(full);
-        }
     }
 
 
@@ -220,9 +173,6 @@ public class GenLua extends Generator {
         for (int i = 0; i < seps.size() - 1; i++) {
             String pkg = String.join(".", seps.subList(0, i + 1));
             if (context.add(pkg)) {
-                if (useEmmyLua) {
-                    ps.println("---@type %s", pkg);
-                }
                 ps.println(pkg + " = {}");
             }
         }
@@ -274,7 +224,14 @@ public class GenLua extends Generator {
             context.add(full);
 
             if (tbean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
+                if (useEmmyLua) {
+                    ps.println("---@class %s", full);
+                    ps.println();
+                    ps.println("---@type %s", full);
+                }
                 ps.println("%s = {}", full);
+                ps.println();
+
                 for (TBean actionBean : tbean.getChildDynamicBeans()) {
                     // function mkcfg.action(typeName, refs, ...)
                     String fulln = Name.fullName(actionBean);
@@ -289,6 +246,14 @@ public class GenLua extends Generator {
                         }
                     }
 
+                    if (useEmmyLua) {
+                        ps.println("---@class %s : %s", fulln, full);
+                        ps.printlnIf(TypeStr.getLuaFieldsStringEmmyLua(actionBean));
+                        ps.printlnIf(TypeStr.getLuaRefsStringEmmyLua(actionBean));
+                        ps.println();
+                        ps.println("---@type %s", fulln);
+                    }
+
                     if (actionBean.getColumns().isEmpty()) {
                         //这里来个优化，加上()直接生成实例，而不是类，注意生成数据时对应不加()
                         ps.println("%s = %s(\"%s\")()", fulln, func, actionBean.name);
@@ -298,6 +263,7 @@ public class GenLua extends Generator {
                                    textFieldsStr,
                                    TypeStr.getLuaFieldsString(actionBean, null));
                     }
+                    ps.println();
                 }
             } else {
                 String func = "bean";
@@ -309,6 +275,14 @@ public class GenLua extends Generator {
                     }
                 }
 
+                if (useEmmyLua) {
+                    ps.println("---@class %s", full);
+                    ps.printlnIf(TypeStr.getLuaFieldsStringEmmyLua(tbean));
+                    ps.printlnIf(TypeStr.getLuaRefsStringEmmyLua(tbean));
+                    ps.println();
+                    ps.println("---@type %s", full);
+                }
+
                 if (tbean.getColumns().isEmpty()) {
                     //这里来个优化，加上()直接生成实例，而不是类，注意生成数据时对应不加()
                     ps.println("%s = %s()()", full, func);
@@ -318,6 +292,7 @@ public class GenLua extends Generator {
                                textFieldsStr,
                                TypeStr.getLuaFieldsString(tbean, null));
                 }
+                ps.println();
 
             }
         }
@@ -339,13 +314,12 @@ public class GenLua extends Generator {
         if (useEmmyLua) {
             ps.println("---@class %s", fullName);
             ps.println(TypeStr.getLuaFieldsStringEmmyLua(tbean));
-            ps.println(TypeStr.getLuaUniqKeysStringEmmyLua(ttable));
-            String enumStr = TypeStr.getLuaEnumStringEmmyLua(vtable);
-            if (!enumStr.isEmpty()) {
-                ps.println(enumStr);
-            }
+            ps.printlnIf(TypeStr.getLuaUniqKeysStringEmmyLua(ttable));
+            ps.printlnIf(TypeStr.getLuaEnumStringEmmyLua(vtable));
+
             ps.println("---@field %s table<any,%s>", Name.primaryKeyMapName, fullName);
-            ps.println(TypeStr.getLuaRefsStringEmmyLua(tbean));
+            ps.printlnIf(TypeStr.getLuaRefsStringEmmyLua(tbean));
+            ps.println();
         }
 
         ps.println("local this = %s", fullName);

@@ -46,7 +46,7 @@ public final class SchemaParser {
     }
 
     private static Schema parseEnum(VTable vTable) {
-        boolean isEnumPart = vTable.getTTable().getTableDefine().enumType == Table.EnumType.EnumPart;
+        boolean isEnumPart = vTable.getTTable().getTableDefine().enumType == Table.EnumType.Entry;
         boolean hasIntValue = !vTable.getTTable().getTableDefine().isEnumAsPrimaryKey();
         SchemaEnum se = new SchemaEnum(isEnumPart, hasIntValue);
 

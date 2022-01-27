@@ -5,21 +5,23 @@ import java.util.Objects;
 public class TMap extends Type {
     public final Type key;
     public final Type value;
-    public final int count; // must > 0
+    public final int count; // >=1
+    public final boolean isPackByBlock;
 
-    TMap(TBean parent, String name, int idx, String key, String value, int count) {
+    TMap(TBean parent, String name, int idx, String key, String value, int count, boolean block) {
         super(parent, name, idx);
         this.key = resolveType(parent, "key", idx, key, false);
         require(Objects.nonNull(this.key), "map的Key类型不存在", key);
-        if (this.key instanceof TString){
+        if (this.key instanceof TString) {
             require(!this.key.hasText(), "map的Key类型不能是Text");
         }
         this.value = resolveType(parent, "value", idx, value, false);
         require(Objects.nonNull(this.value), "map的Value类型不存在", value);
-        if (this.value instanceof TString){
+        if (this.value instanceof TString) {
             require(!this.value.hasText(), "map的Value类型不能是Text");
         }
         this.count = count;
+        this.isPackByBlock = block;
     }
 
     @Override
@@ -41,7 +43,11 @@ public class TMap extends Type {
 
     @Override
     public String toString() {
-        return "map," + key + "," + value + "," + count;
+        if (isPackByBlock) {
+            return String.format("map,%s,%s", key, value);
+        } else {
+            return String.format("map,%s,%s,%d", key, value, count);
+        }
     }
 
     @Override
@@ -62,6 +68,11 @@ public class TMap extends Type {
     @Override
     public boolean hasText() {
         return key.hasText() || value.hasText();
+    }
+
+    @Override
+    public boolean hasBlock() {
+        return isPackByBlock || key.hasBlock() || value.hasBlock();
     }
 
     @Override

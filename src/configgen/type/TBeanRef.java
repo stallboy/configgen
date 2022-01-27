@@ -28,6 +28,11 @@ public class TBeanRef extends Type {
     }
 
     @Override
+    public boolean hasBlock() {
+        return tBean.hasBlock();
+    }
+
+    @Override
     public int columnSpan() {
         return packAsOne ? 1 : tBean.columnSpan();
     }

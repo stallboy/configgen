@@ -146,4 +146,24 @@
 - 但这样可能列数太多，看着不舒服，我们还有列模式机制，在这个表上配置上isColumnMode="true"，那可以把表反转90度，很多列，变成很多行，配置起来舒服多了
 
   
+### 掉落表
 
+掉落表里，单个掉落dropid，要对应有物品掉落个数和概率的一个列表
+
+```xml
+    <bean name="DropItem">
+        <column desc="掉落概率" name="chance" type="int"/>
+        <column desc="掉落物品" name="itemid" type="int"/>
+        <column desc="数量下限" name="countmin" type="int"/>
+        <column desc="数量上限" name="countmax" type="int"/>
+    </bean>
+    <table name="drop" primaryKey="dropid">
+        <column desc="序号" name="dropid" type="int"/>
+        <column desc="名字" name="name" type="text"/>
+        <column block="1" desc="掉落概率" name="dropItems" type="list,DropItem"/>
+    </table>
+```
+
+这里把dropItems配置为block模式，允许用一块而不止一行来配置list
+
+![block.png](block.png)

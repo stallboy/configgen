@@ -259,10 +259,12 @@ class TypeStr {
     static String getLuaFieldsStringEmmyLua(TBean tbean) {
         StringBuilder sb = new StringBuilder();
         boolean has = false;
-        for (String n : tbean.getColumnMap().keySet()) {
-            Column f = tbean.getBeanDefine().columns.get(n);
+        for (Map.Entry<String, Type> entry : tbean.getColumnMap().entrySet()) {
+            String name = entry.getKey();
+            Column f = tbean.getBeanDefine().columns.get(name);
             String c = f.desc.isEmpty() ? "" : ", " + f.desc;
-            sb.append("---@field ").append(Generator.lower1(n)).append(" ").append(typeToLuaType(f.type)).append(" ").append(c).append("\n");
+            Type type = entry.getValue();
+            sb.append("---@field ").append(Generator.lower1(name)).append(" ").append(typeToLuaType(type)).append(" ").append(c).append("\n");
             has = true;
         }
         if (has) {
@@ -273,11 +275,27 @@ class TypeStr {
 
     static String getLuaUniqKeysStringEmmyLua(TTable ttable) {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("---@field %s function\n", Name.primaryKeyGetName));
+        String fullName = Name.fullName(ttable);
+        sb.append(String.format("---@field %s fun(%s):%s\n",
+                                Name.primaryKeyGetName, getLuaGetParam(ttable.getPrimaryKey()), fullName));
         for (Map<String, Type> uniqueKey : ttable.getUniqueKeys()) {
-            sb.append(String.format("---@field %s function\n", Name.uniqueKeyGetByName(uniqueKey)));
+            sb.append(String.format("---@field %s fun(%s):%s\n",
+                                    Name.uniqueKeyGetByName(uniqueKey), getLuaGetParam(uniqueKey), fullName));
         }
         sb.deleteCharAt(sb.length() - 1);
+        return sb.toString();
+    }
+
+    private static String getLuaGetParam(Map<String, Type> primaryOrUniqueKey) {
+        StringBuilder sb = new StringBuilder();
+        boolean has = false;
+        for (Map.Entry<String, Type> entry : primaryOrUniqueKey.entrySet()) {
+            sb.append(entry.getKey()).append(":").append(typeToLuaType(entry.getValue())).append(",");
+            has = true;
+        }
+        if (has) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
         return sb.toString();
     }
 
@@ -332,26 +350,61 @@ class TypeStr {
         }
 
         if (hasRef) {
+            sb.deleteCharAt(sb.length() - 1);
             return sb.toString();
         } else {
             return "";
         }
     }
 
-    private static String typeToLuaType(String type) {
-        if (type.equals("int") || type.equals("long") || type.equals("float")) {
-            return "number";
-        }
-        if (type.equals("bool")) {
-            return "boolean";
-        }
-        if (type.startsWith("list")) {//list,int,4
-            String[] split = type.split(",");
-            return String.format("table<number,%s>", typeToLuaType(split[1]));
-        }
-        if (type.equals("string") || type.equals("text"))
-            return type;
-        return "any";
+    private static String typeToLuaType(Type type) {
+        return type.accept(new TypeVisitorT<>() {
+            @Override
+            public String visit(TBool type) {
+                return null;
+            }
+
+            @Override
+            public String visit(TInt type) {
+                return "number";
+            }
+
+            @Override
+            public String visit(TLong type) {
+                return "number";
+            }
+
+            @Override
+            public String visit(TFloat type) {
+                return "number";
+            }
+
+            @Override
+            public String visit(TString type) {
+                return type.toString();
+            }
+
+            @Override
+            public String visit(TList type) {
+                return String.format("table<number,%s>", typeToLuaType(type.value));
+            }
+
+            @Override
+            public String visit(TMap type) {
+                return String.format("table<%s,%s>", typeToLuaType(type.key), typeToLuaType(type.value));
+            }
+
+            @Override
+            public String visit(TBean type) {
+                return Name.fullName(type);
+            }
+
+            @Override
+            public String visit(TBeanRef type) {
+                return typeToLuaType(type.tBean);
+            }
+        });
+
     }
 
     static String getLuaTextFieldsString(TBean tbean) {

@@ -19,10 +19,13 @@ public class VList extends VComposite {
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseNestList(dat);
 
+        } else if (type.packType == Column.PackType.Block) {
+            parsed = VTable.parseBlock(adata.cells);
+
         } else if (type.packType == Column.PackType.UseSeparator) {
             require(adata.cells.size() == 1);
             Cell dat = adata.cells.get(0);
-            parsed = Cells.parseList(dat, type.compressSeparator);
+            parsed = Cells.parseList(dat, type.packSeparator);
 
         } else {
             require(adata.cells.size() == adata.fullType.columnSpan());
@@ -30,16 +33,15 @@ public class VList extends VComposite {
         }
 
         list = new ArrayList<>();
-        int vc = packAsOne ? 1 :
-                adata.fullType.value.columnSpan();  // 注意这里packAsOne的自上而下一直传递的特性
+        int vc = packAsOne ? 1 : adata.fullType.value.columnSpan();  // 注意这里packAsOne的自上而下一直传递的特性
 
         for (int s = 0; s < parsed.size(); s += vc) {
-            if (!parsed.get(s).data.isEmpty()) { //第一个单元作为是否还有item的标记
+            if (!parsed.get(s).data.trim().isEmpty()) { //第一个单元作为是否还有item的标记
                 list.add(Values.create(type.value, parsed.subList(s, s + vc),
-                        adata.fullType.value, packAsOne));
+                                       adata.fullType.value, packAsOne));
             } else {
                 for (Cell dc : parsed.subList(s, s + vc)) {
-                    require(dc.data.isEmpty(), "list的item第一个为空格后，之后必须也都是空格", dc);
+                    require(dc.data.trim().isEmpty(), "list的item第一个为空格后，之后必须也都是空格", dc);
                 }
             }
         }

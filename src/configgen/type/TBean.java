@@ -135,6 +135,9 @@ public class TBean extends Type {
     private boolean _hasText = false;
     private boolean _hasTextChecked = false;
 
+    private boolean _hasBlock = false;
+    private boolean _hasBlockChecked = false;
+
     private int _columnSpan = 0;
     private boolean _hasColumnSpanChecked = false;
 
@@ -165,6 +168,16 @@ public class TBean extends Type {
         }
         return _hasText;
     }
+
+    @Override
+    public boolean hasBlock() {
+        if (!_hasBlockChecked) {
+            _hasBlock = checkHasBlock();
+            _hasBlockChecked = true;
+        }
+        return _hasBlock;
+    }
+
 
     @Override
     public int columnSpan() {
@@ -230,6 +243,22 @@ public class TBean extends Type {
         }
     }
 
+    private boolean checkHasBlock() {
+        if (checking) { //递归时候的处理
+            return false;
+        }
+        checking = true;
+        try {
+            if (beanDefine.type == Bean.BeanType.BaseDynamicBean)
+                return childDynamicBeans.values().stream().anyMatch(TBean::hasBlock);
+            else
+                return columns.values().stream().anyMatch(Type::hasBlock);
+        } finally {
+            checking = false;
+        }
+    }
+
+
     private int checkColumnSpan() {
         if (checking) { //递归时候的处理
             throw new RuntimeException("使用递归Bean时候要使用pack来避免没法计算列数");
@@ -276,7 +305,6 @@ public class TBean extends Type {
                 resolveColumnConstraint(columnType, column);
             }
 
-//            require(columns.size() > 0, "Bean列数不能为0");
             for (TForeignKey fk : foreignKeys) {
                 if (fk.foreignKeyDefine.refType == ForeignKey.RefType.LIST)
                     listRefs.add(fk);
@@ -309,28 +337,35 @@ public class TBean extends Type {
         if (col.type.startsWith("list,")) {
             String[] sp = col.type.split(",");
             String v = sp[1].trim();
-            int c = 0;
+            int c = 1;
             if (sp.length > 2) {
                 c = Integer.parseInt(sp[2].trim());
-                require(c >= 1);
+                require(c >= 1, "list配置长度，必须大于等于1，现在是", c);
+            } else {
+                require(col.packType != Column.PackType.NoPack, "未定义列表的长度时必须定义pack或packSep或block");
             }
-            if (c == 0) {
-                require(col.packType == Column.PackType.UseSeparator || col.packType == Column.PackType.AsOne,
-                        "未定义列表的长度时必须定义pack");
-            }
+
             type = new TList(this, col.name, columns.size(), v, c, col.packType, col.packSeparator);
 
         } else if (col.type.startsWith("map,")) {
             String[] sp = col.type.split(",");
             String k = sp[1].trim();
             String v = sp[2].trim();
-            int c = Integer.parseInt(sp[3].trim());
-            require(c >= 1);
-            require(c >= 1 && col.packType == Column.PackType.NoPack,
-                    "map必须配置长度，不支持配置pack");
-            type = new TMap(this, col.name, columns.size(), k, v, c);
+            int c = 1;
+            boolean block = false;
+            if (col.packType == Column.PackType.Block) {
+                require(sp.length == 3, "map配置block模式，不要配置长度");
+                block = true;
+            } else {
+                require(sp.length == 4, "map如果不是block模式，必须配置长度");
+                c = Integer.parseInt(sp[3].trim());
+                require(c >= 1, "map配置长度必须大于等于1,现在是", c);
+                require(col.packType == Column.PackType.NoPack, "map不支持配置pack，packSep");
+            }
+            type = new TMap(this, col.name, columns.size(), k, v, c, block);
 
         } else {
+            require(col.packType != Column.PackType.Block, "block只能用于配置list，map");
             type = resolveType(this, col.name, columns.size(), col.type, col.packType == Column.PackType.AsOne);
             if (type instanceof TPrimitive) {
                 require(col.packType == Column.PackType.NoPack,

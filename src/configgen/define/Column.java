@@ -21,11 +21,20 @@ public class Column extends Node {
         UseSeparator,
 
         /**
-         * 这是个统一方案，不用在Bean上配置分割符号
+         * 这是个支持任意嵌套结构的方案，不用在Bean上配置分割符号
          * 上面例子可配置为(518,4),(511,2114)
          * 这个方案支持嵌套循环的DynamicBean配置，比如：And(KillMonster(1001,2),Level(10))
          */
-        AsOne
+        AsOne,
+
+
+        /**
+         * 这是可对list，map类型使用的方案，可以让容器里的item，竖着排列往下配置。
+         * 上面例子可配置为
+         * x,y,z,518,4,   a,b
+         *  , , ,511,2114, ,
+         */
+        Block,
     }
 
     public String desc;
@@ -43,7 +52,11 @@ public class Column extends Node {
     Column(Bean _parent, Element self) {
         super(_parent, self.getAttribute("name"));
         DomUtils.permitAttributes(self, "desc", "name", "type", "own",
-                                  "ref", "refType", "keyRef", "range", "compress", "compressAsOne", "packSep", "pack");
+                                  "ref", "refType", "keyRef", "range",
+                                  "compress", "packSep",
+                                  "compressAsOne", "pack",
+                                  "block");
+
         desc = self.getAttribute("desc");
         type = self.getAttribute("type");
         own = self.getAttribute("own");
@@ -53,16 +66,14 @@ public class Column extends Node {
         if (self.hasAttribute("range"))
             keyRange = new KeyRange(this, self);
 
-        if (self.hasAttribute("compressAsOne") || self.hasAttribute("pack")) {
+        if (self.hasAttribute("block")) {
+            packType = PackType.Block; //block不允许和pack一起配置，简单点
+        } else if (self.hasAttribute("pack") || self.hasAttribute("compressAsOne")) {
             packType = PackType.AsOne;
-        } else if (self.hasAttribute("compress")) {  // 改为packSep
+        } else if (self.hasAttribute("packSep") || self.hasAttribute("compress")) {  // compress改为packSep
             packType = PackType.UseSeparator;
-            String sep = self.getAttribute("compress");
-            require(sep.length() == 1, "compress字符串长度必须是1", sep);
-            packSeparator = sep.toCharArray()[0];
-        } else if (self.hasAttribute("packSep")) {
-            packType = PackType.UseSeparator;
-            String sep = self.getAttribute("packSep");
+            String sep = self.hasAttribute("packSep") ?
+                    self.getAttribute("packSep") : self.getAttribute("compress");
             require(sep.length() == 1, "packSep字符串长度必须是1", sep);
             packSeparator = sep.toCharArray()[0];
         } else {
@@ -107,11 +118,16 @@ public class Column extends Node {
         self.setAttribute("name", name);
         self.setAttribute("type", type);
         switch (packType) {
+            case NoPack:
+                break;
             case UseSeparator:
                 self.setAttribute("packSep", String.valueOf(packSeparator));
                 break;
             case AsOne:
                 self.setAttribute("pack", "1");
+                break;
+            case Block:
+                self.setAttribute("block", "1");
                 break;
         }
 

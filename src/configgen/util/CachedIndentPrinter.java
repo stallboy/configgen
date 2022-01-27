@@ -89,6 +89,13 @@ public class CachedIndentPrinter implements Closeable {
         printlnn(0, fmt, args);
     }
 
+    public void printlnIf(String fmt, Object... args) {
+        if (fmt.isEmpty())
+            return;
+        printlnn(0, fmt, args);
+    }
+
+
     public void println1(String fmt, Object... args) {
         printlnn(1, fmt, args);
     }
@@ -148,7 +155,7 @@ public class CachedIndentPrinter implements Closeable {
             return cache;
         } else {
             idx = Math.min(idx, extraCaches.size());
-            return extraCaches.get(idx-1);
+            return extraCaches.get(idx - 1);
         }
     }
 

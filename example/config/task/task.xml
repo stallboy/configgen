@@ -28,7 +28,7 @@
     <table name="task" primaryKey="taskid">
         <column desc="任务完成条件类型（id的范围为1-100）" name="taskid" ref="task.taskextraexp" refType="NULLABLE" type="int"/>
         <column desc="程序用名字" name="name" type="list,text,2"/>
-        <column name="nexttask" type="int"/>
+        <column name="nexttask" ref="task" refType="NULLABLE" type="int"/>
         <column name="completecondition" type="task.completecondition"/>
         <column name="exp" type="int"/>
     </table>

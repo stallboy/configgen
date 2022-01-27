@@ -24,7 +24,11 @@ public class Ref {
     }
 
     public void autoFixDefine(Bean parentBean, AllDefine defineToFix) {
-        Table refTable = defineToFix.getTable(resolveTableFullName(parentBean, table));
+        String fullRefTableName = resolveTableFullName(parentBean, table);
+        Table refTable = defineToFix.getTable(fullRefTableName);
+        if (refTable == null) {
+            throw new AssertionError(String.format("[%s]要求索引到表=[%s]，不存在", parentBean.fullName(), table));
+        }
         if (Arrays.equals(refTable.primaryKey, cols)) {
             System.out.printf("[%s]索引到表=[%s]的主键=\"%s\"，默认就到主键，只配表就行了，不用明确配主键字段\n",
                               parentBean.fullName(), table, String.join(",", cols));

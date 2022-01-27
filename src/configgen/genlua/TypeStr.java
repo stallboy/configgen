@@ -361,7 +361,7 @@ class TypeStr {
         return type.accept(new TypeVisitorT<>() {
             @Override
             public String visit(TBool type) {
-                return null;
+                return "boolean";
             }
 
             @Override

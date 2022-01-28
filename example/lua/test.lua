@@ -1,3 +1,7 @@
+package.path = './../../src/support/?.lua;'..package.path
+local mk = require("mkcfg")
+package.loaded["common.mkcfg"] = mk
+
 local Beans = require("cfg._beans")
 local cfg = require("cfg._cfgs")
 

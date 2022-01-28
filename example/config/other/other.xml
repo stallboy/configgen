@@ -13,7 +13,7 @@
         <column block="1" desc="²âÊÔmap block" name="testmap" type="map,int,int"/>
     </table>
     <table name="loot" primaryKey="lootid">
-        <column desc="ÐòºÅ" name="lootid" ref="other.lootitem,lootid" refType="LIST" type="int"/>
+        <column desc="ÐòºÅ" name="lootid" ref="lootitem,lootid" refType="LIST" type="int"/>
         <column name="ename" type="string"/>
         <column desc="Ãû×Ö" name="name" type="text"/>
         <column desc="µôÂä0¼þÎïÆ·µÄ¸ÅÂÊ" name="chanceList" type="list,int,7"/>

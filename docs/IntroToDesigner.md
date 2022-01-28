@@ -6,10 +6,10 @@
 
 ## 新建或改结构
 
-1. 新建或修改csv或excel文件，csv文件前2行或3行做为header，
+1. 新建或修改csv或excel文件，csv文件前3行做为header，
 
    1. 第一行是中文描述，第二行是程序用名
-   2. 选择2行还是3行，随项目定，定了后整个项目所有文件都遵照这个约定随意。如果选择用3行，则第三行随意，我们可以约定填类型，但真正的类型以xml里为准
+   2. 第三行随意，我们可以约定填类型，但真正的类型以xml里为准
    
 2. 然后交给程序就ok了
 
@@ -89,9 +89,39 @@
 
 这种一般是表里面有个列表，可能有20个复合结构，复合结构需要5列，那就需要20*5=100列
 有两个做法：
-1. 对类型为list和map的列用block=“1”模式，这样20个item将占用20行，占用5列，减少了列数
-2. 也分成2个表，把这20个复合结构，配置到另一个表中，配20行，加一列数据表示是原表中主键，这样关系就建立起来了
+1. 对类型为list和map的列用block=“1”模式，这样20个item将占用20行，占用5列，减少了列数，见使用举例里掉落表例子。
+2. 分成2个表，把这20个复合结构，配置到另一个细节表中，配20行，加一列数据表示是原表中主键，这样关系就建立起来了。
+配置用refType="LIST"，这样从程序从原表中可以直接拿到细节表中多行了。
+也可以如下配置掉落表
 
+```xml
+<table name="loot" primaryKey="lootid">
+    <column desc="序号" name="lootid" ref="lootitem,lootid" refType="LIST" type="int"/>
+    ...
+</table>
+```
+```xml
+<table name="lootitem" primaryKey="lootid,itemid">
+    <column desc="掉落id" name="lootid" ref="loot" type="int"/>
+    <column desc="掉落物品" name="itemid" type="int"/>
+    ...
+</table>
+```
+掉落主表
+
+![loot.png](loot.png)
+
+掉落细节表
+
+![lootitem.png](lootitem.png)
+
+3. 如果细节表的一行 需要被多个主表行共用，可以在主表中配置一个到细节表id的列表，配置上ref，这样程序就可以直接拿到细节表中多行
+如可以如下配置
+```xml
+<table name="loot"> ...
+    <column name="lootItemList" ref="lootitem" type="list,int" pack="1"/>
+</table>
+```
 
 
 ## 单元格
@@ -108,18 +138,59 @@
 ### 复杂结构的单元格
 
 比如代币奖励，有两个字段，一个是代币类型，一个是数量，可以在一个单元格里配置，比如
+```xml
+<bean name="Reward">
+    <column name="coin" ref="cointype" type="int"/>
+    <column name="count" type="int"/>
+</bean>
+```
+```xml
+<table name="xxx" > ...
+    <column name="reward" type="Reward" pack="1"/>
+</table>
+```
 
 | reward |
 | ------ |
 | 1,100  |
 
 甚至可以在一个单元格里配置代币奖励列表
+```xml
+<table name="xxx"> ...
+    <column name="rewardList" type="list,Reward" pack="1"/>
+</table>
+```
 
 | rewardList     |
 | :------------- |
 | (1,100),(2,50) |
 
 还支持多态的类型，比如task表，需要配置任务完成条件，可以如下
+
+```xml
+<bean enumRef="completeconditiontype" name="completecondition">
+    <bean name="KillMonster">
+        <column name="monsterid" ref="npc.monster" type="int"/>
+        <column name="count" type="int"/>
+    </bean>
+    <bean name="LevelUp">
+        <column name="level" type="int"/>
+    </bean>
+    <bean name="ConditionAnd">
+        <column name="cond1" pack="1" type="task.completecondition"/>
+        <column name="cond2" pack="1" type="task.completecondition"/>
+    </bean>
+    <bean name="GatherItem">
+        <column name="itemid" ref="item.item" type="int"/>
+        <column name="count" type="int"/>
+    </bean>
+</bean>
+```
+```xml
+<table name="task"> ...
+    <column name="Condition" type="task.completecondition"/>
+</table>
+```
 
 | Condition                               |
 | :-------------------------------------- |
@@ -146,6 +217,11 @@
 
 - 但这样可能列数太多，看着不舒服，我们还有列模式机制，在这个表上配置上isColumnMode="true"，那可以把表反转90度，很多列，变成很多行，配置起来舒服多了
 
+```xml
+<table name="xxx" isColumnMode="1"> ...
+</table>
+```
+
 ![column.png](column.png)
 
 
@@ -154,17 +230,17 @@
 掉落表里，单个掉落dropid，要对应有物品掉落个数和概率的一个列表
 
 ```xml
-    <bean name="DropItem">
-        <column desc="掉落概率" name="chance" type="int"/>
-        <column desc="掉落物品" name="itemid" type="int"/>
-        <column desc="数量下限" name="countmin" type="int"/>
-        <column desc="数量上限" name="countmax" type="int"/>
-    </bean>
-    <table name="drop" primaryKey="dropid">
-        <column desc="序号" name="dropid" type="int"/>
-        <column desc="名字" name="name" type="text"/>
-        <column block="1" desc="掉落概率" name="dropItems" type="list,DropItem"/>
-    </table>
+<bean name="DropItem">
+    <column desc="掉落概率" name="chance" type="int"/>
+    <column desc="掉落物品" name="itemid" type="int"/>
+    <column desc="数量下限" name="countmin" type="int"/>
+    <column desc="数量上限" name="countmax" type="int"/>
+</bean>
+```
+```xml
+<table name="xxx"> ...
+    <column block="1" desc="掉落概率" name="dropItems" type="list,DropItem"/>
+</table>
 ```
 
 这里把dropItems配置为block模式，允许用一块而不止一行来配置list

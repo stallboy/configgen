@@ -24,8 +24,8 @@ public class Define extends Node {
         super(parent, "define");
 
         this.allDefine = parent;
+        this.file = file;
         Path defineXmlPath = parent.resolvePath(file);
-        this.file = allDefine.formatDefineXmlFilePath(defineXmlPath);
         this.pkgName = parent.childDataPathToPkgName(defineXmlPath.getParent());
 
         if (!Files.exists(defineXmlPath)) {

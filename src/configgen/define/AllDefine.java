@@ -213,7 +213,7 @@ public class AllDefine extends Node {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes a) {
                     if (isDefineXmlFile(path)) {
-                        String defineXmlFile = formatDefineXmlFilePath(path);
+                        String defineXmlFile = xmlToDefineFile(path);
                         defineXmlFiles.add(defineXmlFile);
                     }
 
@@ -248,7 +248,7 @@ public class AllDefine extends Node {
 
     private void pkgBasedSplit(Define topDefine) {
         for (Table t : this.tables.values()) {
-            String file = nameToDefineXmlFile(t.name);
+            String file = tableOrBeanNameToDefineFile(t.name);
             if (file.isEmpty()) {
                 continue;
             }
@@ -258,7 +258,7 @@ public class AllDefine extends Node {
         }
 
         for (Bean b : this.beans.values()) {
-            String file = nameToDefineXmlFile(b.name);
+            String file = tableOrBeanNameToDefineFile(b.name);
             if (file.isEmpty()) {
                 continue;
             }
@@ -268,21 +268,22 @@ public class AllDefine extends Node {
         }
     }
 
-    String nameToDefineXmlFile(String name) {
-        int i = name.lastIndexOf('.');
+    String tableOrBeanNameToDefineFile(String tableOrBeanName) {
+        int i = tableOrBeanName.lastIndexOf('.');
         if (i <= 0) {
             //定义在顶级目录，不用再分割到子目录中
             return "";
         }
 
-        String pkg = name.substring(0, i);
-        Path defineXmlPath = FileNameExtract.packageNameToPathName(dataDir, pkg);
-        String xml = FileNameExtract.extractFileName(defineXmlPath.toFile().getName()) + ".xml";
-        return formatDefineXmlFilePath(defineXmlPath.resolve(xml));
+        String pkgName = tableOrBeanName.substring(0, i);
+        String[] pkgs = pkgName.split("\\.");
+        Path pkgDir = FileNameExtract.pkgsToDir(dataDir, pkgs);
+        String xmlFn = pkgs[pkgs.length - 1] + ".xml";
+        return xmlToDefineFile(pkgDir.resolve(xmlFn));
     }
 
-    String formatDefineXmlFilePath(Path defineXmlPath) {
-        return dataDir.relativize(defineXmlPath).normalize().toString().replace("\\", "/");
+    String xmlToDefineFile(Path xml) {
+        return dataDir.relativize(xml).normalize().toString().replace("\\", "/").toLowerCase();
     }
 
     // 约定defineXmlFile必须和它代表的配置放在同一目录

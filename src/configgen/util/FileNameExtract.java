@@ -48,15 +48,13 @@ public class FileNameExtract {
         return String.join(".", normalized).toLowerCase();
     }
 
-    public static Path packageNameToPathName(Path rootDir, String packageName) {
-        String[] split = packageName.split("\\.");
-
+    public static Path pkgsToDir(Path rootDir, String[] pkgs) {
         Path curPath = rootDir;
-        for (String p : split) {
+        for (String pkg : pkgs) {
             try {
                 curPath = Files.list(curPath).filter(path -> path.toFile().isDirectory()
-                                && isFileNameExtractMatch(path.getFileName().toString(), p))
-                        .findFirst().orElse(curPath.resolve(p));
+                                && isFileNameExtractMatch(path.getFileName().toString(), pkg))
+                        .findFirst().orElse(curPath.resolve(pkg));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

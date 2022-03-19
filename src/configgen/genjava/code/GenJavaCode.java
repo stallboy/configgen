@@ -18,12 +18,17 @@ public class GenJavaCode extends Generator {
     private final String dir;
     private final String pkg;
     private final String encoding;
+    private final int schemaNumPerFile;
+
 
     public GenJavaCode(Parameter parameter) {
         super(parameter);
         dir = parameter.get("dir", "config", "目录");
         pkg = parameter.get("pkg", "config", "包名");
         encoding = parameter.get("encoding", "UTF-8", "生成代码文件的编码");
+        schemaNumPerFile = Integer.parseInt(
+                parameter.get("schemaNumPerFile", "100",
+                              "当配表数量过多时生成的ConfigCodeSchema会超过java编译器限制，用此参数来分文件"));
 
         parameter.end();
     }
@@ -67,11 +72,13 @@ public class GenJavaCode extends Generator {
             GenConfigMgrLoader.generate(value, ps);
         }
 
-        try (CachedIndentPrinter ps = createCode(new File(dstDir, "ConfigCodeSchema.java"), encoding)) {
-            GenConfigCodeSchema.generate(value, ctx.getLangSwitch(), ps); //Text作为一个SchemaBean
-        }
+        GenConfigCodeSchema.generateAll(this, schemaNumPerFile, value, ctx.getLangSwitch());
 
         CachedFiles.deleteOtherFiles(dstDir);
+    }
+
+    CachedIndentPrinter createCodeFile(String fileName) {
+        return createCode(new File(dstDir, fileName), encoding);
     }
 
 

@@ -29,7 +29,7 @@ class GenEnumClass {
                 if (isFull) {
                     ps.println1("%s(\"%s\")%s", enumName.toUpperCase(), enumName, fix);
                 } else {
-                    ps.println1("public static %s %s = new %s(\"%s\");", name.className, enumName.toUpperCase(), name.className, enumName);
+                    ps.println1("public static final %s %s = new %s(\"%s\");", name.className, enumName.toUpperCase(), name.className, enumName);
                 }
             }
             if (isFull && 0 == c) {
@@ -37,7 +37,7 @@ class GenEnumClass {
             }
 
             ps.println();
-            ps.println1("private String value;");
+            ps.println1("private final String value;");
             ps.println();
 
             ps.println1("%s(String value) {", name.className);
@@ -62,7 +62,7 @@ class GenEnumClass {
                 if (isFull) {
                     ps.println1("%s(\"%s\", %d)%s", enumName.toUpperCase(), enumName, value, fix);
                 } else {
-                    ps.println1("public static %s %s = new %s(\"%s\", %d);", name.className, enumName.toUpperCase(), name.className, enumName, value);
+                    ps.println1("public static final %s %s = new %s(\"%s\", %d);", name.className, enumName.toUpperCase(), name.className, enumName, value);
                 }
             }
             if (isFull && 0 == c) {
@@ -70,8 +70,8 @@ class GenEnumClass {
             }
 
             ps.println();
-            ps.println1("private String name;");
-            ps.println1("private int value;");
+            ps.println1("private final String name;");
+            ps.println1("private final int value;");
 
             ps.println();
 
@@ -94,7 +94,7 @@ class GenEnumClass {
 
 
         if (isFull) {
-            ps.println1("private static java.util.Map<%s, %s> map = new java.util.HashMap<>();", hasIntValue ? "Integer" : "String", name.className);
+            ps.println1("private static final java.util.Map<%s, %s> map = new java.util.HashMap<>();", hasIntValue ? "Integer" : "String", name.className);
             ps.println();
 
             ps.println1("static {");

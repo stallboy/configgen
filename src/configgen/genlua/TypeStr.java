@@ -358,7 +358,7 @@ class TypeStr {
     }
 
     private static String typeToLuaType(Type type) {
-        return type.accept(new TypeVisitorT<>() {
+        return type.accept(new TypeVisitorT<String>() {
             @Override
             public String visit(TBool type) {
                 return "boolean";

@@ -39,9 +39,10 @@ class GenBeanClass {
 
         //field
         for (Type type : tbean.getColumns()) {
-            ps.println1("private " + TypeStr.type(type) + " " + Generator.lower1(type.getColumnName()) + TypeStr.initialValue(type) + ";");
+            String finalOrNot = !isBean && (type instanceof TList || type instanceof TMap) ? "final " : "";
+            ps.println1("private " + finalOrNot + TypeStr.type(type) + " " + Generator.lower1(type.getColumnName()) + TypeStr.initialValue(type) + ";");
             for (SRef r : type.getConstraint().references) {
-                ps.println1("private " + Name.refType(type, r) + " " + Name.refName(r) + Name.refInitialValue(type) + ";");
+                ps.println1("private " + finalOrNot + Name.refType(type, r) + " " + Name.refName(r) + Name.refInitialValue(type) + ";");
             }
         }
 
@@ -49,7 +50,7 @@ class GenBeanClass {
             ps.println1("private " + Name.refType(foreignKey) + " " + Name.refName(foreignKey) + ";");
         }
         for (TForeignKey foreignKey : tbean.getListRefs()) {
-            ps.println1("private " + Name.refTypeForList(foreignKey) + " " + Name.refName(foreignKey) + " = new java.util.ArrayList<>();");
+            ps.println1("private final " + Name.refTypeForList(foreignKey) + " " + Name.refName(foreignKey) + " = new java.util.ArrayList<>();");
         }
         ps.println();
 

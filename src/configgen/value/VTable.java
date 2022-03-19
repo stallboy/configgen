@@ -11,6 +11,8 @@ import configgen.type.Type;
 
 import java.util.*;
 
+import static java.util.Objects.requireNonNull;
+
 public class VTable extends Node {
     private final TTable tTable;
     /**
@@ -97,7 +99,7 @@ public class VTable extends Node {
         List<Integer> allColumnIndexes = tableData.getAllColumnIndexes();
         OptionalInt max = allColumnIndexes.stream().mapToInt(Integer::intValue).max();
         int maxColumnIndex = 0;
-        if (max.isEmpty()) {
+        if (!max.isPresent()) {
             error("不允许没有列");
         } else {
             maxColumnIndex = max.getAsInt();
@@ -194,7 +196,7 @@ public class VTable extends Node {
             }
         }
 
-        return Objects.requireNonNullElse(res, cellsInRecordLine);
+        return (res != null) ? res : requireNonNull(cellsInRecordLine, "defaultObj");
     }
 
     public TTable getTTable() {

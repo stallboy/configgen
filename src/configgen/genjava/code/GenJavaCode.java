@@ -2,7 +2,9 @@ package configgen.genjava.code;
 
 import configgen.define.Bean;
 import configgen.define.Table;
-import configgen.gen.*;
+import configgen.gen.Context;
+import configgen.gen.Generator;
+import configgen.gen.Parameter;
 import configgen.type.TBean;
 import configgen.util.CachedFiles;
 import configgen.util.CachedIndentPrinter;
@@ -44,14 +46,26 @@ public class GenJavaCode extends Generator {
         TypeStr.isLangSwitch = isLangSwitch; //辅助Text的类型声明和创建
 
         for (TBean tbean : value.getTDb().getTBeans()) {
-            generateBeanClass(tbean);
+            try {
+                generateBeanClass(tbean);
+            } catch (Throwable e) {
+                throw new AssertionError(tbean.fullName() + ",这个结构生成java代码出错", e);
+            }
             for (TBean childBean : tbean.getChildDynamicBeans()) {
-                generateBeanClass(childBean);
+                try {
+                    generateBeanClass(childBean);
+                } catch (Throwable e) {
+                    throw new AssertionError(childBean.fullName() + ",这个子结构生成java代码出错", e);
+                }
             }
         }
 
         for (VTable vtable : value.getVTables()) {
-            generateTableClass(vtable);
+            try {
+                generateTableClass(vtable);
+            } catch (Throwable e) {
+                throw new AssertionError(vtable.getTTable().fullName() + ",这个表生成java代码出错", e);
+            }
         }
 
         if (isLangSwitch) { //生成Text这个Bean

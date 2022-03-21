@@ -84,7 +84,11 @@ public class GenLua extends Generator {
 
         for (VTable v : value.getVTables()) {
             try (CachedIndentPrinter ps = createCode(new File(dstDir, Name.tablePath(v.name)), encoding, fileDst, cache, tmp)) {
-                generate_table(v, ps, lineCache);
+                try {
+                    generate_table(v, ps, lineCache);
+                } catch (Throwable e) {
+                    throw new AssertionError(v.getTTable().fullName() + ",这个表生成lua代码出错", e);
+                }
             }
         }
 

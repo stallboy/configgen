@@ -1,12 +1,10 @@
 package configgen.genjava.code;
 
-import configgen.gen.Generator;
 import configgen.gen.LangSwitch;
 import configgen.genjava.*;
 import configgen.util.CachedIndentPrinter;
 import configgen.value.AllValue;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +14,7 @@ final class GenConfigCodeSchema {
     static void generateAll(GenJavaCode gen, int schemaNumPerFile, AllValue vdb, LangSwitch ls) throws IOException {
         SchemaInterface schemaInterface = SchemaParser.parse(vdb, ls);
         List<Map.Entry<String, Schema>> all = new ArrayList<>(schemaInterface.implementations.entrySet());
-        List<Map.Entry<String, Schema>> main = null;
+        List<Map.Entry<String, Schema>> main;
         List<List<Map.Entry<String, Schema>>> nullableOthers = null;
         if (schemaNumPerFile == -1 || all.size() <= schemaNumPerFile) {
             main = all;
@@ -141,7 +139,7 @@ final class GenConfigCodeSchema {
 
     static class PrintSchemaVisitor implements Visitor {
 
-        private CachedIndentPrinter ip;
+        private final CachedIndentPrinter ip;
 
         PrintSchemaVisitor(CachedIndentPrinter ip) {
             this.ip = ip;

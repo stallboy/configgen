@@ -180,6 +180,12 @@ local function testCsvBlock()
     assert(#t.items[1].itemids == 3, "支持嵌套block")
 end
 
+local function testMapValueRef()
+    local t = cfg.other.signin.get(4)
+    assert(t.vipitem2vipcountMap[10001] == 10)
+    assert(t.RefVipitem2vipcountMap[10001] == cfg.other.loot.get(10))
+end
+
 testAllAndGet()
 testMultiColumnAsPrimaryKeyGet()
 testUniqueKeyGet()
@@ -205,3 +211,7 @@ testExtraSplit()
 testCsvSplit()
 testCsvCanBeExcelSheet()
 testCsvBlock()
+
+testMapValueRef()
+
+print("ok")

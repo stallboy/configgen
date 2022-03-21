@@ -31,6 +31,7 @@ end
 ---     {refName, 0, dstTable, dstGetName, thisColumnIdx, [thisColumnIdx2]}, -- 最常见类型
 ---     {refName, 1, dstTable, dstGetName, thisColumnIdx}, --本身是list
 ---     {refName, 2, dstTable, dstAllName, thisColumnIdx, dstColumnIdx}, --listRef到别的表
+---     {refName, 3, dstTable, dstGetName, thisColumnIdx}, --本身是map
 ---}
 local function mkrefs(get, refs)
     for _, ref in ipairs(refs) do
@@ -54,11 +55,24 @@ local function mkrefs(get, refs)
                 return cache
             end
 
+        elseif listType == 3 then
+            -- t[k1]本身是map，map里每个value---ref--->到dstTable.dstGetName(ele)
+            -- k2肯定为 nil
+            get[refName] = function(t)
+                --- 只对map做cache，这样能避免频繁alloc，不对非容器做，是因为非容器的ref可能为nil，反正cache不住的
+                local cache = {}
+                for key, val in pairs(t[k1]) do
+                    cache[key] = dstTable[dstGetName](val)
+                end
+                t[refName] = cache
+                return cache
+            end
+
         elseif listType == 1 then
             -- t[k1]本身是list，list里每个元素ele---ref--->到dstTable.dstGetName(ele)
             -- k2肯定为 nil
             get[refName] = function(t)
-                --- 只对list做cache，这样能避免频繁alloc，不对其他做，是因为非list的ref可能为nil，反正cache不住的
+                --- 对list做cache，这样能避免频繁alloc，不对非容器做，是因为非容器的ref可能为nil，反正cache不住的
                 local cache = {}
                 for _, ele in ipairs(t[k1]) do
                     cache[#cache + 1] = dstTable[dstGetName](ele)

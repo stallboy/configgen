@@ -116,6 +116,7 @@ class TypeStr {
      * {refName, 0, dstTable, dstGetName, thisColumnIdx, [thisColumnIdx2]}, -- 最常见类型
      * {refName, 1, dstTable, dstGetName, thisColumnIdx}, --本身是list
      * {refName, 2, dstTable, dstAllName, thisColumnIdx, dstColumnIdx}, --listRef到别的表
+     * {refName, 3, dstTable, dstGetName, thisColumnIdx}, --本身是map
      */
     static String getLuaRefsString(TBean tbean, boolean isUseColumnStore) {
         StringBuilder sb = new StringBuilder();
@@ -124,9 +125,8 @@ class TypeStr {
 
         for (Type t : tbean.getColumns()) {
             for (SRef r : t.getConstraint().references) {
-                if (t instanceof TMap) {
-                    System.out.println("map类型的ref，lua不支持生成，忽略！ bean=" + tbean.name);
-                    break;
+                if (r.refTable == null) { //只在map key做ref时存在，lua生成忽略这种情况
+                    continue;
                 }
                 String refName = Name.refName(r);
                 String dstTable = Name.fullName(r.refTable);
@@ -136,6 +136,10 @@ class TypeStr {
                 if (t instanceof TList) {
                     // {refName, 1, dstTable, dstGetName, thisColumnIdx}, --本身是list
                     sb.append(String.format("\n    { '%s', 1, %s, '%s', %s }, ", refName, dstTable, dstGetName, thisColumnIdx));
+                } else if (t instanceof TMap) {
+                    // {refName, 3, dstTable, dstGetName, thisColumnIdx}, --本身是map
+                    sb.append(String.format("\n    { '%s', 3, %s, '%s', %s }, ", refName, dstTable, dstGetName, thisColumnIdx));
+
                 } else {
                     // {refName, 0, dstTable, dstGetName, thisColumnIdx}  --最常见类型
                     sb.append(String.format("\n    { '%s', 0, %s, '%s', %s }, ", refName, dstTable, dstGetName, thisColumnIdx));
@@ -164,7 +168,6 @@ class TypeStr {
 
         for (TForeignKey listRef : tbean.getListRefs()) {
             //{refName, 2, dstTable, dstAllName, thisColumnIdx, dstColumnIdx}, --listRef到别的表
-
             String refName = Name.refName(listRef);
             String dstTable = Name.fullName(listRef.refTable);
             String dstAllName = Name.primaryKeyMapName;

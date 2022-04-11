@@ -13,7 +13,7 @@ public class VMap extends VComposite {
         super(type, adata.cells);
 
         List<Cell> parsed;
-        if (adata.packAsOne) { //虽然TMap不支持配置packSep,但被上层用pack时还是支持了.
+        if (adata.packAsOne) { //为简单起见，TMap自身不支持配置packSep,pack，但被上层用pack时还是支持了.
             require(adata.cells.size() == 1);
             Cell dat = adata.cells.get(0);
             parsed = Cells.parseNestList(dat);
@@ -29,7 +29,7 @@ public class VMap extends VComposite {
         int kc = adata.packAsOne ? 1 : adata.fullType.key.columnSpan();
         int vc = adata.packAsOne ? 1 : adata.fullType.value.columnSpan();
         for (int s = 0; s < parsed.size(); s += kc + vc) {
-            if (!parsed.get(s).data.trim().isEmpty()) { //第一个单元作为是否还有key-value对的标记
+            if (!parsed.get(s).getData().trim().isEmpty()) { //第一个单元作为是否还有key-value对的标记
                 Value key = Values.create(type.key, parsed.subList(s, s + kc),
                         adata.fullType.key, adata.packAsOne);
                 Value value = Values.create(type.value, parsed.subList(s + kc, s + kc + vc),
@@ -39,7 +39,7 @@ public class VMap extends VComposite {
                 require(null == old, "字典key重复");
             } else {
                 for (Cell dc : parsed.subList(s, s + kc + vc)) {
-                    require(dc.data.trim().isEmpty(), "map的entry第一个为空格后，之后也必须都是空格", dc);
+                    require(dc.getData().trim().isEmpty(), "map的entry第一个为空格后，之后也必须都是空格", dc);
                 }
             }
         }

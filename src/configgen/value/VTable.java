@@ -167,9 +167,9 @@ public class VTable extends Node {
     // 以上规则现在没有做检测，要检测有点复杂，人工保证吧。
     public static List<Cell> parseBlock(List<Cell> cellsInRecordLine) {
         Cell firstCell = cellsInRecordLine.get(0);
-        DSheet sheet = firstCell.sheet;
-        int thisRow = firstCell.row;
-        int firstCol = firstCell.col;
+        DSheet sheet = firstCell.getSheet();
+        int thisRow = firstCell.getRow();
+        int firstCol = firstCell.getCol();
         List<List<String>> recordList = sheet.getRecordList();
 
         List<Cell> res = null;
@@ -186,7 +186,7 @@ public class VTable extends Node {
                     }
 
                     for (Cell fc : cellsInRecordLine) {
-                        Cell c = new Cell(sheet, row, fc.col, line.get(fc.col));
+                        Cell c = new Cell(sheet, row, fc.getCol(), line.get(fc.getCol()));
                         res.add(c);
                     }
                 }

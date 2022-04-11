@@ -186,6 +186,20 @@ local function testMapValueRef()
     assert(t.RefVipitem2vipcountMap[10001] == cfg.other.loot.get(10))
 end
 
+
+local function testDefaultBean()
+    local t = cfg.task.task.get(1)
+    assert(t.testDefaultBean.testInt == 0)
+    assert(t.testDefaultBean.testBool == false)
+    assert(t.testDefaultBean.testString == '')
+    assert(t.testDefaultBean.testSubBean.x == 0)
+    assert(t.testDefaultBean.testSubBean.y == 0)
+    assert(#t.testDefaultBean.testList == 0)
+    assert(#t.testDefaultBean.testList2 == 0)
+    assert(#t.testDefaultBean.testMap == 0)
+end
+
+
 testAllAndGet()
 testMultiColumnAsPrimaryKeyGet()
 testUniqueKeyGet()
@@ -213,5 +227,7 @@ testCsvCanBeExcelSheet()
 testCsvBlock()
 
 testMapValueRef()
+
+testDefaultBean()
 
 print("ok")

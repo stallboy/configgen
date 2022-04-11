@@ -36,12 +36,12 @@ public class VList extends VComposite {
         int vc = packAsOne ? 1 : adata.fullType.value.columnSpan();  // 注意这里packAsOne的自上而下一直传递的特性
 
         for (int s = 0; s < parsed.size(); s += vc) {
-            if (!parsed.get(s).data.trim().isEmpty()) { //第一个单元作为是否还有item的标记
+            if (!parsed.get(s).getData().trim().isEmpty()) { //第一个单元作为是否还有item的标记
                 list.add(Values.create(type.value, parsed.subList(s, s + vc),
                                        adata.fullType.value, packAsOne));
             } else {
                 for (Cell dc : parsed.subList(s, s + vc)) {
-                    require(dc.data.trim().isEmpty(), "list的item第一个为空格后，之后必须也都是空格", dc);
+                    require(dc.getData().trim().isEmpty(), "list的item第一个为空格后，之后必须也都是空格", dc);
                 }
             }
         }

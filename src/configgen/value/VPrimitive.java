@@ -30,7 +30,7 @@ public abstract class VPrimitive extends Value {
 
     @Override
     public boolean isCellEmpty() {
-        return raw.data.trim().isEmpty();
+        return raw.getData().trim().isEmpty();
     }
 
     @Override

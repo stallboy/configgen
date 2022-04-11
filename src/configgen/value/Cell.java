@@ -5,11 +5,11 @@ import configgen.data.DSheet;
 /**
  * 保留原始信息，用于打印错误信息时，指出具体时那一行那一列出错
  */
-public final class Cell {
-    final DSheet sheet;
-    final int row;  // row 从0开始,  sheet.recordList.get(row).get(col) 就返回对应格子的string
-    final int col;  // col 从0开始
-    final String data;
+public class Cell {
+    private final DSheet sheet;
+    private final int row;  // row 从0开始,  sheet.recordList.get(row).get(col) 就返回对应格子的string
+    private final int col;  // col 从0开始
+    private final String data;
 
     public Cell(DSheet sheet, int row, int col, String data) {
         this.sheet = sheet;
@@ -18,8 +18,28 @@ public final class Cell {
         this.data = data;
     }
 
+    public DSheet getSheet() {
+        return sheet;
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
     public String getData() {
         return data;
+    }
+
+    public SubCell createSub(String subData) {
+        return new SubCell(sheet, row, col, subData);
+    }
+
+    public boolean isRootAndEmpty() {
+        return data.trim().isEmpty();
     }
 
     @Override

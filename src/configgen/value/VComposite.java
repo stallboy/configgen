@@ -28,7 +28,7 @@ public abstract class VComposite extends Value {
     @Override
     public boolean isCellEmpty() {
         for (Cell cell : cells) {
-            if (!cell.data.trim().isEmpty())
+            if (!cell.getData().trim().isEmpty())
                 return false;
         }
         return true;
@@ -46,7 +46,7 @@ public abstract class VComposite extends Value {
             StringBuilder sb = new StringBuilder();
             sb.append(cells.get(0).toString());
             for (int i = 1; i < cells.size(); i++) {
-                sb.append(",").append(cells.get(i).data);
+                sb.append(",").append(cells.get(i).getData());
             }
             return sb.toString();
         }

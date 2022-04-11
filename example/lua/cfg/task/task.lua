@@ -7,6 +7,7 @@ local Beans = cfg._beans
 ---@field nexttask number 
 ---@field completecondition Beans.task.completecondition 
 ---@field exp number 
+---@field testDefaultBean Beans.task.testdefaultbean , 测试
 ---@field get fun(taskid:number):cfg.task.task
 ---@field all table<any,cfg.task.task>
 ---@field NullableRefTaskid cfg.task.taskextraexp
@@ -21,22 +22,32 @@ local mk = cfg._mk.table(this, { { 'all', 'get', 1 }, }, nil, {
     'name', -- list,text,2, 程序用名字
     'nexttask', -- int
     'completecondition', -- task.completecondition
-    'exp' -- int
+    'exp', -- int
+    'testDefaultBean' -- TestDefaultBean, 测试
     )
 
+local position = Beans.position
 local chat = Beans.task.completecondition.chat
 local collectitem = Beans.task.completecondition.collectitem
 local conditionand = Beans.task.completecondition.conditionand
 local killmonster = Beans.task.completecondition.killmonster
 local talknpc = Beans.task.completecondition.talknpc
 local testnocolumn = Beans.task.completecondition.testnocolumn
+local testdefaultbean = Beans.task.testdefaultbean
 
-mk(1, {"杀个怪", "杀怪"}, 2, killmonster(1, 3), 1000)
-mk(2, {"和npc对话", "和npc对话"}, 3, talknpc(1), 2000)
-mk(3, {"收集物品", "收集物品"}, 0, collectitem(11, 1), 3000)
-mk(4, {"杀怪并且收集物品", "杀怪并且收集物品"}, 0, conditionand(killmonster(1, 3), collectitem(11, 1)), 4000)
-mk(5, {"杀怪对话并且收集物品", "杀怪对话并且收集物品"}, 0, conditionand(conditionand(killmonster(1, 3), talknpc(1)), collectitem(11, 1)), 5000)
-mk(6, {"聊天并且杀怪", "测试转义符号"}, 0, conditionand(chat("葵花宝典,123"), killmonster(1, 3)), 5000)
-mk(7, {"测试", "测试无参数得bean"}, 0, testnocolumn, 2000)
+local E = cfg._mk.E
+
+local R = cfg._mk.R
+local A = {}
+A[1] = R(testdefaultbean(0, false, "", position(0, 0, 0), E, E, E))
+
+mk(1, {"杀个怪", "杀怪"}, 2, killmonster(1, 3), 1000, A[1])
+mk(2, {"和npc对话", "和npc对话"}, 3, talknpc(1), 2000, testdefaultbean(22, false, "text", position(3, 4, 5), {11, 22}, {3, 4, 5}, {[1] = "str in map"}))
+mk(3, {"收集物品", "收集物品"}, 0, collectitem(11, 1), 3000, A[1])
+mk(4, {"杀怪并且收集物品", "杀怪并且收集物品"}, 0, conditionand(killmonster(1, 3), collectitem(11, 1)), 4000, A[1])
+mk(5, {"杀怪对话并且收集物品", "杀怪对话并且收集物品"}, 0, conditionand(conditionand(killmonster(1, 3), talknpc(1)), collectitem(11, 1)), 5000, A[1])
+mk(6, {"聊天并且杀怪", "测试转义符号"}, 0, conditionand(chat("葵花宝典,123"), killmonster(1, 3)), 5000, A[1])
+mk(7, {"测试", "测试无参数得bean"}, 0, testnocolumn, 2000, A[1])
+mk(8, {"测试2", "测试默认bean"}, 0, testnocolumn, 3000, A[1])
 
 return this

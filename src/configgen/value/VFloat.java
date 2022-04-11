@@ -13,7 +13,7 @@ public class VFloat extends VPrimitive {
         super(type, data);
         float v = 0;
         try {
-            v = PrimitiveParser.parseFloat(raw.data);
+            v = PrimitiveParser.parseFloat(raw.getData());
         } catch (Exception e) {
             error(e);
         }

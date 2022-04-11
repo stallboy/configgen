@@ -16,9 +16,9 @@ public class VString extends VPrimitive {
         super(type, data);
 
         if (type.subtype == TString.Subtype.STRING) {
-            value = raw.data;
+            value = raw.getData();
         } else {
-            String originalValue = raw.data;
+            String originalValue = raw.getData();
             String v = AllValue.getCurrent().getCtx().getI18n().enterText(originalValue);
             value = v != null ? v : originalValue;
             if (AllValue.getCurrent().getCtx().isI18n() && v == null && !originalValue.isEmpty()) {

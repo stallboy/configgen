@@ -67,6 +67,26 @@ Beans.other.dropitem = bean(nil,
     )
 
 Beans.task = {}
+---@class Beans.task.testdefaultbean
+---@field testInt number 
+---@field testBool boolean 
+---@field testString string 
+---@field testSubBean Beans.position 
+---@field testList table<number,number> 
+---@field testList2 table<number,number> 
+---@field testMap table<number,string> 
+
+---@type Beans.task.testdefaultbean
+Beans.task.testdefaultbean = bean(nil, 
+    'testInt', -- int
+    'testBool', -- bool
+    'testString', -- string
+    'testSubBean', -- Position
+    'testList', -- list,int
+    'testList2', -- list,int,3
+    'testMap' -- map,int,string,2
+    )
+
 ---@class Beans.task.completecondition
 
 ---@type Beans.task.completecondition

@@ -13,7 +13,7 @@ public class VLong extends VPrimitive {
         super(type, data);
         long v = 0;
         try {
-            v = PrimitiveParser.parseLong(raw.data);
+            v = PrimitiveParser.parseLong(raw.getData());
         } catch (Exception e) {
             error(e);
         }

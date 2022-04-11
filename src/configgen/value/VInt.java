@@ -13,7 +13,7 @@ public class VInt extends VPrimitive {
         super(type, data);
         int v = 0;
         try {
-            v = PrimitiveParser.parseInt(raw.data);
+            v = PrimitiveParser.parseInt(raw.getData());
         } catch (Exception e) {
             error(e);
         }

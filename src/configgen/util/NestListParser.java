@@ -181,6 +181,7 @@ public class NestListParser {
                         list.add(field.toString());
 
                         field.setLength(0);
+                        //noinspection ConstantConditions
                         quoteCount_InParentheses = 0;
                         leftNotMatchCount_InParentheses = 1;
                         state = FunctionState.IN_PARENTHESES;

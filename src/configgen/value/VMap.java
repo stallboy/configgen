@@ -20,6 +20,7 @@ public class VMap extends VComposite {
 
         } else if (type.isPackByBlock) {
             parsed = VTable.parseBlock(adata.cells);
+            cells = parsed;
 
         } else {
             require(adata.cells.size() == adata.fullType.columnSpan(), "数据和类型占格数不匹配");

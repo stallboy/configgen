@@ -5,7 +5,7 @@ import configgen.type.Type;
 import java.util.List;
 
 public abstract class VComposite extends Value {
-    private final List<Cell> cells;
+    protected List<Cell> cells;
 
     VComposite(Type type, List<Cell> _cells) {
         super(type);

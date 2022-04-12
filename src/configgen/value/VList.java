@@ -21,6 +21,7 @@ public class VList extends VComposite {
 
         } else if (type.packType == Column.PackType.Block) {
             parsed = VTable.parseBlock(adata.cells);
+            cells = parsed;
 
         } else if (type.packType == Column.PackType.UseSeparator) {
             require(adata.cells.size() == 1);

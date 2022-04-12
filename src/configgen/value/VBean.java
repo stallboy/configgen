@@ -183,13 +183,15 @@ public class VBean extends VComposite {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof VBean && type == ((VBean) o).type && values.equals(((VBean) o).values);
+        return o instanceof VBean &&
+                type == ((VBean) o).type &&
+                values.equals(((VBean) o).values) &&
+                Objects.equals(childDynamicVBean, ((VBean) o).childDynamicVBean);
     }
 
     @Override
     public int hashCode() {
-        return values.hashCode();
+        return Objects.hash(type, values, childDynamicVBean);
     }
-
 
 }

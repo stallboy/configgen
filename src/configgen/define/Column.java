@@ -57,8 +57,14 @@ public class Column extends Node {
                                   "compressAsOne", "pack",
                                   "block");
 
-        desc = self.getAttribute("desc");
+        require(self.hasAttribute("name"), "column必须设置name");
+        require(!name.isEmpty(), "name不能是空字符串");
+
+        require(self.hasAttribute("type"), "column必须设置type");
         type = self.getAttribute("type");
+        require(!type.isEmpty(), "type不能是空字符串");
+
+        desc = self.getAttribute("desc");
         own = self.getAttribute("own");
 
         if (self.hasAttribute("ref"))

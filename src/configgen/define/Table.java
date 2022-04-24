@@ -48,6 +48,9 @@ public class Table extends Node {
                                   "enum", "enumPart", "entry", "extraSplit", "isColumnMode");
         DomUtils.permitElements(self, "column", "foreignKey", "range", "uniqueKey");
 
+        require(self.hasAttribute("name"), "table必须设置name");
+        require(!name.isEmpty(), "name不能是空字符串");
+
         bean = new Bean(this, parent, self);
 
         if (self.hasAttribute("primaryKey")) {

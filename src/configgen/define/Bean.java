@@ -53,6 +53,10 @@ public class Bean extends Node {
     Bean(Define _parent, Element self) {
         super(_parent, _parent.wrapPkgName(self.getAttribute("name")));
         define = _parent;
+
+        require(self.hasAttribute("name"), "bean必须设置name");
+        require(!name.isEmpty(), "name不能是空字符串");
+
         own = self.getAttribute("own");
 
         if (self.hasAttribute("compress")) { // 改为packSep吧

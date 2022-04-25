@@ -1,9 +1,84 @@
-package.path = './../../src/support/?.lua;'..package.path
-local mk = require("mkcfg")
-package.loaded["common.mkcfg"] = mk
+package.path = './../../src/support/?.lua;' .. package.path
+local mkcfg = require("mkcfg")
+package.loaded["common.mkcfg"] = mkcfg
+
+
+
+local function is_list(val)
+    local n = 0
+    for _ in pairs(val) do
+        n = n + 1
+    end
+    return n == #val
+end
+
+local function list_tostring(val)
+    -- t里的value只能是bean或基本类型
+    local res = {}
+    local i = 1
+    for _, v in ipairs(val) do
+        res[i] = tostring(v)
+        i = i + 1
+    end
+    return "[" .. table.concat(res, ",") .. "]"
+end
+
+local function map_tostring(val)
+    -- t里的value只能是bean或基本类型
+    local res = {}
+    local i = 1
+    for k, v in pairs(val) do
+        res[i] = tostring(k) .. "=" .. tostring(v)
+        i = i + 1
+    end
+    return "{" .. table.concat(res, ",") .. "}"
+end
+
+local function bean_tostring(t)
+    local res = {}
+    local i = 1
+    for _, f in ipairs(t.Fields) do
+        local val = t[f]
+        local typ = type(val)
+        local vstr
+        if typ == 'table' then
+            if val.Fields then
+                vstr = tostring(val)
+            elseif is_list(val) then
+                vstr = list_tostring(val)
+            else
+                vstr = map_tostring(val)
+            end
+        else
+            vstr = tostring(val)
+        end
+
+        res[i] = f .. '=' .. vstr
+        i = i + 1
+    end
+    return table.concat(res, ',')
+end
+
+mkcfg.tostring = function(t)
+    return '{' .. bean_tostring(t) .. '}'
+end
+
+mkcfg.action_tostring = function(t)
+    return t.type() .. '{' .. bean_tostring(t) .. '}'
+end
 
 local Beans = require("cfg._beans")
 local cfg = require("cfg._cfgs")
+
+local function testToString()
+    local t1 = cfg.task.task.get(1)
+    print(t1)
+    local t2 = cfg.task.task.get(2)
+    print(t2)
+
+    local s4 = cfg.other.signin.get(4)
+    print(s4)
+end
 
 local function testAllAndGet()
     local rawGet = cfg.task.task.all[1]
@@ -186,7 +261,6 @@ local function testMapValueRef()
     assert(t.RefVipitem2vipcountMap[10001] == cfg.other.loot.get(10))
 end
 
-
 local function testDefaultBean()
     local t = cfg.task.task.get(1)
     assert(t.testDefaultBean.testInt == 0)
@@ -199,6 +273,7 @@ local function testDefaultBean()
     assert(#t.testDefaultBean.testMap == 0)
 end
 
+testToString()
 
 testAllAndGet()
 testMultiColumnAsPrimaryKeyGet()
@@ -229,5 +304,4 @@ testCsvBlock()
 testMapValueRef()
 
 testDefaultBean()
-
 print("ok")

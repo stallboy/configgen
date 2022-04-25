@@ -8,6 +8,8 @@ local require = require
 ---@alias text string
 
 local mkcfg = {}
+mkcfg.tostring = nil
+mkcfg.action_tostring = nil
 
 local btest = function(v, bit)
     ---bit 从0开始到52
@@ -140,6 +142,11 @@ local function mkbean(refs, textFields, fields)
         end
     end
 
+    get.Fields = function()
+        --- fields都小写，refs开头是Ref，NullableRef所以起名Fields不会重复
+        return fields
+    end
+
     if refs then
         mkrefs(get, refs)
     end
@@ -164,6 +171,11 @@ function mkcfg.i18n_bean(refs, textFields, ...)
         end
         return nil
     end
+
+    if mkcfg.tostring then
+        I.__tostring = mkcfg.tostring
+    end
+
 
     local mk = function(...)
         local v = { ... }
@@ -197,6 +209,12 @@ function mkcfg.i18n_action(typeName, refs, textFields, ...)
             return g(t)
         end
         return nil
+    end
+
+    if mkcfg.action_tostring then
+        I.__tostring = mkcfg.action_tostring
+    elseif mkcfg.tostring then
+        I.__tostring = mkcfg.tostring
     end
 
     local mk = {}
@@ -271,6 +289,10 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
         return nil
     end
 
+    if mkcfg.tostring then
+        I.__tostring = mkcfg.tostring
+    end
+
     local mk
     if enumidx == nil and #uniqkeys == 1 and uniqkeys[1][4] == nil then
         --- 优化
@@ -312,6 +334,7 @@ end
 
 
 -- 列模式存储的table ----------------------------------------------
+-- TODO ref这有变化，列模式应该不匹配了，用的时候需要改
 
 
 --- refs { {refname, islist, dsttable, dstgetname, key1, key2}, }
@@ -389,6 +412,11 @@ local function mkbeanc(self, refs, textFields, fields)
         end
     end
 
+    get.Fields = function()
+        --- fields都小写，refs开头是Ref，NullableRef所以起名Fields不会重复
+        return fields
+    end
+
     if refs then
         mkrefs(get, refs)
     end
@@ -428,6 +456,10 @@ function mkcfg.i18n_tablec(self, uniqkeys, enum, refs, textFields, ...)
             return g(t)
         end
         return nil
+    end
+
+    if mkcfg.tostring then
+        I.__tostring = mkcfg.tostring
     end
 
     local mk

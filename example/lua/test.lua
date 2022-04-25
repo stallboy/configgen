@@ -1,71 +1,10 @@
 package.path = './../../src/support/?.lua;' .. package.path
 local mkcfg = require("mkcfg")
+local init = require("mkcfginit")
 package.loaded["common.mkcfg"] = mkcfg
 
-
-
-local function is_list(val)
-    local n = 0
-    for _ in pairs(val) do
-        n = n + 1
-    end
-    return n == #val
-end
-
-local function list_tostring(val)
-    -- t里的value只能是bean或基本类型
-    local res = {}
-    local i = 1
-    for _, v in ipairs(val) do
-        res[i] = tostring(v)
-        i = i + 1
-    end
-    return "[" .. table.concat(res, ",") .. "]"
-end
-
-local function map_tostring(val)
-    -- t里的value只能是bean或基本类型
-    local res = {}
-    local i = 1
-    for k, v in pairs(val) do
-        res[i] = tostring(k) .. "=" .. tostring(v)
-        i = i + 1
-    end
-    return "{" .. table.concat(res, ",") .. "}"
-end
-
-local function bean_tostring(t)
-    local res = {}
-    local i = 1
-    for _, f in ipairs(t.Fields) do
-        local val = t[f]
-        local typ = type(val)
-        local vstr
-        if typ == 'table' then
-            if val.Fields then
-                vstr = tostring(val)
-            elseif is_list(val) then
-                vstr = list_tostring(val)
-            else
-                vstr = map_tostring(val)
-            end
-        else
-            vstr = tostring(val)
-        end
-
-        res[i] = f .. '=' .. vstr
-        i = i + 1
-    end
-    return table.concat(res, ',')
-end
-
-mkcfg.tostring = function(t)
-    return '{' .. bean_tostring(t) .. '}'
-end
-
-mkcfg.action_tostring = function(t)
-    return t.type() .. '{' .. bean_tostring(t) .. '}'
-end
+mkcfg.tostring = init.tostring
+mkcfg.action_tostring = init.action_tostring
 
 local Beans = require("cfg._beans")
 local cfg = require("cfg._cfgs")
@@ -74,10 +13,12 @@ local function testToString()
     local t1 = cfg.task.task.get(1)
     print(t1)
     local t2 = cfg.task.task.get(2)
-    print(t2)
+    assert(tostring(t2) == '{taskid=2,name=[和npc对话,和npc对话],nexttask=3,completecondition=TalkNpc{npcid=1},exp=2000,testDefaultBean={testInt=22,testBool=false,testString=text,testSubBean={x=3,y=4,z=5},testList=[11,22],testList2=[3,4,5],testMap=[str in map]}}')
+    --print(t2)
 
     local s4 = cfg.other.signin.get(4)
-    print(s4)
+    assert(tostring(s4) == '{id=4,item2countMap={30002=5,10001=5,30001=5},vipitem2vipcountMap={10001=10},viplevel=0,iconFile=texture/t_i10008.bundle}')
+    --print(s4)
 end
 
 local function testAllAndGet()
@@ -91,8 +32,8 @@ local function testMultiColumnAsPrimaryKeyGet()
     local all = cfg.other.lootitem.all
     assert(t.lootid == 2, "主键可以是2个int字段，get(k1, k2)")
     assert(t.itemid == 40007)
-    local rawT = all[2 + 40007 * 10000000]
-    assert(rawT == t, "主键是k + j * 10000000")
+    local rawT = all[2 + 40007 * 100000000]
+    assert(rawT == t, "主键是k + j * 100000000")
 end
 
 local function testUniqueKeyGet()
@@ -163,11 +104,16 @@ end
 local function testListRef()
     local t = cfg.other.loot.get(2)
     assert(rawget(t, "ListRefLootid") == nil, "listRef 会缓存起来，第一次是nil")
-    print(t.name, t.lootid, #t.ListRefLootid, t.ListRefLootid[1].itemid, t.ListRefLootid[2].itemid)
+    --print(t.name, t.lootid, #t.ListRefLootid, t.ListRefLootid[1].itemid, t.ListRefLootid[2].itemid)
 
     assert(#t.ListRefLootid == 7, "t.ListRefLootid")
-    assert(t.ListRefLootid[1].itemid == 40007, "t.ListRefLootid[1].itemid")
-    assert(t.ListRefLootid[2].itemid == 40010, "t.ListRefLootid[2].itemid")
+    local itemids = {}
+    for _, lootitem in ipairs(t.ListRefLootid) do
+        itemids[lootitem.itemid] = true
+    end
+
+    assert(itemids[40007], "t.ListRefLootid[x].itemid contains 40007")
+    assert(itemids[40010], "t.ListRefLootid[x].itemid contains 40010")
 
     assert(rawget(t, "ListRefLootid") ~= nil, "listRef 会缓存起来，取过一次之后就可以直接rawget了")
 end

@@ -2,33 +2,53 @@ local ipairs = ipairs
 local pairs = pairs
 local rawget = rawget
 local setmetatable = setmetatable
-local unpack = unpack
+local unpack = unpack or table.unpack
 local require = require
 
 ---@alias text string
 
 local mkcfg = {}
+
+----------------------------------------
+--- tostring, action_tostring, table_newindex, E, R 要在require cfg._cfgs之前初始化好
+--- 注意这里默认没有方便打印日志调试的__tostring, 没有只读检测。都需要应用自己加
+---
+--- 用于设置bean，或table 的metatable.__tostring元方法，
 mkcfg.tostring = nil
+--- 用于设置多态bean（这里叫action）的metatable.__tostring元方法，如果这个没设置，默认用tostring
 mkcfg.action_tostring = nil
 
-local btest = function(v, bit)
-    ---bit 从0开始到52
+--- 用于设置bean，或table 的metatable.__newindex元方法，应用可自己加只读检测
+mkcfg.newindex = nil
+
+--- EmptyTable，为减少内存占用，所有生成的配置数据共享这个，也用于空table的只读检测
+mkcfg.E = {}
+
+--- ReadOnly, 用于list，map类型table的只读检测
+mkcfg.R = function(v)
+    return v
+end
+
+----------------------------------------
+--- 以下方法require cfg._cfgs之后设也可以
+---
+---i18n用于类型为text的字段，用于运行时切换语言。
+mkcfg.i18n = {}
+
+--- btest, bint用于压缩bool，int。（把多个bool或多个int压缩成一个integer）
+--- 注意默认是错的，需要bit操作，留做应用自己来做
+--- 如果生成lua时不压缩，那应用不需要设置
+mkcfg.btest = function(v, bit)
+    --- bit 从0开始到52
     return true  -- TODO
 end
 
-local bint = function(v, bitLow, bitCount)
+mkcfg.bint = function(v, bitLow, bitCount)
     --- bitLow从0, bitCount最大26, bitLow+bitCount最大53
     return v -- TODO
 end
 
-mkcfg.i18n = {}
-
-mkcfg.E = {} --- emptyTable，为减少内存占用，所有生成的配置数据共享这个，代码别改哦
-mkcfg.R = function(v)
-    --- ReadOnly
-    return v -- Note: 可设置__newindex进行检测
-end
-
+----------------------------------------
 --- refs {
 ---     {refName, 0, dstTable, dstGetName, thisColumnIdx, [thisColumnIdx2]}, -- 最常见类型
 ---     {refName, 1, dstTable, dstGetName, thisColumnIdx}, --本身是list
@@ -61,7 +81,7 @@ local function mkrefs(get, refs)
             -- t[k1]本身是map，map里每个value---ref--->到dstTable.dstGetName(ele)
             -- k2肯定为 nil
             get[refName] = function(t)
-                --- 只对map做cache，这样能避免频繁alloc，不对非容器做，是因为非容器的ref可能为nil，反正cache不住的
+                --- 对map做cache，这样能避免频繁alloc，不对非容器做，是因为非容器的ref可能为nil，反正cache不住的
                 local cache = {}
                 for key, val in pairs(t[k1]) do
                     cache[key] = dstTable[dstGetName](val)
@@ -131,7 +151,7 @@ local function mkbean(refs, textFields, fields)
                 -- 多个bool合成一个int存储
                 for k, ele in ipairs(f) do
                     get[ele] = function(t)
-                        return btest(t[i], k - 1)
+                        return mkcfg.btest(t[i], k - 1)
                     end
                 end
             else
@@ -172,10 +192,13 @@ function mkcfg.i18n_bean(refs, textFields, ...)
         return nil
     end
 
+    if mkcfg.newindex then
+        I.__newindex = mkcfg.newindex
+    end
+
     if mkcfg.tostring then
         I.__tostring = mkcfg.tostring
     end
-
 
     local mk = function(...)
         local v = { ... }
@@ -209,6 +232,10 @@ function mkcfg.i18n_action(typeName, refs, textFields, ...)
             return g(t)
         end
         return nil
+    end
+
+    if mkcfg.newindex then
+        I.__newindex = mkcfg.newindex
     end
 
     if mkcfg.action_tostring then
@@ -273,9 +300,9 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
                 return map[k]
             end
         else
-            --- 2个字段可以做为uniqkey，但都必须是数字，并且第一个<1千万，第二个<10万
+            --- 2个字段可以做为uniqkey，但都必须是数字，并且第一个<1亿，第二个<1万
             self[getname] = function(k, j)
-                return map[k + j * 10000000]
+                return map[k + j * 100000000]
             end
         end
     end
@@ -287,6 +314,10 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
             return g(t)
         end
         return nil
+    end
+
+    if mkcfg.newindex then
+        I.__newindex = mkcfg.newindex
     end
 
     if mkcfg.tostring then
@@ -314,7 +345,7 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
                 if k2 == nil then
                     all[v[k1]] = v
                 else
-                    all[v[k1] + v[k2] * 10000000] = v
+                    all[v[k1] + v[k2] * 100000000] = v
                 end
             end
 
@@ -391,7 +422,7 @@ local function mkbeanc(self, refs, textFields, fields)
                         local packed = self.rawall[i][idx + 1]
                         local idx_in_packed = row_idx - idx * countPerOne
 
-                        return bint(packed, idx_in_packed, bitLen)
+                        return mkcfg.bint(packed, idx_in_packed, bitLen)
                     end
                 else
                     get[fn] = function(t)
@@ -399,7 +430,7 @@ local function mkbeanc(self, refs, textFields, fields)
                         local idx = math.floor(row_idx / 53)
                         local packed = self.rawall[i][idx + 1]
                         local idx_in_packed = row_idx - idx * 53
-                        return btest(packed, idx_in_packed)
+                        return mkcfg.btest(packed, idx_in_packed)
                     end
                 end
 
@@ -442,9 +473,9 @@ function mkcfg.i18n_tablec(self, uniqkeys, enum, refs, textFields, ...)
                 return map[k]
             end
         else
-            --- 2个字段可以做为uniqkey，但都必须是数字，并且第一个<1千万，第二个<10万
+            --- 2个字段可以做为uniqkey，但都必须是数字，并且第一个<1亿，第二个<1万
             self[getname] = function(k, j)
-                return map[k + j * 10000000]
+                return map[k + j * 100000000]
             end
         end
     end
@@ -456,6 +487,10 @@ function mkcfg.i18n_tablec(self, uniqkeys, enum, refs, textFields, ...)
             return g(t)
         end
         return nil
+    end
+
+    if mkcfg.newindex then
+        I.__newindex = mkcfg.newindex
     end
 
     if mkcfg.tostring then
@@ -482,7 +517,7 @@ function mkcfg.i18n_tablec(self, uniqkeys, enum, refs, textFields, ...)
                 if k2 == nil then
                     all[rd[k1]] = rd
                 else
-                    all[rd[k1] + rd[k2] * 10000000] = rd
+                    all[rd[k1] + rd[k2] * 100000000] = rd
                 end
             end
         end

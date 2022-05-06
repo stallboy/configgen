@@ -1,6 +1,7 @@
 local ipairs = ipairs
 local pairs = pairs
 local rawget = rawget
+local rawset = rawset
 local setmetatable = setmetatable
 local unpack = unpack or table.unpack
 local require = require
@@ -73,7 +74,7 @@ local function mkrefs(get, refs)
                         cache[#cache + 1] = dstRow
                     end
                 end
-                t[refName] = cache
+                rawset(t, refName, cache)
                 return cache
             end
 
@@ -86,7 +87,7 @@ local function mkrefs(get, refs)
                 for key, val in pairs(t[k1]) do
                     cache[key] = dstTable[dstGetName](val)
                 end
-                t[refName] = cache
+                rawset(t, refName, cache)
                 return cache
             end
 
@@ -99,7 +100,7 @@ local function mkrefs(get, refs)
                 for _, ele in ipairs(t[k1]) do
                     cache[#cache + 1] = dstTable[dstGetName](ele)
                 end
-                t[refName] = cache
+                rawset(t, refName, cache)
                 return cache
             end
         elseif k2 == nil then

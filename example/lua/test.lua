@@ -27,6 +27,8 @@ end
 local function testReadOnly()
     local t1 = cfg.task.task.get(1)
     t1.xxx = 123
+    assert(t1.xxx == nil)
+
     t1[123] = 'xxx'
 
     t1.testDefaultBean.yyy = 333

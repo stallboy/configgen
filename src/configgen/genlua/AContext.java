@@ -22,15 +22,19 @@ class AContext {
     private boolean noStr; //只用于测试
 
     private String emptyTableStr;
+    private String listMapPrefixStr;
+    private String listMapPostfixStr;
+
     private final Set<String> forbidLocalNames = new HashSet<>(Arrays.asList("Beans", "this", "mk",
-            "A", //表示共享Table
-            "E", //表示emptyTable
-            "R"  //表示为共享Table的一个包装方法
+                                                                             "A", //表示共享Table
+                                                                             "E", //表示emptyTable
+                                                                             "R"  //表示为共享Table的一个包装方法 --> 后改为list，map的封装，用于检测修改
     ));
 
     private AStat statistics;
 
-    void init(String pkg, LangSwitch ls, boolean shareEmptyTable, boolean share, boolean col, boolean packBool, boolean noStr) {
+    void init(String pkg, LangSwitch ls, boolean shareEmptyTable, boolean share,
+              boolean col, boolean packBool, boolean noStr, boolean rForOldShared) {
         langSwitch = ls;
         sharedEmptyTable = shareEmptyTable;
         shared = share;
@@ -42,6 +46,14 @@ class AContext {
             emptyTableStr = "E";
         } else {
             emptyTableStr = "{}";
+        }
+
+        if (rForOldShared) {
+            listMapPrefixStr = "{";
+            listMapPostfixStr = "}";
+        } else {
+            listMapPrefixStr = "R({";
+            listMapPostfixStr = "})";
         }
 
         if (pkg.length() == 0) {
@@ -88,7 +100,18 @@ class AContext {
         return pkgPrefixStr;
     }
 
+
+    public String getListMapPrefixStr() {
+        return listMapPrefixStr;
+    }
+
+    public String getListMapPostfixStr() {
+        return listMapPostfixStr;
+    }
+
+
     AStat getStatistics() {
         return statistics;
     }
+
 }

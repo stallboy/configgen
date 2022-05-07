@@ -70,4 +70,22 @@ init.action_tostring = function(t)
     return t.type() .. '{' .. bean_tostring(t) .. '}'
 end
 
+--- 用于设置bean，或table 的metatable.__newindex元方法，应用可自己加只读检测
+init.newindex = function(t, k, v)
+    print("在逻辑中修改配置数据！！！忽略， key=" .. tostring(k) .. ", value=" .. tostring(v))
+end
+
+--- EmptyTable，为减少内存占用，所有生成的配置数据共享这个，也用于空table的只读检测
+local meta = {}
+meta.__newindex = init.newindex
+local E = {}
+setmetatable(E, meta)
+init.E = E
+
+--- ReadOnly, 用于list，map类型table的只读检测
+init.R = function(v)
+    setmetatable(v, meta)
+    return v
+end
+
 return init

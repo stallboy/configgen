@@ -35,6 +35,7 @@ public class GenLua extends Generator {
     private boolean isLangSwitch;
     private LangSwitch langSwitch;
     private final boolean noStr;
+    private final boolean rForOldShared;
 
     public GenLua(Parameter parameter) {
         super(parameter);
@@ -50,13 +51,15 @@ public class GenLua extends Generator {
         packBool = parameter.has("packbool", "是否要把同一个结构里的多个bool压缩成一个int");
         tryColumnMode = parameter.has("col", "是否尝试列模式,如果开启将压缩同一列的bool和不超过26bit的整数\n" +
                 "            默认-Dgenlua.column_min_row=100,-Dgenlua.column_min_save=100");
+        rForOldShared = parameter.has("RForOldShared", "以前R用于修饰shared table，现在默认行为改为R修饰list，map");
         noStr = parameter.has("nostr", "!!!只用来测试字符串占用内存大小");
         parameter.end();
     }
 
     @Override
     public void generate(Context ctx) throws IOException {
-        AContext.getInstance().init(pkg, ctx.getLangSwitch(), useSharedEmptyTable, useShared, tryColumnMode, packBool, noStr);
+        AContext.getInstance().init(pkg, ctx.getLangSwitch(), useSharedEmptyTable, useShared,
+                                    tryColumnMode, packBool, noStr, rForOldShared);
 
         langSwitch = ctx.getLangSwitch();
         isLangSwitch = langSwitch != null;
@@ -448,17 +451,33 @@ public class GenLua extends Generator {
             ps.println();
         }
 
+        boolean hasER = false;
         if (useSharedEmptyTable && ctx.getCtxShared().getEmptyTableUseCount() > 0) { // 共享空表
             ps.println("local E = %s._mk.E", pkg);
+            hasER = true;
+        }
+        if (!rForOldShared && ctx.getCtxShared().hasListTableOrMapTable()) {
+            ps.println("local R = %s._mk.R", pkg);
+            hasER = true;
+        }
+        if (hasER) {
             ps.println();
         }
 
         if (tryUseShared && ctx.getCtxShared().getSharedList().size() > 0) { // 共享相同的表
-            ps.println("local R = %s._mk.R", pkg); // 给lua个机会设置__newindex，做运行时检测
-            ps.println("local A = {}");
-            for (CtxShared.VCompositeStr vstr : ctx.getCtxShared().getSharedList()) {
-                ps.println("%s = R(%s)", vstr.getName(), vstr.getValueStr());
+            if (rForOldShared) { //只为保持跟武林一致
+                ps.println("local R = %s._mk.R", pkg); // 给lua个机会设置__newindex，做运行时检测
+                ps.println("local A = {}");
+                for (CtxShared.VCompositeStr vstr : ctx.getCtxShared().getSharedList()) {
+                    ps.println("%s = R(%s)", vstr.getName(), vstr.getValueStr());
+                }
+            } else {
+                ps.println("local A = {}");
+                for (CtxShared.VCompositeStr vstr : ctx.getCtxShared().getSharedList()) {
+                    ps.println("%s = %s", vstr.getName(), vstr.getValueStr());
+                }
             }
+
             ps.println();
         }
 

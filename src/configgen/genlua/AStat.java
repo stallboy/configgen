@@ -5,6 +5,10 @@ import configgen.Logger;
 class AStat {
 
     private int emptyTableCount = 0;
+    private int listTableCount = 0;
+    private int mapTableCount = 0;
+    private int beanTableCount = 0;
+    private int recordTableCount = 0;
     private int sharedTableReduceCount = 0;
     private int packBoolReduceCount = 0;
     private int columnPackSaveCount = 0;
@@ -12,6 +16,22 @@ class AStat {
 
     void useEmptyTable() {
         emptyTableCount++;
+    }
+
+    void useListTable() {
+        listTableCount++;
+    }
+
+    void useMapTable() {
+        mapTableCount++;
+    }
+
+    void useBeanTable() {
+        beanTableCount++;
+    }
+
+    void useRecordTable() {
+        recordTableCount++;
     }
 
     void useSharedTable(int c) {
@@ -28,10 +48,15 @@ class AStat {
     }
 
     void print() {
-        Logger.log(String.format("可共享空table个数:%d, 共享table节省:%d，压缩bool节省:%d, 列模式可省:%d(%d个表)",
+        Logger.log(String.format(
+                "可共享空table个数:%d, 共享table节省:%d，压缩bool节省:%d, 列模式可省:%d(%d个表)，总共有list:%d, map:%d, bean:%d, record:%d",
                 emptyTableCount,
                 sharedTableReduceCount,
                 packBoolReduceCount,
-                columnPackSaveCount, columnTableCnt));
+                columnPackSaveCount, columnTableCnt,
+                listTableCount,
+                mapTableCount,
+                beanTableCount,
+                recordTableCount));
     }
 }

@@ -112,7 +112,8 @@ class ValueStringify implements ValueVisitor {
     public void visit(VList value) {
         int sz = value.getList().size();
         if (sz == 0) { //优化，避免重复创建空table
-            res.append(ctx.getCtxShared().getEmptyTableName());
+            ctx.getCtxShared().incEmptyTableUseCount();
+            res.append(AContext.getInstance().getEmptyTableStr());
 
         } else {
             String vstr = getSharedCompositeBriefName(value);
@@ -120,7 +121,8 @@ class ValueStringify implements ValueVisitor {
                 res.append(vstr);
 
             } else {
-                res.append("{");
+                ctx.getCtxShared().incListTableUseCount();
+                res.append(AContext.getInstance().getListMapPrefixStr());
                 int idx = 0;
                 for (Value eleValue : value.getList()) {
                     eleValue.accept(notKey);
@@ -129,7 +131,7 @@ class ValueStringify implements ValueVisitor {
                         res.append(", ");
                     }
                 }
-                res.append("}");
+                res.append(AContext.getInstance().getListMapPostfixStr());
             }
         }
     }
@@ -145,7 +147,8 @@ class ValueStringify implements ValueVisitor {
     public void visit(VMap value) {
         int sz = value.getMap().size();
         if (sz == 0) { //优化，避免重复创建空table
-            res.append(ctx.getCtxShared().getEmptyTableName());
+            ctx.getCtxShared().incEmptyTableUseCount();
+            res.append(AContext.getInstance().getEmptyTableStr());
 
         } else {
             String vstr = getSharedCompositeBriefName(value);
@@ -153,7 +156,8 @@ class ValueStringify implements ValueVisitor {
                 res.append(vstr);
 
             } else {
-                res.append("{");
+                ctx.getCtxShared().incMapTableUseCount();
+                res.append(AContext.getInstance().getListMapPrefixStr());
                 int idx = 0;
                 for (Map.Entry<Value, Value> entry : value.getMap().entrySet()) {
                     entry.getKey().accept(key);
@@ -164,7 +168,7 @@ class ValueStringify implements ValueVisitor {
                         res.append(", ");
                     }
                 }
-                res.append("}");
+                res.append(AContext.getInstance().getListMapPostfixStr());
             }
         }
     }
@@ -185,7 +189,11 @@ class ValueStringify implements ValueVisitor {
             res.append(vstr);
 
         } else {
-
+            if (beanTypeStr != null){
+                AContext.getInstance().getStatistics().useRecordTable();
+            }else{
+                AContext.getInstance().getStatistics().useBeanTable();
+            }
             res.append(beanType);
             int sz = val.getValues().size();
             if (sz > 0) { // 这里来个优化，如果没有参数不加()，因为beanType其实直接就是个实例

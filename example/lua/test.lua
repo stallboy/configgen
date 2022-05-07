@@ -5,6 +5,9 @@ package.loaded["common.mkcfg"] = mkcfg
 
 mkcfg.tostring = init.tostring
 mkcfg.action_tostring = init.action_tostring
+mkcfg.newindex = init.newindex
+mkcfg.E = init.E
+mkcfg.R = init.R
 
 local Beans = require("cfg._beans")
 local cfg = require("cfg._cfgs")
@@ -19,6 +22,16 @@ local function testToString()
     local s4 = cfg.other.signin.get(4)
     assert(tostring(s4) == '{id=4,item2countMap={30002=5,10001=5,30001=5},vipitem2vipcountMap={10001=10},viplevel=0,iconFile=texture/t_i10008.bundle}')
     --print(s4)
+end
+
+local function testReadOnly()
+    local t1 = cfg.task.task.get(1)
+    t1.xxx = 123
+    t1[123] = 'xxx'
+
+    t1.testDefaultBean.yyy = 333
+    t1.testDefaultBean.testList2[1] = 'add test'
+    t1.testDefaultBean.testMap['add map key to empty'] = 111
 end
 
 local function testAllAndGet()
@@ -219,6 +232,8 @@ local function testDefaultBean()
     assert(#t.testDefaultBean.testMap == 0)
 end
 
+
+testReadOnly()
 testToString()
 
 testAllAndGet()

@@ -9,11 +9,16 @@ import java.util.Map;
 
 /**
  * 用于lua生成时table能共享内存就共享，以最小化客户端的内存占用
- *
  */
 class CtxShared {
     private int emptyTableUseCount = 0;
+
+    private int listTableUseCount = 0;
+
+    private int mapTableUseCount = 0;
+
     private final Map<VComposite, VCompositeStr> sharedCompositeValues = new LinkedHashMap<>();
+
 
     static class VCompositeStr {
         private String valueStr = null;
@@ -84,11 +89,23 @@ class CtxShared {
         return emptyTableUseCount;
     }
 
-    String getEmptyTableName() {
+    void incEmptyTableUseCount() {
         emptyTableUseCount++;
         AContext.getInstance().getStatistics().useEmptyTable();
-        return AContext.getInstance().getEmptyTableStr();
     }
 
+    public boolean hasListTableOrMapTable() {
+        return listTableUseCount > 0 || mapTableUseCount > 0;
+    }
+
+    void incListTableUseCount() {
+        listTableUseCount++;
+        AContext.getInstance().getStatistics().useListTable();
+    }
+
+    void incMapTableUseCount() {
+        mapTableUseCount++;
+        AContext.getInstance().getStatistics().useMapTable();
+    }
 
 }

@@ -64,7 +64,7 @@ public class Column extends Node {
         type = self.getAttribute("type");
         require(!type.isEmpty(), "type不能是空字符串");
 
-        desc = self.getAttribute("desc");
+        desc = descNoNewLine(self.getAttribute("desc"));
         own = self.getAttribute("own");
 
         if (self.hasAttribute("ref"))
@@ -87,10 +87,16 @@ public class Column extends Node {
         }
     }
 
+    private static String descNoNewLine(String desc){
+        desc = desc.replace("\r\n", "--");
+        desc = desc.replace("\n", "--");
+        return desc;
+    }
+
     Column(Bean _parent, String _name, String type, String desc) {
         super(_parent, _name);
         this.type = type;
-        this.desc = desc;
+        this.desc = descNoNewLine(desc);
         this.own = "";
         packType = PackType.NoPack;
     }
@@ -107,6 +113,10 @@ public class Column extends Node {
 
         packType = original.packType;
         packSeparator = original.packSeparator;
+    }
+
+    void setDesc(String desc){
+        this.desc = descNoNewLine(desc);
     }
 
     Column extract(Bean _parent) {

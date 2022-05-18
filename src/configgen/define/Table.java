@@ -148,7 +148,7 @@ public class Table extends Node {
     public boolean addColumn(Column column, String newColumnDesc) {
         boolean changed = false;
         if (!column.desc.equals(newColumnDesc)) {
-            column.desc = newColumnDesc;
+            column.setDesc(newColumnDesc);
             changed = true;
         }
         bean.columns.put(column.name, column);

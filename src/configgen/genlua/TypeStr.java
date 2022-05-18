@@ -219,7 +219,7 @@ class TypeStr {
                         if (bt instanceof TBool) {
                             i++;
                             Column f = tbean.getBeanDefine().columns.get(bn);
-                            String c = f.desc.isEmpty() ? "" : ", " + f.desc;
+                            String c = getCommaDescStr(f.desc);
                             sb.append("\n    '").append(Generator.lower1(bn)).append("', -- ").append(f.type).append(c);
                         }
                     }
@@ -245,7 +245,7 @@ class TypeStr {
                     }
                 }
                 Column f = tbean.getBeanDefine().columns.get(n);
-                String c = f.desc.isEmpty() ? "" : ", " + f.desc;
+                String c = getCommaDescStr(f.desc);
                 sb.append("\n    ").append(fieldName);
 
                 if (i < cnt) {
@@ -265,7 +265,7 @@ class TypeStr {
         for (Map.Entry<String, Type> entry : tbean.getColumnMap().entrySet()) {
             String name = entry.getKey();
             Column f = tbean.getBeanDefine().columns.get(name);
-            String c = f.desc.isEmpty() ? "" : ", " + f.desc;
+            String c = getCommaDescStr(f.desc);
             Type type = entry.getValue();
             sb.append("---@field ").append(Generator.lower1(name)).append(" ").append(typeToLuaType(type)).append(" ").append(c).append("\n");
             has = true;
@@ -427,5 +427,12 @@ class TypeStr {
         }
 
         return "\n    { " + String.join(", ", texts) + " },";
+    }
+
+    static String getCommaDescStr(String desc){
+        if (desc.isEmpty()){
+            return "";
+        }
+        return ", " + desc;
     }
 }

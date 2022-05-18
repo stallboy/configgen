@@ -2,7 +2,7 @@
 <db>
     <table name="ai" primaryKey="ID">
         <column desc="ID" name="ID" type="int"/>
-        <column desc="描述" name="Desc" type="string"/>
+        <column desc="描述----这里测试下多行效果--再来一行" name="Desc" type="string"/>
         <column desc="触发公式" name="CondID" type="string"/>
         <column desc="触发间隔(帧)" name="TrigTick" type="int"/>
         <column desc="触发几率" name="TrigOdds" type="int"/>

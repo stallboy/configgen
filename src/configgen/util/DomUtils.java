@@ -5,10 +5,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
@@ -38,27 +35,19 @@ public final class DomUtils {
         }
     }
 
-    public static void prettySaveDocument(Document document, File file, String encoding)  {
+    public static void prettySaveDocument(Document document, File file)  {
         try (OutputStream dst = new CachedFileOutputStream(file)) {
-            prettySaveDocument(document, dst, encoding);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void prettySaveDocument(Document document, OutputStream destination, String encoding) {
-        try {
             Transformer t = TransformerFactory.newInstance().newTransformer();
             t.setOutputProperty(OutputKeys.INDENT, "yes");
             t.setOutputProperty(OutputKeys.METHOD, "xml");
             t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-            t.setOutputProperty(OutputKeys.ENCODING, encoding);
-            t.transform(new DOMSource(document), new StreamResult(destination));
-        } catch (TransformerException e) {
+            t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            t.transform(new DOMSource(document), new StreamResult(dst));
+
+        } catch (IOException | TransformerException e) {
             throw new RuntimeException(e);
         }
     }
-
 
     public static void permitElements(Element self, String... names) {
         HashSet<String> available = new HashSet<>(Arrays.asList(names));

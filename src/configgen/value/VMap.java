@@ -30,6 +30,10 @@ public class VMap extends VComposite {
         int kc = adata.packAsOne ? 1 : adata.fullType.key.columnSpan();
         int vc = adata.packAsOne ? 1 : adata.fullType.value.columnSpan();
         for (int s = 0; s < parsed.size(); s += kc + vc) {
+            if (s + kc + vc > parsed.size()){
+                error(String.format("%s处理中...单个key,value需要%d个数据，实际只有%d个", type.toString(), kc + vc, parsed.size()-s));
+            }
+
             if (!parsed.get(s).getData().trim().isEmpty()) { //第一个单元作为是否还有key-value对的标记
                 Value key = Values.create(type.key, parsed.subList(s, s + kc),
                         adata.fullType.key, adata.packAsOne);

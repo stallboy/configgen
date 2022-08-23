@@ -37,6 +37,11 @@ public class VList extends VComposite {
         int vc = packAsOne ? 1 : adata.fullType.value.columnSpan();  // 注意这里packAsOne的自上而下一直传递的特性
 
         for (int s = 0; s < parsed.size(); s += vc) {
+
+            if (s + vc > parsed.size()){
+                error(String.format("%s处理中...单个元素需要%d个数据，实际只有%d个", type.toString(), vc, parsed.size()-s));
+            }
+
             if (!parsed.get(s).getData().trim().isEmpty()) { //第一个单元作为是否还有item的标记
                 list.add(Values.create(type.value, parsed.subList(s, s + vc),
                                        adata.fullType.value, packAsOne));

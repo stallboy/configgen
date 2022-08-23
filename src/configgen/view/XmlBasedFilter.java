@@ -127,7 +127,7 @@ public class XmlBasedFilter extends AbstractFilter {
             excludes.setAttribute("pkg", pkg);
         }
 
-        DomUtils.prettySaveDocument(doc, viewXmlPath.toFile(), allDefine.getEncoding());
+        DomUtils.prettySaveDocument(doc, viewXmlPath.toFile());
     }
 
     @Override

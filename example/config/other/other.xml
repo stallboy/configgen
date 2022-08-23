@@ -1,29 +1,29 @@
-<?xml version="1.0" encoding="GBK" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <db>
     <bean name="DropItem">
-        <column desc="µôÂä¸ÅÂÊ" name="chance" type="int"/>
-        <column block="1" desc="µôÂäÎïÆ·" name="itemids" type="list,int"/>
-        <column desc="ÊýÁ¿ÏÂÏÞ" name="countmin" type="int"/>
-        <column desc="ÊýÁ¿ÉÏÏÞ" name="countmax" type="int"/>
+        <column desc="æŽ‰è½æ¦‚çŽ‡" name="chance" type="int"/>
+        <column block="1" desc="æŽ‰è½ç‰©å“" name="itemids" type="list,int"/>
+        <column desc="æ•°é‡ä¸‹é™" name="countmin" type="int"/>
+        <column desc="æ•°é‡ä¸Šé™" name="countmax" type="int"/>
     </bean>
     <table name="drop" primaryKey="dropid">
-        <column desc="ÐòºÅ" name="dropid" type="int"/>
-        <column desc="Ãû×Ö" name="name" type="text"/>
-        <column block="1" desc="µôÂä¸ÅÂÊ" name="items" type="list,DropItem"/>
-        <column block="1" desc="²âÊÔmap block" name="testmap" type="map,int,int"/>
+        <column desc="åºå·" name="dropid" type="int"/>
+        <column desc="åå­—" name="name" type="text"/>
+        <column block="1" desc="æŽ‰è½æ¦‚çŽ‡" name="items" type="list,DropItem"/>
+        <column block="1" desc="æµ‹è¯•map block" name="testmap" type="map,int,int"/>
     </table>
     <table name="loot" primaryKey="lootid">
-        <column desc="ÐòºÅ" name="lootid" ref="lootitem,lootid" refType="LIST" type="int"/>
+        <column desc="åºå·" name="lootid" ref="lootitem,lootid" refType="LIST" type="int"/>
         <column name="ename" type="string"/>
-        <column desc="Ãû×Ö" name="name" type="text"/>
-        <column desc="µôÂä0¼þÎïÆ·µÄ¸ÅÂÊ" name="chanceList" type="list,int,7"/>
+        <column desc="åå­—" name="name" type="text"/>
+        <column desc="æŽ‰è½0ä»¶ç‰©å“çš„æ¦‚çŽ‡" name="chanceList" type="list,int,7"/>
     </table>
     <table name="lootitem" primaryKey="lootid,itemid">
-        <column desc="µôÂäid" name="lootid" type="int"/>
-        <column desc="µôÂäÎïÆ·" name="itemid" type="int"/>
-        <column desc="µôÂä¸ÅÂÊ" name="chance" type="int"/>
-        <column desc="ÊýÁ¿ÏÂÏÞ" name="countmin" type="int"/>
-        <column desc="ÊýÁ¿ÉÏÏÞ" name="countmax" type="int"/>
+        <column desc="æŽ‰è½id" name="lootid" type="int"/>
+        <column desc="æŽ‰è½ç‰©å“" name="itemid" type="int"/>
+        <column desc="æŽ‰è½æ¦‚çŽ‡" name="chance" type="int"/>
+        <column desc="æ•°é‡ä¸‹é™" name="countmin" type="int"/>
+        <column desc="æ•°é‡ä¸Šé™" name="countmax" type="int"/>
     </table>
     <table name="monster" primaryKey="id">
         <column desc="id" name="id" type="int"/>
@@ -31,10 +31,10 @@
     </table>
     <table name="signin" primaryKey="id">
         <uniqueKey keys="id,viplevel"/>
-        <column desc="Àñ°üID" name="id" type="int"/>
-        <column desc="ÆÕÍ¨½±Àø" name="item2countMap" type="map,int,int,5"/>
-        <column desc="vip½±Àø" name="vipitem2vipcountMap" ref="loot" type="map,int,int,2"/>
-        <column desc="ÁìÈ¡vip½±ÀøµÄ×îµÍµÈ¼¶" name="viplevel" type="int"/>
-        <column desc="Àñ°üÍ¼±ê" name="IconFile" type="string"/>
+        <column desc="ç¤¼åŒ…ID" name="id" type="int"/>
+        <column desc="æ™®é€šå¥–åŠ±" name="item2countMap" type="map,int,int,5"/>
+        <column desc="vipå¥–åŠ±" name="vipitem2vipcountMap" ref="loot" type="map,int,int,2"/>
+        <column desc="é¢†å–vipå¥–åŠ±çš„æœ€ä½Žç­‰çº§" name="viplevel" type="int"/>
+        <column desc="ç¤¼åŒ…å›¾æ ‡" name="IconFile" type="string"/>
     </table>
 </db>

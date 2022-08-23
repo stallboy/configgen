@@ -1,57 +1,57 @@
-<?xml version="1.0" encoding="GBK" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <db>
     <bean name="TestPackBean">
         <column name="name" type="string"/>
         <column name="range" type="Range"/>
     </bean>
     <table enum="name" name="ability" primaryKey="id">
-        <column desc="ÊôÐÔÀàÐÍ" name="id" type="int"/>
-        <column desc="³ÌÐòÓÃÃû×Ö" name="name" type="string"/>
+        <column desc="å±žæ€§ç±»åž‹" name="id" type="int"/>
+        <column desc="ç¨‹åºç”¨åå­—" name="name" type="string"/>
     </table>
     <table entry="entry" isColumnMode="1" name="equipconfig" primaryKey="entry">
-        <column desc="Èë¿Ú£¬³ÌÐòÌî" name="entry" type="string"/>
-        <column desc="ÐÎ³ÉÌ××°µÄÒôÊ¯ÊýÁ¿" name="stone_count_for_set" type="int"/>
-        <column desc="±£µ×²ßÂÔÃû³Æ" name="draw_protect_name" type="string"/>
-        <column desc="¹«¸æId" name="broadcastid" type="int"/>
-        <column desc="¹«¸æµÄ×îµÍÆ·ÖÊ" name="broadcast_least_quality" type="int"/>
-        <column desc="³é¿¨ÖÜ½±ÀøµÄÓÊ¼þid" name="week_reward_mailid" type="int"/>
+        <column desc="å…¥å£ï¼Œç¨‹åºå¡«" name="entry" type="string"/>
+        <column desc="å½¢æˆå¥—è£…çš„éŸ³çŸ³æ•°é‡" name="stone_count_for_set" type="int"/>
+        <column desc="ä¿åº•ç­–ç•¥åç§°" name="draw_protect_name" type="string"/>
+        <column desc="å…¬å‘ŠId" name="broadcastid" type="int"/>
+        <column desc="å…¬å‘Šçš„æœ€ä½Žå“è´¨" name="broadcast_least_quality" type="int"/>
+        <column desc="æŠ½å¡å‘¨å¥–åŠ±çš„é‚®ä»¶id" name="week_reward_mailid" type="int"/>
     </table>
     <table extraSplit="40" name="jewelry" primaryKey="ID">
-        <column desc="Ê×ÊÎID" name="ID" range="1,9999" type="int"/>
-        <column desc="Ê×ÊÎÃû³Æ" name="Name" type="string"/>
-        <column desc="Í¼±êID" name="IconFile" type="string"/>
-        <column desc="Ê×ÊÎµÈ¼¶" name="LvlRank" ref="equip.jewelryrandom" type="LevelRank"/>
-        <column desc="Ê×ÊÎÀàÐÍ" name="Type" ref="equip.jewelrytype" type="string"/>
-        <column desc="Ì××°ID£¨Îª0ÊÇÃ»ÓÐ²»ÊôÓÚÌ××°£¬Ê×ÊÎÆ·¼¶Îª4µÄÊ×ÊÎ¸Ã²ÎÊýÎªÌ××°id£¬ÆäÓàÇé¿öÎª0,ÒýÓÃJewelrySuit.csv£©" name="SuitID" ref="equip.jewelrysuit" refType="NULLABLE" type="int"/>
-        <column desc="¹Ø¼üÊôÐÔÀàÐÍ" name="KeyAbility" ref="equip.ability" type="int"/>
-        <column desc="¹Ø¼üÊôÐÔÊýÖµ" name="KeyAbilityValue" type="int"/>
-        <column desc="ÊÛÂô¼Û¸ñ" name="SalePrice" type="int"/>
-        <column desc="ÃèÊö,¸ù¾ÝLvlºÍRankÀ´Ëæ»ú3¸öÊôÐÔ£¬µÚÒ»¸öÊôÐÔÓÉLvl,RankÐÐËæ»ú£¬Ê£ÏÂ2¸öÓÉLvlºÍÐ¡ÓÚRankµÄÐÐÀïËæ»ú¡£Rank×îÐ¡µÄÊ±ºò¶¼´ÓLvl£¬RankÀïËæ»ú¡£" name="Description" type="string"/>
+        <column desc="é¦–é¥°ID" name="ID" range="1,9999" type="int"/>
+        <column desc="é¦–é¥°åç§°" name="Name" type="string"/>
+        <column desc="å›¾æ ‡ID" name="IconFile" type="string"/>
+        <column desc="é¦–é¥°ç­‰çº§" name="LvlRank" ref="equip.jewelryrandom" type="LevelRank"/>
+        <column desc="é¦–é¥°ç±»åž‹" name="Type" ref="equip.jewelrytype" type="string"/>
+        <column desc="å¥—è£…IDï¼ˆä¸º0æ˜¯æ²¡æœ‰ä¸å±žäºŽå¥—è£…ï¼Œé¦–é¥°å“çº§ä¸º4çš„é¦–é¥°è¯¥å‚æ•°ä¸ºå¥—è£…idï¼Œå…¶ä½™æƒ…å†µä¸º0,å¼•ç”¨JewelrySuit.csvï¼‰" name="SuitID" ref="equip.jewelrysuit" refType="NULLABLE" type="int"/>
+        <column desc="å…³é”®å±žæ€§ç±»åž‹" name="KeyAbility" ref="equip.ability" type="int"/>
+        <column desc="å…³é”®å±žæ€§æ•°å€¼" name="KeyAbilityValue" type="int"/>
+        <column desc="å”®å–ä»·æ ¼" name="SalePrice" type="int"/>
+        <column desc="æè¿°,æ ¹æ®Lvlå’ŒRankæ¥éšæœº3ä¸ªå±žæ€§ï¼Œç¬¬ä¸€ä¸ªå±žæ€§ç”±Lvl,Rankè¡Œéšæœºï¼Œå‰©ä¸‹2ä¸ªç”±Lvlå’Œå°äºŽRankçš„è¡Œé‡Œéšæœºã€‚Rankæœ€å°çš„æ—¶å€™éƒ½ä»ŽLvlï¼ŒRanké‡Œéšæœºã€‚" name="Description" type="string"/>
     </table>
     <table name="jewelryrandom" primaryKey="LvlRank">
-        <column desc="µÈ¼¶" name="LvlRank" type="LevelRank"/>
-        <column desc="×îÐ¡¹¥»÷Á¦" name="AttackRange" type="Range"/>
-        <column desc="×îÐ¡·ÀÓùÁ¦" name="OtherRange" type="list,Range,4"/>
-        <column desc="²âÊÔpack" name="TestPack" pack="1" type="list,TestPackBean"/>
+        <column desc="ç­‰çº§" name="LvlRank" type="LevelRank"/>
+        <column desc="æœ€å°æ”»å‡»åŠ›" name="AttackRange" type="Range"/>
+        <column desc="æœ€å°é˜²å¾¡åŠ›" name="OtherRange" type="list,Range,4"/>
+        <column desc="æµ‹è¯•pack" name="TestPack" pack="1" type="list,TestPackBean"/>
     </table>
     <table entry="Ename" name="jewelrysuit" primaryKey="SuitID">
-        <column desc="ÊÎÆ·Ì××°ID" name="SuitID" type="int"/>
+        <column desc="é¥°å“å¥—è£…ID" name="SuitID" type="int"/>
         <column name="Ename" type="string"/>
-        <column desc="²ß»®ÓÃÃû×Ö" name="Name" type="text"/>
-        <column desc="Ì××°ÊôÐÔÀàÐÍ1£¨×°±¸Ì××°ÖÐµÄÁ½¼þÊ±Ôö¼ÓµÄÊôÐÔ£©" name="Ability1" type="int"/>
-        <column desc="Ì××°ÊôÐÔ1" name="Ability1Value" type="int"/>
-        <column desc="Ì××°ÊôÐÔÀàÐÍ2£¨×°±¸Ì××°ÖÐµÄÈý¼þÊ±Ôö¼ÓµÄÊôÐÔ£©" name="Ability2" type="int"/>
-        <column desc="Ì××°ÊôÐÔ2" name="Ability2Value" type="int"/>
-        <column desc="Ì××°ÊôÐÔÀàÐÍ3£¨×°±¸Ì××°ÖÐµÄËÄ¼þÊ±Ôö¼ÓµÄÊôÐÔ£©" name="Ability3" type="int"/>
-        <column desc="Ì××°ÊôÐÔ3" name="Ability3Value" type="int"/>
-        <column desc="²¿¼þ1" name="SuitList" type="list,int,4"/>
+        <column desc="ç­–åˆ’ç”¨åå­—" name="Name" type="text"/>
+        <column desc="å¥—è£…å±žæ€§ç±»åž‹1ï¼ˆè£…å¤‡å¥—è£…ä¸­çš„ä¸¤ä»¶æ—¶å¢žåŠ çš„å±žæ€§ï¼‰" name="Ability1" type="int"/>
+        <column desc="å¥—è£…å±žæ€§1" name="Ability1Value" type="int"/>
+        <column desc="å¥—è£…å±žæ€§ç±»åž‹2ï¼ˆè£…å¤‡å¥—è£…ä¸­çš„ä¸‰ä»¶æ—¶å¢žåŠ çš„å±žæ€§ï¼‰" name="Ability2" type="int"/>
+        <column desc="å¥—è£…å±žæ€§2" name="Ability2Value" type="int"/>
+        <column desc="å¥—è£…å±žæ€§ç±»åž‹3ï¼ˆè£…å¤‡å¥—è£…ä¸­çš„å››ä»¶æ—¶å¢žåŠ çš„å±žæ€§ï¼‰" name="Ability3" type="int"/>
+        <column desc="å¥—è£…å±žæ€§3" name="Ability3Value" type="int"/>
+        <column desc="éƒ¨ä»¶1" name="SuitList" type="list,int,4"/>
     </table>
     <table enum="TypeName" name="jewelrytype" primaryKey="TypeName">
-        <column desc="³ÌÐòÓÃÃû×Ö" name="TypeName" type="string"/>
+        <column desc="ç¨‹åºç”¨åå­—" name="TypeName" type="string"/>
     </table>
     <table enum="RankName" name="rank" primaryKey="RankID">
-        <column desc="Ï¡ÓÐ¶È" name="RankID" type="int"/>
-        <column desc="³ÌÐòÓÃÃû×Ö" name="RankName" type="string"/>
-        <column desc="ÏÔÊ¾Ãû³Æ" name="RankShowName" type="string"/>
+        <column desc="ç¨€æœ‰åº¦" name="RankID" type="int"/>
+        <column desc="ç¨‹åºç”¨åå­—" name="RankName" type="string"/>
+        <column desc="æ˜¾ç¤ºåç§°" name="RankShowName" type="string"/>
     </table>
 </db>

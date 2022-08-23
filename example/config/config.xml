@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="GBK" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <db splitMode="PkgBased">
     <bean name="LevelRank">
-        <column desc="µÈ¼¶" name="Level" type="int"/>
-        <column desc="Æ·ÖÊ" name="Rank" ref="equip.rank" type="int"/>
+        <column desc="ç­‰çº§" name="Level" type="int"/>
+        <column desc="å“è´¨" name="Rank" ref="equip.rank" type="int"/>
     </bean>
     <bean name="Position" packSep=";">
         <column name="x" type="int"/>
@@ -10,7 +10,7 @@
         <column name="z" type="int"/>
     </bean>
     <bean name="Range">
-        <column desc="×îÐ¡" name="Min" type="int"/>
-        <column desc="×î´ó" name="Max" type="int"/>
+        <column desc="æœ€å°" name="Min" type="int"/>
+        <column desc="æœ€å¤§" name="Max" type="int"/>
     </bean>
 </db>

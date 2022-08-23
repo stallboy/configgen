@@ -60,12 +60,8 @@ public abstract class Value {
     }
 
     void error(Object... args) {
-        throw new AssertionError(join(args) + " -- " + this);
-    }
-
-
-    private String join(Object... args) {
-        return Arrays.stream(args).map(Objects::toString).collect(Collectors.joining(","));
+        String argsStr = Arrays.stream(args).map(Objects::toString).collect(Collectors.joining(","));
+        throw new AssertionError(argsStr + " -- " + this);
     }
 
 }

@@ -1,26 +1,26 @@
-<?xml version="1.0" encoding="GBK" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <db>
     <table name="ai" primaryKey="ID">
         <column desc="ID" name="ID" type="int"/>
-        <column desc="ÃèÊö----ÕâÀï²âÊÔÏÂ¶àÐÐÐ§¹û--ÔÙÀ´Ò»ÐÐ" name="Desc" type="string"/>
-        <column desc="´¥·¢¹«Ê½" name="CondID" type="string"/>
-        <column desc="´¥·¢¼ä¸ô(Ö¡)" name="TrigTick" type="int"/>
-        <column desc="´¥·¢¼¸ÂÊ" name="TrigOdds" type="int"/>
-        <column desc="´¥·¢ÐÐÎª" name="ActionID" type="string"/>
-        <column desc="ËÀÍöÒÆ³ý" name="DeathRemove" type="bool"/>
+        <column desc="æè¿°----è¿™é‡Œæµ‹è¯•ä¸‹å¤šè¡Œæ•ˆæžœ--å†æ¥ä¸€è¡Œ" name="Desc" type="string"/>
+        <column desc="è§¦å‘å…¬å¼" name="CondID" type="string"/>
+        <column desc="è§¦å‘é—´éš”(å¸§)" name="TrigTick" type="int"/>
+        <column desc="è§¦å‘å‡ çŽ‡" name="TrigOdds" type="int"/>
+        <column desc="è§¦å‘è¡Œä¸º" name="ActionID" type="string"/>
+        <column desc="æ­»äº¡ç§»é™¤" name="DeathRemove" type="bool"/>
     </table>
     <table name="ai_action" primaryKey="ID">
         <column desc="ID" name="ID" type="int"/>
-        <column desc="ÃèÊö" name="Desc" type="string"/>
-        <column desc="¹«Ê½" name="FormulaID" type="int"/>
-        <column desc="²ÎÊý(int)1" name="ArgIList" type="list,int,6"/>
-        <column desc="²ÎÊý(string)1" name="ArgSList" type="list,int,3"/>
+        <column desc="æè¿°" name="Desc" type="string"/>
+        <column desc="å…¬å¼" name="FormulaID" type="int"/>
+        <column desc="å‚æ•°(int)1" name="ArgIList" type="list,int,6"/>
+        <column desc="å‚æ•°(string)1" name="ArgSList" type="list,int,3"/>
     </table>
     <table name="ai_condition" primaryKey="ID">
         <column desc="ID" name="ID" type="int"/>
-        <column desc="ÃèÊö" name="Desc" type="string"/>
-        <column desc="¹«Ê½" name="FormulaID" type="int"/>
-        <column desc="²ÎÊý(int)1" name="ArgIList" type="list,int,6"/>
-        <column desc="²ÎÊý(string)1" name="ArgSList" type="list,int,3"/>
+        <column desc="æè¿°" name="Desc" type="string"/>
+        <column desc="å…¬å¼" name="FormulaID" type="int"/>
+        <column desc="å‚æ•°(int)1" name="ArgIList" type="list,int,6"/>
+        <column desc="å‚æ•°(string)1" name="ArgSList" type="list,int,3"/>
     </table>
 </db>

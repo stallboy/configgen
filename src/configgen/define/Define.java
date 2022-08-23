@@ -56,7 +56,7 @@ public class Define extends Node {
         return beans.isEmpty() && tables.isEmpty() && !allDefine.isTopDefine(this);
     }
 
-    void saveToXml(String encoding) {
+    void saveToXml() {
         Path defineXmlPath = allDefine.resolvePath(file);
         if (canDelete()) {
             try {
@@ -85,7 +85,7 @@ public class Define extends Node {
             t.save(self);
         }
 
-        DomUtils.prettySaveDocument(doc, defineXmlPath.toFile(), encoding);
+        DomUtils.prettySaveDocument(doc, defineXmlPath.toFile());
     }
 
     // 纠正bean和table所属的define

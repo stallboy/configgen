@@ -46,7 +46,7 @@ public abstract class VComposite extends Value {
             StringBuilder sb = new StringBuilder();
             sb.append(cells.get(0).toString());
             for (int i = 1; i < cells.size(); i++) {
-                sb.append(",").append(cells.get(i).getData());
+                sb.append(";").append(cells.get(i).getData());
             }
             return sb.toString();
         }

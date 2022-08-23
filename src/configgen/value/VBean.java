@@ -113,6 +113,10 @@ public class VBean extends VComposite {
                 Type columnSelected = tBean.getColumn(columnFullType.name);
                 if (columnSelected != null) {
                     // 提取单个field
+                    if (s + span > parsed.size()){
+                        error(String.format("%s处理中...需要%d个数据，实际只有%d个", type.toString(), span, parsed.size()-s));
+                    }
+
                     Value v = Values.create(columnSelected, parsed.subList(s, s + span), columnFullType, adata.packAsOne);
                     values.add(v);
                 }

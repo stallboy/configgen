@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="GBK" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <db>
     <bean name="TestDefaultBean">
         <column name="testInt" type="int"/>
@@ -31,19 +31,19 @@
         </bean>
     </bean>
     <table enum="name" name="completeconditiontype" primaryKey="id">
-        <column desc="ÈÎÎñÍê³ÉÌõ¼þÀàÐÍ£¨idµÄ·¶Î§Îª1-100£©" name="id" type="int"/>
-        <column desc="³ÌÐòÓÃÃû×Ö" name="name" type="string"/>
+        <column desc="ä»»åŠ¡å®Œæˆæ¡ä»¶ç±»åž‹ï¼ˆidçš„èŒƒå›´ä¸º1-100ï¼‰" name="id" type="int"/>
+        <column desc="ç¨‹åºç”¨åå­—" name="name" type="string"/>
     </table>
     <table name="task" primaryKey="taskid">
-        <column desc="ÈÎÎñÍê³ÉÌõ¼þÀàÐÍ£¨idµÄ·¶Î§Îª1-100£©" name="taskid" ref="task.taskextraexp" refType="NULLABLE" type="int"/>
-        <column desc="³ÌÐòÓÃÃû×Ö" name="name" type="list,text,2"/>
+        <column desc="ä»»åŠ¡å®Œæˆæ¡ä»¶ç±»åž‹ï¼ˆidçš„èŒƒå›´ä¸º1-100ï¼‰" name="taskid" ref="task.taskextraexp" refType="NULLABLE" type="int"/>
+        <column desc="ç¨‹åºç”¨åå­—" name="name" type="list,text,2"/>
         <column name="nexttask" ref="task" refType="NULLABLE" type="int"/>
         <column name="completecondition" type="task.completecondition"/>
         <column name="exp" type="int"/>
-        <column desc="²âÊÔ" name="testDefaultBean" pack="1" type="TestDefaultBean"/>
+        <column desc="æµ‹è¯•" name="testDefaultBean" pack="1" type="TestDefaultBean"/>
     </table>
     <table name="taskextraexp" primaryKey="taskid">
-        <column desc="ÈÎÎñÍê³ÉÌõ¼þÀàÐÍ£¨idµÄ·¶Î§Îª1-100£©" name="taskid" type="int"/>
-        <column desc="¶îÍâ½±Àø¾­Ñé" name="extraexp" type="int"/>
+        <column desc="ä»»åŠ¡å®Œæˆæ¡ä»¶ç±»åž‹ï¼ˆidçš„èŒƒå›´ä¸º1-100ï¼‰" name="taskid" type="int"/>
+        <column desc="é¢å¤–å¥–åŠ±ç»éªŒ" name="extraexp" type="int"/>
     </table>
 </db>

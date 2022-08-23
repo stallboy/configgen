@@ -24,7 +24,7 @@ public final class Main {
         System.out.println();
         System.out.println("----配置表信息--------------------------------------");
         System.out.println("    -datadir      配表根目录，根目录可以有个config.xml");
-        System.out.println("    -encoding     配表和配表结构文件的编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
+        System.out.println("    -encoding     配表编码，默认是GBK，如果文件中含有bom则用bom标记的编码");
         System.out.println("    -verify       检查配表约束");
 
         System.out.println();

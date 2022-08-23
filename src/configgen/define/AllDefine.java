@@ -88,7 +88,7 @@ public class AllDefine extends Node {
         }
 
         for (Define define : new ArrayList<>(defines.values())) {
-            define.saveToXml(encoding);
+            define.saveToXml();
 
             if (define.canDelete()) {
                 defines.remove(define.file);

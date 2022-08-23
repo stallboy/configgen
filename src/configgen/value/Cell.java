@@ -50,7 +50,7 @@ public class Cell {
             r = col;
             c = row;
         }
-        return String.format("sheet=%s,row=%d,col=%s,data=%s", sheet.name, DSheet.getHeadRow() + r + 1, toAZ(c), data);
+        return String.format("表=%s,行=%d,列=%s,数据=%s", sheet.name, DSheet.getHeadRow() + r + 1, toAZ(c), data);
     }
 
     private static final int N = 'Z' - 'A' + 1;

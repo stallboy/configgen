@@ -46,6 +46,7 @@ public class Context {
     private AllValue lastValue;
     private ViewFilter lastViewFilter;
 
+    private Replacement replacement;
 
     Context(Path dataDir, String encoding) {
         fullDefine = new AllDefine(dataDir, encoding);
@@ -68,6 +69,14 @@ public class Context {
         } else if (langSwitchDir != null) {
             langSwitch = new LangSwitch(langSwitchDir, i18nEncoding, crlfaslf);
         }
+    }
+
+    void setReplacement(String file) {
+        replacement = new Replacement(file);
+    }
+
+    public Replacement getReplacement() {
+        return replacement;
     }
 
     void dump() {

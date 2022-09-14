@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<replace>
+    <rep src="t_red" dst="#123456"/>
+    <rep src="t_blue" dst="#123456"/>
+</replace>

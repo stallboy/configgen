@@ -25,7 +25,7 @@ ID,Name,IconFile,LvlRank@Lvl,Rank,Type,SuitID,KeyAbility,KeyAbilityValue,SalePri
 23,地魁·虹涛珮,texture/t_jew_1_080.bundle,80,3,Jade,,2,330,1000,
 24,天堑·虹涛珮,texture/t_jew_1_084.bundle,80,4,Jade,6,2,360,1000,
 25,神王·虹涛珮,texture/t_jew_1_085.bundle,80,5,Jade,7,2,393,1000,
-26,梨木镯,texture/t_jew_2_010.bundle,5,1,Bracelet,,1,70,1000,种在地里多少年也不会长出梨的
+26,梨木镯,texture/t_jew_2_010.bundle,5,1,Bracelet,,1,70,1000,<color=t_red>种在地里多少年也不会长出梨的</color>
 27,人雄·梨木镯,texture/t_jew_2_010.bundle,5,2,Bracelet,,1,100,1000,种在地里多少年也不会长出梨的
 28,地魁·梨木镯,texture/t_jew_2_010.bundle,5,3,Bracelet,,1,130,1000,种在地里多少年也不会长出梨的
 29,天堑·梨木镯,texture/t_jew_2_014.bundle,5,4,Bracelet,,1,235,1000,种在地里多少年也不会长出梨的

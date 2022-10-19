@@ -14,17 +14,20 @@ public class VString extends VPrimitive {
 
     VString(TString type, List<Cell> data) {
         super(type, data);
-
+        var ctx = AllValue.getCurrent().getCtx();
+        String sValue;
         if (type.subtype == TString.Subtype.STRING) {
-            value = raw.getData();
+            sValue = raw.getData();
         } else {
             String originalValue = raw.getData();
             String v = AllValue.getCurrent().getCtx().getI18n().enterText(originalValue);
-            value = v != null ? v : originalValue;
+            sValue = v != null ? v : originalValue;
             if (AllValue.getCurrent().getCtx().isI18n() && v == null && !originalValue.isEmpty()) {
                 System.out.println("未找到 " + type.fullName() + ": " + originalValue);
             }
         }
+        var replacement = ctx.getReplacement();
+        value = replacement == null ? sValue : replacement.replace(sValue);
     }
 
     @Override

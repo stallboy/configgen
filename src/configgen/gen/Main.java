@@ -99,6 +99,7 @@ public final class Main {
 
         String langSwitchDir = null;
 
+        String replaceFile = null;
 
         boolean verify = false;
         List<Generator> generators = new ArrayList<>();
@@ -135,6 +136,9 @@ public final class Main {
                     break;
                 case "-langSwitchDir":
                     langSwitchDir = args[++i];
+                    break;
+                case "-replace":
+                    replaceFile = args[++i];
                     break;
 
                 case "-v":
@@ -208,6 +212,10 @@ public final class Main {
         ctx.setI18nOrLangSwitch(i18nfile, langSwitchDir, i18nencoding, i18ncrlfaslf);
         if (dump) {
             ctx.dump();
+        }
+
+        if (replaceFile != null) {
+            ctx.setReplacement(replaceFile);
         }
 
         if (searchIntegers != null) {

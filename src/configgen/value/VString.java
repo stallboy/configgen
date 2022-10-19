@@ -1,6 +1,8 @@
 package configgen.value;
 
 import configgen.define.Range;
+import configgen.gen.Context;
+import configgen.gen.Replacement;
 import configgen.type.TString;
 
 import java.util.List;
@@ -14,7 +16,7 @@ public class VString extends VPrimitive {
 
     VString(TString type, List<Cell> data) {
         super(type, data);
-        var ctx = AllValue.getCurrent().getCtx();
+        Context ctx = AllValue.getCurrent().getCtx();
         String sValue;
         if (type.subtype == TString.Subtype.STRING) {
             sValue = raw.getData();
@@ -26,7 +28,7 @@ public class VString extends VPrimitive {
                 System.out.println("未找到 " + type.fullName() + ": " + originalValue);
             }
         }
-        var replacement = ctx.getReplacement();
+        Replacement replacement = ctx.getReplacement();
         value = replacement == null ? sValue : replacement.replace(sValue);
     }
 

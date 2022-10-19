@@ -8,13 +8,13 @@ import java.util.HashMap;
 
 public class Replacement {
 
-    private HashMap<String, String> src2dst = new HashMap<>();
+    private final HashMap<String, String> src2dst = new HashMap<>();
 
     public Replacement(String filePath) {
         Element root = DomUtils.rootElement(Paths.get(filePath).toFile());
         for (Element rep : DomUtils.elements(root, "rep")) {
-            var src = rep.getAttribute("src");
-            var dst = rep.getAttribute("dst");
+            String src = rep.getAttribute("src");
+            String dst = rep.getAttribute("dst");
             src2dst.put(src, dst);
         }
     }

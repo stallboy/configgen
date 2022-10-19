@@ -113,8 +113,8 @@ public class DSheet extends Node {
         }
 
 
-        if (rows.size() < 2) {
-            throw new AssertionError(fullName() + " 数据行数小于2");
+        if (rows.size() < HeadRow) {
+            throw new AssertionError(fullName() + " 数据行数小于" + HeadRow);
         }
 
         descLine = rows.get(0);

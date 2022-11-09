@@ -36,17 +36,14 @@ end
 ---i18n用于类型为text的字段，用于运行时切换语言。
 mkcfg.i18n = {}
 
---- btest, bint用于压缩bool，int。（把多个bool或多个int压缩成一个integer）
+--- btest用于压缩bool，（把多个bool压缩成一个integer），
+--- 这个正常存储模式可以压缩一行多个bool，列存储模式可以压缩一列多个bool
 --- 注意默认是错的，需要bit操作，留做应用自己来做
 --- 如果生成lua时不压缩，那应用不需要设置
-mkcfg.btest = function(v, bit)
+mkcfg.btest = function(_, _)
+    --- _, _参数为v, bit
     --- bit 从0开始到52
     return true  -- TODO
-end
-
-mkcfg.bint = function(v, bitLow, bitCount)
-    --- bitLow从0, bitCount最大26, bitLow+bitCount最大53
-    return v -- TODO
 end
 
 ----------------------------------------
@@ -288,7 +285,12 @@ function mkcfg.table(self, uniqkeys, enumidx, refs, ...)
     return mkcfg.i18n_table(self, uniqkeys, enumidx, refs, nil, ...)
 end
 
+-------------------------------------------------------------
+--- self : table
 --- uniqkeys : {{allname, getname, keyidx1, keyidx2}, }
+--- enumidx : nil 或者 枚举的所在的列数
+--- refs : 见mkrefs注释
+--- textFields : 见mkbean函数内注释
 function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
     local fields = { ... }
     local get = mkbean(refs, textFields, fields)
@@ -336,6 +338,16 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
             all[v[k1]] = v
             return v
         end
+
+        --- 为简单计：这有在这种情况下，才允许add，del
+        --- 这里不做出错log，因为外部要自己再包装个add, del来用
+        --- 外部应该有个统一的permitAddDel的地方，来声明哪些表可被扩充，这有明确出来好，有个控制点。
+        self._add = mk
+
+        self._del = function(id)
+            all[id] = nil
+        end
+
     else
         mk = function(...)
             local v = { ... }
@@ -362,179 +374,7 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
     return mk
 end
 
-
-
-
--- 列模式存储的table ----------------------------------------------
--- TODO ref这有变化，列模式应该不匹配了，用的时候需要改
-
-
---- refs { {refname, islist, dsttable, dstgetname, key1, key2}, }
-local function mkbeanc(self, refs, textFields, fields)
-    local get = {}
-    for i, f in ipairs(fields) do
-        if textFields and textFields[f] then
-            -- 重写取field方法，增加一间接层, 支持2种类型，<1>true表示是text，<2>2表示是list,text
-            local is_list = textFields[f] == 2
-            if is_list then
-                get[f] = function(t)
-                    local row_idx = t[1]
-                    local val = self.rawall[i][row_idx]
-                    local res = {}
-                    for ei, ele in ipairs(val) do
-                        local v = mkcfg.i18n[ele]
-                        if v then
-                            res[ei] = v
-                        else
-                            res[ei] = ""
-                        end
-                    end
-                    return res
-                end
-            else
-                get[f] = function(t)
-                    local row_idx = t[1]
-                    local val = self.rawall[i][row_idx]
-                    local v = mkcfg.i18n[val]
-                    if v then
-                        return v
-                    else
-                        return ""
-                    end
-                end
-            end
-        else
-            -- 不是国际化字段
-            if type(f) == 'table' then
-                -- 有压缩哦
-                local fn = f[1]
-                local isInt = f[2]
-                local bitLen = 1
-                if isInt then
-                    bitLen = f[3]
-                end
-                local countPerOne = math.floor(53 / bitLen)
-
-                if isInt then
-                    get[fn] = function(t)
-
-                        local row_idx = t[1] - 1
-                        local idx = math.floor(row_idx / countPerOne)
-                        local packed = self.rawall[i][idx + 1]
-                        local idx_in_packed = row_idx - idx * countPerOne
-
-                        return mkcfg.bint(packed, idx_in_packed, bitLen)
-                    end
-                else
-                    get[fn] = function(t)
-                        local row_idx = t[1] - 1
-                        local idx = math.floor(row_idx / 53)
-                        local packed = self.rawall[i][idx + 1]
-                        local idx_in_packed = row_idx - idx * 53
-                        return mkcfg.btest(packed, idx_in_packed)
-                    end
-                end
-
-            else
-                get[f] = function(t)
-                    local row_idx = t[1]
-                    return self.rawall[i][row_idx]
-                end
-            end
-        end
-    end
-
-    get.Fields = function()
-        --- fields都小写，refs开头是Ref，NullableRef所以起名Fields不会重复
-        return fields
-    end
-
-    if refs then
-        mkrefs(get, refs)
-    end
-
-    return get
-end
-
-function mkcfg.tablec(self, uniqkeys, enum, refs, ...)
-    return mkcfg.i18n_tablec(self, uniqkeys, enum, refs, nil, ...)
-end
-
---- uniqkeys : {{allname, getname, key1, key2}, }
-function mkcfg.i18n_tablec(self, uniqkeys, enum, refs, textFields, ...)
-    local fields = { ... }
-    local get = mkbeanc(self, refs, textFields, fields)
-    -- 设置访问函数
-    for _, uk in ipairs(uniqkeys) do
-        local allname, getname, _, k2 = unpack(uk)
-        local map = {}
-        self[allname] = map
-        if k2 == nil then
-            self[getname] = function(k)
-                return map[k]
-            end
-        else
-            --- 2个字段可以做为uniqkey，但都必须是数字，并且第一个<1亿，第二个<1万
-            self[getname] = function(k, j)
-                return map[k + j * 100000000]
-            end
-        end
-    end
-
-    local I = {}
-    I.__index = function(t, k)
-        local g = rawget(get, k)
-        if g then
-            return g(t)
-        end
-        return nil
-    end
-
-    if mkcfg.newindex then
-        I.__newindex = mkcfg.newindex
-    end
-
-    if mkcfg.tostring then
-        I.__tostring = mkcfg.tostring
-    end
-
-    local mk
-
-    mk = function(row_cnt, vs)
-        self.rawall = vs
-
-        local rows = {}
-        for r = 1, row_cnt do
-            local rd = { r }
-            setmetatable(rd, I)
-            rows[r] = rd
-        end
-
-        for _, uk in ipairs(uniqkeys) do
-            local allname, _, k1, k2 = unpack(uk) -- k1, k2，这里要是字符串
-            local all = self[allname]
-
-            for _, rd in ipairs(rows) do
-                if k2 == nil then
-                    all[rd[k1]] = rd
-                else
-                    all[rd[k1] + rd[k2] * 100000000] = rd
-                end
-            end
-        end
-
-        if enum then
-            -- enumidx　要是字符串
-            for _, rd in ipairs(rows) do
-                local e = rd[enum]
-                if #e > 0 then
-                    self[e] = rd
-                end
-            end
-        end
-    end
-
-    return mk
-end
+--- 列存储模式的mkcfgc.lua会用到
+mkcfg._mkrefs = mkrefs
 
 return mkcfg

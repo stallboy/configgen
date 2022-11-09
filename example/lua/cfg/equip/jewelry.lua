@@ -65,7 +65,7 @@ mk(22, "人雄·虹涛珮", "texture/t_jew_1_080.bundle", levelrank(80, 2), "Jad
 mk(23, "地魁·虹涛珮", "texture/t_jew_1_080.bundle", levelrank(80, 3), "Jade", 0, 2, 330, 1000, "")
 mk(24, "天堑·虹涛珮", "texture/t_jew_1_084.bundle", levelrank(80, 4), "Jade", 6, 2, 360, 1000, "")
 mk(25, "神王·虹涛珮", "texture/t_jew_1_085.bundle", levelrank(80, 5), "Jade", 7, 2, 393, 1000, "")
-mk(26, "梨木镯", "texture/t_jew_2_010.bundle", levelrank(5, 1), "Bracelet", 0, 1, 70, 1000, "种在地里多少年也不会长出梨的")
+mk(26, "梨木镯", "texture/t_jew_2_010.bundle", levelrank(5, 1), "Bracelet", 0, 1, 70, 1000, "<color=#123456>种在地里多少年也不会长出梨的</color>")
 mk(27, "人雄·梨木镯", "texture/t_jew_2_010.bundle", levelrank(5, 2), "Bracelet", 0, 1, 100, 1000, "种在地里多少年也不会长出梨的")
 mk(28, "地魁·梨木镯", "texture/t_jew_2_010.bundle", levelrank(5, 3), "Bracelet", 0, 1, 130, 1000, "种在地里多少年也不会长出梨的")
 mk(29, "天堑·梨木镯", "texture/t_jew_2_014.bundle", levelrank(5, 4), "Bracelet", 0, 1, 235, 1000, "种在地里多少年也不会长出梨的")

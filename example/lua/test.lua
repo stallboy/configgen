@@ -20,8 +20,10 @@ local function testToString()
     --print(t2)
 
     local s4 = cfg.other.signin.get(4)
-    assert(tostring(s4) == '{id=4,item2countMap={30002=5,10001=5,30001=5},vipitem2vipcountMap={10001=10},viplevel=0,iconFile=texture/t_i10008.bundle}')
-    --print(s4)
+    --print(tostring(s4))
+    assert(tostring(s4) ==
+            '{id=4,item2countMap={10001=5,30002=5,30001=5},vipitem2vipcountMap={10001=10},viplevel=0,iconFile=texture/t_i10008.bundle}')
+
 end
 
 local function testReadOnly()
@@ -234,6 +236,21 @@ local function testDefaultBean()
     assert(#t.testDefaultBean.testMap == 0)
 end
 
+local function testAddDel()
+    local ai = cfg.ai.ai
+    local t = ai.get(999)
+    assert(t == nil)
+    t = ai._add(999, "召唤猴子999", "10012", -1, 10000, "10012", true)
+    assert(t.iD == 999)
+    assert(t.desc == "召唤猴子999")
+
+    t = ai.get(999)
+    assert(t.iD == 999)
+
+    ai._del(999)
+    t = ai.get(999)
+    assert(t == nil)
+end
 
 testReadOnly()
 testToString()
@@ -267,4 +284,6 @@ testCsvBlock()
 testMapValueRef()
 
 testDefaultBean()
+
+testAddDel()
 print("ok")

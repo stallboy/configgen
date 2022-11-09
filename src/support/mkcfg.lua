@@ -339,7 +339,7 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
             return v
         end
 
-        --- 为简单计：这有在这种情况下，才允许add，del
+        --- 为简单计：只有在这种情况下，才允许add，del
         --- 这里不做出错log，因为外部要自己再包装个add, del来用
         --- 外部应该有个统一的permitAddDel的地方，来声明哪些表可被扩充，这有明确出来好，有个控制点。
         self._add = mk

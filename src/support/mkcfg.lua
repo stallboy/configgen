@@ -146,7 +146,7 @@ local function mkbean(refs, textFields, fields)
         else
             --- not in textFields
             if type(f) == 'table' then
-                -- 多个bool合成一个int存储
+                -- 多个bool合成一个int存储，{这一个table里存了所有的bool的列名称}
                 for k, ele in ipairs(f) do
                     get[ele] = function(t)
                         return mkcfg.btest(t[i], k - 1)
@@ -291,8 +291,11 @@ end
 --- enumidx : nil 或者 枚举的所在的列数
 --- refs : 见mkrefs注释
 --- textFields : 见mkbean函数内注释
+--- ... : fields，只含名字不包含类型，todo：将来考虑加类型，
+--- 如果生成lua时用了packbool，此实参又是table类型，则这个table里包含了此表所有的bool类型列的名称
 function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
     local fields = { ... }
+    self.Metadata = { fields = fields, uniqkeys = uniqkeys, enumidx = enumidx, refs = refs }
     local get = mkbean(refs, textFields, fields)
     for _, uk in ipairs(uniqkeys) do
         local allname, getname, _, k2 = unpack(uk)
@@ -341,7 +344,7 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
 
         --- 为简单计：只有在这种情况下，才允许add，del
         --- 这里不做出错log，因为外部要自己再包装个add, del来用
-        --- 外部应该有个统一的permitAddDel的地方，来声明哪些表可被扩充，这有明确出来好，有个控制点。
+        --- 外部应该有个统一的permitAddDel的地方，来声明哪些表可被扩充，这明确出来好，有个控制点。
         self._add = mk
 
         self._del = function(id)

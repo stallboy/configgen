@@ -252,6 +252,31 @@ local function testAddDel()
     assert(t == nil)
 end
 
+local function testMetadata()
+    local ai = cfg.ai.ai
+    local fields = ai.Metadata.fields
+    assert(fields[1] == "iD")
+    assert(fields[2] == "desc")
+    assert(fields[3] == "condID")
+    assert(fields[4] == "trigTick")
+    assert(fields[5] == "trigOdds")
+    assert(fields[6] == "actionID")
+    assert(fields[7] == "deathRemove")
+
+    local uniqkeys = ai.Metadata.uniqkeys
+    assert(#uniqkeys == 1 )
+    local pk = ai.Metadata.uniqkeys[1]
+    assert(pk[1] == 'all' )
+    assert(pk[2] == 'get' )
+    assert(pk[3] == 1 )
+
+    local refs = cfg.equip.jewelry.Metadata.refs
+    assert(#refs == 4 )
+
+    local enumidx = cfg.equip.jewelrytype.Metadata.enumidx
+    assert(enumidx == 1 )
+end
+
 testReadOnly()
 testToString()
 
@@ -286,4 +311,5 @@ testMapValueRef()
 testDefaultBean()
 
 testAddDel()
+testMetadata()
 print("ok")

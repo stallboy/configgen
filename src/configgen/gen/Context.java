@@ -48,10 +48,14 @@ public class Context {
 
     private Replacement replacement;
 
+    private final UgcDefine ugcDefine;
+
     Context(Path dataDir, String encoding) {
         fullDefine = new AllDefine(dataDir, encoding);
         fullData = fullDefine.readData();
         fullType = fullDefine.autoFixDefineAndResolveFullType(fullData);
+        ugcDefine = new UgcDefine(dataDir, encoding);
+
     }
 
     public Path getDataDir() {
@@ -94,6 +98,10 @@ public class Context {
 
     public I18n getI18n() {
         return i18n;
+    }
+
+    public UgcDefine getUgcDefine() {
+        return ugcDefine;
     }
 
     public AllValue makeValue(ViewFilter filter) {

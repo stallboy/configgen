@@ -31,13 +31,18 @@ public abstract class TPrimitive extends Type {
     }
 
     @Override
-    public boolean hasBlock(){
+    public boolean hasBlock() {
         return false;
     }
 
     @Override
     public int columnSpan() {
         return 1;
+    }
+
+    @Override
+    public boolean isPrimitiveValueType() {
+        return true;
     }
 
 }

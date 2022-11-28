@@ -102,7 +102,7 @@ public class GenJavaCode extends Generator {
             if (tbean.getBeanDefine().type == Bean.BeanType.BaseDynamicBean) {
                 GenBaseDynamicBeanInterface.generate(tbean, name, ps);
             } else {
-                GenBeanClass.generate(tbean, null, name, ps);
+                GenBeanClass.generate(tbean, null, name, ps, false);
             }
         }
     }
@@ -133,11 +133,20 @@ public class GenJavaCode extends Generator {
 
         if (isNeedReadData) {
             BeanName name = new BeanName(vtable.getTTable().getTBean(), dataPostfix);
+            boolean isTableUgc = AllValue.getCurrent().getCtx().getUgcDefine().isUgcTable(vtable.name);
             File javaFile = dstDir.toPath().resolve(name.path).toFile();
-
             try (CachedIndentPrinter ps = createCode(javaFile, encoding)) {
-                GenBeanClass.generate(vtable.getTTable().getTBean(), vtable, name, ps);
+                GenBeanClass.generate(vtable.getTTable().getTBean(), vtable, name, ps, isTableUgc);
             }
+
+            if (isTableUgc) {
+                String builderPath = name.path.substring(0, name.path.length() - 5) + "Builder.java";
+                File builderFile = dstDir.toPath().resolve(builderPath).toFile();
+                try (CachedIndentPrinter ps = createCode(builderFile, encoding)) {
+                    GenBeanClass.generateBuilder(vtable.getTTable().getTBean(), name, ps);
+                }
+            }
+
         }
     }
 

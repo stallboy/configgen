@@ -16,7 +16,39 @@ import java.util.stream.Collectors;
 
 class GenBeanClass {
 
-    static void generate(TBean tbean, VTable vtable, BeanName name, CachedIndentPrinter ps) {
+    static void generateBuilder(TBean tbean, BeanName name, CachedIndentPrinter ps) {
+
+        ps.println("package %s;", name.pkg);
+        ps.println();
+
+        ps.println("public class %sBuilder {", name.className);
+
+
+        // field, public，并且都不设置默认值，如果要做，可以自己来包装
+        for (Type type : tbean.getColumns()) {
+            ps.println1("public %s %s;",
+                        TypeStr.type(type),
+                        Generator.lower1(type.getColumnName()));
+        }
+        ps.println();
+
+        // build
+        ps.println1("public %s build() {", name.className);
+        for (Type type : tbean.getColumns()) {
+            if (!type.isPrimitiveValueType()) {
+                ps.println2("java.util.Objects.requireNonNull(%s);", Generator.lower1(type.getColumnName()));
+            }
+        }
+
+
+        ps.println2("return new %s(this);", name.className);
+        ps.println1("}");
+        ps.println();
+
+        ps.println("}");
+    }
+
+    static void generate(TBean tbean, VTable vtable, BeanName name, CachedIndentPrinter ps, boolean isTableUgc) {
         boolean isBean = vtable == null;
         boolean isTable = !isBean;
 
@@ -30,7 +62,8 @@ class GenBeanClass {
             ps.println("public class " + name.className + " implements " + Name.fullName(baseAction) + " {");
             ps.println1("@Override");
             ps.println1("public " + Name.refType(baseAction.getChildDynamicBeanEnumRefTable()) + " type() {");
-            ps.println2("return " + Name.refType(baseAction.getChildDynamicBeanEnumRefTable()) + "." + tbean.name.toUpperCase() + ";");
+            ps.println2("return " + Name.refType(
+                    baseAction.getChildDynamicBeanEnumRefTable()) + "." + tbean.name.toUpperCase() + ";");
             ps.println1("}");
             ps.println();
         } else {
@@ -40,9 +73,15 @@ class GenBeanClass {
         //field
         for (Type type : tbean.getColumns()) {
             String finalOrNot = !isBean && (type instanceof TList || type instanceof TMap) ? "final " : "";
-            ps.println1("private " + finalOrNot + TypeStr.type(type) + " " + Generator.lower1(type.getColumnName()) + TypeStr.initialValue(type) + ";");
+            ps.println1("private %s%s %s%s;",
+                        finalOrNot,
+                        TypeStr.type(type),
+                        Generator.lower1(type.getColumnName()),
+                        TypeStr.initialValue(type));
             for (SRef r : type.getConstraint().references) {
-                ps.println1("private " + finalOrNot + Name.refType(type, r) + " " + Name.refName(r) + Name.refInitialValue(type) + ";");
+                ps.println1(
+                        "private " + finalOrNot + Name.refType(type, r) + " " + Name.refName(r) + Name.refInitialValue(
+                                type) + ";");
             }
         }
 
@@ -50,12 +89,18 @@ class GenBeanClass {
             ps.println1("private " + Name.refType(foreignKey) + " " + Name.refName(foreignKey) + ";");
         }
         for (TForeignKey foreignKey : tbean.getListRefs()) {
-            ps.println1("private final " + Name.refTypeForList(foreignKey) + " " + Name.refName(foreignKey) + " = new java.util.ArrayList<>();");
+            ps.println1("private final " + Name.refTypeForList(foreignKey) + " " + Name.refName(
+                    foreignKey) + " = new java.util.ArrayList<>();");
         }
         ps.println();
 
         //constructor
-        if (!isBeanAndHasNoColumn) { //如果是没有列得 bean，就只生成一个public 构造就行。
+        //noinspection StatementWithEmptyBody
+        if (isBeanAndHasNoColumn) {
+            // 如果是没有列的bean
+            // 后面会生成空参数的public构造函数
+            // 这里忽略
+        } else {
             ps.println1("private %s() {", name.className);
             ps.println1("}");
             ps.println();
@@ -63,7 +108,19 @@ class GenBeanClass {
 
         if (isBean) {
             ps.println1("public %s(%s) {", name.className, MethodStr.formalParams(tbean.getColumnMap()));
-            tbean.getColumnMap().forEach((n, t) -> ps.println2("this.%s = %s;", Generator.lower1(n), Generator.lower1(n)));
+            for (String n : tbean.getColumnMap().keySet()) {
+                String ln = Generator.lower1(n);
+                ps.println2("this.%s = %s;", ln, ln);
+            }
+            ps.println1("}");
+            ps.println();
+        } else if (isTableUgc) {
+            // package访问级别，只能通过builder.build()来构建
+            ps.println1("%s(%sBuilder b) {", name.className, name.className);
+            for (String n : tbean.getColumnMap().keySet()) {
+                String ln = Generator.lower1(n);
+                ps.println2("this.%s = b.%s;", ln, ln);
+            }
             ps.println1("}");
             ps.println();
         }
@@ -82,7 +139,8 @@ class GenBeanClass {
                 ps.println2("}");
             } else if (t instanceof TMap) {
                 ps.println2("for (int c = input.readInt(); c > 0; c--) {");
-                ps.println3("%s.put(%s, %s);", selfN, TypeStr.readValue(((TMap) t).key), TypeStr.readValue(((TMap) t).value));
+                ps.println3("%s.put(%s, %s);", selfN, TypeStr.readValue(((TMap) t).key),
+                            TypeStr.readValue(((TMap) t).value));
                 ps.println2("}");
             } else {
                 ps.println2("%s = %s;", selfN, TypeStr.readValue(t));
@@ -118,14 +176,16 @@ class GenBeanClass {
         }
 
         for (TForeignKey tForeignKey : tbean.getMRefs()) {
-            ps.println1("public " + Name.refType(tForeignKey) + " " + Generator.lower1(Name.refName(tForeignKey)) + "() {");
+            ps.println1(
+                    "public " + Name.refType(tForeignKey) + " " + Generator.lower1(Name.refName(tForeignKey)) + "() {");
             ps.println2("return " + Name.refName(tForeignKey) + ";");
             ps.println1("}");
             ps.println();
         }
 
         for (TForeignKey tForeignKey : tbean.getListRefs()) {
-            ps.println1("public " + Name.refTypeForList(tForeignKey) + " " + Generator.lower1(Name.refName(tForeignKey)) + "() {");
+            ps.println1("public " + Name.refTypeForList(tForeignKey) + " " + Generator.lower1(
+                    Name.refName(tForeignKey)) + "() {");
             ps.println2("return " + Name.refName(tForeignKey) + ";");
             ps.println1("}");
             ps.println();
@@ -172,7 +232,8 @@ class GenBeanClass {
         if (isBeanAndHasNoColumn) {
             ps.println2("return \"%s\";", beanName);
         } else {
-            String params = tbean.getColumnMap().keySet().stream().map(Generator::lower1).collect(Collectors.joining(" + \",\" + "));
+            String params = tbean.getColumnMap().keySet().stream().map(Generator::lower1).collect(
+                    Collectors.joining(" + \",\" + "));
             ps.println2("return \"%s(\" + %s + \")\";", beanName, params);
         }
         ps.println1("}");
@@ -225,7 +286,9 @@ class GenBeanClass {
                     for (SRef sr : t.getConstraint().references) {
                         String k = "k";
                         if (sr.mapKeyRefTable != null) {
-                            ps.println3(Name.refTypeForMapKey(sr) + " rk = " + MethodStr.tableGet(sr.mapKeyRefTable, sr.mapKeyRefCols, "k"));
+                            ps.println3(Name.refTypeForMapKey(sr) + " rk = " + MethodStr.tableGet(sr.mapKeyRefTable,
+                                                                                                  sr.mapKeyRefCols,
+                                                                                                  "k"));
                             ps.println3("java.util.Objects.requireNonNull(rk);");
                             k = "rk";
                         }
@@ -243,7 +306,8 @@ class GenBeanClass {
                         ps.println2(Generator.lower1(n) + "._resolve(mgr);");
                     }
                     for (SRef sr : t.getConstraint().references) {
-                        ps.println2(Name.refName(sr) + " = " + MethodStr.tableGet(sr.refTable, sr.refCols, Generator.lower1(n)));
+                        ps.println2(Name.refName(sr) + " = " + MethodStr.tableGet(sr.refTable, sr.refCols,
+                                                                                  Generator.lower1(n)));
                         if (!sr.refNullable)
                             ps.println2("java.util.Objects.requireNonNull(" + Name.refName(sr) + ");");
                     }
@@ -252,7 +316,8 @@ class GenBeanClass {
         } //end columns
 
         for (TForeignKey m : tbean.getMRefs()) {
-            ps.println2(Name.refName(m) + " = " + MethodStr.tableGet(m.refTable, m.foreignKeyDefine.ref.cols, MethodStr.actualParams(m.foreignKeyDefine.keys)));
+            ps.println2(Name.refName(m) + " = " + MethodStr.tableGet(m.refTable, m.foreignKeyDefine.ref.cols,
+                                                                     MethodStr.actualParams(m.foreignKeyDefine.keys)));
             if (m.foreignKeyDefine.refType != ForeignKey.RefType.NULLABLE)
                 ps.println2("java.util.Objects.requireNonNull(" + Name.refName(m) + ");");
         }
@@ -267,7 +332,8 @@ class GenBeanClass {
             } else if (has_Enum_Detail) {
                 ps.println2("for (%s vv : %s.values()) {", refn.fullName, refn.fullName);
                 String primK = l.refTable.getTableDefine().primaryKey[0];
-                ps.println3("%s v = mgr.%sAll.get(vv.get%s());", refn.fullName + "_Detail", refn.containerPrefix, Generator.upper1(primK));
+                ps.println3("%s v = mgr.%sAll.get(vv.get%s());", refn.fullName + "_Detail", refn.containerPrefix,
+                            Generator.upper1(primK));
             } else {
                 ps.println2("mgr.%sAll.values().forEach( v -> {", refn.containerPrefix); // 为了跟之前兼容
             }
@@ -276,7 +342,8 @@ class GenBeanClass {
             for (int i = 0; i < l.foreignKeyDefine.keys.length; i++) {
                 String k = l.foreignKeyDefine.keys[i];
                 String rk = l.foreignKeyDefine.ref.cols[i];
-                eqs.add(MethodStr.equal("v.get" + Generator.upper1(rk) + "()", Generator.lower1(k), tbean.getColumnMap().get(k)));
+                eqs.add(MethodStr.equal("v.get" + Generator.upper1(rk) + "()", Generator.lower1(k),
+                                        tbean.getColumnMap().get(k)));
             }
             ps.println3("if (" + String.join(" && ", eqs) + ")");
 

@@ -16,9 +16,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 public class AllDefine extends Node {
+
+    private static final String topXmlFile = "config.xml";
+
     private final Path dataDir;
     private final String encoding;
-    private final String topXmlFile = "config.xml";
 
     private final Map<String, Define> defines = new TreeMap<>();
     private final Map<String, Bean> beans = new TreeMap<>();

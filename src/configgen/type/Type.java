@@ -47,6 +47,10 @@ public abstract class Type extends Node {
 
     public abstract int columnSpan();
 
+    public boolean isPrimitiveValueType() {
+        return false;
+    }
+
     public abstract <T> T accept(TypeVisitorT<T> visitor);
 
 

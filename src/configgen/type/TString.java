@@ -40,6 +40,11 @@ public class TString extends TPrimitive {
     }
 
     @Override
+    public boolean isPrimitiveValueType() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return subtype.toString().toLowerCase();
     }

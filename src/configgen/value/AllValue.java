@@ -18,7 +18,7 @@ public class AllValue extends Node {
      */
     private static AllValue current;
 
-    static AllValue getCurrent() {
+    public static AllValue getCurrent() { //这个全局很恶心，但暂时想不到更好的方式了
         return current;
     }
 
@@ -68,7 +68,7 @@ public class AllValue extends Node {
         return vTables.get(tableName);
     }
 
-    Context getCtx() {
+    public Context getCtx() {
         return ctx;
     }
 }

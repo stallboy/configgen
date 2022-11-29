@@ -101,15 +101,4 @@ public class Name {
         }
     }
 
-    static String refInitialValue(Type t) {
-        if (t instanceof TList) {
-            return " = new java.util.ArrayList<>()";
-        } else if (t instanceof TMap) {
-            return " = new java.util.LinkedHashMap<>();";
-        } else {
-            return "";
-        }
-    }
-
-
 }

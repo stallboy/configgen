@@ -67,55 +67,6 @@ class TypeStr {
         });
     }
 
-    static String initialValue(Type t) {
-        return t.accept(new TypeVisitorT<String>() {
-            @Override
-            public String visit(TBool type) {
-                return "";
-            }
-
-            @Override
-            public String visit(TInt type) {
-                return "";
-            }
-
-            @Override
-            public String visit(TLong type) {
-                return "";
-            }
-
-            @Override
-            public String visit(TFloat type) {
-                return "";
-            }
-
-            @Override
-            public String visit(TString type) {
-                return "";
-            }
-
-            @Override
-            public String visit(TList type) {
-                return " = new java.util.ArrayList<>()";
-            }
-
-            @Override
-            public String visit(TMap type) {
-                return " = new java.util.LinkedHashMap<>()";
-            }
-
-            @Override
-            public String visit(TBean type) {
-                return "";
-            }
-
-            @Override
-            public String visit(TBeanRef type) {
-                return "";
-            }
-        });
-    }
-
     static String readValue(Type t) {
         return t.accept(new TypeVisitorT<String>() {
             @Override

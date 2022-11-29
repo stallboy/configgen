@@ -105,7 +105,7 @@ class GenBeanClassTablePart {
         String keyClassName = Name.keyClassName(keys);
         //static Key class
         ps.println1("public static class " + keyClassName + " {");
-        keys.forEach((n, t) -> ps.println2("private " + TypeStr.type(t) + " " + Generator.lower1(n) + ";"));
+        keys.forEach((n, t) -> ps.println2("private final " + TypeStr.type(t) + " " + Generator.lower1(n) + ";"));
         ps.println();
 
         ps.println2(keyClassName + "(" + MethodStr.formalParams(keys) + ") {");

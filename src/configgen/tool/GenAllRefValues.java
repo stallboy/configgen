@@ -94,7 +94,15 @@ public class GenAllRefValues extends Generator {
 
             @Override
             public void visit(VBean value) {
-                value.getValues().forEach((v) -> v.accept(this));
+                if (value.getChildDynamicVBean() != null) {
+                    for (Value v : value.getChildDynamicVBean().getValues()) {
+                        v.accept(this);
+                    }
+                }else {
+                    for (Value v : value.getValues()) {
+                        v.accept(this);
+                    }
+                }
             }
         };
 

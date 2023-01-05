@@ -3,7 +3,9 @@ package configgen.value;
 import configgen.type.Type;
 
 import java.util.List;
-
+/**
+ * VComposite的子类要override equals和hashCode，便于genlua.ValueSharedLayer来统计
+ */
 public abstract class VComposite extends Value {
     protected List<Cell> cells;
 

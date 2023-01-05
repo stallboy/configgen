@@ -342,7 +342,7 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
             return v
         end
 
-        --- 为简单计：只有在这种情况下，才允许add，del
+        --- add，del,只用于部分表
         --- 这里不做出错log，因为外部要自己再包装个add, del来用
         --- 外部应该有个统一的permitAddDel的地方，来声明哪些表可被扩充，这明确出来好，有个控制点。
         self._add = mk
@@ -352,8 +352,7 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
         end
 
     else
-        mk = function(...)
-            local v = { ... }
+        local put = function(v)
             setmetatable(v, I)
             for _, uk in ipairs(uniqkeys) do
                 local allname, _, k1, k2 = unpack(uk)
@@ -364,6 +363,11 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
                     all[v[k1] + v[k2] * 100000000] = v
                 end
             end
+        end
+
+        mk = function(...)
+            local v = { ... }
+            put(v)
 
             if enumidx then
                 local e = v[enumidx]
@@ -373,7 +377,27 @@ function mkcfg.i18n_table(self, uniqkeys, enumidx, refs, textFields, ...)
             end
             return v
         end
+
+        --- add，del，因为是动态添加删除，不会增加枚举
+        self._add = function(...)
+            local v = { ... }
+            put(v)
+        end
+
+        --- del，只考虑提供删除主键的接口
+        local allname, _, _, k2 = unpack(uniqkeys[1])
+        local all = self[allname]
+        if k2 == nil then
+            self._del = function(id)
+                all[id] = nil
+            end
+        else
+            self._del = function(id1, id2)
+                all[id1 + id2 * 100000000] = nil
+            end
+        end
     end
+
     return mk
 end
 

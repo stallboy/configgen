@@ -53,7 +53,10 @@ public class Context {
     Context(Path dataDir, String encoding) {
         fullDefine = new AllDefine(dataDir, encoding);
         fullData = fullDefine.readData();
-        fullType = fullDefine.autoFixDefineAndResolveFullType(fullData);
+        fullDefine.autoFixFullDefineByData(fullData);
+        fullDefine.verifyFullDefine();
+
+        fullType = fullDefine.resolveFullTypeAndAttachToData(fullData);
         ugcDefine = new UgcDefine(dataDir, encoding);
 
     }

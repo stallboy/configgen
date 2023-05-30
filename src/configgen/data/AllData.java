@@ -116,9 +116,6 @@ public class AllData extends Node {
         for (Bean bean : defineToFix.getAllBeans()) {
             bean.autoFixDefine(defineToFix);
         }
-
-
-
     }
 
 

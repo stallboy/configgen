@@ -47,6 +47,7 @@ public class Bean extends Node {
     public final Map<String, Bean> childDynamicBeans = new LinkedHashMap<>();
 
 
+
     /**
      * 正常Bean 或 多态基类Bean
      */
@@ -148,6 +149,7 @@ public class Bean extends Node {
         }
     }
 
+
     /**
      * 有新csv文件，导致的新建Bean
      */
@@ -186,6 +188,11 @@ public class Bean extends Node {
     public Define getDefine() {
         return define;
     }
+
+    public Column getColumn(String col){
+        return columns.get(col);
+    }
+
 
     //////////////////////////////// extract
 
@@ -266,6 +273,18 @@ public class Bean extends Node {
 
         for (ForeignKey fk : foreignKeys.values()) {
             fk.autoFixDefine(this, defineToFix);
+        }
+    }
+
+    public void verifyDefine(AllDefine fullDefine) {
+        for (Column col : columns.values()) {
+            if (col.foreignKey != null) {
+                col.foreignKey.verifyDefine(this, fullDefine);
+            }
+        }
+
+        for (ForeignKey fk : foreignKeys.values()) {
+            fk.verifyDefine(this, fullDefine);
         }
     }
 

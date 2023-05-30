@@ -317,8 +317,9 @@ public class TBean extends Type {
     private void resolveColumnConstraint(Type columnType, Column col) {
         Constraint cons = new Constraint();
         for (TForeignKey fk : foreignKeys) {
-            if (fk.foreignKeyDefine.refType != ForeignKey.RefType.LIST && fk.thisTableKeys.length == 1 && fk.thisTableKeys[0] == columnType)
+            if (fk.foreignKeyDefine.refType != ForeignKey.RefType.LIST && fk.thisTableKeys.length == 1 && fk.thisTableKeys[0] == columnType) {
                 cons.references.add(new SRef(fk));
+            }
         }
 
         if (null != col.keyRange) {
@@ -331,6 +332,7 @@ public class TBean extends Type {
         }
         columnType.setConstraint(cons);
     }
+
 
     private void resolveColumnType(Column col) {
         Type type;

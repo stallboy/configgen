@@ -134,15 +134,33 @@ public class AllDefine extends Node {
         return new AllData(this);
     }
 
-    public AllType autoFixDefineAndResolveFullType(AllData allData) {
+    public void autoFixFullDefineByData(AllData allData) {
         allData.autoFixDefine(this);
-
         saveToXml();
+    }
 
+    public void verifyFullDefine() {
+        for (Bean bean : beans.values()) {
+            try {
+                bean.verifyDefine(this);
+            } catch (Throwable e) {
+                throw new AssertionError(bean.name + "这个结构定义检查出错", e);
+            }
+        }
+
+        for (Table table : tables.values()) {
+            try {
+                table.verifyDefine(this);
+            } catch (Throwable e) {
+                throw new AssertionError(table.name + "这个表定义检查出错", e);
+            }
+        }
+    }
+
+    public AllType resolveFullTypeAndAttachToData(AllData allData) {
         // 解析出类型，把齐全的类型信息 赋到 Data上，因为之后生成Value时可能只会用 不全的Type
         AllType fullType = resolveType(ViewFilter.FULL_DEFINE);
         allData.attachType(fullType);
-
         return fullType;
     }
 

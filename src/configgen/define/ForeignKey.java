@@ -62,6 +62,8 @@ public class ForeignKey extends Node {
         }
     }
 
+
+
     ForeignKey(Node _parent, ForeignKey original) {
         super(_parent, original.name);
         keys = original.keys;
@@ -82,6 +84,17 @@ public class ForeignKey extends Node {
             mapKeyRef.autoFixDefine(parentBean, defineToFix);
         }
     }
+
+    public void verifyDefine(Bean parentBean, AllDefine fullDefine) {
+        if (ref != null) {
+            ref.verifyDefine(parentBean, keys, false, fullDefine);
+        }
+        if (mapKeyRef != null) {
+            mapKeyRef.verifyDefine(parentBean, keys, true,  fullDefine);
+        }
+    }
+
+
 
     void save(Element parent) {
         Element self = DomUtils.newChild(parent, "foreignKey");

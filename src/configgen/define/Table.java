@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Table extends Node {
-
     public enum EnumType {
         None,
         /**
@@ -45,7 +44,7 @@ public class Table extends Node {
     Table(Define parent, Element self) {
         super(parent, parent.wrapPkgName(self.getAttribute("name")));
         DomUtils.permitAttributes(self, "name", "own", "primaryKey", "isPrimaryKeySeq",
-                                  "enum", "enumPart", "entry", "extraSplit", "isColumnMode");
+                "enum", "enumPart", "entry", "extraSplit", "isColumnMode");
         DomUtils.permitElements(self, "column", "foreignKey", "range", "uniqueKey");
 
         require(self.hasAttribute("name"), "table必须设置name");
@@ -120,6 +119,7 @@ public class Table extends Node {
                 || bean.columns.values().stream().anyMatch(column -> null != column.foreignKey);
     }
 
+
     public int getExtraSplit() {
         return extraSplit;
     }
@@ -134,6 +134,10 @@ public class Table extends Node {
         extraSplit = 0;
     }
 
+
+    public void verifyDefine(AllDefine fullDefine) {
+        bean.verifyDefine(fullDefine);
+    }
 
     //////////////////////////////// auto fix使用的接口
 

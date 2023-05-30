@@ -45,6 +45,7 @@ public class AllData extends Node {
                         return FileVisitResult.CONTINUE;
                     }
 
+                    Logger.verbose(path.toString());
                     List<SheetData> sheetDataList = SheetUtils.readFromFile(path.toFile(), allDefine.getEncoding());
 
                     for (SheetData sheetData : sheetDataList) {

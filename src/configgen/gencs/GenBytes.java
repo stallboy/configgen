@@ -23,9 +23,11 @@ public class GenBytes extends Generator {
     public void generate(Context ctx) throws IOException {
         AllValue value = ctx.makeValue(filter);
 
-        PackValueVisitor pack = new PackValueVisitor(new CachedFileOutputStream(file, 2048 * 1024));
-        for (String cfg : value.getTableNames()) {
-            pack.addVTable(value.getVTable(cfg));
+        try (CachedFileOutputStream stream = new CachedFileOutputStream(file, 2048 * 1024)) {
+            PackValueVisitor pack = new PackValueVisitor(stream);
+            for (String cfg : value.getTableNames()) {
+                pack.addVTable(value.getVTable(cfg));
+            }
         }
     }
 }

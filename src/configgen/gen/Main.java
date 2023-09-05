@@ -1,6 +1,7 @@
 package configgen.gen;
 
 import configgen.Logger;
+import configgen.gencs.GenBytes;
 import configgen.gencs.GenCs;
 import configgen.gencs.GenPack;
 import configgen.genjava.GenJavaData;
@@ -85,6 +86,7 @@ public final class Main {
         Generators.addProvider("lua", GenLua::new);
         Generators.addProvider("cs", GenCs::new);
         Generators.addProvider("pack", GenPack::new);
+        Generators.addProvider("bytes", GenBytes::new);
 
         Generators.addProvider("i18n", GenI18n::new);
         Generators.addProvider("allrefvalues", GenAllRefValues::new);

@@ -11,7 +11,7 @@ public class VBool extends VPrimitive {
 
     VBool(TBool type, List<Cell> data) {
         super(type, data);
-        String s = raw.getData();
+        String s = raw.getData().trim();
         value = PrimitiveParser.parseBoolean(s); //s.equalsIgnoreCase("true") || s.equals("1");
         require(s.isEmpty() || s.equalsIgnoreCase("false") || s.equals("0") || value, "不是布尔值");
     }

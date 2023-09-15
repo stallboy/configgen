@@ -131,7 +131,7 @@ public class DTable extends Node {
                 String newDesc = col.desc();
                 boolean changed = tableToFix.addColumn(column, newDesc);
                 if (changed) {
-                    Logger.verbose("change column desc " + newDesc);
+//                    Logger.verbose("change column desc " + newDesc.replace("\n", "$"));
                 }
             } else {
                 Column c = tableToFix.addNewColumn(col.name, col.guessType(), col.desc());

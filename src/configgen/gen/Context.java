@@ -51,10 +51,18 @@ public class Context {
     private final UgcDefine ugcDefine;
 
     Context(Path dataDir, String encoding) {
+        Logger.mm("start");
         fullDefine = new AllDefine(dataDir, encoding);
+        Logger.mm("read xml done");
         fullData = fullDefine.readData();
+        Logger.mm("read full data done");
+
         fullDefine.autoFixFullDefineByData(fullData);
+        Logger.mm("auto fix xml by data done");
+
         fullDefine.verifyFullDefine();
+        Logger.mm("verify full xml done");
+
 
         fullType = fullDefine.resolveFullTypeAndAttachToData(fullData);
         ugcDefine = new UgcDefine(dataDir, encoding);
@@ -117,7 +125,11 @@ public class Context {
         lastValue = null; //让它可以被尽快gc
 
         lastViewFilter = filter;
-        lastValue = make(fullDefine.resolveType(filter));
+        AllType type = fullDefine.resolveType(filter);
+        Logger.mm("build all type done");
+
+        lastValue = make(type);
+
 
         Logger.mm("verify " + filter.name());
         return lastValue;
@@ -125,8 +137,9 @@ public class Context {
 
     private AllValue make(AllType myType) {
         AllValue value = new AllValue(myType, this);
-        Logger.mm("value");
+        Logger.mm("make value done");
         value.verifyConstraint();
+        Logger.mm("verify value constraint done");
         return value;
     }
 }

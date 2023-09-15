@@ -1,6 +1,7 @@
 package configgen.util;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,20 +26,20 @@ public final class CSVParser {
      * 如果国际化成泰语，GBK不行了，需要utf8，则只要此csv文件有bom头就ok
      */
     public static List<List<String>> readFromFile(Path path, String encoding) throws IOException {
-        //使用reader很费内存
-        //Reader reader = new UnicodeReader(new BufferedInputStream(new FileInputStream(file)), encoding)
-        int nread = FileReadUtils.readAllBytes(path);
-        byte[] buf = FileReadUtils.getBuf();
+        byte[] buf = Files.readAllBytes(path);
+        int nread = buf.length;
 
         BomChecker.Res bom = BomChecker.checkBom(buf, nread, encoding);
         String fileStr = new String(buf, bom.bomSize, nread - bom.bomSize, bom.encoding);
         return parse(fileStr);
     }
 
-    private static final StringBuilder field = new StringBuilder(128); //这里假设是单线程
-
     //https://tools.ietf.org/html/rfc4180
     public static List<List<String>> parse(String source) {
+
+        final StringBuilder field = new StringBuilder(128);
+
+
         ArrayList<List<String>> result = new ArrayList<>();
         ArrayList<String> record = new ArrayList<>();
         State state = State.START;
@@ -73,7 +74,7 @@ public final class CSVParser {
                 case NO_QUOTE:
                     switch (c) {
                         case comma:
-                            addField(record);
+                            addField(record, field);
                             state = State.START;
                             break;
                         case cr:
@@ -99,7 +100,7 @@ public final class CSVParser {
                 case QUOTE2:
                     switch (c) {
                         case comma:
-                            addField(record);
+                            addField(record, field);
                             state = State.START;
                             break;
                         case quote:
@@ -120,11 +121,11 @@ public final class CSVParser {
                     switch (c) {
                         case comma:
                             field.append(cr);
-                            addField(record);
+                            addField(record, field);
                             state = State.START;
                             break;
                         case lf:
-                            addField(record);
+                            addField(record, field);
                             addRecord(result, record);
 
                             record = new ArrayList<>(record.size()); //优化下存储
@@ -149,11 +150,11 @@ public final class CSVParser {
                 break;
             case CR:
                 field.append(cr);
-                addField(record);
+                addField(record, field);
                 addRecord(result, record);
                 break;
             default:
-                addField(record);
+                addField(record, field);
                 addRecord(result, record);
                 break;
         }
@@ -162,8 +163,8 @@ public final class CSVParser {
         return result;
     }
 
-    private static void addField(ArrayList<String> record) {
-        String s = CSVParser.field.toString();
+    private static void addField(ArrayList<String> record, StringBuilder field) {
+        String s = field.toString();
 
         if (s.length() < 5) {//与速度和内存间取个平衡吧
             s = s.intern();

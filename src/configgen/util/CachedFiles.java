@@ -40,9 +40,9 @@ public class CachedFiles {
             return;
         }
 
-        int nread = FileReadUtils.readAllBytes(path);
-        byte[] buf = FileReadUtils.getBuf();
-        if (!arrayEquals(buf, nread, data, data.length)){
+        byte[] buf = Files.readAllBytes(path);
+        int nread = buf.length;
+        if (!arrayEquals(buf, nread, data, data.length)) {
             Logger.log("modify file: " + path);
             Files.write(path, data, StandardOpenOption.CREATE,
                     StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);

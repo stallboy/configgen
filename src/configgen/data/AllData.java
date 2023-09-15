@@ -11,6 +11,7 @@ import configgen.util.SheetData;
 import configgen.util.SheetUtils;
 import configgen.view.ViewFilter;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -18,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class AllData extends Node {
     private final Map<String, DTable> dTables = new HashMap<>();
@@ -30,7 +32,8 @@ public class AllData extends Node {
             throw new IllegalArgumentException("配置顶级目录必须是目录. dataDir = " + dataDir);
         }
 
-        Map<String, List<DSheet>> dSheetMap = new TreeMap<>();
+        List<Callable<List<SheetData>>> tasks = new ArrayList<>();
+        String encoding = allDefine.getEncoding();
         try {
             //noinspection Convert2Diamond
             Files.walkFileTree(dataDir, new SimpleFileVisitor<Path>() {
@@ -45,19 +48,29 @@ public class AllData extends Node {
                         return FileVisitResult.CONTINUE;
                     }
 
-                    Logger.verbose(path.toString());
-                    List<SheetData> sheetDataList = SheetUtils.readFromFile(path.toFile(), allDefine.getEncoding());
-
-                    for (SheetData sheetData : sheetDataList) {
-                        DSheet sheet = DSheet.create(allDefine, AllData.this, sheetData);
-                        List<DSheet> sheetList = dSheetMap.computeIfAbsent(sheet.getConfigName(), k -> new ArrayList<>());
-                        sheetList.add(sheet);
-                    }
-
+                    tasks.add(() -> SheetUtils.readFromFile(path.toFile(), encoding));
                     return FileVisitResult.CONTINUE;
                 }
             });
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        Map<String, List<DSheet>> dSheetMap = new TreeMap<>();
+
+        try(ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())){
+            List<Future<List<SheetData>>> futures = executor.invokeAll(tasks);
+            for (Future<List<SheetData>> future : futures) {
+                List<SheetData>  sheetDataList = future.get();
+                for (SheetData sheetData : sheetDataList) {
+                    DSheet sheet = DSheet.create(allDefine, AllData.this, sheetData);
+                    List<DSheet> sheetList = dSheetMap.computeIfAbsent(sheet.getConfigName(), k -> new ArrayList<>());
+                    sheetList.add(sheet);
+                }
+            }
+
+        } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
 

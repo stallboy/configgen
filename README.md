@@ -1,5 +1,7 @@
 # configgen
 
+[deprecated]，new version at [cfggen](https://github.com/stallboy/cfggen)
+
 让策划可以在excel中做灵活的配置，之后再为程序生成访问配置表的代码
 
 * [介绍](https://stallboy.github.io/configgen/)
